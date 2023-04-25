@@ -20,11 +20,16 @@ def getvehicles(vehicle_type=2):
         vehicles["stop_sequence"] = mbta_response["current_stop_sequence"]
         vehicles["direction_id"] = mbta_response["direction_id"]
         # vehicles["label"] = mbta_response["label"]
+        
         vehicles["latitude"] = mbta_response["latitude"]
         vehicles["longitude"] = mbta_response["longitude"]
         vehicles["bearing"] = mbta_response["bearing"]
         vehicles["speed"] = mbta_response["speed"]
-        vehicles["timestamp"] = mbta_response["timestamp"]
+        
+        vehicles["timestamp"] = mbta_response["updated_at"]
+        vehicles["trip"] = mbta_response["trip"].apply(lambda x: x["id"])
+        vehicles["stop"] = mbta_response["stop"].apply(lambda x: x["id"])
+        vehicles["route"] = mbta_response["route"].apply(lambda x: x["id"])
         
         logging.info("Vehicles data retrieved successfully")
         
