@@ -1,0 +1,9 @@
+pandas
+numpy
+requests
+json_api_doc
+geopandas
+shapely
+matplotlib
+folium
+branca
