@@ -16,7 +16,7 @@ from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
 
-vehicle_type = 1
+vehicle_type = 2
 
 vehicles = getvehicles(vehicle_type)
 routes = import_mbta_shapes(vehicle_type)
@@ -65,16 +65,17 @@ for index, row in stops.iterrows():
     Stops(row).build_stop().add_to(stops_layer)
 print(f"Stops layer built in {time.time() - stops_time} seconds")
 
-vehicle_cluster_time = time.time()
-vehicle_cluster = MarkerCluster(name="Vehicles", show=True).add_to(system_map)
-# vehicle_layer = folium.FeatureGroup(name="Vehicles", show=True).add_to(map)
-vehicle_icon = Image.open("icon.png")
-for index, row in vehicles.iterrows():
-    Vehicle(row, vehicle_icon).build_vehicle().add_to(vehicle_cluster)
-    # marker.add_to(vehicle_layer)
-print(f"Vehicle layer built in {time.time() - vehicle_cluster_time} seconds")
+if not vehicles.empty:
+    vehicle_cluster_time = time.time()
+    vehicle_cluster = MarkerCluster(name="Vehicles", show=True).add_to(system_map)
+    # vehicle_layer = folium.FeatureGroup(name="Vehicles", show=True).add_to(map)
+    vehicle_icon = Image.open("icon.png")
+    for index, row in vehicles.iterrows():
+        Vehicle(row, vehicle_icon).build_vehicle().add_to(vehicle_cluster)
+        # marker.add_to(vehicle_layer)
+    print(f"Vehicle layer built in {time.time() - vehicle_cluster_time} seconds")
 
-layer_control = folium.LayerControl().add_to(system_map)
+    layer_control = folium.LayerControl().add_to(system_map)
 
 system_map.save("index.html")
 system_map.show_in_browser()

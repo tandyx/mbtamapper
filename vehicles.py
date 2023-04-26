@@ -54,16 +54,17 @@ def getvehicles(vehicle_type=2):
             )
 
             logging.info("Vehicles data retrieved successfully")
+
+            return gpd.GeoDataFrame(
+                vehicles,
+                geometry=gpd.points_from_xy(
+                    vehicles.longitude, vehicles.latitude, crs=4326
+                ),
+            ).reset_index(drop=True)
         else:
             logging.warning("No vehicles found")
-            vehicles = pd.DataFrame()
-
-        return gpd.GeoDataFrame(
-            vehicles,
-            geometry=gpd.points_from_xy(
-                vehicles.longitude, vehicles.latitude, crs=4326
-            ),
-        ).reset_index(drop=True)
+            return pd.DataFrame()
 
     else:
         logging.error("Vehicles data retrieval failed")
+        return pd.DataFrame()
