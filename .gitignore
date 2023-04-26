@@ -53,3 +53,4 @@ docs/_build/
 .env
 *.pyc
 *.pyo
+launch.json

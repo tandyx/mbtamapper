@@ -26,14 +26,16 @@ def getstops(vehicle_type=2):
         stops["municipality"] = mbta_response["municipality"]
         stops["wheelchair_accessible"] = mbta_response["wheelchair_boarding"]
         stops["parent_station"] = mbta_response["parent_station"].apply(
-            lambda x: x["id"]
+            lambda x: x["id"] if x else None
         )
-        stops["adress"] = mbta_response["parent_station"].apply(lambda x: x["address"])
-        stops["zone"] = mbta_response["zone"].apply(lambda x: x["id"])
+        stops["adress"] = mbta_response["parent_station"].apply(
+            lambda x: x["address"] if x else None
+        )
+        stops["zone"] = mbta_response["zone"].apply(lambda x: x["id"] if x else None)
 
         return gpd.GeoDataFrame(
             stops,
             geometry=gpd.points_from_xy(stops.longitude, stops.latitude, crs=4326),
-        )
+        ).reset_index(drop=True)
     else:
         logging.error("Vehicles data retrieval failed")

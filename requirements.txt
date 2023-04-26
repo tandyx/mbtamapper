@@ -9,3 +9,4 @@ folium
 branca
 css_inline
 polyline
+geocoder

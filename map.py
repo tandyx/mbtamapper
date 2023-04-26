@@ -1,135 +1,80 @@
-import folium
 import time
 import logging
+import folium
 from folium.plugins import MarkerCluster
-from PIL import Image, ImageFont
-from base64 import b64encode
-import polyline
+from PIL import Image
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import geocoder
 
 
 from vehicles import getvehicles
 from routes import import_mbta_shapes
 from stops import getstops
-from shared_code import center_text
+from layer_constructors.route_constructor import Route
+from layer_constructors.stop_constructor import Stops
+from layer_constructors.vehicle_constructor import Vehicle
 
-# Read in UK Historical Plaques data
+vehicle_type = 1
 
+vehicles = getvehicles(vehicle_type)
+routes = import_mbta_shapes(vehicle_type)
+stops = getstops(vehicle_type)
 
-vehicles = getvehicles(2)
-routes = import_mbta_shapes(2)
-stops = getstops(2)
+zoom = 14
 
-map = folium.Map(
-    location=[42.3519, -71.0552],
-    tiles="cartodbpositron",
-    zoom_start=9,
+if vehicle_type == 0:
+    vehicles = pd.concat([vehicles, getvehicles(1)])
+    routes = pd.concat([routes, import_mbta_shapes(1)])
+    stops = pd.concat([stops, getstops(1)])
+elif vehicle_type == 1:
+    vehicles = pd.concat([vehicles, getvehicles(0)])
+    routes = pd.concat([routes, import_mbta_shapes(0)])
+    stops = pd.concat([stops, getstops(0)])
+elif vehicle_type == 2:
+    zoom = 9.5
+
+system_map = folium.Map(
+    location=geocoder.ip("me").latlng,
+    tiles=None,
+    zoom_start=zoom,
 )
 
-routes_layer = folium.FeatureGroup(name="Routes", show=True).add_to(map)
+folium.TileLayer(
+    tiles="cartodbdark_matter",  # tiles="cartodbpositron",
+    control=False,
+    min_zoom=9.5,
+    min_lat=40,
+    max_lat=44,
+    min_lon=-73,
+    max_lon=-69,
+).add_to(system_map)
 
+route_time = time.time()
+routes_layer = folium.FeatureGroup(name="Routes", show=True).add_to(system_map)
 for index, row in routes.iterrows():
-    if row["MBTARouteType"] == 3:
-        line_color = "black"
-        vehicle_type = "shuttle"
-        pass
-    else:
-        line_color = "purple"
-        vehicle_type = "heavy_rail"
+    Route(row).build_route().add_to(routes_layer)
+print(f"Routes layer built in {time.time() - route_time} seconds")
 
-        html = f"""<strong>Route:</strong> {row["MBTARoute"]}<br>
-                <strong>type:</strong> {vehicle_type}<br>"""
-        popup = folium.Popup(folium.IFrame(html, width=200, height=200), max_width=400)
-
-        folium.PolyLine(
-            locations=polyline.decode(row["MBTAPolyLine"]),
-            color=line_color,
-            weight=1,
-            opacity=1,
-            popup=popup,
-        ).add_to(routes_layer)
-
-
-stops_layer = folium.FeatureGroup(name="Stops", show=True).add_to(map)
-
+stops_time = time.time()
+stops_layer = folium.FeatureGroup(
+    name="Stops", show=(True if vehicle_type != 3 else False)
+).add_to(system_map)
 for index, row in stops.iterrows():
-    if row["wheelchair_accessible"] == 1:
-        acessible = "True"
-    elif row["wheelchair_accessible"] == 2:
-        acessible = "False"
-    else:
-        acessible = "Unknown"
+    Stops(row).build_stop().add_to(stops_layer)
+print(f"Stops layer built in {time.time() - stops_time} seconds")
 
-    html = f"""<strong>Stop:</strong> <a href="https://www.mbta.com/stops/{row["parent_station"]}">{row["stop_name"]}</a><br>
-               <strong>Platform:</strong> {row["platform_code"]}<br> 
-               <strong>Wheelchair Accessible:</strong> {acessible}<br>"""
-
-    popup = folium.Popup(folium.IFrame(html, width=200, height=200), max_width=400)
-    stops_icon = folium.CustomIcon("mbta.png", icon_size=(17, 17))
-
-    folium.Marker(
-        location=[row["latitude"], row["longitude"]],
-        icon=stops_icon,
-        popup=popup,
-    ).add_to(stops_layer)
-
-
-# vehicle_cluster = MarkerCluster().add_to(map)
-vehicle_layer = folium.FeatureGroup(name="Vehicles", show=True).add_to(map)
-
+vehicle_cluster_time = time.time()
+vehicle_cluster = MarkerCluster(name="Vehicles", show=True).add_to(system_map)
+# vehicle_layer = folium.FeatureGroup(name="Vehicles", show=True).add_to(map)
+vehicle_icon = Image.open("icon.png")
 for index, row in vehicles.iterrows():
-    html = f"""<strong>Vehicle:</strong> {row["vehicle_id"]}<br>
-               <strong>Trip:</strong> {row["trip_short_name"]}<br> 
-               <strong>Route:</strong> {row["route"]}<br>
-               <strong>Status:</strong> {row["stop_status"]} <a href="https://www.mbta.com/stops/{row["parent_station"]}">{row["stop_name"]}</a><br>
-               <strong>Time:</strong> {row["timestamp"]}<br>
-               <strong>Speed:</strong> {row["speed"]} mph<br>
-               <strong>Heading:</strong> {row["bearing"]} degrees<br>"""
+    Vehicle(row, vehicle_icon).build_vehicle().add_to(vehicle_cluster)
+    # marker.add_to(vehicle_layer)
+print(f"Vehicle layer built in {time.time() - vehicle_cluster_time} seconds")
 
-    iframe = folium.IFrame(html, width=200, height=200)
-    popup = folium.Popup(iframe, max_width=400)
+layer_control = folium.LayerControl().add_to(system_map)
 
-    # don't even think about it
-    start = time.time()
-    img = Image.open("icon.png").rotate(-1 * row["bearing"])
-
-    center_text.center_text(
-        img,
-        ImageFont.truetype("times", 275),
-        row["trip_short_name"],
-        (0, 0, 0),
-        (0, -40),
-    )
-
-    icon = folium.CustomIcon(np.array(img), icon_size=(50, 50))
-
-    print("Icon rotation took %s seconds", time.time() - start)
-
-    marker = folium.Marker(
-        location=[row["latitude"], row["longitude"]],
-        icon=icon,
-        popup=popup,
-        zIndexOffset=1000,
-    )
-
-    # marker.add_to(vehicle_cluster)
-    marker.add_to(vehicle_layer)
-
-layer_control = folium.LayerControl().add_to(map)
-# title_html =
-# <head>
-#     <title>Test</title>
-#     <style>h1 { background-color: #000000; opacity: 0.8; overflow: hidden; }</style>
-# </head>
-# <body>
-#     <h1>Big Text</h1>
-# </body>
-#             """
-
-# map.get_root().html.add_child(folium.Element(css.inline(title_html)))
-
-
-map.save("index.html")
-map.show_in_browser()
+system_map.save("index.html")
+system_map.show_in_browser()
