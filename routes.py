@@ -107,6 +107,3 @@ def import_mbta_shapes(route_type=2):
             "import_mbta_shapes couldn't connect to mbta routes: %s",
             routes_connection.text,
         )
-
-
-x = import_mbta_shapes()

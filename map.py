@@ -131,9 +131,5 @@ layer_control = folium.LayerControl().add_to(map)
 # map.get_root().html.add_child(folium.Element(css.inline(title_html)))
 
 
-# "Fall" color ramp from https://carto.com/carto-colors/
 map.save("index.html")
 map.show_in_browser()
-
-with open("vehicles.json", "w") as outfile:
-    outfile.write(vehicles.to_json())
