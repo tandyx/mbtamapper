@@ -10,7 +10,7 @@ import geocoder
 
 
 from vehicles import getvehicles
-from routes import import_mbta_shapes
+from shapes import import_mbta_shapes
 from stops import getstops
 from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
