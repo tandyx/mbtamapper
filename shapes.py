@@ -33,7 +33,7 @@ def getshapes(route_type=2, active_routes=""):
 
     route_trip = pd.DataFrame()
 
-    if req.ok:
+    if req.ok and req.json()["data"]:
         route_trip = pd.DataFrame.from_dict(jad.deserialize(req.json()))
         # issues with jad deserialization forced us to use this to query route type
         route_type_trip = pd.DataFrame.from_dict(
@@ -78,10 +78,6 @@ def getshapes(route_type=2, active_routes=""):
         # creates a copy of route_trip,
         # and drops duplicate shape_id ids, which will be the RowKey.
 
-    else:
-        logging.error(
-            "getshapes couldn't connect to mbta routes: %s",
-            req.text,
-        )
+    logging.info("Received code %s from MBTA shapes", req.status_code)
 
     return route_trip.dropna().drop_duplicates()

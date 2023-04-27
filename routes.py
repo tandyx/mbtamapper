@@ -18,7 +18,7 @@ def getroutes(route_type=2):
         timeout=5,
     )
     routes = pd.DataFrame()
-    if req.ok:
+    if req.ok and req.json()["data"]:
         mbta_response = pd.DataFrame(req.json()["data"])
         if not mbta_response.empty:
             routes["route_id"] = mbta_response["id"]

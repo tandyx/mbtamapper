@@ -29,7 +29,7 @@ def getpredictions(route_type=2, active_routes=""):
 
     predictions = pd.DataFrame()
 
-    if req.ok:
+    if req.ok and req.json()["data"]:
         mbta_response = pd.DataFrame(jad.deserialize(req.json()))
 
         predictions["vehicle_id"] = mbta_response["vehicle"].apply(
@@ -72,12 +72,6 @@ def getpredictions(route_type=2, active_routes=""):
             lambda x: x["departure_time"] if x else None
         )
 
-        predictions["status"] = mbta_response["status"]
-        predictions["direction_id"] = mbta_response["direction_id"]
-        predictions["predicted_arrival_time"] = mbta_response["arrival_time"]
-        predictions["predicted_departure_time"] = mbta_response["departure_time"]
-        predictions["stop_sequence"] = mbta_response["stop_sequence"]
-
         # iso_convert.iso_convert(
         #     predictions,
         #     [
@@ -95,9 +89,11 @@ def getpredictions(route_type=2, active_routes=""):
             predictions, "scheduled_departure_time", "predicted_departure_time"
         )
 
-    else:
-        logging.error(
-            "MBTA prediction response returned the following: %s", req.text
-        )  # prediction logging
+        predictions["status"] = mbta_response["status"]
+        predictions["direction_id"] = mbta_response["direction_id"]
+        predictions["predicted_arrival_time"] = mbta_response["arrival_time"]
+        predictions["predicted_departure_time"] = mbta_response["departure_time"]
+        predictions["stop_sequence"] = mbta_response["stop_sequence"]
 
+    logging.info("Received code %s from MBTA predictions", req.status_code)
     return predictions

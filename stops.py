@@ -15,7 +15,7 @@ def getstops(route_type=2):
     )
     stops = pd.DataFrame()
 
-    if req.ok:
+    if req.ok and req.json()["data"]:
         mbta_response = pd.DataFrame(jad.deserialization.deserialize(req.json()))
 
         stops["stop_id"] = mbta_response["id"]

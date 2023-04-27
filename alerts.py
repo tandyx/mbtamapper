@@ -1,10 +1,4 @@
-"""
-Keolis AVL-ACSES Real-Time Interface
-Azure Function to poll MBTA data at /alerts and create live alerts table
-2023-01-20
-Keolis Digital Solutions - Service Delivery Team
-"""
-
+import logging
 import requests as rq
 import pandas as pd
 import json_api_doc as jad
@@ -19,7 +13,7 @@ def getalerts(route_type=2):
         timeout=5,
     )
     alerts = pd.DataFrame()
-    if req.ok:
+    if req.ok and req.json()["data"]:
         mbta_response = pd.DataFrame(jad.deserialization.deserialize(req.json()))
 
         alerts["alert_id"] = mbta_response["id"]
@@ -48,5 +42,7 @@ def getalerts(route_type=2):
         )
 
         alerts = alerts.explode(["route_id", "trip_id", "stop_id"])
+
+    logging.info("Received code %s from MBTA alerts", req.status_code)
 
     return alerts.reset_index(drop=True)
