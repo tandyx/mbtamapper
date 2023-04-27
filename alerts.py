@@ -49,9 +49,4 @@ def getalerts(route_type=2):
 
         alerts = alerts.explode(["route_id", "trip_id", "stop_id"])
 
-        # [{'activities': [...], 'direction_id': 1, 'route': 'CR-Kingston', 'route_type': 2, 'trip': 'CR-554461-062'}]
-
     return alerts.reset_index(drop=True)
-
-
-getalerts(2)
