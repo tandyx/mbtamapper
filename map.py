@@ -3,7 +3,6 @@ import logging
 import folium
 from folium.plugins import MarkerCluster
 from PIL import Image
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 import geocoder
@@ -14,6 +13,7 @@ from shapes import getshapes
 from stops import getstops
 from routes import getroutes
 from predictions import getpredictions
+from alerts import getalerts
 from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
@@ -28,6 +28,7 @@ vehicles = getvehicles(vehicle_type)
 shapes = getshapes(vehicle_type, active_routes)
 stops = getstops(vehicle_type)
 predictions = getpredictions(vehicle_type, active_routes)
+alerts = getalerts(vehicle_type)
 
 
 zoom = 14
@@ -40,6 +41,8 @@ if vehicle_type == 1:
     vehicles = pd.concat([vehicles, getvehicles(0)])
     shapes = pd.concat([shapes, getshapes(0, active_routes0)])
     stops = pd.concat([stops, getstops(0)])
+    alerts = pd.concat([alerts, getalerts(0)])
+
 elif vehicle_type == 2:
     zoom = 9.5
 
@@ -74,10 +77,15 @@ if not shapes.empty:
         ).add_to(system_map)
 
     for index, row in shapes.iterrows():
+        al_df = alerts.loc[
+            (alerts["route_id"] == row["route_id"])
+            & (alerts["stop_id"].isnull())
+            & (alerts["trip_id"].isnull())
+        ]
         if row["route_type"] == 3 and vehicle_type != 3:
-            Route(row).build_route().add_to(bus_replacement_layer)
+            Route(row, al_df).build_route().add_to(bus_replacement_layer)
         else:
-            Route(row).build_route().add_to(shapes_layer)
+            Route(row, al_df).build_route().add_to(shapes_layer)
 
     print(f"Routes layer built in {time.time() - route_time} seconds")
 
@@ -90,7 +98,8 @@ if not stops.empty:
 
     for index, row in stops.iterrows():
         prd_df = predictions.loc[predictions["parent_station"] == row["parent_station"]]
-        Stops(row, prd_df).build_stop().add_to(stops_layer)
+        al_df = alerts.loc[(alerts["stop_id"] == row["parent_station"])]
+        Stops(row, prd_df, al_df).build_stop().add_to(stops_layer)
 
     print(f"Stops layer built in {time.time() - stops_time} seconds")
 
@@ -103,7 +112,10 @@ if not vehicles.empty:
 
     for index, row in vehicles.iterrows():
         prd_df = predictions.loc[predictions["vehicle_id"] == row["vehicle_id"]]
-        Vehicle(row, prd_df, vehicle_icon).build_vehicle().add_to(vehicle_cluster)
+        al_df = alerts.loc[alerts["trip_id"] == row["trip_id"]]
+        Vehicle(row, prd_df, al_df, vehicle_icon).build_vehicle().add_to(
+            vehicle_cluster
+        )
         # marker.add_to(vehicle_layer)
 
     print(f"Vehicle layer built in {time.time() - vehicle_cluster_time} seconds")

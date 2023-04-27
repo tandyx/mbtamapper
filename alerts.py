@@ -4,11 +4,8 @@ Azure Function to poll MBTA data at /alerts and create live alerts table
 2023-01-20
 Keolis Digital Solutions - Service Delivery Team
 """
-from datetime import datetime
-import logging
-import os
+
 import requests as rq
-import pytz
 import pandas as pd
 import json_api_doc as jad
 
@@ -18,7 +15,7 @@ def getalerts(route_type=2):
     """Import MBTA alerts data from API"""
     # polls CR T-alerts data from MBTA
     req = rq.get(
-        "https://api-v3.mbta.com/alerts?filter[route_type]=2&filter[datetime]=NOW&include=routes,trips",
+        f"https://api-v3.mbta.com/alerts?filter[route_type]={route_type}&filter[datetime]=NOW&include=routes,trips",
         timeout=5,
     )
     alerts = pd.DataFrame()
@@ -54,7 +51,7 @@ def getalerts(route_type=2):
 
         # [{'activities': [...], 'direction_id': 1, 'route': 'CR-Kingston', 'route_type': 2, 'trip': 'CR-554461-062'}]
 
-    return alerts
+    return alerts.reset_index(drop=True)
 
 
 getalerts(2)

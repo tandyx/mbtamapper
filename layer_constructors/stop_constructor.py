@@ -7,6 +7,7 @@ import pandas as pd
 class Stops:
     row: pd.Series = None
     predictions: pd.DataFrame = None
+    alerts: pd.DataFrame = None
 
     def __post_init__(self):
         if self.row["wheelchair_accessible"] == 1:

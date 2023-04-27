@@ -11,6 +11,7 @@ from shared_code import center_text
 class Vehicle:
     row: pd.Series = None
     predictions: pd.DataFrame = None
+    alerts: pd.DataFrame = None
     vehicle_icon: Image.Image = None
 
     def __post_init__(self):

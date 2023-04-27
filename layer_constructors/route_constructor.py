@@ -7,6 +7,7 @@ import pandas as pd
 @dataclass
 class Route:
     row: pd.Series = None
+    alerts: pd.DataFrame = None
 
     def __post_init__(self):
         opacity = 1
