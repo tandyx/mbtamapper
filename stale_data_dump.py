@@ -55,3 +55,6 @@ def dump_data(delay=6000, buses=False):
         time.sleep(delay)
         for file_prefix in ["routes", "shapes", "stops"]:
             CSV_ops(file_prefix).delete_old_data()
+
+
+dump_data(0, True)

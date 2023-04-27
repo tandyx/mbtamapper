@@ -62,3 +62,6 @@ def dump_data(delay=15, buses=False):
             CSV_ops(file_prefix).delete_old_data()
 
         time.sleep(delay)
+
+
+dump_data(0, False)
