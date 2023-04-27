@@ -34,6 +34,7 @@ def getstops(route_type=2):
         )
         stops["description"] = mbta_response["description"]
         stops["zone"] = mbta_response["zone"].apply(lambda x: x["id"] if x else None)
+        stops["route_type"] = route_type
 
     else:
         logging.error("Vehicles data retrieval failed")

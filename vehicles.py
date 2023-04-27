@@ -4,8 +4,6 @@ import requests as rq
 import json_api_doc as jad
 import pandas as pd
 
-from shared_code.iso_convert import iso_convert
-
 
 def getvehicles(route_type=2):
     """Retrieve vehicle data from MBTA API"""

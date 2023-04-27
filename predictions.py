@@ -94,6 +94,7 @@ def getpredictions(route_type=2, active_routes=""):
         predictions["predicted_arrival_time"] = mbta_response["arrival_time"]
         predictions["predicted_departure_time"] = mbta_response["departure_time"]
         predictions["stop_sequence"] = mbta_response["stop_sequence"]
+        predictions["route_type"] = route_type
 
     logging.info("Received code %s from MBTA predictions", req.status_code)
     return predictions

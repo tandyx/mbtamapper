@@ -28,6 +28,7 @@ def getroutes(route_type=2):
             routes["Description"] = mbta_response["attributes"].apply(
                 lambda x: x["description"] if x else None
             )
+            routes["route_type"] = route_type
 
     else:
         logging.error("Routes data retrieval failed")

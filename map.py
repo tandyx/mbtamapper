@@ -18,21 +18,21 @@ from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
 
-vehicle_type = 2
+route_type = 2
 # 0 = light rail, 1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
 
-routes = getroutes(vehicle_type)
+routes = getroutes(route_type)
 active_routes = ",".join(routes["route_id"].unique().tolist())
 
-vehicles = getvehicles(vehicle_type)
-shapes = getshapes(vehicle_type, active_routes)
-stops = getstops(vehicle_type)
-predictions = getpredictions(vehicle_type, active_routes)
-alerts = getalerts(vehicle_type)
+vehicles = getvehicles(route_type)
+shapes = getshapes(route_type, active_routes)
+stops = getstops(route_type)
+predictions = getpredictions(route_type, active_routes)
+alerts = getalerts(route_type)
 
 
 zoom = 14
-if vehicle_type == 1:
+if route_type == 1:
     routes0 = getroutes(0)
     active_routes0 = ",".join(routes0["route_id"].unique().tolist())
 
@@ -43,7 +43,7 @@ if vehicle_type == 1:
     stops = pd.concat([stops, getstops(0)])
     alerts = pd.concat([alerts, getalerts(0)])
 
-elif vehicle_type == 2:
+elif route_type == 2:
     zoom = 9.5
 
 if not stops.empty:
@@ -76,7 +76,7 @@ if not shapes.empty:
     route_time = time.time()
     shapes_layer = folium.FeatureGroup(name="shapes", show=True).add_to(system_map)
 
-    if vehicle_type != 3:
+    if route_type != 3:
         bus_replacement_layer = folium.FeatureGroup(
             name="Bus Replacements", show=True
         ).add_to(system_map)
@@ -90,7 +90,7 @@ if not shapes.empty:
             ]
         except KeyError:
             al_df = pd.DataFrame()
-        if row["route_type"] == 3 and vehicle_type != 3:
+        if row["route_type"] == 3 and route_type != 3:
             Route(row, al_df).build_route().add_to(bus_replacement_layer)
         else:
             Route(row, al_df).build_route().add_to(shapes_layer)
@@ -101,7 +101,7 @@ if not stops.empty:
     stops_time = time.time()
 
     stops_layer = folium.FeatureGroup(
-        name="Stops", show=(True if vehicle_type != 3 else False)
+        name="Stops", show=(True if route_type != 3 else False)
     ).add_to(system_map)
 
     for index, row in stops.iterrows():

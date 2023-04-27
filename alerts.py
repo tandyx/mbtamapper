@@ -40,6 +40,7 @@ def getalerts(route_type=2):
         alerts["stop_id"] = mbta_response["informed_entity"].apply(
             lambda x: [item.get("stop") for item in x]
         )
+        alerts["route_type"] = 2
 
         alerts = alerts.explode(["route_id", "trip_id", "stop_id"])
 
