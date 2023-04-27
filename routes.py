@@ -12,7 +12,7 @@ import numpy as np
 # pylint: disable=unused-variable
 
 
-def get_routes(route_type=2):
+def getroutes(route_type=2):
     req = requests.get(
         f"https://api-v3.mbta.com/routes?filter%5Btype%5D={route_type}&api_key={os.getenv('MBTA_API_KEY')}",
         timeout=5,
@@ -32,6 +32,3 @@ def get_routes(route_type=2):
     else:
         logging.error("Routes data retrieval failed")
     return routes
-
-
-get_routes()

@@ -11,57 +11,93 @@ import requests as rq
 import pytz
 import pandas as pd
 import json_api_doc as jad
+from shared_code import calc_delay, iso_convert
 
 
 # pylint: disable=unused-argument
-def main(vehicle_type=2) -> None:
-    """Azure function, grabs MBTA trip stops data and upserts every 15 seconds"""
-    logging.getLogger("azure").setLevel(logging.CRITICAL)
-    # polls CR route data from MBTA
-    rreq = rq.get(
-        f"https://api-v3.mbta.com/routes?filter[type]=2&api_key={os.getenv('MBTA_API_Key')}",
-        timeout=5,
+def getpredictions(route_type=2, active_routes=""):
+    """Import MBTA predictions data from API"""
+
+    req = rq.get(
+        "https://api-v3.mbta.com/predictions?filter[route]="
+        + active_routes
+        + "&include=stop,trip,route,vehicle,schedule&api_key="
+        + os.getenv("MBTA_API_Key"),
+        timeout=500,
     )
-    logging.info("Received code %s from MBTA route", rreq.status_code)
-    if rreq.ok:
-        # processes route info
-        routes = [route["id"] for route in rreq.json()["data"]]
-        logging.info("Received %s routes from MBTA", len(routes))
-        preq = rq.get(
-            "https://api-v3.mbta.com/predictions?filter[route]="
-            + ",".join(routes)
-            + "&include=stop,trip,route,vehicle,schedule&api_key="
-            + os.environ["MBTA_API_Key"],
-            timeout=5,
+    logging.info("Received code %s from MBTA predictions", req.status_code)
+
+    predictions = pd.DataFrame()
+
+    if req.ok:
+        mbta_response = pd.DataFrame(jad.deserialize(req.json()))
+
+        predictions["vehicle_id"] = mbta_response["vehicle"].apply(
+            lambda x: x["id"] if x else None
         )
-        logging.info("Received code %s from MBTA predictions", preq.status_code)
+        predictions["vehicle_label"] = mbta_response["vehicle"].apply(
+            lambda x: x["label"] if x else None
+        )
+        predictions["route_id"] = mbta_response["route"].apply(
+            lambda x: x["id"] if x else None
+        )
+        predictions["stop_id"] = mbta_response["stop"].apply(
+            lambda x: x["id"] if x else None
+        )
+        predictions["stop_name"] = mbta_response["stop"].apply(
+            lambda x: x["name"] if x else None
+        )
+        predictions["description"] = mbta_response["stop"].apply(
+            lambda x: x["description"] if x else None
+        )
+        predictions["parent_station"] = mbta_response["stop"].apply(
+            lambda x: x["parent_station"]["id"] if x and x["parent_station"] else None
+        )
+        predictions["platform_code"] = mbta_response["stop"].apply(
+            lambda x: x["platform_code"] if x else None
+        )
+        predictions["platform_name"] = mbta_response["stop"].apply(
+            lambda x: x["platform_name"] if x else None
+        )
+        predictions["trip_id"] = mbta_response["trip"].apply(
+            lambda x: x["id"] if x else None
+        )
+        predictions["headsign"] = mbta_response["trip"].apply(
+            lambda x: x["headsign"] if x else None
+        )
+        predictions["scheduled_arrival_time"] = mbta_response["schedule"].apply(
+            lambda x: x["arrival_time"] if x else None
+        )
+        predictions["scheduled_departure_time"] = mbta_response["schedule"].apply(
+            lambda x: x["departure_time"] if x else None
+        )
 
-        if preq.ok:
-            # Load in HASTUS code table
+        predictions["status"] = mbta_response["status"]
+        predictions["direction_id"] = mbta_response["direction_id"]
+        predictions["predicted_arrival_time"] = mbta_response["arrival_time"]
+        predictions["predicted_departure_time"] = mbta_response["departure_time"]
+        predictions["stop_sequence"] = mbta_response["stop_sequence"]
 
-            jad_preds = jad.deserialize(preq.json())
+        # iso_convert.iso_convert(
+        #     predictions,
+        #     [
+        #         "scheduled_arrival_time",
+        #         "scheduled_departure_time",
+        #         "predicted_arrival_time",
+        #         "predicted_departure_time",
+        #     ],
+        # )
 
-        else:
-            logging.error(
-                "MBTA prediction response returned the following: %s", preq.text
-            )  # prediction logging
+        predictions["arrival_delay"] = calc_delay.calc_delay(
+            predictions, "scheduled_arrival_time", "predicted_arrival_time"
+        )
+        predictions["departure_delay"] = calc_delay.calc_delay(
+            predictions, "scheduled_departure_time", "predicted_departure_time"
+        )
+
     else:
         logging.error(
-            "MBTA route response returned the following: %s", rreq.text
-        )  # route logging
+            "MBTA prediction response returned the following: %s", req.text
+        )  # prediction logging
 
-
-def vehicleexcept(vehicle):
-    """gets vehicle ID when known, null when unknown"""
-    try:
-        return vehicle["id"]
-    except TypeError:
-        return vehicle
-
-
-def tripexcept(trip):
-    """gets trip name when available, null when n/a"""
-    try:
-        return trip["name"]
-    except TypeError:
-        return trip
+    return predictions

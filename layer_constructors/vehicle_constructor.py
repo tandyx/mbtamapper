@@ -9,12 +9,11 @@ from shared_code import center_text
 
 @dataclass
 class Vehicle:
-
     row: pd.Series = None
+    predictions: pd.DataFrame = None
     vehicle_icon: Image.Image = None
 
     def __post_init__(self):
-
         if self.row["stop_status"] == "IN_TRANSIT_TO":
             status = "In transit to"
         elif self.row["stop_status"] == "STOPPED_AT":
@@ -29,7 +28,7 @@ class Vehicle:
 
         html = f"""<strong>Vehicle:</strong> {self.row["vehicle_id"]}<br>
                <strong>Trip:</strong> {self.row["trip_short_name"]}<br> 
-               <strong>Route:</strong> {self.row["route"]}<br>
+               <strong>Route:</strong> {self.row["route_name"]}<br>
                <strong>Status:</strong> {self.row["stop_status"]} <a href="https://www.mbta.com/stops/{self.row["parent_station"]}">{self.row["stop_name"]}</a><br>
                <strong>Time:</strong> {self.row["timestamp"]}<br>
                <strong>Speed:</strong> {self.row["speed"]} mph<br>
@@ -47,6 +46,7 @@ class Vehicle:
             icon=icon,
             popup=popup,
             zIndexOffset=1000,
+            tooltip=self.row["vehicle_id"],
         )
         return marker
 
@@ -57,9 +57,9 @@ class Vehicle:
 
         center_text.center_text(
             vehicle_image,
-            ImageFont.truetype("times", 275),
+            ImageFont.truetype("Prototype.ttf", 200),
             self.row["trip_short_name"],
-            (0, 0, 0),
+            "#ffffff",
             (0, -40),
         )
 

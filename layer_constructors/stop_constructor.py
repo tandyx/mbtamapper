@@ -5,11 +5,10 @@ import pandas as pd
 
 @dataclass
 class Stops:
-
     row: pd.Series = None
+    predictions: pd.DataFrame = None
 
     def __post_init__(self):
-
         if self.row["wheelchair_accessible"] == 1:
             acessible = True
         else:
@@ -32,6 +31,7 @@ class Stops:
             location=[self.row["latitude"], self.row["longitude"]],
             icon=stops_icon,
             popup=popup,
+            tooltip=self.row["stop_name"],
         )
 
         return marker
