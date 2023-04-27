@@ -56,6 +56,7 @@ def getvehicles(route_type=2):
         vehicles["parent_station"] = mbta_response["stop"].apply(
             lambda x: x["parent_station"]["id"] if x and x["parent_station"] else None
         )
+        vehicles["route_type"] = route_type
 
     logging.info("Received code %s from MBTA vehicles", req.status_code)
     return vehicles

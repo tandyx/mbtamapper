@@ -3,7 +3,9 @@ from PIL import ImageDraw
 
 def center_text(img, font, text, color="#ffffff", offset=(0, 0)):
     """centers text on image"""
-    if text:
+
+    if text and text == text:
+        text = str(int(text))
         draw = ImageDraw.Draw(img)
         text_width, text_height = draw.textsize(text, font)
         position = (

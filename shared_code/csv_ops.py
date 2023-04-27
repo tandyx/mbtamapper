@@ -10,7 +10,7 @@ class CSV_ops:
     prefix: str = "vehicles"
     file_extension: str = "csv"
 
-    def get_most_latest(self):
+    def get_latest(self):
         """Find the most recent csv file in the data folder"""
         list_of_files = glob.glob(f"data/{self.prefix}_*.{self.file_extension}")
         latest_file = max(list_of_files, key=os.path.getctime)

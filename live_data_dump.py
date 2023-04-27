@@ -13,7 +13,7 @@ def dump_data(delay=15, buses=False):
 
     while True:
         timestamp = time.time()
-        routes = pd.read_csv(CSV_ops("routes").get_most_recent_csv())
+        routes = pd.read_csv(CSV_ops("routes").get_latest())
 
         route_types = [0, 1, 2, 4]
         if buses:
@@ -62,6 +62,3 @@ def dump_data(delay=15, buses=False):
             CSV_ops(file_prefix).delete_old_data()
 
         time.sleep(delay)
-
-
-dump_data(0, False)
