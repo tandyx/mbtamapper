@@ -17,7 +17,7 @@ class CSV_ops:
         return latest_file
 
     def get_second_latest(self):
-        """Find the most recent csv file in the data folder"""
+        """Find the second most recent csv file in the data folder"""
         list_of_files = glob.glob(f"data/{self.prefix}_*.{self.file_extension}")
         latest_file = sorted(list_of_files, key=os.path.getctime)
         return latest_file[-2]

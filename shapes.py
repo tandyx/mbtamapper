@@ -21,6 +21,7 @@ def getshapes(route_type=2, active_routes=""):
         "route_type",
         "route_id",
         "route_color",
+        "parent_route_type",
     ]
 
     req = requests.get(
@@ -59,6 +60,8 @@ def getshapes(route_type=2, active_routes=""):
         route_trip["route_id"] = route_trip.apply(
             lambda x: x["route"]["id"] if x["route"] else np.nan, axis=1
         )
+
+        route_trip["parent_route_type"] = route_type
 
         # appends route type onto main dataframe
         route_trip = pd.merge(

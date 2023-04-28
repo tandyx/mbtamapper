@@ -12,7 +12,7 @@ from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
 
-route_type = 1
+route_type = 2
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
 routes = pd.read_csv(CSV_ops("routes").get_second_latest())
 stops = pd.read_csv(CSV_ops("stops").get_second_latest())
@@ -27,7 +27,7 @@ if route_type == 1 or route_type == 0:
     if not stops.empty:
         stops = stops.loc[stops["route_type"].isin([0, 1])]
     if not shapes.empty:
-        shapes = shapes.loc[shapes["route_type"].isin([0, 1])]
+        shapes = shapes.loc[shapes["parent_route_type"].isin([0, 1])]
     if not vehicles.empty:
         vehicles = vehicles.loc[vehicles["route_type"].isin([0, 1])]
     if not alerts.empty:
@@ -40,7 +40,7 @@ else:
     if not stops.empty:
         stops = stops.loc[stops["route_type"] == route_type]
     if not shapes.empty:
-        shapes = shapes.loc[shapes["route_type"] == route_type]
+        shapes = shapes.loc[shapes["parent_route_type"] == route_type]
     if not vehicles.empty:
         vehicles = vehicles.loc[vehicles["route_type"] == route_type]
     if not alerts.empty:

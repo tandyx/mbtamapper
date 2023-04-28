@@ -11,7 +11,7 @@ import json_api_doc as jad
 def getstops(route_type=2):
     req = rq.get(
         f"https://api-v3.mbta.com/stops?filter[route_type]={route_type}&include=child_stops,connecting_stops,facilities,parent_station,route&api_key={os.getenv('MBTA_API_KEY')}",
-        timeout=5,
+        timeout=500,
     )
     stops = pd.DataFrame()
 
@@ -29,12 +29,15 @@ def getstops(route_type=2):
         stops["parent_station"] = mbta_response["parent_station"].apply(
             lambda x: x["id"] if x else None
         )
+
         stops["adress"] = mbta_response["parent_station"].apply(
             lambda x: x["address"] if x else None
         )
         stops["description"] = mbta_response["description"]
         stops["zone"] = mbta_response["zone"].apply(lambda x: x["id"] if x else None)
         stops["route_type"] = route_type
+
+        stops["parent_station"] = stops["parent_station"].fillna(stops["stop_id"])
 
     else:
         logging.error("Vehicles data retrieval failed")
