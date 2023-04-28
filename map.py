@@ -18,54 +18,99 @@ conn = sqlite3.connect("mbta_data.db")
 
 route_type = 2
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
-routes = pd.read_csv(CSV_ops("routes").get_second_latest())
-stops = pd.read_csv(CSV_ops("stops").get_second_latest())
-shapes = pd.read_csv(CSV_ops("shapes").get_second_latest())
-vehicles = pd.read_csv(CSV_ops("vehicles").get_second_latest())
-alerts = pd.read_csv(CSV_ops("alerts").get_second_latest())
-predictions = pd.read_csv(CSV_ops("predictions").get_second_latest())
-
-if route_type == 1 or route_type == 0:
-    if not routes.empty:
-        routes = routes.loc[routes["route_type"].isin([0, 1])]
-    if not stops.empty:
-        stops = stops.loc[stops["route_type"].isin([0, 1])]
-    if not shapes.empty:
-        shapes = shapes.loc[shapes["parent_route_type"].isin([0, 1])]
-    if not vehicles.empty:
-        vehicles = vehicles.loc[vehicles["route_type"].isin([0, 1])]
-    if not alerts.empty:
-        alerts = alerts.loc[alerts["route_type"].isin([0, 1])]
-    if not predictions.empty:
-        predictions = predictions.loc[predictions["route_type"].isin([0, 1])]
+if route_type in [0, 1]:
+    offset = 0 if route_type == 1 else 1
+    vehicles = read_query(
+        f"""SELECT * FROM (
+            (SELECT * FROM vehicles_{route_type}
+            UNION SELECT * FROM vehicles_{offset}) as vehicles
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}
+            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
+            ON vehicles.route_id = routes.route_id);""",
+        conn,
+    )
+    stops = read_query(
+        f"""SELECT *, MAX(platform_code) as platform_code
+            FROM (SELECT * FROM stops_{route_type} 
+            UNION SELECT * FROM stops_{offset})
+            GROUP BY parent_station;""",
+        conn,
+    )
+    shapes = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM (
+            (SELECT * FROM shapes_{route_type}
+            UNION SELECT * FROM shapes_{offset})as shapes
+            LEFT JOIN 
+            (SELECT route_id, route_name, description from routes_{route_type} 
+            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
+            ON shapes.route_id = routes.route_id));""",
+        conn,
+    )
+    predictions = read_query(
+        f"""SELECT * FROM (
+            (SELECT * FROM predictions_{route_type}  
+            UNION SELECT * FROM predictions_{offset})as prd 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type} 
+            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
+            ON prd.route_id = routes.route_id);""",
+        conn,
+    )
+    alerts = read_query(
+        f"""SELECT * FROM (SELECT * FROM (
+            (SELECT * FROM alerts_{route_type} UNION SELECT * FROM alerts_{offset})  as alerts 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type} 
+            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
+            ON alerts.route_id == routes.route_id));""",
+        conn,
+    )
 else:
-    if not routes.empty:
-        routes = routes.loc[routes["route_type"] == route_type]
-    if not stops.empty:
-        stops = stops.loc[stops["route_type"] == route_type]
-    if not shapes.empty:
-        shapes = shapes.loc[shapes["parent_route_type"] == route_type]
-    if not vehicles.empty:
-        vehicles = vehicles.loc[vehicles["route_type"] == route_type]
-    if not alerts.empty:
-        alerts = alerts.loc[alerts["route_type"] == route_type]
-    if not predictions.empty:
-        predictions = predictions.loc[predictions["route_type"] == route_type]
+    vehicles = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM vehicles_{route_type} as vehicles 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON vehicles.route_id = routes.route_id);""",
+        conn,
+    )
+    stops = read_query(
+        f"""SELECT *, MAX(platform_code) as platform_code
+            FROM stops_{route_type}
+            GROUP BY parent_station;""",
+        conn,
+    )
+    shapes = read_query(
+        f"""SELECT * FROM (SELECT * FROM shapes_{route_type} as shapes
+            LEFT JOIN 
+            (SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON shapes.route_id = routes.route_id) 
+            ORDER BY shape_id desc;""",
+        conn,
+    )
+    predictions = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM predictions_{route_type}  as prd 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON prd.route_id = routes.route_id);""",
+        conn,
+    )
+    alerts = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM alerts_{route_type}  as alerts 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON alerts.route_id == routes.route_id);""",
+        conn,
+    )
 
 if route_type == 2:
     zoom = 9.5
 else:
     zoom = 12
-
-if not stops.empty:
-    stops = stops.drop_duplicates("parent_station")
-if not predictions.empty:
-    predictions = pd.merge(predictions, routes, how="left")
-if not shapes.empty:
-    shapes = pd.merge(shapes, routes, how="left").sort_index(ascending=False)
-if not vehicles.empty:
-    vehicles = pd.merge(vehicles, routes, how="left")
-
 
 system_map = folium.Map(
     location=geocoder.ip("me").latlng,
@@ -153,82 +198,3 @@ layer_control = folium.LayerControl().add_to(system_map)
 
 # system_map.save("index.html")
 system_map.show_in_browser()
-
-if route_type in [0, 1]:
-    offset = 0 if route_type == 1 else 1
-    vehicles = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM vehicles_{route_type} as vehicles 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON vehicles.route_id = routes.route_id);""",
-        conn,
-    )
-    stops = read_query(
-        f"""SELECT *, MAX(platform_code) as platform_code
-            FROM stops_{route_type}
-            GROUP BY parent_station;""",
-        conn,
-    )
-    shapes = read_query(
-        f"""SELECT * FROM (SELECT * FROM shapes_{route_type} as shapes
-            LEFT JOIN 
-            (SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON shapes.route_id = routes.route_id);""",
-        conn,
-    )
-    predictions = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM predictions_{route_type}  as prd 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON prd.route_id = routes.route_id);""",
-        conn,
-    )
-    alerts = read_query(
-        f"""SELECT * FROM (SELECT * FROM (
-            (SELECT * FROM alerts_{route_type} UNION SELECT * FROM alerts_{offset})  as alerts 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type} 
-            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
-            ON alerts.route_id == routes.route_id));""",
-        conn,
-    )
-else:
-    vehicles = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM vehicles_{route_type} as vehicles 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON vehicles.route_id = routes.route_id);""",
-        conn,
-    )
-    stops = read_query(
-        f"""SELECT *, MAX(platform_code) as platform_code
-            FROM stops_{route_type}
-            GROUP BY parent_station;""",
-        conn,
-    )
-    shapes = read_query(
-        f"""SELECT * FROM (SELECT * FROM shapes_{route_type} as shapes
-            LEFT JOIN 
-            (SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON shapes.route_id = routes.route_id);""",
-        conn,
-    )
-    predictions = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM predictions_{route_type}  as prd 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON prd.route_id = routes.route_id);""",
-        conn,
-    )
-    alerts = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM alerts_{route_type}  as alerts 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON alerts.route_id == routes.route_id);""",
-        conn,
-    )
