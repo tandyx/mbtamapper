@@ -9,104 +9,22 @@ import geocoder
 import sqlite3
 
 from shared_code.csv_ops import CSV_ops
+from shared_code.from_sql import GrabData
 from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
-from shared_code.from_sql import read_query
+
 
 conn = sqlite3.connect("mbta_data.db")
 start_time = time.time()
-
-route_type = 1
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
-if route_type in [0, 1]:
-    offset = 0 if route_type == 1 else 1
-    vehicles = read_query(
-        f"""SELECT * FROM (
-            (SELECT * FROM vehicles_{route_type}
-            UNION SELECT * FROM vehicles_{offset}) as vehicles
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}
-            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
-            ON vehicles.route_id = routes.route_id);""",
-        conn,
-    )
-    stops = read_query(
-        f"""SELECT *, MAX(platform_code) as platform_code
-            FROM (SELECT * FROM stops_{route_type} 
-            UNION SELECT * FROM stops_{offset})
-            GROUP BY parent_station;""",
-        conn,
-    )
-    shapes = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM (
-            (SELECT * FROM shapes_{route_type}
-            UNION SELECT * FROM shapes_{offset})as shapes
-            LEFT JOIN 
-            (SELECT route_id, route_name, description from routes_{route_type} 
-            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
-            ON shapes.route_id = routes.route_id));""",
-        conn,
-    )
-    predictions = read_query(
-        f"""SELECT * FROM (
-            (SELECT * FROM predictions_{route_type}  
-            UNION SELECT * FROM predictions_{offset})as prd 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type} 
-            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
-            ON prd.route_id = routes.route_id);""",
-        conn,
-    )
-    alerts = read_query(
-        f"""SELECT * FROM (SELECT * FROM (
-            (SELECT * FROM alerts_{route_type} UNION SELECT * FROM alerts_{offset})  as alerts 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type} 
-            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
-            ON alerts.route_id == routes.route_id));""",
-        conn,
-    )
-else:
-    vehicles = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM vehicles_{route_type} as vehicles 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON vehicles.route_id = routes.route_id);""",
-        conn,
-    )
-    stops = read_query(
-        f"""SELECT *, MAX(platform_code) as platform_code
-            FROM stops_{route_type}
-            GROUP BY parent_station;""",
-        conn,
-    )
-    shapes = read_query(
-        f"""SELECT * FROM (SELECT * FROM shapes_{route_type} as shapes
-            LEFT JOIN 
-            (SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON shapes.route_id = routes.route_id) 
-            ORDER BY shape_id desc;""",
-        conn,
-    )
-    predictions = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM predictions_{route_type}  as prd 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON prd.route_id = routes.route_id);""",
-        conn,
-    )
-    alerts = read_query(
-        f"""SELECT * FROM (
-            SELECT * FROM alerts_{route_type}  as alerts 
-            LEFT JOIN (
-            SELECT route_id, route_name, description from routes_{route_type}) as routes 
-            ON alerts.route_id == routes.route_id);""",
-        conn,
-    )
+route_type = 1
+
+vehicles = GrabData(route_type, conn).grabvehicles()
+stops = GrabData(route_type, conn).grabstops()
+shapes = GrabData(route_type, conn).grabshapes()
+predictions = GrabData(route_type, conn).grabpredictions()
+alerts = GrabData(route_type, conn).grabalerts()
 
 zoom = 9.5 if route_type == 2 else 12
 
@@ -125,6 +43,16 @@ folium.TileLayer(
     min_lon=-73,
     max_lon=-69,
 ).add_to(system_map)
+
+system_map.get_root().title = "MBTA System Map"
+system_map.get_root().header.add_child(
+    folium.Element(
+        """
+        <link rel="stylesheet" type="text/css" href = "style.css"> </link>
+        <link rel="icon" href = "mbta.png">"""
+    )
+)
+
 
 if not shapes.empty:
     route_time = time.time()
@@ -174,7 +102,11 @@ if not stops.empty:
 
 if not vehicles.empty:
     vehicle_cluster_time = time.time()
-    vehicle_cluster = MarkerCluster(name="Vehicles", show=True).add_to(system_map)
+
+    vehicle_cluster = MarkerCluster(
+        name="Vehicles",
+        show=True,
+    ).add_to(system_map)
     # vehicle_layer = folium.FeatureGroup(name="Vehicles", show=True).add_to(map)
     vehicle_icon = Image.open("icon.png")
 
@@ -194,6 +126,7 @@ if not vehicles.empty:
 
 layer_control = folium.LayerControl().add_to(system_map)
 
+# system_map.keep_in_front(lambda item: item in vehicle_cluster)
 system_map.save("index.html")
 system_map.show_in_browser()
 print(f"Map built in {time.time() - start_time} seconds")

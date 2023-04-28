@@ -160,3 +160,38 @@ img{
   text-decoration: none;
   transition: 0.4s ease-in-out;
 }
+
+.tooltip-text {
+  position: absolute;
+  top: -40px;
+  left: -50%; 
+  z-index: 2;
+  width: 100px;
+  color: white;
+  font-size: 12px;
+  background-color: #192733;
+  border-radius: 10px;
+  padding: 10px 15px 10px 15px;
+}
+
+#fade {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+#delay {
+  opacity: 0;
+  transition: opacity 0.2s;
+  transition-delay: 1s;
+}
+
+.hover-text:hover #fade { opacity: 1; }
+.hover-text:hover #delay { opacity: 1; }
+
+.hover-text {
+  position: relative;
+  display: inline-block;
+  margin: 40px;
+  font-family: Arial;
+  text-align: center;
+}
