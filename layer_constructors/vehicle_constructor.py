@@ -32,8 +32,17 @@ class Vehicle:
                <strong>Route:</strong> {self.row["route_name"]}<br>
                <strong>Status:</strong> {self.row["stop_status"]} <a href="https://www.mbta.com/stops/{self.row["parent_station"]}">{self.row["stop_name"]}</a><br>
                <strong>Time:</strong> {self.row["timestamp"]}<br>
-               <strong>Speed:</strong> {self.row["speed"]} mph<br>
+               <strong>Speed:</strong> {self.row["speed"] * 2.23694} mph<br>
                <strong>Heading:</strong> {self.row["bearing"]} degrees<br>"""
+
+        if not self.alerts.empty:
+            html = (
+                html
+                + f"""<strong>Alerts: </strong> <br><a>{self.alerts.to_html()} </a><br>"""
+            )
+
+            # for alert in alerts:
+            #     html = html + f"""<a href="https://www.mbta.com/alerts/{alert}">{alert}</a><br>"""
 
         iframe = folium.IFrame(html, width=200, height=200)
         popup = folium.Popup(iframe, max_width=400)

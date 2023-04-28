@@ -36,6 +36,12 @@ class Route:
         html = f"""<strong>Route:</strong> {self.route_name}<br>
                     <strong>type:</strong> {self.vehicle_type}<br>"""
 
+        if not self.alerts.empty:
+            html = (
+                html
+                + f"""<strong>Alerts: </strong> <br><a>{self.alerts.to_html()} </a><br>"""
+            )
+
         popup = folium.Popup(folium.IFrame(html, width=200, height=200), max_width=400)
 
         poly_line = folium.PolyLine(
