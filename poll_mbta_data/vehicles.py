@@ -62,6 +62,7 @@ def getvehicles(route_type=2, conn=sqlite3.connect("mbta_data.db")):
         vehicles["route_type"] = route_type
 
     vehicles.to_sql(f"vehicles_{route_type}", conn, if_exists="replace")
+
     print(
         f"Vehicles ({route_type}): fetched {len(vehicles)} vehicles in {(time.time() - start_time)} seconds"
     )

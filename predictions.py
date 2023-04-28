@@ -1,10 +1,6 @@
-"""
-Keolis AVL-ACSES Real-Time Interface
-Azure Function to poll MBTA data at /predictions and create a daily trip stops table
-2023-01-20
-Keolis Digital Solutions - Service Delivery Team
-"""
-from datetime import datetime, timedelta
+from datetime import datetime
+import sqlite3
+import time
 import logging
 import os
 import requests as rq
@@ -15,8 +11,12 @@ from shared_code import calc_delay, iso_convert
 
 
 # pylint: disable=unused-argument
-def getpredictions(route_type=2, active_routes=""):
+def getpredictions(
+    route_type=2, active_routes="", conn=sqlite3.connect("mbta_data.db")
+):
     """Import MBTA predictions data from API"""
+
+    start_time = time.time()
 
     req = rq.get(
         "https://api-v3.mbta.com/predictions?filter[route]="
@@ -95,6 +95,7 @@ def getpredictions(route_type=2, active_routes=""):
         predictions["predicted_departure_time"] = mbta_response["departure_time"]
         predictions["stop_sequence"] = mbta_response["stop_sequence"]
         predictions["route_type"] = route_type
+        predictions["timestamp"] = datetime.now(pytz.timezone("America/New_York"))
 
-    logging.info("Received code %s from MBTA predictions", req.status_code)
+    predictions.to_sql(f"predictions_{route_type}", conn, if_exists="replace")
     return predictions

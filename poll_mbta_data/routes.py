@@ -35,7 +35,7 @@ def getroutes(route_type=2, conn=sqlite3.connect("mbta_data.db")):
         else:
             active_routes = ""
 
-    routes.to_sql(f"routes_{route_type}", conn, if_exists="replace", index=False)
+    routes.to_sql(f"routes_{route_type}", conn, if_exists="replace")
     print(
         f"Routes ({route_type}): fetched {len(routes)} routes in {(time.time() - start_time)} seconds"
     )

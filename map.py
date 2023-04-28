@@ -147,5 +147,5 @@ if not vehicles.empty:
 
 layer_control = folium.LayerControl().add_to(system_map)
 
-system_map.save("index.html")
+# system_map.save("index.html")
 system_map.show_in_browser()
