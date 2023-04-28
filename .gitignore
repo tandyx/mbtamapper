@@ -56,3 +56,5 @@ docs/_build/
 launch.json
 
 *.csv
+*.db
+*.html
