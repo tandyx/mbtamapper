@@ -15,8 +15,9 @@ from layer_constructors.vehicle_constructor import Vehicle
 from shared_code.from_sql import read_query
 
 conn = sqlite3.connect("mbta_data.db")
+start_time = time.time()
 
-route_type = 2
+route_type = 3
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
 if route_type in [0, 1]:
     offset = 0 if route_type == 1 else 1
@@ -107,10 +108,7 @@ else:
         conn,
     )
 
-if route_type == 2:
-    zoom = 9.5
-else:
-    zoom = 12
+zoom = 9.5 if route_type == 2 else 12
 
 system_map = folium.Map(
     location=geocoder.ip("me").latlng,
@@ -198,3 +196,4 @@ layer_control = folium.LayerControl().add_to(system_map)
 
 # system_map.save("index.html")
 system_map.show_in_browser()
+print(f"Map built in {time.time() - start_time} seconds")
