@@ -6,11 +6,15 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 import geocoder
+import sqlite3
 
 from shared_code.csv_ops import CSV_ops
 from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
+from shared_code.from_sql import read_query
+
+conn = sqlite3.connect("mbta_data.db")
 
 route_type = 2
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
@@ -149,3 +153,82 @@ layer_control = folium.LayerControl().add_to(system_map)
 
 # system_map.save("index.html")
 system_map.show_in_browser()
+
+if route_type in [0, 1]:
+    offset = 0 if route_type == 1 else 1
+    vehicles = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM vehicles_{route_type} as vehicles 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON vehicles.route_id = routes.route_id);""",
+        conn,
+    )
+    stops = read_query(
+        f"""SELECT *, MAX(platform_code) as platform_code
+            FROM stops_{route_type}
+            GROUP BY parent_station;""",
+        conn,
+    )
+    shapes = read_query(
+        f"""SELECT * FROM (SELECT * FROM shapes_{route_type} as shapes
+            LEFT JOIN 
+            (SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON shapes.route_id = routes.route_id);""",
+        conn,
+    )
+    predictions = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM predictions_{route_type}  as prd 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON prd.route_id = routes.route_id);""",
+        conn,
+    )
+    alerts = read_query(
+        f"""SELECT * FROM (SELECT * FROM (
+            (SELECT * FROM alerts_{route_type} UNION SELECT * FROM alerts_{offset})  as alerts 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type} 
+            UNION SELECT route_id, route_name, description from routes_{offset}) as routes 
+            ON alerts.route_id == routes.route_id));""",
+        conn,
+    )
+else:
+    vehicles = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM vehicles_{route_type} as vehicles 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON vehicles.route_id = routes.route_id);""",
+        conn,
+    )
+    stops = read_query(
+        f"""SELECT *, MAX(platform_code) as platform_code
+            FROM stops_{route_type}
+            GROUP BY parent_station;""",
+        conn,
+    )
+    shapes = read_query(
+        f"""SELECT * FROM (SELECT * FROM shapes_{route_type} as shapes
+            LEFT JOIN 
+            (SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON shapes.route_id = routes.route_id);""",
+        conn,
+    )
+    predictions = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM predictions_{route_type}  as prd 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON prd.route_id = routes.route_id);""",
+        conn,
+    )
+    alerts = read_query(
+        f"""SELECT * FROM (
+            SELECT * FROM alerts_{route_type}  as alerts 
+            LEFT JOIN (
+            SELECT route_id, route_name, description from routes_{route_type}) as routes 
+            ON alerts.route_id == routes.route_id);""",
+        conn,
+    )

@@ -27,7 +27,7 @@ def getroutes(route_type=2, conn=sqlite3.connect("mbta_data.db")):
             routes["route_name"] = mbta_response["attributes"].apply(
                 lambda x: x["long_name"] if x else None
             )
-            routes["Description"] = mbta_response["attributes"].apply(
+            routes["description"] = mbta_response["attributes"].apply(
                 lambda x: x["description"] if x else None
             )
             routes["route_type"] = route_type
