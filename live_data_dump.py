@@ -4,7 +4,7 @@ import pandas as pd
 
 import vehicles
 import alerts
-import predictions
+import poll_mbta_data.predictions as predictions
 from shared_code.csv_ops import CSV_ops
 
 

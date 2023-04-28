@@ -41,7 +41,7 @@ def getstops(route_type=2, conn=sqlite3.connect("mbta_data.db")):
 
         stops["parent_station"] = stops["parent_station"].fillna(stops["stop_id"])
         stops["timestamp"] = pd.Timestamp.now(tz="America/New_York")
-    stops.to_sql(f"stops_{route_type}", conn, if_exists="append")
+    stops.to_sql(f"stops_{route_type}", conn, if_exists="replace")
     print(
         f"Stops ({route_type}): fetched {len(stops)} stops in {(time.time() - start_time)} seconds"
     )

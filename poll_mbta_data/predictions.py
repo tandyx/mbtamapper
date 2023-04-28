@@ -98,4 +98,6 @@ def getpredictions(
         predictions["timestamp"] = datetime.now(pytz.timezone("America/New_York"))
 
     predictions.to_sql(f"predictions_{route_type}", conn, if_exists="replace")
-    return predictions
+    print(
+        f"Predictions ({route_type}): fetched {len(predictions)} predictions in {time.time() - start_time} seconds"
+    )

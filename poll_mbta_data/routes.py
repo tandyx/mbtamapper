@@ -32,8 +32,8 @@ def getroutes(route_type=2, conn=sqlite3.connect("mbta_data.db")):
             )
             routes["route_type"] = route_type
             active_routes = ",".join(routes["route_id"].tolist())
-        else:
-            active_routes = ""
+    else:
+        active_routes = ""
 
     routes.to_sql(f"routes_{route_type}", conn, if_exists="replace")
     print(

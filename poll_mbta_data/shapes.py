@@ -1,12 +1,9 @@
 import sqlite3
-import logging
 import os
 import time
-from datetime import datetime
 import pandas as pd
 import json_api_doc as jad
 import requests
-import pytz
 import numpy as np
 
 # pylint: disable=unused-argument
