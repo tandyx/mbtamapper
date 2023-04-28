@@ -37,6 +37,7 @@ class Stops:
             icon=stops_icon,
             popup=popup,
             tooltip=self.row["stop_name"],
+            zIndexOffset=-25,
         )
 
         return marker

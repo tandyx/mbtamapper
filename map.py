@@ -48,8 +48,8 @@ system_map.get_root().title = "MBTA System Map"
 system_map.get_root().header.add_child(
     folium.Element(
         """
-        <link rel="stylesheet" type="text/css" href = "style.css"> </link>
-        <link rel="icon" href = "mbta.png">"""
+        <link rel="stylesheet" type="text/css" href = "style.css" />
+        <link rel="icon" href = "mbta.png" />"""
     )
 )
 

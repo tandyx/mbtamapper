@@ -54,6 +54,7 @@ class Route:
             opacity=self.opacity,
             popup=popup,
             tooltip=self.row["route_id"],
+            zIndexOffset=-50,
         )
 
         return poly_line
