@@ -46,13 +46,11 @@ folium.TileLayer(
 
 system_map.get_root().title = "MBTA System Map"
 system_map.get_root().header.add_child(
-    folium.Element(
-        """
-        <link rel="stylesheet" type="text/css" href = "style.css" />
-        <link rel="icon" href = "mbta.png" />"""
-    )
+    folium.Element("""<link rel="icon" href = "mbta.png" />""")
 )
-
+system_map.get_root().style.add_child(
+    folium.Element("""<link rel="stylesheet" type="text/css" href = "style.css" />""")
+)
 
 if not shapes.empty:
     route_time = time.time()

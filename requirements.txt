@@ -10,4 +10,3 @@ branca
 css_inline
 polyline
 geocoder
-pytable

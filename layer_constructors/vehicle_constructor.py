@@ -27,8 +27,7 @@ class Vehicle:
     def build_vehicle(self):
         """builds vehicle icon"""
 
-        html = f"""<link rel="stylesheet" type="text/css" href = "style.css"> </link>
-                <strong>Vehicle:</strong> {self.row["vehicle_id"]}<br>
+        html = f"""<strong>Vehicle:</strong> {self.row["vehicle_id"]}<br>
                <strong>Trip:</strong> {self.row["trip_short_name"]}<br> 
                <strong>Route:</strong> {self.row["route_name"]}<br>
                <strong>Status:</strong> {self.row["stop_status"]} <a href="https://www.mbta.com/stops/{self.row["parent_station"]}">{self.row["stop_name"]}</a><br>
