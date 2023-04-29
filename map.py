@@ -14,6 +14,7 @@ from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
 
+# TODO: split silver line and bus lines
 
 conn = sqlite3.connect("mbta_data.db")
 start_time = time.time()

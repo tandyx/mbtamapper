@@ -10,12 +10,17 @@ class Route:
     alerts: pd.DataFrame = None
 
     def __post_init__(self):
-        if self.row["description"]:
+        opacity = 0.5
+        if self.row["description"] and self.row["description"] not in [
+            "Local Bus",
+            "Supplemental Bus",
+        ]:
             opacity = 1
+            description = self.row["description"]
+        elif self.row["description"] in ["Local Bus", "Supplemental Bus"]:
             description = self.row["description"]
         else:
             description = "Bus Replacement"
-            opacity = 0.5
 
         rt = self.row.get("route_name")
         self.route_name = rt if rt and rt == rt else self.row["route_id"]

@@ -20,7 +20,7 @@ class Vehicle:
         elif self.row["stop_status"] == "STOPPED_AT":
             status = "Stopped at"
         else:
-            status = "Unknown"
+            status = "Unknown to"
 
         self.status = status
 
@@ -35,7 +35,7 @@ class Vehicle:
         if self.row["speed"] == self.row["speed"] and self.row["speed"]:
             self.speed = str(round(self.row["speed"] * 2.23694, 2)) + " mph"
         else:
-            self.speed = "speed unknown"
+            self.speed = "unknown"
 
     def build_vehicle(self):
         """builds vehicle icon"""

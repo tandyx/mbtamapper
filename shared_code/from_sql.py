@@ -52,7 +52,7 @@ class GrabData:
             return stops
         else:
             stops = read_query(
-                f"""SELECT * FROM stops_0 
+                f"""SELECT * FROM stops_{self.route_type} 
                                    GROUP BY parent_station, line_serviced 
                                    ORDER BY parent_station, line_serviced;""",
                 self.conn,
