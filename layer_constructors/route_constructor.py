@@ -28,24 +28,28 @@ class Route:
         """builds stop icon"""
 
         html = f"""
-                    <strong>Route:</strong> {self.route_name}<br>
-                    <strong>type:</strong> {self.description}<br>"""
+         <!DOCTYPE html>   
+            <html style = "color: #ffffff; font-family: Montserrat, sans-serif !important;">
+
+            <head>
+                <title>{self.route_name}</title>   
+
+            </head>
+            <body>
+                <a href="https://www.mbta.com/schedules/{self.row["route_id"]}"> 
+                <h1 style="color: #{self.row["route_color"]};margin: 0;">{self.route_name}</h1>
+                </a>
+                <a style="margin: 0;">{self.description}</a></br>"""
 
         if not self.alerts.empty:
-            html = (
-                html
-                + f"""<strong>Alerts: </strong> <br><a>{self.alerts.to_html()} </a><br>"""
-            )
-        if not self.alerts.empty:
-            html = (
-                html
-                + f"""
-                        <div class="hover-text">hover me
-                        <span class="tooltip-text" id="fade">I'm a tooltip!</span>
-                        </div>"""
-            )
+            html = html + f"""<a>Alerts: </br> {self.alerts.to_html()} </a><br>"""
 
-        popup = folium.Popup(folium.IFrame(html, width=200, height=200), max_width=400)
+        html = html + "</body></html>"
+        popup = folium.Popup(
+            folium.IFrame(html, width=500, height=500),
+            max_width=500,
+        ).add_child(folium.CssLink("popup.css"))
+        css = folium.CssLink("popup.css").add_to(popup)
 
         poly_line = folium.PolyLine(
             locations=polyline.decode(self.row["polyline"]),

@@ -74,7 +74,7 @@ class Vehicle:
 
         center_text.center_text(
             vehicle_image,
-            ImageFont.truetype("Prototype.ttf", 200),
+            ImageFont.truetype("montserrat.ttf", 200),
             self.row["trip_short_name"],
             "#ffffff",
             (0, -40),

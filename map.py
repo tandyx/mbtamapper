@@ -18,13 +18,14 @@ from layer_constructors.vehicle_constructor import Vehicle
 conn = sqlite3.connect("mbta_data.db")
 start_time = time.time()
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
-route_type = 1
+route_type = 2
 
 vehicles = GrabData(route_type, conn).grabvehicles()
 stops = GrabData(route_type, conn).grabstops()
 shapes = GrabData(route_type, conn).grabshapes()
 predictions = GrabData(route_type, conn).grabpredictions()
 alerts = GrabData(route_type, conn).grabalerts()
+
 
 zoom = 9.5 if route_type == 2 else 12
 
@@ -33,6 +34,15 @@ system_map = folium.Map(
     tiles=None,
     zoom_start=zoom,
 )
+html_to_insert = """<style>.leaflet-popup-content-wrapper, .leaflet-popup-tip
+                    {
+                        background: rgb(0, 0, 0, 0.95) !important;
+                    }   
+                    </style>
+                    <link rel="icon" href = "mbta.png" />"""
+system_map.get_root().title = "MBTA System Map"
+system_map.get_root().header.add_child(folium.Element(html_to_insert))
+
 
 folium.TileLayer(
     tiles="cartodbdark_matter",  # tiles="cartodbpositron",
@@ -44,13 +54,6 @@ folium.TileLayer(
     max_lon=-69,
 ).add_to(system_map)
 
-system_map.get_root().title = "MBTA System Map"
-system_map.get_root().header.add_child(
-    folium.Element("""<link rel="icon" href = "mbta.png" />""")
-)
-system_map.get_root().style.add_child(
-    folium.Element("""<link rel="stylesheet" type="text/css" href = "style.css" />""")
-)
 
 if not shapes.empty:
     route_time = time.time()
@@ -72,6 +75,8 @@ if not shapes.empty:
             al_df = pd.DataFrame()
         if row["route_type"] == 3 and route_type != 3:
             Route(row, al_df).build_route().add_to(bus_replacement_layer)
+            # marker(map.getCenter()).addTo(map).bindPopup("Test").openPopup();
+
         else:
             Route(row, al_df).build_route().add_to(shapes_layer)
 
@@ -126,5 +131,5 @@ layer_control = folium.LayerControl().add_to(system_map)
 
 # system_map.keep_in_front(lambda item: item in vehicle_cluster)
 system_map.save("index.html")
-system_map.show_in_browser()
+# system_map.show_in_browser()
 print(f"Map built in {time.time() - start_time} seconds")

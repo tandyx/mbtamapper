@@ -1,13 +1,10 @@
-/* #body_id {
+#body_id {
   margin: 0;
-  background-image: url("tf2snow.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  font-family: "prototype";
-  color: #ffffff;
-  /*background-color: #000000; */
-/* } */
-/* @font-face {
+  font-family: Monserrat, sans-serif;
+  color: #000000;
+  background-color: #ffffff;
+}
+@font-face {
   font-family: prototype;
   src: url(Prototype.ttf);
 }
@@ -159,7 +156,7 @@ img{
   color: #ffffff;
   text-decoration: none;
   transition: 0.4s ease-in-out;
-} */ 
+} */
 
 .tooltip-text {
   position: absolute;
