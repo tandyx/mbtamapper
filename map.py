@@ -18,7 +18,7 @@ from layer_constructors.vehicle_constructor import Vehicle
 conn = sqlite3.connect("mbta_data.db")
 start_time = time.time()
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
-route_type = 2
+route_type = 1
 
 vehicles = GrabData(route_type, conn).grabvehicles()
 stops = GrabData(route_type, conn).grabstops()
@@ -75,8 +75,6 @@ if not shapes.empty:
             al_df = pd.DataFrame()
         if row["route_type"] == 3 and route_type != 3:
             Route(row, al_df).build_route().add_to(bus_replacement_layer)
-            # marker(map.getCenter()).addTo(map).bindPopup("Test").openPopup();
-
         else:
             Route(row, al_df).build_route().add_to(shapes_layer)
 

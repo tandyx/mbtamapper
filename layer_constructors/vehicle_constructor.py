@@ -24,35 +24,47 @@ class Vehicle:
 
         self.status = status
 
+        if (
+            self.row["trip_short_name"] == self.row["trip_short_name"]
+            and self.row["trip_short_name"]
+        ):
+            self.trip_name = self.row["trip_short_name"]
+        else:
+            self.trip_name = self.row["trip_id"]
+
+        if self.row["speed"] == self.row["speed"] and self.row["speed"]:
+            self.speed = str(round(self.row["speed"] * 2.23694, 2)) + " mph"
+        else:
+            self.speed = "speed unknown"
+
     def build_vehicle(self):
         """builds vehicle icon"""
 
-        html = f"""<strong>Vehicle:</strong> {self.row["vehicle_id"]}<br>
-               <strong>Trip:</strong> {self.row["trip_short_name"]}<br> 
-               <strong>Route:</strong> {self.row["route_name"]}<br>
-               <strong>Status:</strong> {self.row["stop_status"]} <a href="https://www.mbta.com/stops/{self.row["parent_station"]}">{self.row["stop_name"]}</a><br>
-               <strong>Time:</strong> {self.row["timestamp"]}<br>
-               <strong>Speed:</strong> {self.row["speed"] * 2.23694} mph<br>
-               <strong>Heading:</strong> {self.row["bearing"]} degrees<br>"""
+        html = f"""
+         <!DOCTYPE html>   
+            <html style = "color: #ffffff; font-family: Montserrat, sans-serif !important;">
 
+            <head>
+                <title>{self.row["vehicle_id"]}</title>   
+            </head>
+            <body>
+                <a href="https://www.mbta.com/schedules/{self.row["route_id"]}"> 
+                <h1 style="color: #{self.row["route_color"]};margin: 0;">{self.row["vehicle_id"]}</h1>
+                </a>
+                <a style="margin: 0;">{self.trip_name}</a></br>
+                <br><a style="margin: 0;">{self.row["route_name"]}</a></br>
+                <a style="margin: 0;"> {self.status} <a href="https://www.mbta.com/stops/{self.row["parent_station"]}">{self.row["stop_name"]}</a><br>
+                <a style="margin: 0;"> timestamp: {self.row["timestamp"]}</a><br>
+                <a style="margin: 0;"> speed: {self.speed}</a><br>
+                <a style="margin: 0;"> bearing: {self.row["bearing"]} degrees </a><br>"""
+        # TODO: add alerts tooltip
         if not self.alerts.empty:
-            html = (
-                html
-                + f"""<strong>Alerts: </strong> <br><a>{self.alerts.to_html()} </a><br>"""
-            )
-        if not self.alerts.empty:
-            html = (
-                html
-                + f"""<div class="hover-text">hover me
-                        <span class="tooltip-text" id="fade">I'm a tooltip!</span>
-                        </div>"""
-            )
+            html = html + f"""<a>Alerts: </br> {self.alerts.to_html()} </a><br>"""
 
             # for alert in alerts:
             #     html = html + f"""<a href="https://www.mbta.com/alerts/{alert}">{alert}</a><br>"""
 
-        iframe = folium.IFrame(html, width=200, height=200)
-        popup = folium.Popup(iframe, max_width=400)
+        popup = folium.Popup(folium.IFrame(html, width=400, height=400))
 
         # don't even think about it
 

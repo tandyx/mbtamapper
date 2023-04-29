@@ -41,6 +41,8 @@ class Route:
                 </a>
                 <a style="margin: 0;">{self.description}</a></br>"""
 
+        # TODO: add alerts tooltip
+        # TODO: remote link underline
         if not self.alerts.empty:
             html = html + f"""<a>Alerts: </br> {self.alerts.to_html()} </a><br>"""
 

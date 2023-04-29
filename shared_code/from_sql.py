@@ -22,7 +22,9 @@ class GrabData:
                     LEFT JOIN (
                     SELECT route_id, route_name, description from routes_{self.route_type}
                     UNION SELECT route_id, route_name, description from routes_{self.offset}) as routes 
-                    ON vehicles.route_id = routes.route_id);""",
+                    ON vehicles.route_id = routes.route_id) as a
+					LEFT JOIN (SELECT * FROM shapes_{self.route_type} UNION SELECT * FROM shapes_{self.offset}) as shapes on shapes.route_id = a.route_id
+					GROUP BY vehicle_id;""",
                 self.conn,
             )
         else:
@@ -31,7 +33,9 @@ class GrabData:
                     SELECT * FROM vehicles_{self.route_type} as vehicles 
                     LEFT JOIN (
                     SELECT route_id, route_name, description from routes_{self.route_type}) as routes 
-                    ON vehicles.route_id = routes.route_id);""",
+                    ON vehicles.route_id = routes.route_id) as a
+					LEFT JOIN shapes_{self.route_type} on shapes_{self.route_type} .route_id = a.route_id
+					GROUP BY vehicle_id;""",
                 self.conn,
             )
         return vehicles
@@ -39,17 +43,18 @@ class GrabData:
     def grabstops(self):
         if self.route_type in [0, 1]:
             stops = read_query(
-                f"""SELECT *, MAX(platform_code) as platform_code
-                    FROM (SELECT * FROM stops_{self.route_type} 
-                    UNION SELECT * FROM stops_{self.offset})
-                    GROUP BY parent_station;""",
+                f"""SELECT * FROM (
+                    SELECT * FROM stops_{self.route_type} UNION SELECT * FROM stops_{self.offset}) as a 
+                    GROUP BY a.parent_station, a.line_serviced 
+                    ORDER BY a.parent_station, a.line_serviced""",
                 self.conn,
             )
+            return stops
         else:
             stops = read_query(
-                f"""SELECT *, MAX(platform_code) as platform_code
-                    FROM stops_{self.route_type}
-                    GROUP BY parent_station;""",
+                f"""SELECT * FROM stops_0 
+                                   GROUP BY parent_station, line_serviced 
+                                   ORDER BY parent_station, line_serviced;""",
                 self.conn,
             )
         return stops
