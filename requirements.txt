@@ -10,3 +10,5 @@ branca
 css_inline
 polyline
 geocoder
+streamlit
+streamlit_folium

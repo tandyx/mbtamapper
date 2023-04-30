@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import geocoder
 import sqlite3
+import streamlit as st
+from streamlit_folium import st_folium, folium_static
 
 from shared_code.csv_ops import CSV_ops
 from shared_code.from_sql import GrabData
@@ -14,12 +16,12 @@ from layer_constructors.route_constructor import Route
 from layer_constructors.stop_constructor import Stops
 from layer_constructors.vehicle_constructor import Vehicle
 
-# TODO: split silver line and bus lines
+# TODO: split silver line and bus lines into their own layers
 
 conn = sqlite3.connect("mbta_data.db")
 start_time = time.time()
 # 0/1 = heavy rail + light rail, 2 = commuter rail, 3 = bus, 4 = ferry
-route_type = 1
+route_type = 2
 
 vehicles = GrabData(route_type, conn).grabvehicles()
 stops = GrabData(route_type, conn).grabstops()
@@ -35,13 +37,14 @@ system_map = folium.Map(
     tiles=None,
     zoom_start=zoom,
 )
+system_map.get_root().title = "MBTA System Map"
 html_to_insert = """<style>.leaflet-popup-content-wrapper, .leaflet-popup-tip
                     {
                         background: rgb(0, 0, 0, 0.95) !important;
-                    }   
+                    }
                     </style>
                     <link rel="icon" href = "mbta.png" />"""
-system_map.get_root().title = "MBTA System Map"
+
 system_map.get_root().header.add_child(folium.Element(html_to_insert))
 
 
@@ -130,5 +133,12 @@ layer_control = folium.LayerControl().add_to(system_map)
 
 # system_map.keep_in_front(lambda item: item in vehicle_cluster)
 system_map.save("index.html")
-# system_map.show_in_browser()
+system_map.show_in_browser()
+
+system_map
+
+# # st_data = folium_static(system_map, width=1000, height=800)
+# st_data = st_folium(
+#     system_map, width=1000, height=1000, feature_group_to_add=vehicle_cluster
+# )
 print(f"Map built in {time.time() - start_time} seconds")
