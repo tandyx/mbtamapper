@@ -12,3 +12,4 @@ polyline
 geocoder
 streamlit
 streamlit_folium
+base64

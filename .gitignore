@@ -59,3 +59,4 @@ launch.json
 *.db
 *.html
 *.venv
+st_testing.py

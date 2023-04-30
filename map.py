@@ -135,8 +135,6 @@ layer_control = folium.LayerControl().add_to(system_map)
 system_map.save("index.html")
 system_map.show_in_browser()
 
-system_map
-
 # # st_data = folium_static(system_map, width=1000, height=800)
 # st_data = st_folium(
 #     system_map, width=1000, height=1000, feature_group_to_add=vehicle_cluster

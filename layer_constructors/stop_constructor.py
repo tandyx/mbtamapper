@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import folium
 import pandas as pd
+from htmlelements import Popup
 
 
 @dataclass
@@ -59,9 +60,27 @@ class Stops:
                 + f"""<a style=";margin: 0;">{self.row["line_serviced"]}</a></br>"""
             )
         if self.row["wheelchair_accessible"] == 1:
-            html = html + """<a style="margin: 0;">Wheelchair Accessible</a></br>"""
+            wheelchair_popup = Popup(
+                "wheelchair.png",
+                "Wheelchair Accessible",
+                "20",
+                "20",
+                "Wheelchair Accessible",
+            ).popup()
+            html = html + f"""<a style="margin: 0;">{wheelchair_popup}</a>"""
         if not self.alerts.empty:
-            html = html + f"""<a>Alerts: </br> {self.alerts.to_html()} </a><br>"""
+            alert = self.alerts.to_html(
+                columns=["header", "effect", "link", "start_time", "end_time"],
+                index=False,
+            )
+            alert_popup = Popup(
+                "alert.png",
+                "Alerts",
+                "20",
+                "20",
+                alert,
+            ).popup()
+            html = html + f"""<a> {alert_popup} </a><br>"""
 
         # TODO: add alerts tooltip
         # TODO: remote link underline
