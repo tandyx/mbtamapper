@@ -5,6 +5,7 @@ from PIL import Image, ImageFont
 import numpy as np
 import pandas as pd
 from shared_code import center_text
+from htmlelements import Popup
 
 
 @dataclass
@@ -49,20 +50,49 @@ class Vehicle:
             </head>
             <body>
                 <a href="https://www.mbta.com/schedules/{self.row["route_id"]}"> 
-                <h1 style="color: #{self.row["route_color"]};margin: 0;">{self.row["vehicle_id"]}</h1>
+                <h1 style="color: #{self.row["route_color"]};margin: 0;">{self.trip_name}</h1>
                 </a>
-                <a style="margin: 0;">{self.trip_name}</a></br>
+                <a style="margin: 0;">{self.row["vehicle_id"]}</a></br>"""
+
+        if not self.alerts.empty:
+            alert = (
+                self.alerts[["header", "effect", "link", "start_time", "end_time"]]
+                .drop_duplicates()
+                .reset_index(drop=True)
+                .style.set_properties(
+                    **{
+                        "background-color": "black",
+                        "font-size": "7pt",
+                    }
+                )
+                .to_html(
+                    index=False,
+                    sparse_index=False,
+                )
+            )
+            alert_popup = Popup(
+                "alert.png",
+                "Alerts",
+                "20",
+                "20",
+                alert,
+            ).popup()
+
+            html = html + f"""<a margin: 0;"> {alert_popup} </a>"""
+
+        html = (
+            html
+            + f"""
                 <br><a style="margin: 0;">{self.row["route_name"]}</a></br>
                 <a style="margin: 0;"> {self.status} <a href="https://www.mbta.com/stops/{self.row["parent_station"]}">{self.row["stop_name"]}</a><br>
                 <a style="margin: 0;"> timestamp: {self.row["timestamp"]}</a><br>
                 <a style="margin: 0;"> speed: {self.speed}</a><br>
                 <a style="margin: 0;"> bearing: {self.row["bearing"]} degrees </a><br>"""
+        )
         # TODO: add alerts tooltip
-        if not self.alerts.empty:
-            html = html + f"""<a>Alerts: </br> {self.alerts.to_html()} </a><br>"""
 
-            # for alert in alerts:
-            #     html = html + f"""<a href="https://www.mbta.com/alerts/{alert}">{alert}</a><br>"""
+        # for alert in alerts:
+        #     html = html + f"""<a href="https://www.mbta.com/alerts/{alert}">{alert}</a><br>"""
 
         popup = folium.Popup(folium.IFrame(html, width=400, height=400))
 

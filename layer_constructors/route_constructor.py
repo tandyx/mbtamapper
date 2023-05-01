@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import polyline
 import folium
 import pandas as pd
+from htmlelements import Popup
 
 
 @dataclass
@@ -49,7 +50,29 @@ class Route:
         # TODO: add alerts tooltip
         # TODO: remote link underline
         if not self.alerts.empty:
-            html = html + f"""<a>Alerts: </br> {self.alerts.to_html()} </a><br>"""
+            alert = (
+                self.alerts[["header", "effect", "link", "start_time", "end_time"]]
+                .drop_duplicates()
+                .reset_index(drop=True)
+                .style.set_properties(
+                    **{
+                        "background-color": "black",
+                        "font-size": "7pt",
+                    }
+                )
+                .to_html(
+                    index=False,
+                    sparse_index=False,
+                )
+            )
+            alert_popup = Popup(
+                "alert.png",
+                "Alerts",
+                "20",
+                "20",
+                alert,
+            ).popup()
+            html = html + f"""<a style="margin:0px"> {alert_popup} </a><br>"""
 
         html = html + "</body></html>"
         popup = folium.Popup(

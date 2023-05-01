@@ -67,11 +67,22 @@ class Stops:
                 "20",
                 "Wheelchair Accessible",
             ).popup()
-            html = html + f"""<a style="margin: 0;">{wheelchair_popup}</a>"""
+            html = html + f"""<a>{wheelchair_popup}</a>"""
         if not self.alerts.empty:
-            alert = self.alerts.to_html(
-                columns=["header", "effect", "link", "start_time", "end_time"],
-                index=False,
+            alert = (
+                self.alerts[["header", "effect", "link", "start_time", "end_time"]]
+                .drop_duplicates()
+                .reset_index(drop=True)
+                .style.set_properties(
+                    **{
+                        "background-color": "black",
+                        "font-size": "7pt",
+                    }
+                )
+                .to_html(
+                    index=False,
+                    sparse_index=False,
+                )
             )
             alert_popup = Popup(
                 "alert.png",
@@ -80,7 +91,7 @@ class Stops:
                 "20",
                 alert,
             ).popup()
-            html = html + f"""<a> {alert_popup} </a><br>"""
+            html = html + f"""<a style="margin:0px"> {alert_popup} </a><br>"""
 
         # TODO: add alerts tooltip
         # TODO: remote link underline

@@ -26,38 +26,35 @@ class Popup:
                 display: inline-block;
                 border-bottom: 1px dotted grey;
                 }}
-
-                .tooltip .tooltiptext {{
-                    visibility: hidden;
-                    background-color: grey;
-                    color: #fff;
-                    text-align: center;
-                    border-radius: 6px;
-                    padding: 5px 0;
-                    position: absolute;
-                    z-index: 1;
-                    top: 150%;
-                    left: 50%;
-                    margin-left: -60px;
+                
+                .tooltip .tooltiptext{{
+                visibility: hidden;
+                background-color: grey;
+                text-align: center;
+                color: #fff;
+                border-radius: 6px;
+                padding: 5px 0;
+                position: absolute;
+                z-index: 1;
+                top: -5px;
+                left: 110%;
+                opacity: 0;
+                transition: opacity 1s;
                 }}
 
                 .tooltip .tooltiptext::after {{
-                    content: "";
-                    position: absolute;
-                    bottom: 100%;
-                    left: 50%;
-                    margin-left: -5px;
-                    border-width: 5px;
-                    border-style: solid;
-                    border-color: transparent transparent grey transparent;
+                content: "";
+                position: absolute;
+                top: 50%;
+                right: 100%;
+                margin-top: -5px;
+                border-width: 0px;
+                border-style: solid;
+                border-color: transparent grey transparent transparent;
                 }}
+
                 .tooltip:hover .tooltiptext {{
                 visibility: visible;
-                }}
-                
-                .tooltip .tooltiptext {{
-                    opacity: 0;
-                    transition: opacity 1s;
                 }}
 
                 .tooltip:hover .tooltiptext {{
