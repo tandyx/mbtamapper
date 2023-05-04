@@ -38,7 +38,7 @@ class GrabData:
 					GROUP BY vehicle_id;""",
                 self.conn,
             )
-        return vehicles
+        return vehicles.fillna("unknown")
 
     def grabstops(self):
         if self.route_type in [0, 1]:
@@ -49,7 +49,7 @@ class GrabData:
                     ORDER BY a.parent_station, a.line_serviced""",
                 self.conn,
             )
-            return stops
+            return stops.fillna("unknown")
         else:
             stops = read_query(
                 f"""SELECT * FROM stops_{self.route_type} 
@@ -57,7 +57,7 @@ class GrabData:
                                    ORDER BY parent_station, line_serviced;""",
                 self.conn,
             )
-        return stops
+        return stops.fillna("unknown")
 
     def grabshapes(self):
         if self.route_type in [0, 1]:
@@ -81,7 +81,7 @@ class GrabData:
                     ORDER BY shape_id desc;""",
                 self.conn,
             )
-        return shapes
+        return shapes.fillna("unknown")
 
     def grabpredictions(self):
         if self.route_type in [0, 1]:
@@ -104,7 +104,7 @@ class GrabData:
                     ON prd.route_id = routes.route_id);""",
                 self.conn,
             )
-        return predictions
+        return predictions.fillna("unknown")
 
     def grabalerts(self):
         if self.route_type in [0, 1]:
@@ -126,7 +126,7 @@ class GrabData:
                     ON alerts.route_id == routes.route_id);""",
                 self.conn,
             )
-        return alerts
+        return alerts.fillna("unknown")
 
 
 def read_query(query, conn=sqlite3.connect(f"mbta_data.db")):

@@ -132,7 +132,7 @@ if not vehicles.empty:
 layer_control = folium.LayerControl().add_to(system_map)
 
 # system_map.keep_in_front(lambda item: item in vehicle_cluster)
-system_map.save("index.html")
+system_map.save("oldmap.html")
 system_map.show_in_browser()
 
 # # st_data = folium_static(system_map, width=1000, height=800)
