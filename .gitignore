@@ -57,6 +57,5 @@ launch.json
 
 *.csv
 *.db
-*.html
 *.venv
 st_testing.py
