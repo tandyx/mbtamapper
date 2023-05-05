@@ -1,4 +1,5 @@
 import sqlite3
+import polyline
 from flask import Flask, render_template, jsonify, request
 from shared_code.from_sql import GrabData
 from poll_mbta_data import vehicles, routes, shapes, stops, predictions, alerts
@@ -12,21 +13,26 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/vehicles/")
+@app.route(f"/vehicles/{route_type}")
 def get_vehicles():
     conn = sqlite3.connect(f"mbta_data.db")
-    vehicles.getvehicles(route_type, conn)
-    data = (
-        GrabData(route_type, conn).grabvehicles().fillna(0.0).to_dict(orient="records")
-    )
+    data = GrabData(route_type, conn).grabvehicles().to_dict(orient="records")
     return jsonify(data)
 
 
-@app.route("/stops/")
+@app.route(f"/stops/{route_type}")
 def get_stops():
     conn = sqlite3.connect(f"mbta_data.db")
-    stops.getstops(route_type, conn)
-    data = GrabData(route_type, conn).grabstops().fillna(0.0).to_dict(orient="records")
+    data = GrabData(route_type, conn).grabstops().to_dict(orient="records")
+    return jsonify(data)
+
+
+@app.route(f"/shapes/{route_type}")
+def get_shapes():
+    conn = sqlite3.connect(f"mbta_data.db")
+    data = GrabData(route_type, conn).grabshapes()
+    data["polyline"] = data["polyline"].apply(polyline.decode)
+    data = data.to_dict(orient="records")
     return jsonify(data)
 
 

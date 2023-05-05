@@ -13,7 +13,7 @@ def getvehicles(route_type=2, conn=sqlite3.connect("mbta_data.db")):
 
     req = rq.get(
         f"https://api-v3.mbta.com/vehicles?filter[route_type]={route_type}&include=trip,stop,route&api_key={os.getenv('MBTA_API_KEY')}",
-        timeout=5,
+        timeout=10,
     )
 
     vehicles = pd.DataFrame()

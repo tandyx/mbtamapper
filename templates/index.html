@@ -4,7 +4,7 @@
         
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href = "mbta.png" />
+    <link rel="icon" href = "/static/mbta.png" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
             integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
             crossorigin=""
@@ -14,6 +14,12 @@
             crossorigin="">
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/static/leaflet-rotatedmarker/leaflet.rotatedMarker.js"></script>
+    <link rel = "stylesheet" href = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css"/>
+    <link rel = "stylesheet" href = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css"/>
+    <script src = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
+    <script src = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
+    
     <style>
         #map {
             position: absolute;
@@ -23,20 +29,22 @@
             right: 0;
         }
     </style>
-    <style>.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: rgb(0, 0, 0, 0.95) !important;} </style>
+    <style>.leaflet-popup-content-wrapper, .leaflet-popup-tip { 
+        background: rgb(0, 0, 0, 0.95) !important;
+        color: #ffffff !important;
+        font-family: 'montserrat', sans-serif !important;
+        font-size: 14pt !important;
+        text-align: left !important;        
+    } </style>
+    
     <title>MBTA System Map</title>
 </head>
-
 <body>
     <div id="map"></div>
     <script>
-        var map = L.map('map').setView([42.3519, -71.0552], 13);
 
-        // var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        //    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        //    subdomains: 'abcd',
-        //    maxZoom: 20
-        //}).addTo(map);
+        let route_type = 2;
+        var map = L.map('map').setView([42.3519, -71.0552], 13);
         
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -45,45 +53,133 @@
         }).addTo(map);
 
         // Create a layer group for the vehicles
-        var vehicle_layer = L.layerGroup().addTo(map);
 
-        var basemaps = {
-            "Dark": CartoDB_DarkMatter
-        };
-
+        var stop_layer = L.layerGroup().addTo(map);
+        var shape_layer = L.layerGroup().addTo(map);
+        var bus_replacement_layer = L.layerGroup().addTo(map);
+        var vehicle_layer = L.markerClusterGroup().addTo(map);
+    
         var overlays = {
-            "Vehicles": vehicle_layer
+            "Vehicles": vehicle_layer,
+            "Stops": stop_layer,
+            "Shapes": shape_layer,
+            "Bus Replacement": bus_replacement_layer
         };
 
-        var layerControl = L.control.layers(overlays).addTo(map);
-        getVehicleLocations();
+        var layerControl = L.control.layers(null, overlays).addTo(map);
+        
+        plotShapes(route_type);
+        plotStops(route_type);
+        plotVehicles(route_type);
+
 
         // calls function every 15 seconds
         var intervalId = window.setInterval(function () {
-            getVehicleLocations();
+            plotVehicles(route_type);
         }, 15000);
 
 
-        function getVehicleLocations() {
+        function plotVehicles(route_type=2) {
 
 
-   
-            $.getJSON("/vehicles/", function(vehicle_dict) {
+            var vehicle_icon = L.icon({
+                iconUrl: '/static/icon.png',
+                iconSize: [40, 40],
+            });
+
+
+            $.getJSON("/vehicles/" + route_type, function(vehicle_dict) {
                 console.log(vehicle_dict);
                 vehicle_layer.clearLayers();
                 for (var i = 0; i < vehicle_dict.length; i++) {
-                    var marker = L.marker([vehicle_dict[i].latitude, vehicle_dict[i].longitude]).addTo(vehicle_layer);
-                    var popup = marker.bindPopup(vehicle_dict[i].vehicle_id); 
+                    const vehicle = vehicle_dict[i];
+                    var marker = L.marker([
+                        vehicle.latitude, 
+                        vehicle.longitude], {
+                            icon: vehicle_icon, 
+                            rotationAngle: vehicle.bearing,
+                            rotationOrigin: 'center',
+                    }).setZIndexOffset(100);
+
+                    var popup = marker.bindPopup(
+                        `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">`+ vehicle.vehicle_id + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` + vehicle.trip_short_name + "</body>"
+                    );
+                    var tooltip = marker.bindTooltip(vehicle.trip_short_name); 
+                    marker.addTo(vehicle_layer);
                 }
             });
         }
 
-        function getStops() {
-            $.getJSON("/stops/", function(stops_dict) {
+        function plotStops(route_type=2) {
+
+            stop_layer.clearLayers();
+
+            var stop_icon = L.icon({
+                iconUrl: '/static/mbta.png',
+                iconSize: [15, 15],
+            });
+            
+            $.getJSON("/stops/" + route_type, function(stops_dict) {
                 console.log(stops_dict);
                 for (var i = 0; i < stops_dict.length; i++) {
-                    var marker = L.marker([stops_dict[i].latitude, stops_dict[i].longitude]).addTo(map);
-                    var popup = marker.bindPopup(stops_dict[i].stop_name); 
+
+                    const stop = stops_dict[i];
+
+                    if (stop.line_serviced == "Commuter Rail") {
+                        var route_color = "80276C";
+                    } else if (stop.line_serviced == "Green Line") {
+                        var route_color = "00843D";
+                    } else if (stop.line_serviced == "Orange Line") {
+                        var route_color = "ED8B00";
+                    } else if (["Red Line", "Mattapan Trolley"].includes(stop.line_serviced)) {
+                        var route_color = "DA291C";
+                    } else if (stop.line_serviced == "Blue Line") {
+                        var route_color = "003DA5";
+                    } else if (stop.line_serviced == "Silver Line") {
+                        var route_color = "7C878E";
+                    } else if (stop.line_serviced == "Bus Line") {
+                        var route_color = "FFC72C";
+                    } else if (stop.line_serviced.slice(-5) === "Ferry") {
+                        var route_color = "008EAA";
+                    } else {
+                        var route_color = "FFFFFF";
+                    }
+
+                    var marker = L.marker([stops_dict[i].latitude, stops_dict[i].longitude], {icon: stop_icon}).setZIndexOffset(-100);
+
+                    var popup = marker.bindPopup(
+                        `<a href = https://www.mbta.com/stops/${stops_dict[i].stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">`+ stops_dict[i].stop_name + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` + stops_dict[i].line_serviced + "</br>" + "</body>"
+                        );
+                    var tooltip = marker.bindTooltip(stops_dict[i].stop_name);
+
+                    marker.addTo(stop_layer);
+                }
+            });
+        }
+
+        function plotShapes(route_type=2){
+
+            shape_layer.clearLayers();
+            bus_replacement_layer.clearLayers();
+
+            $.getJSON("/shapes/" + route_type, function(shapes_dict) {
+                console.log(shapes_dict);
+                for (var i = 0; i < shapes_dict.length; i++) {
+                    var color = "#" + shapes_dict[i].route_color;
+                    var opacity = 0.9;
+                    var weight = 0.8;
+                    if (shapes_dict[i].parent_route_type != shapes_dict[i].route_type)
+                        opacity = 0.5;
+                    var route = L.polyline(shapes_dict[i].polyline, {color: color, opacity: opacity, weight: weight});
+                    var popup = route.bindPopup(shapes_dict[i].route_name);
+
+                    if (shapes_dict[i].parent_route_type != shapes_dict[i].route_type)
+                        route.addTo(bus_replacement_layer);
+                    else
+                        route.addTo(shape_layer);
+
                 }
             });
         }
