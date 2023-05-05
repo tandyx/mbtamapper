@@ -34,7 +34,8 @@
         color: #ffffff !important;
         font-family: 'montserrat', sans-serif !important;
         font-size: 14pt !important;
-        text-align: left !important;        
+        text-align: left !important;
+        maxWidth: "auto" !important;        
     } </style>
     
     <title>MBTA System Map</title>
@@ -43,7 +44,7 @@
     <div id="map"></div>
     <script>
 
-        let route_type = 2;
+        let route_type = 1;
         var map = L.map('map').setView([42.3519, -71.0552], 13);
         
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -79,7 +80,7 @@
         }, 15000);
 
 
-        function plotVehicles(route_type=2) {
+        function plotVehicles(route_type=route_type) {
 
 
             var vehicle_icon = L.icon({
@@ -103,7 +104,8 @@
 
                     var popup = marker.bindPopup(
                         `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">`+ vehicle.vehicle_id + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + vehicle.trip_short_name + "</body>"
+                        `<body style="color:#ffffff;text-align: left;">` + vehicle.trip_short_name + "</body>", 
+                        {maxWidth: "auto"}
                     );
                     var tooltip = marker.bindTooltip(vehicle.trip_short_name); 
                     marker.addTo(vehicle_layer);
@@ -111,7 +113,7 @@
             });
         }
 
-        function plotStops(route_type=2) {
+        function plotStops(route_type=route_type) {
 
             stop_layer.clearLayers();
 
@@ -146,20 +148,21 @@
                         var route_color = "FFFFFF";
                     }
 
-                    var marker = L.marker([stops_dict[i].latitude, stops_dict[i].longitude], {icon: stop_icon}).setZIndexOffset(-100);
+                    var marker = L.marker([stop.latitude, stop.longitude], {icon: stop_icon}).setZIndexOffset(-100);
 
                     var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/stops/${stops_dict[i].stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">`+ stops_dict[i].stop_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + stops_dict[i].line_serviced + "</br>" + "</body>"
+                        `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">`+ stop.stop_name + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" + "</body>", 
+                        {maxWidth: "auto"}
                         );
-                    var tooltip = marker.bindTooltip(stops_dict[i].stop_name);
+                    var tooltip = marker.bindTooltip(stop.stop_name);
 
                     marker.addTo(stop_layer);
                 }
             });
         }
 
-        function plotShapes(route_type=2){
+        function plotShapes(route_type=route_type){
 
             shape_layer.clearLayers();
             bus_replacement_layer.clearLayers();
@@ -167,15 +170,23 @@
             $.getJSON("/shapes/" + route_type, function(shapes_dict) {
                 console.log(shapes_dict);
                 for (var i = 0; i < shapes_dict.length; i++) {
-                    var color = "#" + shapes_dict[i].route_color;
+
+                    const shape = shapes_dict[i];
+
+                    var color = "#" + shape.route_color;
                     var opacity = 0.9;
                     var weight = 0.8;
-                    if (shapes_dict[i].parent_route_type != shapes_dict[i].route_type)
+                    if (shape.parent_route_type != shape.route_type)
                         opacity = 0.5;
-                    var route = L.polyline(shapes_dict[i].polyline, {color: color, opacity: opacity, weight: weight});
-                    var popup = route.bindPopup(shapes_dict[i].route_name);
+                    var route = L.polyline(shape.polyline, {color: color, opacity: opacity, weight: weight});
+                    var popup = route.bindPopup(
+                        `<div style="color:#ffffff;text-align: left;"><a href = https://www.mbta.com/stops/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">`+ shape.route_name + "</a></br>" +
+                        shape.description + "</br> </div>", 
+                        {maxWidth: "auto"}
+                    );
+                    var tooltip = route.bindTooltip(shape.route_id);
 
-                    if (shapes_dict[i].parent_route_type != shapes_dict[i].route_type)
+                    if (shape.parent_route_type != shape.route_type)
                         route.addTo(bus_replacement_layer);
                     else
                         route.addTo(shape_layer);

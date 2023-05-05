@@ -57,6 +57,7 @@ launch.json
 
 *.csv
 *.db
+*.db-journal
 *.venv
 st_testing.py
 static/leaflet-rotatedmarker/
