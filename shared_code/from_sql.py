@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-import pandas as pd
 import sqlite3
+import pandas as pd
 
 
 @dataclass
@@ -38,6 +38,8 @@ class GrabData:
 					GROUP BY vehicle_id;""",
                 self.conn,
             )
+
+        vehicles["trip_short_name"] = vehicles["trip_short_name"].replace("", None)
         return vehicles.reset_index(drop=True)
 
     def grabstops(self):

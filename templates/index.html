@@ -19,6 +19,8 @@
     <link rel = "stylesheet" href = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css"/>
     <script src = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
     <script src = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
+
+    <link rel = "stylesheet" href = "/static/custom_css/popup.css"/>
     
     <style>
         #map {
@@ -33,7 +35,7 @@
         background: rgb(0, 0, 0, 0.95) !important;
         color: #ffffff !important;
         font-family: 'montserrat', sans-serif !important;
-        font-size: 14pt !important;
+        font-size: 10pt !important;
         text-align: left !important;
         maxWidth: "auto" !important;        
     } </style>
@@ -44,7 +46,7 @@
     <div id="map"></div>
     <script>
 
-        let route_type = 1;
+        let route_type = 2;
         var map = L.map('map').setView([42.3519, -71.0552], 13);
         
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -53,21 +55,43 @@
             maxZoom: 20
         }).addTo(map);
 
+        var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        });
+
+        var Stadia_AlidadeSmoothDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20,
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+        });
+
         // Create a layer group for the vehicles
 
-        var stop_layer = L.layerGroup().addTo(map);
+        var stop_layer = L.layerGroup()
         var shape_layer = L.layerGroup().addTo(map);
         var bus_replacement_layer = L.layerGroup().addTo(map);
         var vehicle_layer = L.markerClusterGroup().addTo(map);
-    
+
         var overlays = {
             "Vehicles": vehicle_layer,
             "Stops": stop_layer,
             "Shapes": shape_layer,
-            "Bus Replacement": bus_replacement_layer
+
         };
 
-        var layerControl = L.control.layers(null, overlays).addTo(map);
+        var baseMaps = {
+            "Dark": CartoDB_DarkMatter,
+            "Light": CartoDB_Positron,
+            "Alt Dark": Stadia_AlidadeSmoothDark,
+        };
+
+        if (route_type !=3){
+            stop_layer.addTo(map);
+            overlays["Bus Replacement"] = bus_replacement_layer;
+        } 
+
+        var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
         
         plotShapes(route_type);
         plotStops(route_type);
@@ -94,6 +118,35 @@
                 vehicle_layer.clearLayers();
                 for (var i = 0; i < vehicle_dict.length; i++) {
                     const vehicle = vehicle_dict[i];
+
+                    if(vehicle.direction_id == 0) {
+                        direction = "Outbound";
+                    } else {
+                        direction = "Inbound";
+                    }
+                    if (route_type != 3) {
+                        var vehicle_type = "Train"
+                        var control = "Control"
+                    } else{
+                        var vehicle_type = "Bus"
+                        var control = "Bus ID"
+                    }
+
+                    if (vehicle.bikes_allowed == 1) {
+                        var bike = `<a class = "tooltip"><img src ="static/bike.png" alt = "bikes allowed" width=25 height=25 style="margin:2px;">
+                            <span class = "tooltiptext">text</span></a>`
+                    } else {
+                        var bike = ""
+                    }
+
+                    if (vehicle.alert != "unknown"){
+                        var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
+                    } else {
+                        var alert = ""
+                    }
+
+                    var prediction = `<img src ="static/train_icon.png" alt = "alert" width=25 height=25 style="margin:2px;">`
+
                     var marker = L.marker([
                         vehicle.latitude, 
                         vehicle.longitude], {
@@ -103,11 +156,23 @@
                     }).setZIndexOffset(100);
 
                     var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">`+ vehicle.vehicle_id + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + vehicle.trip_short_name + "</body>", 
+                        `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">`+ 
+                        vehicle_type + " " + vehicle.trip_short_name  + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` + 
+                        direction + " to " + vehicle.headsign + "</body>" +  "</br>" + 
+                        "—————————————————————————————————" + "</br>" +
+                        alert + " " + prediction +" " + bike + "</br>" +
+                        control + " " + vehicle.vehicle_id + " " +  vehicle.stop_status + " " + vehicle.stop_name + "</br>" +
+                        "Speed: " + vehicle.speed + " mph" + "</br>" +
+                        "Bearing: " + vehicle.bearing + "°" + "</br>" +
+                        `<a style="color:grey;font-size:9pt">` + 
+                        "Timestamp: " + vehicle.timestamp + "</br>" +
+                        "Route: " + vehicle.route_name + " (" + vehicle.route_id + ") " + "</br>" + 
+                        "Trip: " + vehicle.trip_id + "</a>" + 
+                        "</body>", 
                         {maxWidth: "auto"}
                     );
-                    var tooltip = marker.bindTooltip(vehicle.trip_short_name); 
+                    var tooltip = marker.bindTooltip(vehicle.vehicle_id); 
                     marker.addTo(vehicle_layer);
                 }
             });
@@ -140,19 +205,23 @@
                         var route_color = "003DA5";
                     } else if (stop.line_serviced == "Silver Line") {
                         var route_color = "7C878E";
-                    } else if (stop.line_serviced == "Bus Line") {
-                        var route_color = "FFC72C";
                     } else if (stop.line_serviced.slice(-5) === "Ferry") {
                         var route_color = "008EAA";
                     } else {
-                        var route_color = "FFFFFF";
+                        var route_color = "FFC72C";
                     }
+
+                    if (stop.line_serviced == "unknown"){
+                        stop.line_serviced = stop.zone;
+                    }
+
 
                     var marker = L.marker([stop.latitude, stop.longitude], {icon: stop_icon}).setZIndexOffset(-100);
 
                     var popup = marker.bindPopup(
                         `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">`+ stop.stop_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" + "</body>", 
+                        `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" + 
+                        "</body>", 
                         {maxWidth: "auto"}
                         );
                     var tooltip = marker.bindTooltip(stop.stop_name);
@@ -176,12 +245,19 @@
                     var color = "#" + shape.route_color;
                     var opacity = 0.9;
                     var weight = 0.8;
-                    if (shape.parent_route_type != shape.route_type)
+                    if (shape.parent_route_type != shape.route_type | shape.description == "Local Bus"){
                         opacity = 0.5;
+                    } else if (shape.description == "Community Bus"){
+                        opacity = 0.35;
+                    }
+                    if (shape.description == "unknown"){
+                        shape.description = "Bus Replacement"
+                    }
+
                     var route = L.polyline(shape.polyline, {color: color, opacity: opacity, weight: weight});
                     var popup = route.bindPopup(
-                        `<div style="color:#ffffff;text-align: left;"><a href = https://www.mbta.com/stops/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">`+ shape.route_name + "</a></br>" +
-                        shape.description + "</br> </div>", 
+                        `<a href = https://www.mbta.com/schedules/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">`+ shape.route_name + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` + shape.description + "</br> </body>", 
                         {maxWidth: "auto"}
                     );
                     var tooltip = route.bindTooltip(shape.route_id);

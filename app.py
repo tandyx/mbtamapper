@@ -2,10 +2,9 @@ import sqlite3
 import polyline
 from flask import Flask, render_template, jsonify, request
 from shared_code.from_sql import GrabData
-from poll_mbta_data import vehicles, routes, shapes, stops, predictions, alerts
 
 app = Flask(__name__)
-route_type = 1
+route_type = 2
 
 
 @app.route("/")
@@ -18,23 +17,43 @@ def get_vehicles():
     conn = sqlite3.connect(f"mbta_data.db")
     data = GrabData(route_type, conn).grabvehicles()
     alert_data = GrabData(route_type, conn).grabalerts()
+    predictions = GrabData(route_type, conn).grabpredictions()
     for index, row in data.iterrows():
         try:
             data.at[index, "alert"] = (
-                alert_data[alert_data["trip_id"] == row["trip_id"]]
+                alert_data.loc[alert_data["trip_id"] == row["trip_id"], :]
                 .drop_duplicates(subset="alert_id")
                 .to_dict(orient="records")
             )
-        except ValueError:
+        except (ValueError, KeyError):
             data.at[index, "alert"] = None
+        try:
+            data.at[index, "predictions"] = predictions.loc[
+                predictions["trip_id"] == row["trip_id"], :
+            ].to_dict(orient="records")
+        except (ValueError, KeyError):
+            data.at[index, "predictions"] = None
 
-    data["alert"] = data["alert"].apply(lambda y: None if y == y and len(y) == 0 else y)
-    # data["trip_short_name"] = data["trip_short_name"].fillna(data["trip_id"])
+    data["alert"] = (
+        data["alert"]
+        .apply(lambda x: [x] if isinstance(x, dict) else x)
+        .apply(lambda y: None if y == y and len(y) == 0 else y)
+    )
+    data["predictions"] = (
+        data["predictions"]
+        .apply(lambda x: [x] if isinstance(x, dict) else x)
+        .apply(lambda y: None if y == y and len(y) == 0 else y)
+    )
+
     # trip_alert = (
     #     alert_data.groupby("trip_id")["Value"]
     #     .apply(lambda x: dict(zip(range(len(x)), x)))
     #     .reset_index(name="DictValue")
     # )
+    data["trip_short_name"] = data["trip_short_name"].fillna(data["trip_id"])
+    data["stop_status"] = data["stop_status"].apply(
+        lambda x: x.lower().replace("_", " ") if x == x else x
+    )
     data.drop(columns=["polyline"], inplace=True)
     return jsonify(data.fillna("unknown").to_dict(orient="records"))
 
@@ -44,16 +63,36 @@ def get_stops():
     conn = sqlite3.connect(f"mbta_data.db")
     data = GrabData(route_type, conn).grabstops()
     alert_data = GrabData(route_type, conn).grabalerts()
+    predictions = GrabData(route_type, conn).grabpredictions()
     for index, row in data.iterrows():
         try:
             data.at[index, "alert"] = (
-                alert_data[alert_data["stop_id"] == row["parent_station"]]
+                alert_data.loc[alert_data["stop_id"] == row["parent_station"], :]
                 .drop_duplicates(subset="alert_id")
                 .to_dict(orient="records")
             )
-        except ValueError:
+        except (ValueError, KeyError):
             data.at[index, "alert"] = None
-    data["alert"] = data["alert"].apply(lambda y: None if y == y and len(y) == 0 else y)
+        try:
+            data.at[index, "predictions"] = (
+                predictions.loc[predictions["stop_id"] == row["stop_id"], :]
+                .drop_duplicates(subset="trip_id")
+                .to_dict(orient="records")
+            )
+        except (ValueError, KeyError):
+            data.at[index, "predictions"] = None
+
+    data["alert"] = (
+        data["alert"]
+        .apply(lambda x: [x] if isinstance(x, dict) else x)
+        .apply(lambda y: None if y == y and len(y) == 0 else y)
+    )
+    data["predictions"] = (
+        data["predictions"]
+        .apply(lambda x: [x] if isinstance(x, dict) else x)
+        .apply(lambda y: None if y == y and len(y) == 0 else y)
+    )
+
     return jsonify(data.fillna("unknown").to_dict(orient="records"))
 
 
@@ -65,17 +104,18 @@ def get_shapes():
     for index, row in data.iterrows():
         try:
             data.at[index, "alert"] = (
-                alert_data[
+                alert_data.loc[
                     (alert_data["route_id"] == row["route_id"])
                     & (alert_data["stop_id"].isna())
-                    & (alert_data["trip_id"].isna())
+                    & (alert_data["trip_id"].isna()),
+                    :,
                 ]
                 .drop_duplicates(subset="alert_id")
                 .to_dict(orient="records")
             )
-        except ValueError:
+        except (ValueError, KeyError):
             data.at[index, "alert"] = None
-    data["alert"] = data["alert"].apply(lambda y: None if y == y and len(y) == 0 else y)
+    # data["alert"] = data["alert"].apply(lambda y: None if y == y and len(y) == 0 else y)
     data["polyline"] = data["polyline"].apply(polyline.decode)
     data["route_name"] = data["route_name"].fillna(data["route_id"])
     data["description"].fillna("Bus Replacement")
