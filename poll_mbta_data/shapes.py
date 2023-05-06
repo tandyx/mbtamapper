@@ -22,6 +22,7 @@ def getshapes(route_type=2, active_routes="", conn=sqlite3.connect("mbta_data.db
         "route_id",
         "route_color",
         "parent_route_type",
+        "timestamp",
     ]
 
     req = requests.get(
@@ -62,6 +63,7 @@ def getshapes(route_type=2, active_routes="", conn=sqlite3.connect("mbta_data.db
         )
 
         route_trip["parent_route_type"] = route_type
+        route_trip["timestamp"] = pd.Timestamp.now(tz="America/New_York")
 
         # appends route type onto main dataframe
         route_trip = pd.merge(

@@ -126,10 +126,10 @@
                     }
                     if (route_type != 3) {
                         var vehicle_type = "Train"
-                        var control = "Control"
-                    } else{
-                        var vehicle_type = "Bus"
-                        var control = "Bus ID"
+                    } else if (vehicle.route_color == "7C878E"){
+                        var vehicle_type = "Silver Line"
+                    }else{
+                        var vehicle_type = vehicle.description
                     }
 
                     if (vehicle.bikes_allowed == 1) {
@@ -145,7 +145,7 @@
                         var alert = ""
                     }
 
-                    var prediction = `<img src ="static/train_icon.png" alt = "alert" width=25 height=25 style="margin:2px;">`
+                    var prediction = `<img src ="static/train_icon.png" alt = "prediction" width=25 height=25 style="margin:2px;">`
 
                     var marker = L.marker([
                         vehicle.latitude, 
@@ -162,7 +162,7 @@
                         direction + " to " + vehicle.headsign + "</body>" +  "</br>" + 
                         "—————————————————————————————————" + "</br>" +
                         alert + " " + prediction +" " + bike + "</br>" +
-                        control + " " + vehicle.vehicle_id + " " +  vehicle.stop_status + " " + vehicle.stop_name + "</br>" +
+                        "Vehicle" + " " + vehicle.vehicle_id + " " +  vehicle.stop_status + " " + vehicle.stop_name + "</br>" +
                         "Speed: " + vehicle.speed + " mph" + "</br>" +
                         "Bearing: " + vehicle.bearing + "°" + "</br>" +
                         `<a style="color:grey;font-size:9pt">` + 
@@ -215,13 +215,33 @@
                         stop.line_serviced = stop.zone;
                     }
 
+                    var prediction = `<img src ="static/train_icon.png" alt = "predictions" width=25 height=25 style="margin:2px;">`
+                    if (stop.wheelchair_accessible == 1){
+                        var wheelchair = `<img src ="static/wheelchair.png" alt = "accessible" width=25 height=25 style="margin:2px;">`
+                    } else {
+                        var wheelchair = ""
+                    }
+                    if (stop.alert != "unknown"){
+                        var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
+                    } else {
+                        var alert = ""
+                    }
+
 
                     var marker = L.marker([stop.latitude, stop.longitude], {icon: stop_icon}).setZIndexOffset(-100);
 
                     var popup = marker.bindPopup(
                         `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">`+ stop.stop_name + "</a></br>" +
                         `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" + 
-                        "</body>", 
+                        "—————————————————————————————————" + "</br>" +
+                        alert + " " + prediction + " " + wheelchair + "</br>" +
+                        stop.description + "</br>" +
+                        "Zone: " + stop.zone + "</br>" +
+                        `<a style="color:grey;font-size:9pt">` + 
+                        "Timestamp: " + stop.timestamp + "</br>" +
+                        "Adress: " + stop.adress + "</br>" +
+                        "Parent Stop: " + stop.stop_id + "</br>" +
+                        "</a></body>", 
                         {maxWidth: "auto"}
                         );
                     var tooltip = marker.bindTooltip(stop.stop_name);
@@ -254,10 +274,22 @@
                         shape.description = "Bus Replacement"
                     }
 
+                    if (shape.alert != "unknown"){
+                        var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
+                    } else {
+                        var alert = ""
+                    }
+
                     var route = L.polyline(shape.polyline, {color: color, opacity: opacity, weight: weight});
                     var popup = route.bindPopup(
                         `<a href = https://www.mbta.com/schedules/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">`+ shape.route_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + shape.description + "</br> </body>", 
+                        `<body style="color:#ffffff;text-align: left;">` + shape.description + "</br>" +
+                        "—————————————————————————————————" + "</br>" +
+                        alert + "</br>" +
+                        `<a style="color:grey;font-size:9pt">` +
+                        "Timestamp: " + shape.timestamp + "</br>" +
+                        "Route ID: " + shape.route_id + "</br>" +
+                        "</a></body>", 
                         {maxWidth: "auto"}
                     );
                     var tooltip = route.bindTooltip(shape.route_id);
