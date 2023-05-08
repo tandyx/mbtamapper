@@ -40,7 +40,7 @@ def getstops(route_type=2, conn=sqlite3.connect("mbta_data.db")):
         stops["route_type"] = route_type
 
         stops["parent_station"] = stops["parent_station"].fillna(stops["stop_id"])
-        stops["timestamp"] = pd.Timestamp.now(tz="America/New_York")
+        stops["stop_timestamp"] = pd.Timestamp.now(tz="America/New_York")
         stops["line_serviced"] = stops["description"].apply(
             lambda x: x.split(" - ")[1] if x else None
         )

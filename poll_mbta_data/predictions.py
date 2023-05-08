@@ -95,7 +95,9 @@ def getpredictions(
         predictions["predicted_departure_time"] = mbta_response["departure_time"]
         predictions["stop_sequence"] = mbta_response["stop_sequence"]
         predictions["route_type"] = route_type
-        predictions["timestamp"] = datetime.now(pytz.timezone("America/New_York"))
+        predictions["prediction_timestamp"] = datetime.now(
+            pytz.timezone("America/New_York")
+        )
 
     predictions.to_sql(f"predictions_{route_type}", conn, if_exists="replace")
     print(

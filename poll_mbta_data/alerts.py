@@ -22,7 +22,7 @@ def getalerts(route_type=2, conn=sqlite3.connect("mbta_data.db")):
         alerts["alert_id"] = mbta_response["id"]
         alerts["header"] = mbta_response["header"]
         alerts["effect"] = mbta_response["effect"]
-        alerts["timestamp"] = mbta_response["updated_at"]
+        alerts["alert_timestamp"] = mbta_response["updated_at"]
         alerts["link"] = mbta_response["url"]
         alerts["timeframe"] = mbta_response["timeframe"]
         alerts["short_header"] = mbta_response["short_header"]

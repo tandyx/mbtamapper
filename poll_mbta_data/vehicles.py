@@ -34,7 +34,7 @@ def getvehicles(route_type=2, conn=sqlite3.connect("mbta_data.db")):
         vehicles["speed"] = mbta_response["speed"]
 
         # vehicles["timestamp"] = iso_convert(mbta_response, ["updated_at"])
-        vehicles["timestamp"] = pd.to_datetime(mbta_response["updated_at"])
+        vehicles["vehicle_timestamp"] = pd.to_datetime(mbta_response["updated_at"])
         vehicles["trip_id"] = mbta_response["trip"].apply(lambda x: x["id"])
         vehicles["trip_short_name"] = mbta_response["trip"].apply(
             lambda x: x.get("name")
