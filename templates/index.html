@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 
-        
+
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href = "/static/mbta.png" />
+    <link rel="icon" href="/static/mbta.png" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-            integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
-            crossorigin=""
-            />
+        integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-            integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
-            crossorigin="">
-    </script>
+        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="">
+        </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel = "stylesheet" href = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css"/>
-    <link rel = "stylesheet" href = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css"/>
-    <script src = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
-    <script src = "/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
+    <link rel="stylesheet"
+        href="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet"
+        href="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" />
+    <script
+        src="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
+    <script src="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
 
-    <link rel = "stylesheet" href = "/static/custom_css/popup.css"/>
-    
+    <link rel="stylesheet" href="/static/custom_css/popup.css" />
+
     <style>
         #map {
             position: absolute;
@@ -31,11 +31,11 @@
         }
     </style>
     <style>
-
-        .leaflet-popup-content-wrapper, .leaflet-tooltip{
+        .leaflet-popup-content-wrapper,
+        .leaflet-tooltip {
             background: rgb(0, 0, 0, 0.95) !important;
             color: #ffffff !important;
-            font-family: 'montserrat', sans-serif !important;
+            font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 12pt !important;
             text-align: left !important;
             maxWidth: "auto" !important;
@@ -47,23 +47,26 @@
             margin-left: -12px;
             border-right-color: rgb(0, 0, 0, 0.95);
         }
-        
+
         .leaflet-tooltip-left:before {
             right: 0;
             margin-right: -12px;
             border-left-color: rgb(0, 0, 0, 0.95);
         }
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip { 
+
+        .leaflet-popup-content-wrapper,
+        .leaflet-popup-tip {
             background: rgb(0, 0, 0, 0.95) !important;
             color: #ffffff !important;
-            font-family: 'montserrat', sans-serif !important;
+            font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 10pt !important;
             text-align: left !important;
             maxWidth: "auto" !important;
         }
 
-        .leaflet-control-attribution, .leaflet-control-scale-line {
-            font-family: 'montserrat', sans-serif !important;
+        .leaflet-control-attribution,
+        .leaflet-control-scale-line {
+            font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 8pt !important;
             background: rgb(0, 0, 0, 0.7) !important;
             color: rgb(255, 255, 255, 0.7) !important;
@@ -72,27 +75,28 @@
         .leaflet-control-layers-expanded {
             background: rgb(0, 0, 0, 0.95) !important;
             color: #ffffff !important;
-            font-family: 'montserrat', sans-serif !important;
+            font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 8pt !important;
         }
 
-        .leaflet-control-layers label{
+        .leaflet-control-layers label {
             background: rgb(0, 0, 0, 0.95) !important;
             color: #ffffff !important;
-            font-family: 'montserrat', sans-serif !important;
+            font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 8pt !important;
         }
     </style>
-    
+
     <title>MBTA System Map</title>
 </head>
+
 <body>
     <div id="map"></div>
     <script>
 
         let route_type = 2;
         var map = L.map('map').setView([42.3519, -71.0552], 13);
-        
+
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
@@ -110,7 +114,7 @@
             attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
         });
 
-    
+
 
         // Create a layer group for the vehicles
 
@@ -123,7 +127,6 @@
             "Vehicles": vehicle_layer,
             "Stops": stop_layer,
             "Shapes": shape_layer,
-
         };
 
         var baseMaps = {
@@ -132,13 +135,13 @@
             "Alt Dark": Stadia_AlidadeSmoothDark,
         };
 
-        if (route_type !=3){
+        if (route_type != 3) {
             stop_layer.addTo(map);
             overlays["Bus Replacement"] = bus_replacement_layer;
-        } 
+        }
 
         var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
-        
+
         plotShapes(route_type);
         plotStops(route_type);
         plotVehicles(route_type);
@@ -150,27 +153,27 @@
         }, 15000);
 
 
-        function plotVehicles(route_type=route_type) {
+        function plotVehicles(route_type = route_type) {
 
 
-            $.getJSON("/vehicles/" + route_type, function(vehicle_dict) {
+            $.getJSON("/vehicles/" + route_type, function (vehicle_dict) {
                 console.log(vehicle_dict);
                 vehicle_layer.clearLayers();
                 for (var i = 0; i < vehicle_dict.length; i++) {
                     const vehicle = vehicle_dict[i];
 
-                    
 
-                    if(vehicle.direction_id == 0) {
+
+                    if (vehicle.direction_id == 0) {
                         direction = "Outbound";
                     } else {
                         direction = "Inbound";
                     }
                     if (route_type != 3) {
                         var vehicle_type = "Train"
-                    } else if (vehicle.route_color == "7C878E"){
+                    } else if (vehicle.route_color == "7C878E") {
                         var vehicle_type = "Silver Line"
-                    }else{
+                    } else {
                         var vehicle_type = vehicle.description
                     }
 
@@ -181,7 +184,7 @@
                         var bike = ""
                     }
 
-                    if (vehicle.alert != "unknown"){
+                    if (vehicle.alert != "unknown") {
                         var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
                     } else {
                         var alert = ""
@@ -189,54 +192,56 @@
 
                     var prediction = `<img src ="static/train_icon.png" alt = "prediction" width=25 height=25 style="margin:2px;">`
 
-                    if (route_type = 2){
+                    if (route_type == 2) {
                         var vehicle_icon = L.divIcon(
-                            {html:`<a style="position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);text-align: center;color: white;font-family:montserrat, sans-serif">
+                            {
+                                html: `<a style="position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);text-align: center;color: white;font-family:montserrat, Helvetica, sans-serif">
                                     <img src ="static/icon.png" width=50 height=50 style="transform: rotate(${vehicle.bearing}deg)">
                                     <span style = "position: absolute;top: 45%; left: 50%;transform: translate(-50%, -50%);">${vehicle.trip_short_name}</span>
                                     </a>`
                             }
-                        ) 
-                    } else{
+                        )
+                    } else {
                         var vehicle_icon = L.divIcon(
-                            {html:`<a style="position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);text-align: center;color: white;">
+                            {
+                                html: `<a style="position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);text-align: center;color: white;">
                                     <img src ="static/icon.png" width=50 height=50 style="transform: rotate(${vehicle.bearing}deg)">
                                     </a>`
                             }
-                        ) 
+                        )
                     }
 
 
                     var marker = L.marker([
-                        vehicle.latitude, 
+                        vehicle.latitude,
                         vehicle.longitude], {
-                            icon: vehicle_icon, 
+                        icon: vehicle_icon,
                     }).setZIndexOffset(100);
 
                     var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">`+ 
-                        vehicle_type + " " + vehicle.trip_short_name  + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + 
-                        direction + " to " + vehicle.headsign + "</body>" +  "</br>" + 
+                        `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">` +
+                        vehicle_type + " " + vehicle.trip_short_name + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` +
+                        direction + " to " + vehicle.headsign + "</body>" + "</br>" +
                         "—————————————————————————————————" + "</br>" +
-                        alert + " " + prediction +" " + bike + "</br>" +
-                        "Vehicle" + " " + vehicle.vehicle_id + " " +  vehicle.stop_status + " " + vehicle.stop_name + "</br>" +
+                        alert + " " + prediction + " " + bike + "</br>" +
+                        "Vehicle" + " " + vehicle.vehicle_id + " " + vehicle.stop_status + " " + vehicle.stop_name + "</br>" +
                         "Speed: " + vehicle.speed + " mph" + "</br>" +
                         "Bearing: " + vehicle.bearing + "°" + "</br>" +
-                        `<a style="color:grey;font-size:9pt">` + 
+                        `<a style="color:grey;font-size:9pt">` +
                         "Timestamp: " + vehicle.vehicle_timestamp + "</br>" +
-                        "Route: " + vehicle.route_name + " (" + vehicle.route_id + ") " + "</br>" + 
-                        "Trip: " + vehicle.trip_id + "</a>" + 
-                        "</body>", 
-                        {maxWidth: "auto"}
+                        "Route: " + vehicle.route_name + " (" + vehicle.route_id + ") " + "</br>" +
+                        "Trip: " + vehicle.trip_id + "</a>" +
+                        "</body>",
+                        { maxWidth: "auto" }
                     );
-                    var tooltip = marker.bindTooltip(vehicle.vehicle_id); 
+                    var tooltip = marker.bindTooltip(vehicle.vehicle_id);
                     marker.addTo(vehicle_layer);
                 }
             });
         }
 
-        function plotStops(route_type=route_type) {
+        function plotStops(route_type = route_type) {
 
             stop_layer.clearLayers();
 
@@ -244,8 +249,8 @@
                 iconUrl: '/static/mbta.png',
                 iconSize: [15, 15],
             });
-            
-            $.getJSON("/stops/" + route_type, function(stops_dict) {
+
+            $.getJSON("/stops/" + route_type, function (stops_dict) {
                 console.log(stops_dict);
                 for (var i = 0; i < stops_dict.length; i++) {
 
@@ -269,39 +274,39 @@
                         var route_color = "FFC72C";
                     }
 
-                    if (stop.line_serviced == "unknown"){
+                    if (stop.line_serviced == "unknown") {
                         stop.line_serviced = stop.zone;
                     }
 
                     var prediction = `<img src ="static/train_icon.png" alt = "predictions" width=25 height=25 style="margin:2px;">`
-                    if (stop.wheelchair_accessible == 1){
+                    if (stop.wheelchair_accessible == 1) {
                         var wheelchair = `<img src ="static/wheelchair.png" alt = "accessible" width=25 height=25 style="margin:2px;">`
                     } else {
                         var wheelchair = ""
                     }
-                    if (stop.alert != "unknown"){
+                    if (stop.alert != "unknown") {
                         var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
                     } else {
                         var alert = ""
                     }
 
 
-                    var marker = L.marker([stop.latitude, stop.longitude], {icon: stop_icon}).setZIndexOffset(-100);
+                    var marker = L.marker([stop.latitude, stop.longitude], { icon: stop_icon }).setZIndexOffset(-100);
 
                     var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">`+ stop.stop_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" + 
+                        `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">` + stop.stop_name + "</a></br>" +
+                        `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" +
                         "—————————————————————————————————" + "</br>" +
                         alert + " " + prediction + " " + wheelchair + "</br>" +
                         stop.description + "</br>" +
                         "Zone: " + stop.zone + "</br>" +
-                        `<a style="color:grey;font-size:9pt">` + 
+                        `<a style="color:grey;font-size:9pt">` +
                         "Timestamp: " + stop.stop_timestamp + "</br>" +
                         "Adress: " + stop.adress + "</br>" +
                         "Parent Stop: " + stop.stop_id + "</br>" +
-                        "</a></body>", 
-                        {maxWidth: "auto"}
-                        );
+                        "</a></body>",
+                        { maxWidth: "auto" }
+                    );
                     var tooltip = marker.bindTooltip(stop.stop_name);
 
                     marker.addTo(stop_layer);
@@ -309,12 +314,12 @@
             });
         }
 
-        function plotShapes(route_type=route_type){
+        function plotShapes(route_type = route_type) {
 
             shape_layer.clearLayers();
             bus_replacement_layer.clearLayers();
 
-            $.getJSON("/shapes/" + route_type, function(shapes_dict) {
+            $.getJSON("/shapes/" + route_type, function (shapes_dict) {
                 console.log(shapes_dict);
                 for (var i = 0; i < shapes_dict.length; i++) {
 
@@ -323,32 +328,32 @@
                     var color = "#" + shape.route_color;
                     var opacity = 0.9;
                     var weight = 0.8;
-                    if (shape.parent_route_type != shape.route_type | shape.description == "Local Bus"){
+                    if (shape.parent_route_type != shape.route_type | shape.description == "Local Bus") {
                         opacity = 0.5;
-                    } else if (shape.description == "Community Bus"){
+                    } else if (shape.description == "Community Bus") {
                         opacity = 0.35;
                     }
-                    if (shape.description == "unknown"){
+                    if (shape.description == "unknown") {
                         shape.description = "Bus Replacement"
                     }
 
-                    if (shape.alert != "unknown"){
+                    if (shape.alert != "unknown") {
                         var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">` + "</br>"
                     } else {
                         var alert = ""
                     }
 
-                    var route = L.polyline(shape.polyline, {color: color, opacity: opacity, weight: weight});
+                    var route = L.polyline(shape.polyline, { color: color, opacity: opacity, weight: weight });
                     var popup = route.bindPopup(
-                        `<a href = https://www.mbta.com/schedules/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">`+ shape.route_name + "</a></br>" +
+                        `<a href = https://www.mbta.com/schedules/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">` + shape.route_name + "</a></br>" +
                         `<body style="color:#ffffff;text-align: left;">` + shape.description + "</br>" +
                         "—————————————————————————————————" + "</br>" +
                         alert +
                         `<a style="color:grey;font-size:9pt">` +
                         "Timestamp: " + shape.shape_timestamp + "</br>" +
                         "Route ID: " + shape.route_id + "</br>" +
-                        "</a></body>", 
-                        {maxWidth: "auto"}
+                        "</a></body>",
+                        { maxWidth: "auto" }
                     );
                     var tooltip = route.bindTooltip(shape.route_id);
 
@@ -360,7 +365,7 @@
                 }
             });
         }
-        </script>
+    </script>
 
 </body>
 

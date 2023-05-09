@@ -14,25 +14,25 @@ def index():
 
 @app.route(f"/vehicles/{route_type}")
 def get_vehicles():
-    conn = sqlite3.connect(f"mbta_data.db")
+    conn = sqlite3.connect("mbta_data.db")
     data = GrabData(route_type, conn).grabvehicles()
     alert_data = GrabData(route_type, conn).grabalerts()
     predictions = GrabData(route_type, conn).grabpredictions()
-    for index, row in data.iterrows():
+    for ind, row in data.iterrows():
         try:
-            data.at[index, "alert"] = (
+            data.at[ind, "alert"] = (
                 alert_data.loc[alert_data["trip_id"] == row["trip_id"], :]
                 .drop_duplicates(subset="alert_id")
                 .to_dict(orient="records")
             )
         except (ValueError, KeyError):
-            data.at[index, "alert"] = None
+            data.at[ind, "alert"] = None
         try:
-            data.at[index, "predictions"] = predictions.loc[
+            data.at[ind, "predictions"] = predictions.loc[
                 predictions["trip_id"] == row["trip_id"], :
             ].to_dict(orient="records")
         except (ValueError, KeyError):
-            data.at[index, "predictions"] = None
+            data.at[ind, "predictions"] = None
 
     data["alert"] = (
         data["alert"]
@@ -60,27 +60,27 @@ def get_vehicles():
 
 @app.route(f"/stops/{route_type}")
 def get_stops():
-    conn = sqlite3.connect(f"mbta_data.db")
+    conn = sqlite3.connect("mbta_data.db")
     data = GrabData(route_type, conn).grabstops()
     alert_data = GrabData(route_type, conn).grabalerts()
     predictions = GrabData(route_type, conn).grabpredictions()
-    for index, row in data.iterrows():
+    for ind, row in data.iterrows():
         try:
-            data.at[index, "alert"] = (
+            data.at[ind, "alert"] = (
                 alert_data.loc[alert_data["stop_id"] == row["parent_station"], :]
                 .drop_duplicates(subset="alert_id")
                 .to_dict(orient="records")
             )
         except (ValueError, KeyError):
-            data.at[index, "alert"] = None
+            data.at[ind, "alert"] = None
         try:
-            data.at[index, "predictions"] = (
+            data.at[ind, "predictions"] = (
                 predictions.loc[predictions["stop_id"] == row["stop_id"], :]
                 .drop_duplicates(subset="trip_id")
                 .to_dict(orient="records")
             )
         except (ValueError, KeyError):
-            data.at[index, "predictions"] = None
+            data.at[ind, "predictions"] = None
 
     data["alert"] = (
         data["alert"]
@@ -98,12 +98,12 @@ def get_stops():
 
 @app.route(f"/shapes/{route_type}")
 def get_shapes():
-    conn = sqlite3.connect(f"mbta_data.db")
+    conn = sqlite3.connect("mbta_data.db")
     data = GrabData(route_type, conn).grabshapes()
     alert_data = GrabData(route_type, conn).grabalerts()
-    for index, row in data.iterrows():
+    for ind, row in data.iterrows():
         try:
-            data.at[index, "alert"] = (
+            data.at[ind, "alert"] = (
                 alert_data.loc[
                     (alert_data["route_id"] == row["route_id"])
                     & (alert_data["stop_id"].isna())
@@ -114,7 +114,7 @@ def get_shapes():
                 .to_dict(orient="records")
             )
         except (ValueError, KeyError):
-            data.at[index, "alert"] = None
+            data.at[ind, "alert"] = None
     # data["alert"] = data["alert"].apply(lambda y: None if y == y and len(y) == 0 else y)
     data["polyline"] = data["polyline"].apply(polyline.decode)
     data["route_name"] = data["route_name"].fillna(data["route_id"])
