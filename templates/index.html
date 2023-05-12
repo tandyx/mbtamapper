@@ -159,101 +159,33 @@
             $.getJSON("/vehicles/" + route_type, function (vehicle_dict) {
                 console.log(vehicle_dict);
                 vehicle_layer.clearLayers();
-                for (var i = 0; i < vehicle_dict.length; i++) {
-                    const vehicle = vehicle_dict[i];
 
+                for (const vehicle of vehicle_dict) {
+                    const direction = vehicle.direction_id === 0 ? "Outbound" : "Inbound";
 
-
-                    if (vehicle.direction_id == 0) {
-                        direction = "Outbound";
+                    let vehicle_type;
+                    if (route_type !== 3) {
+                        vehicle_type = "Train";
+                    } else if (vehicle.route_color === "7C878E") {
+                        vehicle_type = "Silver Line";
                     } else {
-                        direction = "Inbound";
-                    }
-                    if (route_type != 3) {
-                        var vehicle_type = "Train"
-                    } else if (vehicle.route_color == "7C878E") {
-                        var vehicle_type = "Silver Line"
-                    } else {
-                        var vehicle_type = vehicle.description
+                        vehicle_type = vehicle.description;
                     }
 
-                    if (vehicle.bikes_allowed == 1) {
-                        var bike = `
-                            <style>
-                                .tooltip {
-                                position: relative;
-                                display: inline-block;
-                                border-bottom: 1px dotted black;
-                                }
+                    const bike = vehicle.bikes_allowed === 1 ? `<img src ="static/bike.png" alt="bikes allowed" title="Bicycles Allowed" width=25 height=25 style="margin:2px;">` : "";
+                    const alert = vehicle.alert !== "unknown" ? `<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">` : "";
+                    const prediction = `<img src="static/train_icon.png" alt="prediction" width=25 height=25 style="margin:2px;">`;
 
-                                .tooltip .tooltiptext {
-                                visibility: hidden;
-                                width: 120px;
-                                background-color: rgb(217, 217, 217, 0.8);
-                                color: #fff;
-                                text-align: center;
-                                border-radius: 6px;
-                                padding: 5px 0;
-                                position: absolute;
-                                z-index: 1;
-                                top: -5px;
-                                left: 110%;
-                                }
-
-                                .tooltip .tooltiptext::after {
-                                content: "";
-                                position: absolute;
-                                top: 50%;
-                                right: 100%;
-                                margin-top: -5px;
-                                border-width: 5px;
-                                border-style: solid;
-                                border-color: transparent rgb(217, 217, 217, 0.8) transparent transparent;
-                                }
-                                .tooltip:hover .tooltiptext {
-                                visibility: visible;
-                                }
-                            </style>
-                            <div class = "tooltip">
-                            <img src ="static/bike.png" alt = "bikes allowed" width=25 height=25 style="margin:2px;">
-                            <span class = "tooltiptext">bikes allowed</span>
-                            </div>`
-                    } else {
-                        var bike = ""
-                    }
-
-                    if (vehicle.alert != "unknown") {
-                        var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
-                    } else {
-                        var alert = ""
-                    }
-
-                    var prediction = `<img src ="static/train_icon.png" alt = "prediction" width=25 height=25 style="margin:2px;">`
-
-                    if (route_type == 2) {
-                        var vehicle_icon = L.divIcon(
-                            {
-                                html: `<a style="position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);text-align: center;color: white;font-family:montserrat, Helvetica, sans-serif">
-                                    <img src ="static/icon.png" width=50 height=50 style="transform: rotate(${vehicle.bearing}deg)">
-                                    <span style = "position: absolute;top: 45%; left: 50%;transform: translate(-50%, -50%);">${vehicle.trip_short_name}</span>
-                                    </a>`
-                            }
-                        )
-                    } else {
-                        var vehicle_icon = L.divIcon(
-                            {
-                                html: `<a style="position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);text-align: center;color: white;">
-                                    <img src ="static/icon.png" width=50 height=50 style="transform: rotate(${vehicle.bearing}deg)">
-                                    </a>`
-                            }
-                        )
-                    }
-
-
-                    var marker = L.marker([
-                        vehicle.latitude,
-                        vehicle.longitude], {
-                        icon: vehicle_icon,
+                    const vehicleIcon = L.divIcon({
+                        html: `<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:white;font-family:montserrat,Helvetica,sans-serif">
+                            <img src="static/icon.png" width=50 height=50 style="transform:rotate(${vehicle.bearing}deg)">
+                            ${route_type === 2
+                                ? `<span style="position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);">${vehicle.trip_short_name}</span>`
+                                : ""}
+                            </a>`
+                    });
+                    const marker = L.marker([vehicle.latitude, vehicle.longitude], {
+                        icon: vehicleIcon
                     }).setZIndexOffset(100);
 
                     var popup = marker.bindPopup(
@@ -273,6 +205,7 @@
                         "</body>",
                         { maxWidth: "auto" }
                     );
+
                     var tooltip = marker.bindTooltip(vehicle.vehicle_id);
                     marker.addTo(vehicle_layer);
                 }
@@ -281,98 +214,40 @@
 
         function plotStops(route_type = route_type) {
 
-            stop_layer.clearLayers();
+            const routeColors = {
+                "Commuter Rail": "80276C",
+                "Green Line": "00843D",
+                "Orange Line": "ED8B00",
+                "Red Line": "DA291C",
+                "Mattapan Trolley": "DA291C",
+                "Blue Line": "003DA5",
+                "Silver Line": "7C878E",
+            };
 
-            var stop_icon = L.icon({
-                iconUrl: '/static/mbta.png',
+            const stopIcon = L.icon({
+                iconUrl: "/static/mbta.png",
                 iconSize: [15, 15],
             });
 
             $.getJSON("/stops/" + route_type, function (stops_dict) {
+                stop_layer.clearLayers();
                 console.log(stops_dict);
-                for (var i = 0; i < stops_dict.length; i++) {
+                for (const stop of stops_dict) {
 
-                    const stop = stops_dict[i];
 
-                    if (stop.line_serviced == "Commuter Rail") {
-                        var route_color = "80276C";
-                    } else if (stop.line_serviced == "Green Line") {
-                        var route_color = "00843D";
-                    } else if (stop.line_serviced == "Orange Line") {
-                        var route_color = "ED8B00";
-                    } else if (["Red Line", "Mattapan Trolley"].includes(stop.line_serviced)) {
-                        var route_color = "DA291C";
-                    } else if (stop.line_serviced == "Blue Line") {
-                        var route_color = "003DA5";
-                    } else if (stop.line_serviced == "Silver Line") {
-                        var route_color = "7C878E";
-                    } else if (stop.line_serviced.slice(-5) === "Ferry") {
-                        var route_color = "008EAA";
-                    } else {
-                        var route_color = "FFC72C";
-                    }
-
-                    if (stop.line_serviced == "unknown") {
+                    if (stop.line_serviced === "unknown") {
                         stop.line_serviced = stop.zone;
                     }
 
-                    var prediction = `<img src ="static/train_icon.png" alt = "predictions" width=25 height=25 style="margin:2px;">`
-                    if (stop.wheelchair_accessible == 1) {
-                        var wheelchair = `
-                            <style>
-                                .tooltip {
-                                position: relative;
-                                display: inline-block;
-                                border-bottom: 1px dotted black;
-                                }
+                    const routeColor = routeColors[stop.line_serviced] || "FFC72C";
+                    const wheelchair = stop.wheelchair_accessible === 1 ? `<img src="static/wheelchair.png" alt="accessible" title = "Wheelchair Accessible" width=25 height=25 style="margin:2px;">` : "";
+                    const alert = stop.alert !== "unknown" ? `<img src="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">` : "";
+                    const prediction = `<img src ="static/train_icon.png" alt = "predictions" width=25 height=25 style="margin:2px;">`;
 
-                                .tooltip .tooltiptext {
-                                visibility: hidden;
-                                width: 120px;
-                                background-color: rgb(217, 217, 217, 0.8);
-                                color: #fff;
-                                text-align: center;
-                                border-radius: 6px;
-                                padding: 5px 0;
-                                position: absolute;
-                                z-index: 1;
-                                top: -5px;
-                                left: 110%;
-                                }
-
-                                .tooltip .tooltiptext::after {
-                                content: "";
-                                position: absolute;
-                                top: 50%;
-                                right: 100%;
-                                margin-top: -5px;
-                                border-width: 5px;
-                                border-style: solid;
-                                border-color: transparent rgb(217, 217, 217, 0.8) transparent transparent;
-                                }
-                                .tooltip:hover .tooltiptext {
-                                visibility: visible;
-                                }
-                            </style>
-                            <div class = "tooltip">
-                            <img src ="static/wheelchair.png" alt = "accessible" width=25 height=25 style="margin:2px;">
-                            <span class = "tooltiptext">wheelchair accessible</span>
-                            </div>`
-
-                    } else {
-                        var wheelchair = ""
-                    }
-                    if (stop.alert != "unknown") {
-                        var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">`
-                    } else {
-                        var alert = ""
-                    }
-
-
-                    var marker = L.marker([stop.latitude, stop.longitude], { icon: stop_icon }).setZIndexOffset(-100);
+                    var marker = L.marker([stop.latitude, stop.longitude], { icon: stopIcon }).setZIndexOffset(-100);
 
                     var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${route_color};font-size:28pt;text-decoration: none;text-align: left">` + stop.stop_name + "</a></br>" +
+                        `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${routeColor};font-size:28pt;text-decoration: none;text-align: left">` + stop.stop_name + "</a></br>" +
                         `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" +
                         "—————————————————————————————————" + "</br>" +
                         alert + " " + prediction + " " + wheelchair + "</br>" +
@@ -394,18 +269,15 @@
 
         function plotShapes(route_type = route_type) {
 
-            shape_layer.clearLayers();
-            bus_replacement_layer.clearLayers();
-
             $.getJSON("/shapes/" + route_type, function (shapes_dict) {
+                shape_layer.clearLayers();
+                bus_replacement_layer.clearLayers();
                 console.log(shapes_dict);
-                for (var i = 0; i < shapes_dict.length; i++) {
-
-                    const shape = shapes_dict[i];
+                for (const shape of shapes_dict) {
 
                     var color = "#" + shape.route_color;
-                    var opacity = 0.9;
-                    var weight = 0.8;
+                    let opacity = 0.9;
+                    let weight = 0.8;
                     if (shape.parent_route_type != shape.route_type | shape.description == "Local Bus") {
                         opacity = 0.5;
                     } else if (shape.description == "Community Bus") {
@@ -415,11 +287,7 @@
                         shape.description = "Bus Replacement"
                     }
 
-                    if (shape.alert != "unknown") {
-                        var alert = `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;">` + "</br>"
-                    } else {
-                        var alert = ""
-                    }
+                    const alert = shape.alert !== "unknown" ? `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;"></br>` : "";
 
                     var route = L.polyline(shape.polyline, { color: color, opacity: opacity, weight: weight });
                     var popup = route.bindPopup(
