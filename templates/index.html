@@ -121,7 +121,7 @@
         var stop_layer = L.layerGroup()
         var shape_layer = L.layerGroup().addTo(map);
         var bus_replacement_layer = L.layerGroup().addTo(map);
-        var vehicle_layer = L.markerClusterGroup().addTo(map);
+        var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: 12 }).addTo(map);
 
         var overlays = {
             "Vehicles": vehicle_layer,
@@ -178,8 +178,46 @@
                     }
 
                     if (vehicle.bikes_allowed == 1) {
-                        var bike = `<a class = "tooltip"><img src ="static/bike.png" alt = "bikes allowed" width=25 height=25 style="margin:2px;">
-                            <span class = "tooltiptext">text</span></a>`
+                        var bike = `
+                            <style>
+                                .tooltip {
+                                position: relative;
+                                display: inline-block;
+                                border-bottom: 1px dotted black;
+                                }
+
+                                .tooltip .tooltiptext {
+                                visibility: hidden;
+                                width: 120px;
+                                background-color: rgb(217, 217, 217, 0.8);
+                                color: #fff;
+                                text-align: center;
+                                border-radius: 6px;
+                                padding: 5px 0;
+                                position: absolute;
+                                z-index: 1;
+                                top: -5px;
+                                left: 110%;
+                                }
+
+                                .tooltip .tooltiptext::after {
+                                content: "";
+                                position: absolute;
+                                top: 50%;
+                                right: 100%;
+                                margin-top: -5px;
+                                border-width: 5px;
+                                border-style: solid;
+                                border-color: transparent rgb(217, 217, 217, 0.8) transparent transparent;
+                                }
+                                .tooltip:hover .tooltiptext {
+                                visibility: visible;
+                                }
+                            </style>
+                            <div class = "tooltip">
+                            <img src ="static/bike.png" alt = "bikes allowed" width=25 height=25 style="margin:2px;">
+                            <span class = "tooltiptext">bikes allowed</span>
+                            </div>`
                     } else {
                         var bike = ""
                     }
@@ -280,7 +318,47 @@
 
                     var prediction = `<img src ="static/train_icon.png" alt = "predictions" width=25 height=25 style="margin:2px;">`
                     if (stop.wheelchair_accessible == 1) {
-                        var wheelchair = `<img src ="static/wheelchair.png" alt = "accessible" width=25 height=25 style="margin:2px;">`
+                        var wheelchair = `
+                            <style>
+                                .tooltip {
+                                position: relative;
+                                display: inline-block;
+                                border-bottom: 1px dotted black;
+                                }
+
+                                .tooltip .tooltiptext {
+                                visibility: hidden;
+                                width: 120px;
+                                background-color: rgb(217, 217, 217, 0.8);
+                                color: #fff;
+                                text-align: center;
+                                border-radius: 6px;
+                                padding: 5px 0;
+                                position: absolute;
+                                z-index: 1;
+                                top: -5px;
+                                left: 110%;
+                                }
+
+                                .tooltip .tooltiptext::after {
+                                content: "";
+                                position: absolute;
+                                top: 50%;
+                                right: 100%;
+                                margin-top: -5px;
+                                border-width: 5px;
+                                border-style: solid;
+                                border-color: transparent rgb(217, 217, 217, 0.8) transparent transparent;
+                                }
+                                .tooltip:hover .tooltiptext {
+                                visibility: visible;
+                                }
+                            </style>
+                            <div class = "tooltip">
+                            <img src ="static/wheelchair.png" alt = "accessible" width=25 height=25 style="margin:2px;">
+                            <span class = "tooltiptext">wheelchair accessible</span>
+                            </div>`
+
                     } else {
                         var wheelchair = ""
                     }

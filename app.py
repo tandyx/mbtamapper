@@ -1,5 +1,7 @@
 import sqlite3
 import polyline
+import pandas as pd
+from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 from shared_code.from_sql import GrabData
 
@@ -43,6 +45,9 @@ def get_vehicles():
         data["predictions"]
         .apply(lambda x: [x] if isinstance(x, dict) else x)
         .apply(lambda y: None if y == y and len(y) == 0 else y)
+    )
+    data["vehicle_timestamp"] = pd.to_datetime(data["vehicle_timestamp"]).apply(
+        pd.Timestamp.strftime, args=("%m/%d/%Y %I:%M:%S %p ",)
     )
 
     # trip_alert = (
@@ -93,6 +98,10 @@ def get_stops():
         .apply(lambda y: None if y == y and len(y) == 0 else y)
     )
 
+    data["stop_timestamp"] = pd.to_datetime(data["stop_timestamp"]).apply(
+        pd.Timestamp.strftime, args=("%m/%d/%Y %I:%M:%S %p ",)
+    )
+
     return jsonify(data.fillna("unknown").to_dict(orient="records"))
 
 
@@ -119,6 +128,9 @@ def get_shapes():
     data["polyline"] = data["polyline"].apply(polyline.decode)
     data["route_name"] = data["route_name"].fillna(data["route_id"])
     data["description"].fillna("Bus Replacement")
+    data["shape_timestamp"] = pd.to_datetime(data["shape_timestamp"]).apply(
+        pd.Timestamp.strftime, args=("%m/%d/%Y %I:%M:%S %p ",)
+    )
     return jsonify(data.fillna("unknown").to_dict(orient="records"))
 
 
