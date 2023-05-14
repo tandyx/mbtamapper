@@ -94,7 +94,7 @@
     <div id="map"></div>
     <script>
 
-        let route_type = 2;
+        let route_type = 4;
         var map = L.map('map').setView([42.3519, -71.0552], 13);
 
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -222,6 +222,8 @@
                 "Mattapan Trolley": "DA291C",
                 "Blue Line": "003DA5",
                 "Silver Line": "7C878E",
+                "Charlestown Ferry": "008EAA",
+                "Hingham/Hull Ferry": "008EAA",
             };
 
             const stopIcon = L.icon({
