@@ -1,6 +1,5 @@
 """Poll MBTA alerts data from API and store in SQLite database"""
 import os
-import time
 import logging
 import requests as rq
 import pandas as pd
@@ -27,7 +26,6 @@ RENAME_DICT = {
     "links_self": "links_self",
     "attributes_active_period_end": "active_period_end",
     "attributes_active_period_start": "active_period_start",
-    # "attributes_informed_entity_activities": "informed_entity_activities",
     "attributes_informed_entity_direction_id": "direction_id",
     "attributes_informed_entity_route": "route_id",
     "attributes_informed_entity_route_type": "route_type",
@@ -45,7 +43,6 @@ def get_alerts(route_type: str = "2") -> pd.DataFrame:
         route_type (str, optional): route type to download. Defaults to "2".
     Returns:
         pd.DataFrame: realtime alerts data"""
-    start_time = time.time()
 
     url = (
         os.environ.get("MBTA_API_URL")
@@ -62,7 +59,7 @@ def get_alerts(route_type: str = "2") -> pd.DataFrame:
             pd.json_normalize(req.json()["data"], sep="_"), UNPACK_LIST
         )
     else:
-        logging.error("Error downloading realtime data from %s", url)
+        logging.error("Failed to query alerts: %s", req.text)
         dataframe = pd.DataFrame()
 
     dataframe.drop(
@@ -76,11 +73,5 @@ def get_alerts(route_type: str = "2") -> pd.DataFrame:
     for col in ["trip_id", "stop_id", "direction_id"]:
         if col not in dataframe.columns:
             dataframe[col] = np.nan
-
-    logging.info(
-        "Downloaded realtime alerts data from %s in %s seconds",
-        url,
-        time.time() - start_time,
-    )
 
     return dataframe.reset_index(drop=True)

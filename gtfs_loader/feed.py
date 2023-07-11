@@ -63,6 +63,7 @@ class Feed:
         GTFSBase.metadata.create_all(self.engine)
         # note that the order of these tables matters; avoids foreign key errors
         table_dict = {
+            "agency.txt": Agency,
             "stops.txt": Stop,
             "calendar.txt": Calendar,
             "calendar_dates.txt": CalendarDate,
@@ -136,6 +137,7 @@ class Feed:
         routes_stmt = delete(Route.__table__).where(
             Route.route_id.notin_(select(Trip.route_id).distinct())
         )
+
         cal_stmt_2 = delete(Calendar.__table__).where(
             Calendar.service_id.notin_(
                 (
@@ -186,9 +188,6 @@ class Feed:
         self.to_sql(predictions.get_predictions(active_routes), Prediction)
         print()
 
-    def return_data(self, query: selectable.Select) -> list[tuple[GTFSBase]]:
-        return self.session.execute(query).all()
-
     def to_sql(self, data: pd.DataFrame, orm: GTFSBase, index: bool = False) -> None:
         """Helper function to dump dataframe to sql.
 
@@ -199,3 +198,16 @@ class Feed:
         """
         res = data.to_sql(orm.__tablename__, self.engine, None, "append", index)
         logging.info("Added %s rows to %s", res, orm.__tablename__)
+
+    def to_geojson(self, query: selectable.Select) -> str:
+        """Converts a table to geojson."""
+
+        return dumps(
+            FeatureCollection(
+                [
+                    i[0].as_feature()
+                    for i in self.session.execute(query)
+                    if hasattr(i[0], "as_feature")
+                ]
+            )
+        )

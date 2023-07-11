@@ -1,24 +1,25 @@
 """Downloads realtime predictions data from the mbta api."""
-import time
 import logging
 import os
 import requests as rq
 import pandas as pd
+import json_api_doc as jad
 
 RENAME_DICT = {
     "id": "prediction_id",
     "type": "prediction_type",
-    "attributes_arrival_time": "arrival_time",
-    "attributes_departure_time": "departure_time",
-    "attributes_direction_id": "direction_id",
-    "attributes_schedule_relationship": "schedule_relationship",
-    "attributes_status": "status",
-    "attributes_stop_sequence": "stop_sequence",
-    "relationships_route_data_id": "route_id",
-    "relationships_schedule_data_id": "schedule_id",
-    "relationships_stop_data_id": "stop_id",
-    "relationships_trip_data_id": "trip_id",
-    "relationships_vehicle_data_id": "vehicle_id",
+    "arrival_time": "arrival_time",
+    "departure_time": "departure_time",
+    "direction_id": "direction_id",
+    "schedule_relationship": "schedule_relationship",
+    "status": "status",
+    "stop_sequence": "stop_sequence",
+    "schedule_arrival_time": "scheduled_arrival_time",
+    "schedule_departure_time": "scheduled_departure_time",
+    "route_id": "route_id",
+    "stop_id": "stop_id",
+    "trip_id": "trip_id",
+    "vehicle_id": "vehicle_id",
 }
 
 
@@ -30,7 +31,6 @@ def get_predictions(active_routes: str = "CR-Providence") -> pd.DataFrame:
     Returns:
         pd.DataFrame: realtime predictions data
     """
-    start_time = time.time()
     url = (
         os.environ.get("MBTA_API_URL")
         + "/predictions?filter[route]="
@@ -42,9 +42,9 @@ def get_predictions(active_routes: str = "CR-Providence") -> pd.DataFrame:
     req = rq.get(url, timeout=500)
 
     if req.ok:
-        dataframe = pd.json_normalize(req.json()["data"], sep="_")
+        dataframe = pd.json_normalize(jad.deserialize(req.json()), sep="_")
     else:
-        logging.error("Error downloading realtime data from %s", url)
+        logging.error("Failed to query predictions: %s", req.text)
         dataframe = pd.DataFrame()
 
     dataframe.drop(
@@ -55,14 +55,4 @@ def get_predictions(active_routes: str = "CR-Providence") -> pd.DataFrame:
 
     dataframe.rename(columns=RENAME_DICT, inplace=True)
 
-    logging.info(
-        "Downloaded realtime predictions data from %s in %s seconds",
-        url,
-        time.time() - start_time,
-    )
-
     return dataframe
-
-
-if __name__ == "__main__":
-    get_predictions()

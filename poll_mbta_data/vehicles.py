@@ -1,6 +1,5 @@
 """Polls the MBTA API for realtime vehicle data and returns a dataframe with the data."""
 import os
-import time
 import requests as rq
 import logging
 import pandas as pd
@@ -27,7 +26,6 @@ RENAME_DICT = {
 
 def get_vehicles(route_type: str = "2") -> pd.DataFrame:
     """Downloads realtime vehicle data from the mbta api."""
-    start_time = time.time()
 
     url = (
         os.environ.get("MBTA_API_URL")
@@ -42,7 +40,7 @@ def get_vehicles(route_type: str = "2") -> pd.DataFrame:
     if req.ok:
         dataframe = pd.json_normalize(req.json()["data"], sep="_")
     else:
-        logging.error("Error downloading realtime data from %s", url)
+        logging.error("Failed to query vehicles: %s", req.text)
         dataframe = pd.DataFrame()
 
     dataframe.drop(
@@ -52,11 +50,5 @@ def get_vehicles(route_type: str = "2") -> pd.DataFrame:
     )
 
     dataframe.rename(columns=RENAME_DICT, inplace=True)
-
-    logging.info(
-        "Downloaded realtime predictions data from %s in %s seconds",
-        url,
-        time.time() - start_time,
-    )
 
     return dataframe

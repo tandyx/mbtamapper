@@ -87,32 +87,28 @@ class Stop(GTFSBase):
         """Returns stop object as a feature."""
 
         properties = {
-            k: v
-            for k, v in self.__dict__.items()
-            if v and k not in Stop.exclude_keys + ["stop_lat", "stop_lon"]
+            "stop_id": self.stop_id,
+            "stop_name": self.stop_name,
+            "stop_desc": self.stop_desc,
+            "platform_code": self.platform_code,
+            "platform_name": self.platform_name,
+            "zone_id": self.zone_id,
+            "stop_address": self.stop_address,
+            "stop_url": self.stop_url,
+            "level_id": self.level_id,
+            "location_type": self.location_type,
+            "parent_station": self.parent_station,
+            "wheelchair_boarding": self.wheelchair_boarding,
+            "municipality": self.municipality,
+            "on_street": self.on_street,
+            "at_street": self.at_street,
+            "vehicle_type": self.vehicle_type,
+            "alerts": [alert.as_dict() for alert in self.alerts],
+            "predictions": [prediction.as_dict() for prediction in self.predictions],
         }
-
-        dest_labels = {
-            st.destination_label
-            for st in self.stop_times
-            if st.trip.is_added and not st.is_destination()
-        }
-        if dest_labels:
-            properties.update({"board_here_for": ", ".join(dest_labels)})
 
         feature = Feature(
             id=self.stop_id, geometry=self.as_point(), properties=properties
         )
 
         return feature
-
-    def to_lookup_dict(self) -> dict[str]:
-        """Returns a dictionary of the stop object for use in a lookup table."""
-        return {
-            "PartitionKey": self.parent_station,
-            "RowKey": self.platform_code or "Unassigned",
-        } | {
-            k: v
-            for k, v in self.__dict__.items()
-            if v and k not in Stop.exclude_keys + ["platform_code", "parent_station"]
-        }

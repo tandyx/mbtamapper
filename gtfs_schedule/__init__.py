@@ -1,5 +1,6 @@
 """initialize and import all gtfs_schedule business objects"""
 # pylint: disable=unused-import
+from .agency import Agency
 from .calendar_attribute import CalendarAttribute
 from .calendar_date import CalendarDate
 from .calendar import Calendar

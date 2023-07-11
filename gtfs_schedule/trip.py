@@ -94,8 +94,13 @@ class Trip(GTFSBase):
         """Post-load initialization"""
         # pylint: disable=attribute-defined-outside-init
         self.is_added = bool(self.multi_route_trips)
+        self.active = bool(self.predictions)
         self.origin_stop_time = min(self.stop_times, key=lambda x: x.stop_sequence)
         self.destination_stop_time = max(self.stop_times, key=lambda x: x.stop_sequence)
 
     def __repr__(self) -> str:
         return f"<Trip(trip_id={self.trip_id})>"
+
+    def as_label(self) -> str:
+        """Returns trip as label"""
+        return f"{self.trip_short_name or self.trip_id}: {self.trip_headsign}"
