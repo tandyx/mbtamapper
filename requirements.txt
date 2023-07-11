@@ -13,3 +13,5 @@ geocoder
 streamlit
 streamlit_folium
 flask
+sqlalchemy
+geojson

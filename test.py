@@ -1,7 +1,10 @@
-from shared_code.from_sql import GrabData
-import sqlite3
+import logging
+from gtfs_loader import Feed
 
-route_type = 2
-conn = sqlite3.connect(f"mbta_data.db")
-print("hi")
-GrabData(route_type, conn).grabvehicles()
+
+logging.getLogger().setLevel(logging.INFO)
+feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "2")
+# feed.import_gtfs()
+# feed.purge_and_filter()
+feed.download_realtime_data()
+print()
