@@ -46,10 +46,11 @@ class Stop(GTFSBase):
         passive_deletes=True,
     )
     facilities = relationship("Facility", back_populates="stop", passive_deletes=True)
-
     parent_stop = relationship(
         "Stop", primaryjoin="foreign(Stop.parent_station)==remote(Stop.stop_id)"
     )
+    predictions = relationship("Prediction", back_populates="stop")
+    vehicles = relationship("Vehicle", back_populates="stop")
 
     exclude_keys = [
         "_sa_instance_state",

@@ -37,6 +37,8 @@ class Route(GTFSBase):
             )""",
         viewonly=True,
     )
+    predictions = relationship("Prediction", back_populates="route")
+    vehicles = relationship("Vehicle", back_populates="route")
 
     def __repr__(self) -> str:
         return f"<Route(route_id={self.route_id})>"

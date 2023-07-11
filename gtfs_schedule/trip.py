@@ -63,6 +63,8 @@ class Trip(GTFSBase):
                     foreign(Route.route_id)==MultiRouteTrip.added_route_id))""",
         viewonly=True,
     )
+    predictions = relationship("Prediction", back_populates="trip")
+    vehicle = relationship("Vehicle", back_populates="trip")
 
     TRIP_FIELD_MAPPING = {
         "trip_headsign": "headsign",

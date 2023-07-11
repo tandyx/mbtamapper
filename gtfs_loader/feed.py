@@ -181,6 +181,15 @@ class Feed:
             "/alerts?filter[route_type]=": "&filter[datetime]=NOW&include=routes,trips",
         }
 
+        to_unpack = [
+            "relationships_routes_data",
+            "attributes_active_period",
+            "attributes_informed_entity",
+            "relationships_trip_data",
+            "relationships_vehicle_data",
+            "relationships_route_data",
+        ]
+
         for route_type in self.route_type:
             for filter_str, include in filter_dict.items():
                 url = (
@@ -197,8 +206,19 @@ class Feed:
                 else:
                     logging.error("Error downloading realtime data from %s", url)
                     continue
-                dataframe = pd.json_normalize(req.json()["data"], sep="_")
+                dataframe = df_unpack(
+                    pd.json_normalize(req.json()["data"], sep="_"), to_unpack
+                )
                 print()
+                dataframe.drop(
+                    (
+                        col
+                        for col in dataframe.columns
+                        if col not in Prediction.__table__.columns.keys()
+                    ),
+                    axis=1,
+                    inplace=True,
+                )
 
     def to_sql(self, data: pd.DataFrame, orm: GTFSBase, index: bool = False) -> None:
         """Helper function to dump dataframe to sql.
@@ -212,9 +232,30 @@ class Feed:
         logging.info("Added %s rows to %s", res, orm.__tablename__)
 
 
-def return_column_names(orm: GTFSBase) -> list[str]:
-    return [
-        k
-        for k, v in orm.__dict__.items()
-        if isinstance(v, attributes.InstrumentedAttribute)
-    ]
+def df_unpack(
+    dataframe: pd.DataFrame, columns: list[str] = None, prefix: bool = True
+) -> pd.DataFrame:
+    """Unpacks a column of a dataframe that contains a list of dictionaries.
+    Returns a dataframe with the unpacked column and the original dataframe
+    with the packed column removed.
+
+    Args:
+        dataframe (pd.DataFrame): dataframe to unpack
+        columns (list[str], optional): columns to unpack. Defaults to None.
+        prefix (bool, optional): whether to add prefix to unpacked columns. Defaults to True.
+    Returns:
+        pd.DataFrame: dataframe with unpacked columns
+    """
+
+    columns = columns or []
+
+    for col in columns:
+        if col not in dataframe.columns:
+            continue
+        exploded = dataframe.explode(col)
+        series = exploded[col].apply(pd.Series)
+        if prefix:
+            series = series.add_prefix(col + "_")
+        dataframe = pd.concat([exploded.drop([col], axis=1), series], axis=1)
+
+    return dataframe
