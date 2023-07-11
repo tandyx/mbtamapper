@@ -1,3 +1,31 @@
+"""Alerts"""
+
+from dateutil.parser import isoparse
+from sqlalchemy import ForeignKey, Column, String, Integer
+from sqlalchemy.orm import relationship, reconstructor
+from gtfs_loader.gtfs_base import GTFSBase
+
+
+class Alert(GTFSBase):
+    __tablename__ = "alerts"
+
+    id = Column(String, primary_key=True)
+    attributes_banner = Column(String)
+    attributes_cause = Column(String)
+    attributes_created_at = Column(String)
+    attributes_description = Column(String)
+    attributes_effect = Column(String)
+    attributes_header = Column(String)
+    attributes_lifecycle = Column(String)
+    attributes_service_effect = Column(String)
+    attributes_severity = Column(Integer)
+    attributes_short_header = Column(String)
+    attributes_timeframe = Column(String)
+    attributes_updated_at = Column(String)
+    attributes_url = Column(String)
+    relationships_trips_data_id = Column(String, ForeignKey("trips.trip_id"))
+
+
 [
     "id",
     "type",
