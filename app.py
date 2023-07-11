@@ -6,7 +6,7 @@ from flask import Flask, render_template, jsonify, request
 from shared_code.from_sql import GrabData
 
 app = Flask(__name__)
-route_type = 4
+route_type = 0
 
 
 @app.route("/")
