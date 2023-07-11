@@ -49,8 +49,24 @@ class Stop(GTFSBase):
     parent_stop = relationship(
         "Stop", primaryjoin="foreign(Stop.parent_station)==remote(Stop.stop_id)"
     )
-    predictions = relationship("Prediction", back_populates="stop")
-    vehicles = relationship("Vehicle", back_populates="stop")
+    predictions = relationship(
+        "Prediction",
+        back_populates="stop",
+        primaryjoin="foreign(Prediction.stop_id)==Stop.stop_id",
+        viewonly=True,
+    )
+    vehicles = relationship(
+        "Vehicle",
+        back_populates="stop",
+        primaryjoin="Stop.stop_id==foreign(Vehicle.stop_id)",
+        viewonly=True,
+    )
+    alerts = relationship(
+        "Alert",
+        back_populates="stop",
+        primaryjoin="foreign(Alert.stop_id)==Stop.stop_id",
+        viewonly=True,
+    )
 
     exclude_keys = [
         "_sa_instance_state",

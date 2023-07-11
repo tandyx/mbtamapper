@@ -9,36 +9,36 @@ class Query:
     """Class to store query information for GTFS data.
 
     Args:
-        route_type (str): A comma separated string of route types to query.
+        route_types (str): A comma separated string of route types to query.
     """
 
-    def __init__(self, route_type: str):
-        self.route_type = route_type.split(",")
+    def __init__(self, route_types: str):
+        self.route_types = route_types.split(",")
         self.mrt_query = self.return_mrt_query()
         self.base_stop_query = self.return_base_stop_query()
         self.parent_stops_query = self.return_parent_stops_query()
         self.platform_stops_query = self.return_platform_stops_query()
 
     def __repr__(self) -> str:
-        return f"<Query(route_type={self.route_type})>"
+        return f"<Query(route_types={self.route_types})>"
 
     def return_mrt_query(self) -> selectable.Select:
         """Returns query for multi route trips"""
         mrt_subquery = (
             select(Trip)
             .join(Route, Trip.route_id == Route.route_id)
-            .where(Route.route_type.in_(self.route_type))
+            .where(Route.route_type.in_(self.route_types))
             .subquery()
         )
 
         mrt_query = (
             select(MultiRouteTrip)
-            .join(Route, MultiRouteTrip.added_route_id.in_(self.route_type))
+            .join(Route, MultiRouteTrip.added_route_id.in_(self.route_types))
             .outerjoin(
                 mrt_subquery, MultiRouteTrip.trip_id == mrt_subquery.columns.trip_id
             )
             .where(
-                Route.route_type.in_(self.route_type),
+                Route.route_type.in_(self.route_types),
                 mrt_subquery.columns.trip_id.is_(None),
             )
         )
@@ -78,7 +78,7 @@ class Query:
                     Stop.parent_station.in_(
                         select(self.base_stop_query.columns.parent_station)
                     ),
-                    Stop.vehicle_type.in_(self.route_type),
+                    Stop.vehicle_type.in_(self.route_types),
                 )
             )
         )
@@ -110,7 +110,7 @@ class Query:
                             )
                         ),
                         or_(
-                            Route.route_type.in_(self.route_type),
+                            Route.route_type.in_(self.route_types),
                             Trip.trip_id.in_(select(self.mrt_query.columns.trip_id)),
                         ),
                     )

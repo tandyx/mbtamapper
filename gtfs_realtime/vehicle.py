@@ -1,51 +1,68 @@
+"""Vehicle"""
 from dateutil.parser import isoparse
-from sqlalchemy import ForeignKey, Column, String, Integer, Float
+from sqlalchemy import Column, String, Integer, Float
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
 
 
 class Vehicle(GTFSBase):
+    """Vehicle"""
+
     __tablename__ = "vehicles"
 
-    id = Column(String, primary_key=True)
-    attributes_bearing = Column(Float)
-    attributes_current_status = Column(String)
-    attributes_current_stop_sequence = Column(Integer)
-    attributes_direction_id = Column(String)
-    attributes_label = Column(String)
-    attributes_latitude = Column(Float)
-    attributes_longitude = Column(Float)
-    attributes_occupancy_status = Column(String)
-    attributes_speed = Column(Float)
-    attributes_updated_at = Column(String)
-    relationships_route_data_id = Column(String, ForeignKey("routes.route_id"))
-    relationships_stop_data_id = Column(String, ForeignKey("stops.stop_id"))
-    relationships_trip_data_id = Column(String, ForeignKey("trips.trip_id"))
+    vehicle_id = Column(String, primary_key=True)
+    vehicle_type = Column(String)
+    bearing = Column(Float)
+    current_status = Column(String)
+    current_stop_sequence = Column(Integer)
+    direction_id = Column(String)
+    label = Column(String)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    occupancy_status = Column(String)
+    speed = Column(Float)
+    updated_at = Column(String)
+    links_self = Column(String)
+    route_id = Column(String)
+    stop_id = Column(String)
+    trip_id = Column(String)
 
-    predictions = relationship("Prediction", back_populates="vehicle")
-    route = relationship("Route", back_populates="vehicles")
-    stop = relationship("Stop", back_populates="vehicles")
-    trip = relationship("Trip", back_populates="vehicle")
+    predictions = relationship(
+        "Prediction",
+        back_populates="vehicle",
+        primaryjoin="Vehicle.vehicle_id==foreign(Prediction.vehicle_id)",
+        viewonly=True,
+    )
+    route = relationship(
+        "Route",
+        back_populates="vehicles",
+        primaryjoin="foreign(Vehicle.route_id)==Route.route_id",
+        viewonly=True,
+    )
+    stop = relationship(
+        "Stop",
+        back_populates="vehicles",
+        primaryjoin="foreign(Vehicle.stop_id)==Stop.stop_id",
+        viewonly=True,
+    )
+    trip = relationship(
+        "Trip",
+        back_populates="vehicle",
+        primaryjoin="foreign(Vehicle.trip_id)==Trip.trip_id",
+        viewonly=True,
+    )
 
+    DATETIME_MAPPER = {
+        "updated_at": "updated_at_datetime",
+    }
 
-[
-    "id",
-    "type",
-    "attributes_bearing",
-    "attributes_current_status",
-    "attributes_current_stop_sequence",
-    "attributes_direction_id",
-    "attributes_label",
-    "attributes_latitude",
-    "attributes_longitude",
-    "attributes_occupancy_status",
-    "attributes_speed",
-    "attributes_updated_at",
-    "links_self",
-    "relationships_route_data_id",
-    "relationships_route_data_type",
-    "relationships_stop_data_id",
-    "relationships_stop_data_type",
-    "relationships_trip_data_id",
-    "relationships_trip_data_type",
-]
+    @reconstructor
+    def init_on_load(self):
+        """Converts updated_at to datetime object."""
+        # pylint: disable=attribute-defined-outside-init
+        for key, value in self.DATETIME_MAPPER.items():
+            if getattr(self, key, None):
+                setattr(self, value, isoparse(getattr(self, key)))
+
+    def __repr__(self):
+        return f"<Vehicle(id={self.vehicle_id})>"

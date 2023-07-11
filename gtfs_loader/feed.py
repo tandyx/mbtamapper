@@ -12,7 +12,7 @@ import requests
 import pandas as pd
 from geojson import FeatureCollection, dumps
 
-from sqlalchemy import create_engine, or_, not_, and_, delete, CursorResult
+from sqlalchemy import create_engine, or_, not_, and_, delete, CursorResult, text
 from sqlalchemy.sql import selectable, select
 from sqlalchemy.orm import sessionmaker, attributes
 from sqlalchemy.exc import IntegrityError
@@ -20,7 +20,9 @@ from sqlalchemy.exc import IntegrityError
 from gtfs_schedule import *  # pylint: disable=wildcard-import
 from .gtfs_base import GTFSBase  # pylint: disable=relative-beyond-top-level
 from .query import Query  # pylint: disable=relative-beyond-top-level
-from gtfs_realtime import Prediction  # pylint: disable=relative-beyond-top-level
+from gtfs_realtime import Prediction, Vehicle, Alert
+from poll_mbta_data import predictions, vehicles, alerts
+from shared_code.df_unpack import df_unpack  # pylint: disable=relative-beyond-top-level
 
 
 class Feed:
@@ -28,24 +30,24 @@ class Feed:
 
     Args:
         url (str): url of GTFS feed
-        route_type (comma sep str): route types to load
+        route_types (comma sep str): route types to load
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, url: str, route_type: str) -> None:
+    def __init__(self, url: str, route_types: str) -> None:
         self.url = url
-        self.route_type = route_type.split(",")
+        self.route_types = route_types.split(",")
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.temp_dir = tempfile.gettempdir()
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
-        self.db_path = os.path.join(self.temp_dir, f"{self.gtfs_name}_{route_type}.db")
+        self.db_path = os.path.join(self.temp_dir, f"{self.gtfs_name}_{route_types}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.session = sessionmaker(self.engine)()
         # ------------------------------- Query Setup ------------------------------- #
-        self.queries = Query(route_type)
+        self.queries = Query(route_types)
 
     def __repr__(self) -> str:
-        return f"<Feed(url={self.url}, route_type={self.route_type})>"
+        return f"<Feed(url={self.url}, route_types={self.route_types})>"
 
     def import_gtfs(self, chunksize: int = 10**5) -> None:
         """Dumps GTFS data into a SQLite database.
@@ -174,51 +176,18 @@ class Feed:
             item[0]
             for item in self.session.execute(select(Route.route_id).distinct()).all()
         )
+        for orm in [Prediction, Vehicle, Alert]:
+            self.session.execute(delete(orm.__table__))
+            self.session.commit()
 
-        filter_dict = {
-            f"/predictions?filter[route]={active_routes}filter[route_type]=": "&include=stop,trip,route,vehicle,schedule",
-            "/vehicles?filter[route_type]=": "&include=trip,stop,route",
-            "/alerts?filter[route_type]=": "&filter[datetime]=NOW&include=routes,trips",
-        }
+        for route_type in self.route_types:
+            self.to_sql(vehicles.get_vehicles(route_type), Vehicle)
+            self.to_sql(alerts.get_alerts(route_type), Alert, True)
+        self.to_sql(predictions.get_predictions(active_routes), Prediction)
+        print()
 
-        to_unpack = [
-            "relationships_routes_data",
-            "attributes_active_period",
-            "attributes_informed_entity",
-            "relationships_trip_data",
-            "relationships_vehicle_data",
-            "relationships_route_data",
-        ]
-
-        for route_type in self.route_type:
-            for filter_str, include in filter_dict.items():
-                url = (
-                    os.getenv("MBTA_API_URL")
-                    + filter_str
-                    + route_type
-                    + include
-                    + "&api_key="
-                    + os.getenv("MBTA_API_Key")
-                )
-                req = requests.get(url, timeout=10)
-                if req.ok:
-                    logging.info("Downloaded realtime data from %s", url)
-                else:
-                    logging.error("Error downloading realtime data from %s", url)
-                    continue
-                dataframe = df_unpack(
-                    pd.json_normalize(req.json()["data"], sep="_"), to_unpack
-                )
-                print()
-                dataframe.drop(
-                    (
-                        col
-                        for col in dataframe.columns
-                        if col not in Prediction.__table__.columns.keys()
-                    ),
-                    axis=1,
-                    inplace=True,
-                )
+    def return_data(self, query: selectable.Select) -> list[tuple[GTFSBase]]:
+        return self.session.execute(query).all()
 
     def to_sql(self, data: pd.DataFrame, orm: GTFSBase, index: bool = False) -> None:
         """Helper function to dump dataframe to sql.
@@ -230,32 +199,3 @@ class Feed:
         """
         res = data.to_sql(orm.__tablename__, self.engine, None, "append", index)
         logging.info("Added %s rows to %s", res, orm.__tablename__)
-
-
-def df_unpack(
-    dataframe: pd.DataFrame, columns: list[str] = None, prefix: bool = True
-) -> pd.DataFrame:
-    """Unpacks a column of a dataframe that contains a list of dictionaries.
-    Returns a dataframe with the unpacked column and the original dataframe
-    with the packed column removed.
-
-    Args:
-        dataframe (pd.DataFrame): dataframe to unpack
-        columns (list[str], optional): columns to unpack. Defaults to None.
-        prefix (bool, optional): whether to add prefix to unpacked columns. Defaults to True.
-    Returns:
-        pd.DataFrame: dataframe with unpacked columns
-    """
-
-    columns = columns or []
-
-    for col in columns:
-        if col not in dataframe.columns:
-            continue
-        exploded = dataframe.explode(col)
-        series = exploded[col].apply(pd.Series)
-        if prefix:
-            series = series.add_prefix(col + "_")
-        dataframe = pd.concat([exploded.drop([col], axis=1), series], axis=1)
-
-    return dataframe

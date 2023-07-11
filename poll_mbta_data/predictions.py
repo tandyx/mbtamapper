@@ -1,105 +1,68 @@
-from datetime import datetime
-import sqlite3
+"""Downloads realtime predictions data from the mbta api."""
 import time
 import logging
 import os
 import requests as rq
-import pytz
 import pandas as pd
-import json_api_doc as jad
-from shared_code import calc_delay, iso_convert
+
+RENAME_DICT = {
+    "id": "prediction_id",
+    "type": "prediction_type",
+    "attributes_arrival_time": "arrival_time",
+    "attributes_departure_time": "departure_time",
+    "attributes_direction_id": "direction_id",
+    "attributes_schedule_relationship": "schedule_relationship",
+    "attributes_status": "status",
+    "attributes_stop_sequence": "stop_sequence",
+    "relationships_route_data_id": "route_id",
+    "relationships_schedule_data_id": "schedule_id",
+    "relationships_stop_data_id": "stop_id",
+    "relationships_trip_data_id": "trip_id",
+    "relationships_vehicle_data_id": "vehicle_id",
+}
 
 
-# pylint: disable=unused-argument
-def getpredictions(
-    route_type=2, active_routes="", conn=sqlite3.connect("mbta_data.db")
-):
-    """Import MBTA predictions data from API"""
+def get_predictions(active_routes: str = "CR-Providence") -> pd.DataFrame:
+    """Downloads realtime predictions data from the mbta api.
 
+    Args:
+        active_routes (str, optional): comma separated list of active routes. Defaults to "".
+    Returns:
+        pd.DataFrame: realtime predictions data
+    """
     start_time = time.time()
-
-    req = rq.get(
-        "https://api-v3.mbta.com/predictions?filter[route]="
+    url = (
+        os.environ.get("MBTA_API_URL")
+        + "/predictions?filter[route]="
         + active_routes
         + "&include=stop,trip,route,vehicle,schedule&api_key="
-        + os.getenv("MBTA_API_Key"),
-        timeout=500,
+        + os.environ.get("MBTA_API_Key")
     )
-    logging.info("Received code %s from MBTA predictions", req.status_code)
 
-    predictions = pd.DataFrame()
+    req = rq.get(url, timeout=500)
 
-    if req.ok and req.json()["data"]:
-        mbta_response = pd.DataFrame(jad.deserialize(req.json()))
+    if req.ok:
+        dataframe = pd.json_normalize(req.json()["data"], sep="_")
+    else:
+        logging.error("Error downloading realtime data from %s", url)
+        dataframe = pd.DataFrame()
 
-        predictions["vehicle_id"] = mbta_response["vehicle"].apply(
-            lambda x: x["id"] if x else None
-        )
-        predictions["vehicle_label"] = mbta_response["vehicle"].apply(
-            lambda x: x["label"] if x else None
-        )
-        predictions["route_id"] = mbta_response["route"].apply(
-            lambda x: x["id"] if x else None
-        )
-        predictions["stop_id"] = mbta_response["stop"].apply(
-            lambda x: x["id"] if x else None
-        )
-        predictions["stop_name"] = mbta_response["stop"].apply(
-            lambda x: x["name"] if x else None
-        )
-        predictions["description"] = mbta_response["stop"].apply(
-            lambda x: x["description"] if x else None
-        )
-        predictions["parent_station"] = mbta_response["stop"].apply(
-            lambda x: x["parent_station"]["id"] if x and x["parent_station"] else None
-        )
-        predictions["platform_code"] = mbta_response["stop"].apply(
-            lambda x: x["platform_code"] if x else None
-        )
-        predictions["platform_name"] = mbta_response["stop"].apply(
-            lambda x: x["platform_name"] if x else None
-        )
-        predictions["trip_id"] = mbta_response["trip"].apply(
-            lambda x: x["id"] if x else None
-        )
-        predictions["headsign"] = mbta_response["trip"].apply(
-            lambda x: x["headsign"] if x else None
-        )
-        predictions["scheduled_arrival_time"] = mbta_response["schedule"].apply(
-            lambda x: x["arrival_time"] if x else None
-        )
-        predictions["scheduled_departure_time"] = mbta_response["schedule"].apply(
-            lambda x: x["departure_time"] if x else None
-        )
-
-        # iso_convert.iso_convert(
-        #     predictions,
-        #     [
-        #         "scheduled_arrival_time",
-        #         "scheduled_departure_time",
-        #         "predicted_arrival_time",
-        #         "predicted_departure_time",
-        #     ],
-        # )
-
-        predictions["arrival_delay"] = calc_delay.calc_delay(
-            predictions, "scheduled_arrival_time", "predicted_arrival_time"
-        )
-        predictions["departure_delay"] = calc_delay.calc_delay(
-            predictions, "scheduled_departure_time", "predicted_departure_time"
-        )
-
-        predictions["status"] = mbta_response["status"]
-        predictions["direction_id"] = mbta_response["direction_id"]
-        predictions["predicted_arrival_time"] = mbta_response["arrival_time"]
-        predictions["predicted_departure_time"] = mbta_response["departure_time"]
-        predictions["stop_sequence"] = mbta_response["stop_sequence"]
-        predictions["route_type"] = route_type
-        predictions["prediction_timestamp"] = datetime.now(
-            pytz.timezone("America/New_York")
-        )
-
-    predictions.to_sql(f"predictions_{route_type}", conn, if_exists="replace")
-    print(
-        f"Predictions ({route_type}): fetched {len(predictions)} predictions in {time.time() - start_time} seconds"
+    dataframe.drop(
+        columns=[col for col in dataframe.columns if col not in RENAME_DICT],
+        axis=1,
+        inplace=True,
     )
+
+    dataframe.rename(columns=RENAME_DICT, inplace=True)
+
+    logging.info(
+        "Downloaded realtime predictions data from %s in %s seconds",
+        url,
+        time.time() - start_time,
+    )
+
+    return dataframe
+
+
+if __name__ == "__main__":
+    get_predictions()

@@ -63,8 +63,24 @@ class Trip(GTFSBase):
                     foreign(Route.route_id)==MultiRouteTrip.added_route_id))""",
         viewonly=True,
     )
-    predictions = relationship("Prediction", back_populates="trip")
-    vehicle = relationship("Vehicle", back_populates="trip")
+    predictions = relationship(
+        "Prediction",
+        back_populates="trip",
+        primaryjoin="Trip.trip_id==foreign(Prediction.trip_id)",
+        viewonly=True,
+    )
+    vehicle = relationship(
+        "Vehicle",
+        back_populates="trip",
+        primaryjoin="Trip.trip_id==foreign(Vehicle.trip_id)",
+        viewonly=True,
+    )
+    alerts = relationship(
+        "Alert",
+        back_populates="trip",
+        primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
+        viewonly=True,
+    )
 
     TRIP_FIELD_MAPPING = {
         "trip_headsign": "headsign",

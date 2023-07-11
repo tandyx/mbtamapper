@@ -7,51 +7,68 @@ from gtfs_loader.gtfs_base import GTFSBase
 
 
 class Alert(GTFSBase):
+    """Alerts"""
+
     __tablename__ = "alerts"
 
-    id = Column(String, primary_key=True)
-    attributes_banner = Column(String)
-    attributes_cause = Column(String)
-    attributes_created_at = Column(String)
-    attributes_description = Column(String)
-    attributes_effect = Column(String)
-    attributes_header = Column(String)
-    attributes_lifecycle = Column(String)
-    attributes_service_effect = Column(String)
-    attributes_severity = Column(Integer)
-    attributes_short_header = Column(String)
-    attributes_timeframe = Column(String)
-    attributes_updated_at = Column(String)
-    attributes_url = Column(String)
-    relationships_trips_data_id = Column(String, ForeignKey("trips.trip_id"))
+    alert_id = Column(String)
+    alert_type = Column(String)
+    banner = Column(String)
+    cause = Column(String)
+    created_at = Column(String)
+    description = Column(String)
+    effect = Column(String)
+    header = Column(String)
+    lifecycle = Column(String)
+    service_effect = Column(String)
+    severity = Column(String)
+    short_header = Column(String)
+    timeframe = Column(String)
+    updated_at = Column(String)
+    url = Column(String)
+    links_self = Column(String)
+    active_period_end = Column(String)
+    active_period_start = Column(String)
+    direction_id = Column(String)
+    route_id = Column(String)
+    route_type = Column(String)
+    trip_id = Column(String)
+    stop_id = Column(String)
+    index = Column(Integer, primary_key=True)
 
+    route = relationship(
+        "Route",
+        back_populates="alerts",
+        primaryjoin="foreign(Alert.route_id)==Route.route_id",
+        viewonly=True,
+    )
+    trip = relationship(
+        "Trip",
+        back_populates="alerts",
+        primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
+        viewonly=True,
+    )
+    stop = relationship(
+        "Stop",
+        back_populates="alerts",
+        primaryjoin="foreign(Alert.stop_id)==Stop.stop_id",
+        viewonly=True,
+    )
 
-[
-    "id",
-    "type",
-    "attributes_banner",
-    "attributes_cause",
-    "attributes_created_at",
-    "attributes_description",
-    "attributes_effect",
-    "attributes_header",
-    "attributes_lifecycle",
-    "attributes_service_effect",
-    "attributes_severity",
-    "attributes_short_header",
-    "attributes_timeframe",
-    "attributes_updated_at",
-    "attributes_url",
-    "links_self",
-    "relationships_trips_data",
-    "relationships_routes_data_id",
-    "relationships_routes_data_type",
-    "attributes_active_period_end",
-    "attributes_active_period_start",
-    "attributes_informed_entity_activities",
-    "attributes_informed_entity_route",
-    "attributes_informed_entity_route_type",
-    "attributes_informed_entity_stop",
-    "attributes_informed_entity_direction_id",
-    "attributes_informed_entity_trip",
-]
+    DATETIME_MAPPER = {
+        "active_period_end": "end_datetime",
+        "active_period_start": "start_datetime",
+        "created_at": "created_at_datetime",
+        "updated_at": "updated_at_datetime",
+    }
+
+    @reconstructor
+    def init_on_load(self):
+        """Loads active_period_end and active_period_start as datetime objects."""
+        # pylint: disable=attribute-defined-outside-init
+        for key, value in self.DATETIME_MAPPER.items():
+            if getattr(self, key, None):
+                setattr(self, value, isoparse(getattr(self, key)))
+
+    def __repr__(self):
+        return f"<Alert(id={self.alert_id})>"

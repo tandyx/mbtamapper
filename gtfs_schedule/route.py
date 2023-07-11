@@ -37,8 +37,24 @@ class Route(GTFSBase):
             )""",
         viewonly=True,
     )
-    predictions = relationship("Prediction", back_populates="route")
-    vehicles = relationship("Vehicle", back_populates="route")
+    predictions = relationship(
+        "Prediction",
+        back_populates="route",
+        primaryjoin="foreign(Prediction.route_id)==Route.route_id",
+        viewonly=True,
+    )
+    vehicles = relationship(
+        "Vehicle",
+        back_populates="route",
+        primaryjoin="foreign(Vehicle.route_id)==Route.route_id",
+        viewonly=True,
+    )
+    alerts = relationship(
+        "Alert",
+        back_populates="route",
+        primaryjoin="foreign(Alert.route_id)==Route.route_id",
+        viewonly=True,
+    )
 
     def __repr__(self) -> str:
         return f"<Route(route_id={self.route_id})>"
