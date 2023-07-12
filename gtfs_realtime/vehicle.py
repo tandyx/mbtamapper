@@ -81,17 +81,17 @@ class Vehicle(GTFSBase):
     def return_current_status(self) -> str:
         """Returns current status of vehicle."""
         current_status = (
-            self.current_status.lower().replace("_", " ")
-            + " "
-            + self.stop.stop_name
-            + f""" (in {int(((self.next_stop_prediction.predicted or self.next_stop_prediction.scheduled) - datetime.now(pytz.timezone(self.route.agency.agency_timezone))).total_seconds() / 60)} minutes)"""
+            f"""Vehicle {self.label or self.vehicle_id} """
+            f"""{self.current_status.lower().replace("_", " ")} """
+            f"""<a href={self.stop.stop_url}>{self.stop.stop_name}</a> - {self.stop.platform_name if self.stop.platform_code else ''} """
+            f"""{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else '(Delay Unknown)'}"""
         )
 
         return current_status
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
-        return Point(self.longitude, self.latitude)
+        return Point(self.latitude, self.longitude)
 
     def as_dict(self) -> dict[str]:
         """Returns vehicle as dict."""
@@ -115,4 +115,58 @@ class Vehicle(GTFSBase):
     def as_feature(self) -> Feature:
         """Returns vehicle as feature."""
 
-        return Feature(geometry=self.as_point(), properties=self.as_dict())
+        return Feature(
+            id=self.vehicle_id,
+            geometry=self.as_point(),
+            properties={
+                "popupContent": self.as_html_popup(),
+                "icon": self.as_html_icon(),
+            },
+        )
+
+    def as_html_popup(self) -> str:
+        """Returns vehicle as html for a popup."""
+
+        bikes = (
+            """<img src ="static/bike.png" alt="bikes allowed" title="Bicycles Allowed" width=25 height=25 style="margin:2px;">"""
+            if self.trip.bikes_allowed == 1
+            else ""
+        )
+        alert = (
+            """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            if self.trip.alerts
+            else ""
+        )
+        prediction = (
+            """<img src="static/train_icon.png" alt="prediction" width=25 height=25 style="margin:2px;">"""
+            if self.trip.predictions
+            else ""
+        )
+
+        html = (
+            f"""<a href = {self.trip.route.route_url} style="color:#{self.trip.route.route_color};font-size:28pt;text-decoration: none;text-align: left">"""
+            f"""{self.route.route_desc} {self.trip.trip_short_name or self.trip_id}</a></br>"""
+            """<body style="color:#ffffff;text-align: left;">"""
+            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign}</body></br>"""
+            """—————————————————————————————————</br>"""
+            f"""{alert} {prediction} {bikes}</br>"""
+            f"""{self.return_current_status()}</br>"""
+            f"""Speed: {int(self.speed * 2.23694) if self.speed else "Unknown"} mph</br>"""
+            f"""Bearing: {self.bearing}°</br>"""
+            f"""<a style="color:grey;font-size:9pt">"""
+            f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M%p")}</br>"""
+            f"""Route: {self.route.route_short_name or self.route_id}: {self.route_id}</br>"""
+            f"""Trip: {self.trip_id}</a>"""
+        )
+        return html
+
+    def as_html_icon(self) -> str:
+        """Returns vehicle as html for an icon."""
+        """<img src ="static/bike.png" alt="bikes allowed" title="Bicycles Allowed" width=25 height=25 style="margin:2px;">"""
+        html = (
+            """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:white;font-family:montserrat,Helvetica,sans-serif">"""
+            f"""<img src ="static/icon.png" alt="vehicle" width=50 height=50 style="transform:rotate({self.bearing}deg);">"""
+            f"""{self.trip.trip_short_name if self.route.route_type == 2 else ""}</a>"""
+        )
+
+        return html

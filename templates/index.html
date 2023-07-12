@@ -11,13 +11,10 @@
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="">
         </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet"
-        href="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" />
-    <link rel="stylesheet"
-        href="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" />
-    <script
-        src="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
-    <script src="/static/Leaflet.markercluster-1.4.1/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
+    <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="/static/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
+    <script src="/static/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
 
     <link rel="stylesheet" href="/static/custom_css/popup.css" />
 
@@ -38,7 +35,6 @@
             font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 12pt !important;
             text-align: left !important;
-            maxWidth: "auto" !important;
             border: 15px rgb(0, 0, 0, 0.95) !important;
         }
 
@@ -61,7 +57,6 @@
             font-family: 'montserrat', Helvetica, sans-serif !important;
             font-size: 10pt !important;
             text-align: left !important;
-            maxWidth: "auto" !important;
         }
 
         .leaflet-control-attribution,
@@ -94,7 +89,6 @@
     <div id="map"></div>
     <script>
 
-        let route_type = 0;
         var map = L.map('map').setView([42.3519, -71.0552], 13);
 
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -114,14 +108,14 @@
             attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
         });
 
-
-
         // Create a layer group for the vehicles
 
-        var stop_layer = L.layerGroup()
+        var stop_layer = L.layerGroup().addTo(map);
         var shape_layer = L.layerGroup().addTo(map);
         var bus_replacement_layer = L.layerGroup().addTo(map);
-        var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: 12 }).addTo(map);
+        // var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: 12 }).addTo(map);
+        var vehicle_layer = L.layerGroup().addTo(map);
+
 
         var overlays = {
             "Vehicles": vehicle_layer,
@@ -135,181 +129,83 @@
             "Alt Dark": Stadia_AlidadeSmoothDark,
         };
 
-        if (route_type != 3) {
-            stop_layer.addTo(map);
-            overlays["Bus Replacement"] = bus_replacement_layer;
-        }
-
         var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-        plotShapes(route_type);
-        plotStops(route_type);
-        plotVehicles(route_type);
-
+        plotShapes();
+        plotStops();
+        plotVehicles();
 
         // calls function every 15 seconds
         var intervalId = window.setInterval(function () {
-            plotVehicles(route_type);
+            plotVehicles();
         }, 15000);
 
 
-        function plotVehicles(route_type = route_type) {
+        function plotVehicles() {
 
-
-            $.getJSON("/vehicles/" + route_type, function (vehicle_dict) {
-                console.log(vehicle_dict);
+            $.getJSON("/vehicles", function (vehicle_dict) {
                 vehicle_layer.clearLayers();
+                const features = vehicle_dict.features;
+                for (const vehicle of features) {
 
-                for (const vehicle of vehicle_dict) {
-                    const direction = vehicle.direction_id === 0 ? "Outbound" : "Inbound";
+                    console.log(vehicle.properties.icon);
 
-                    let vehicle_type;
-                    if (route_type !== 3) {
-                        vehicle_type = "Train";
-                    } else if (vehicle.route_color === "7C878E") {
-                        vehicle_type = "Silver Line";
-                    } else {
-                        vehicle_type = vehicle.description;
-                    }
-
-                    const bike = vehicle.bikes_allowed === 1 ? `<img src ="static/bike.png" alt="bikes allowed" title="Bicycles Allowed" width=25 height=25 style="margin:2px;">` : "";
-                    const alert = vehicle.alert !== "unknown" ? `<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">` : "";
-                    const prediction = `<img src="static/train_icon.png" alt="prediction" width=25 height=25 style="margin:2px;">`;
-
-                    const vehicleIcon = L.divIcon({
-                        html: `<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:white;font-family:montserrat,Helvetica,sans-serif">
-                            <img src="static/icon.png" width=50 height=50 style="transform:rotate(${vehicle.bearing}deg)">
-                            ${route_type === 2
-                                ? `<span style="position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);">${vehicle.trip_short_name}</span>`
-                                : ""}
-                            </a>`
+                    var icon = L.divIcon({
+                        html: vehicle.properties.icon,
+                        iconSize: [15, 15],
                     });
-                    const marker = L.marker([vehicle.latitude, vehicle.longitude], {
-                        icon: vehicleIcon
+
+                    var marker = L.marker(vehicle.geometry.coordinates, {
+                        icon: icon,
                     }).setZIndexOffset(100);
 
-                    var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/schedules/${vehicle.route_id} style="color:#${vehicle.route_color};font-size:28pt;text-decoration: none;text-align: left">` +
-                        vehicle_type + " " + vehicle.trip_short_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` +
-                        direction + " to " + vehicle.headsign + "</body>" + "</br>" +
-                        "—————————————————————————————————" + "</br>" +
-                        alert + " " + prediction + " " + bike + "</br>" +
-                        "Vehicle" + " " + vehicle.vehicle_id + " " + vehicle.stop_status + " " + vehicle.stop_name + "</br>" +
-                        "Speed: " + vehicle.speed + " mph" + "</br>" +
-                        "Bearing: " + vehicle.bearing + "°" + "</br>" +
-                        `<a style="color:grey;font-size:9pt">` +
-                        "Timestamp: " + vehicle.vehicle_timestamp + "</br>" +
-                        "Route: " + vehicle.route_name + " (" + vehicle.route_id + ") " + "</br>" +
-                        "Trip: " + vehicle.trip_id + "</a>" +
-                        "</body>",
-                        { maxWidth: "auto" }
-                    );
+                    var popup = marker.bindPopup(vehicle.properties.popupContent, { maxWidth: "auto" });
+                    var tooltip = marker.bindTooltip(vehicle.id);
 
-                    var tooltip = marker.bindTooltip(vehicle.vehicle_id);
                     marker.addTo(vehicle_layer);
                 }
             });
         }
 
-        function plotStops(route_type = route_type) {
-
-            const routeColors = {
-                "Commuter Rail": "80276C",
-                "Green Line": "00843D",
-                "Orange Line": "ED8B00",
-                "Red Line": "DA291C",
-                "Mattapan Trolley": "DA291C",
-                "Blue Line": "003DA5",
-                "Silver Line": "7C878E",
-                "Charlestown Ferry": "008EAA",
-                "Hingham/Hull Ferry": "008EAA",
-            };
+        function plotStops() {
 
             const stopIcon = L.icon({
                 iconUrl: "/static/mbta.png",
                 iconSize: [15, 15],
             });
 
-            $.getJSON("/stops/" + route_type, function (stops_dict) {
+            $.getJSON("/stops", function (stops_dict) {
                 stop_layer.clearLayers();
                 console.log(stops_dict);
-                for (const stop of stops_dict) {
-
-
-                    if (stop.line_serviced === "unknown") {
-                        stop.line_serviced = stop.zone;
-                    }
-
-                    const routeColor = routeColors[stop.line_serviced] || "FFC72C";
-                    const wheelchair = stop.wheelchair_accessible === 1 ? `<img src="static/wheelchair.png" alt="accessible" title = "Wheelchair Accessible" width=25 height=25 style="margin:2px;">` : "";
-                    const alert = stop.alert !== "unknown" ? `<img src="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">` : "";
-                    const prediction = `<img src ="static/train_icon.png" alt = "predictions" width=25 height=25 style="margin:2px;">`;
-
-                    var marker = L.marker([stop.latitude, stop.longitude], { icon: stopIcon }).setZIndexOffset(-100);
-
-                    var popup = marker.bindPopup(
-                        `<a href = https://www.mbta.com/stops/${stop.stop_id} style="color:#${routeColor};font-size:28pt;text-decoration: none;text-align: left">` + stop.stop_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + stop.line_serviced + "</br>" +
-                        "—————————————————————————————————" + "</br>" +
-                        alert + " " + prediction + " " + wheelchair + "</br>" +
-                        stop.description + "</br>" +
-                        "Zone: " + stop.zone + "</br>" +
-                        `<a style="color:grey;font-size:9pt">` +
-                        "Timestamp: " + stop.stop_timestamp + "</br>" +
-                        "Adress: " + stop.adress + "</br>" +
-                        "Parent Stop: " + stop.stop_id + "</br>" +
-                        "</a></body>",
-                        { maxWidth: "auto" }
-                    );
-                    var tooltip = marker.bindTooltip(stop.stop_name);
-
+                const features = stops_dict.features;
+                for (const stop of features) {
+                    var marker = L.marker(stop.geometry.coordinates, { icon: stopIcon }).setZIndexOffset(-100);
+                    var popup = marker.bindPopup(stop.properties.popupContent, { maxWidth: "auto" });
+                    var tooltip = marker.bindTooltip(stop.properties.stop_name);
                     marker.addTo(stop_layer);
                 }
             });
         }
 
-        function plotShapes(route_type = route_type) {
+        function plotShapes() {
 
-            $.getJSON("/shapes/" + route_type, function (shapes_dict) {
+            $.getJSON("/shapes", function (shapes_dict) {
                 shape_layer.clearLayers();
                 bus_replacement_layer.clearLayers();
-                console.log(shapes_dict);
-                for (const shape of shapes_dict) {
+                const features = shapes_dict.features;
 
-                    var color = "#" + shape.route_color;
-                    let opacity = 0.9;
-                    let weight = 0.8;
-                    if (shape.parent_route_type != shape.route_type | shape.description == "Local Bus") {
-                        opacity = 0.5;
-                    } else if (shape.description == "Community Bus") {
-                        opacity = 0.35;
-                    }
-                    if (shape.description == "unknown") {
-                        shape.description = "Bus Replacement"
-                    }
+                for (const shape of features) {
 
-                    const alert = shape.alert !== "unknown" ? `<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;"></br>` : "";
+                    var route = L.polyline(shape.geometry.coordinates, {
+                        color: shape.properties.color, opacity: shape.properties.opacity, weight: shape.properties.weight
+                    });
 
-                    var route = L.polyline(shape.polyline, { color: color, opacity: opacity, weight: weight });
-                    var popup = route.bindPopup(
-                        `<a href = https://www.mbta.com/schedules/${shape.route_id} style="color:${color};font-size:28pt;text-decoration: none;text-align: left">` + shape.route_name + "</a></br>" +
-                        `<body style="color:#ffffff;text-align: left;">` + shape.description + "</br>" +
-                        "—————————————————————————————————" + "</br>" +
-                        alert +
-                        `<a style="color:grey;font-size:9pt">` +
-                        "Timestamp: " + shape.shape_timestamp + "</br>" +
-                        "Route ID: " + shape.route_id + "</br>" +
-                        "</a></body>",
-                        { maxWidth: "auto" }
-                    );
-                    var tooltip = route.bindTooltip(shape.route_id);
-
-                    if (shape.parent_route_type != shape.route_type)
+                    route.bindPopup(shape.properties.popupContent, { maxWidth: "auto" });
+                    route.bindTooltip(shape.properties.name);
+                    if (shape.properties.is_added === true)
                         route.addTo(bus_replacement_layer);
                     else
                         route.addTo(shape_layer);
-
                 }
             });
         }

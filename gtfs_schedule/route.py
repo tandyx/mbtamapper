@@ -57,6 +57,8 @@ class Route(GTFSBase):
         viewonly=True,
     )
 
+    WEIGHT = 0.8
+
     def __repr__(self) -> str:
         return f"<Route(route_id={self.route_id})>"
 
@@ -83,6 +85,58 @@ class Route(GTFSBase):
             "agency_phone": self.agency.agency_phone,
             "alerts": [a.as_dict() for a in self.alerts if not a.trip_id],
             "active_trips": [t.as_label() for t in self.trips if t.active],
+        }
+
+        return dictionary
+
+    def as_html_popup(self) -> str:
+        """Return a proper HTML popup representation of the route object"""
+
+        alert = (
+            f"""<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;"></br>"""
+            if self.alerts
+            else ""
+        )
+
+        html = (
+            f"""<a href = {self.route_url} style="color:#{self.route_color};font-size:28pt;text-decoration: none;text-align: left"> {self.route_short_name or self.route_long_name} </a></br>"""
+            f"""<body style="color:#ffffff;text-align: left;"> {self.route_desc} </br>"""
+            f"""{self.route_long_name} </br>"""
+            "—————————————————————————————————</br>"
+            f"{alert}"
+            f"Agency: <a href = {self.agency.agency_url}> {self.agency.agency_name} </a> </br>"
+            f"Fare Class: {self.route_fare_class} </br>"
+            """<a style="color:grey;font-size:9pt">"""
+            f"Route ID: {self.route_id} </br>"
+            f"Route Type: {self.route_type} </br>"
+            f""
+            "</a></body>"
+        )
+
+        return html
+
+    def as_html_dict(self) -> dict[str]:
+        """Return HTML + other data in a dictionary"""
+
+        opacity_dict = {
+            "Community Bus": 0.35,
+            "Local Bus": 0.5,
+            "Express Bus": 0.75,
+            "Commuter Bus": 0.75,
+            "Rail Replacement Bus": 0.75,
+            "Key Bus": 0.9 if self.line_id == "sl_rapid_transit" else 0.75,
+            "Rapid Transit": 0.9,
+            "Commuter Rail": 0.9,
+            "Ferry": 0.9,
+        }
+
+        dictionary = {
+            "name": self.route_short_name or self.route_long_name,
+            "color": "#" + self.route_color,
+            "opacity": opacity_dict.get(self.route_desc, 0.5),
+            "weight": Route.WEIGHT,
+            "popupContent": self.as_html_popup(),
+            "is_added": self.network_id == "rail_replacement_bus",
         }
 
         return dictionary

@@ -138,19 +138,19 @@ class Feed:
             Route.route_id.notin_(select(Trip.route_id).distinct())
         )
 
-        cal_stmt_2 = delete(Calendar.__table__).where(
-            Calendar.service_id.notin_(
-                (
-                    select(
-                        self.queries.return_active_calendars_query(
-                            date
-                        ).columns.service_id
-                    )
-                )
-            )
-        )
+        # cal_stmt_2 = delete(Calendar.__table__).where(
+        #     Calendar.service_id.notin_(
+        #         (
+        #             select(
+        #                 self.queries.return_active_calendars_query(
+        #                     date
+        #                 ).columns.service_id
+        #             )
+        #         )
+        #     )
+        # )
 
-        for stmt in [cal_stmt_1, stops_stmt, shapes_stmt, routes_stmt, cal_stmt_2]:
+        for stmt in [cal_stmt_1, stops_stmt, shapes_stmt, routes_stmt]:
             res: CursorResult = self.session.execute(stmt)
             self.session.commit()  # seperate commits to avoid giant journal file
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
@@ -198,16 +198,3 @@ class Feed:
         """
         res = data.to_sql(orm.__tablename__, self.engine, None, "append", index)
         logging.info("Added %s rows to %s", res, orm.__tablename__)
-
-    def to_geojson(self, query: selectable.Select) -> str:
-        """Converts a table to geojson."""
-
-        return dumps(
-            FeatureCollection(
-                [
-                    i[0].as_feature()
-                    for i in self.session.execute(query)
-                    if hasattr(i[0], "as_feature")
-                ]
-            )
-        )

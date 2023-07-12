@@ -106,6 +106,9 @@ class Prediction(GTFSBase):
 
         return prediction
 
+    def status_as_string(self):
+        return f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"
+
 
 def checker(_obj, attr1: str, attr2: str):
     """Checks if attribute is set."""

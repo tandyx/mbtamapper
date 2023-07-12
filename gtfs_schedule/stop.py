@@ -2,7 +2,7 @@
 from shapely.geometry import Point
 from geojson import Feature
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
 
@@ -49,6 +49,13 @@ class Stop(GTFSBase):
     parent_stop = relationship(
         "Stop", primaryjoin="foreign(Stop.parent_station)==remote(Stop.stop_id)"
     )
+    child_stops = relationship(
+        "Stop",
+        primaryjoin="foreign(Stop.stop_id)==remote(Stop.parent_station)",
+        viewonly=True,
+        uselist=True,
+    )
+
     predictions = relationship(
         "Prediction",
         back_populates="stop",
@@ -76,17 +83,33 @@ class Stop(GTFSBase):
         "parent_stop",
     ]
 
+    @reconstructor
+    def init_on_load(self):
+        """Load the parent_stop relationship on load"""
+        # pylint: disable=attribute-defined-outside-init
+        self.all_routes = self.return_all_routes()
+
     def __repr__(self):
         return f"<Stop(stop_id={self.stop_id})>"
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the stop"""
-        return Point(self.stop_lon, self.stop_lat)
+        return Point(self.stop_lat, self.stop_lon)
 
-    def as_feature(self) -> Feature:
-        """Returns stop object as a feature."""
+    def return_all_routes(self) -> set:
+        """Returns a list of all routes that serve the stop"""
+        return {
+            item
+            for sublist in [
+                [r.route for r in [t.trip for t in s.stop_times]]
+                for s in self.child_stops
+            ]
+            for item in sublist
+        }
 
-        properties = {
+    def as_dict(self) -> dict:
+        """Returns stop object as a dictionary."""
+        return {
             "stop_id": self.stop_id,
             "stop_name": self.stop_name,
             "stop_desc": self.stop_desc,
@@ -107,8 +130,47 @@ class Stop(GTFSBase):
             "predictions": [prediction.as_dict() for prediction in self.predictions],
         }
 
+    def as_feature(self) -> Feature:
+        """Returns stop object as a feature."""
+
         feature = Feature(
-            id=self.stop_id, geometry=self.as_point(), properties=properties
+            id=self.stop_id,
+            geometry=self.as_point(),
+            properties={
+                "popupContent": self.as_html_popup(),
+                "stop_name": self.stop_name,
+            },
         )
 
         return feature
+
+    def as_html_popup(self) -> str:
+        """Returns stop object as an html popup."""
+
+        alert = (
+            """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            if self.alerts
+            else ""
+        )
+
+        wheelchair = (
+            """<img src="static/wheelchair.png" alt="accessible" title = "Wheelchair Accessible" width=25 height=25 style="margin:2px;">"""
+            if "1" in [s.wheelchair_boarding for s in self.child_stops]
+            else ""
+        )
+
+        html = (
+            f"<a href = {self.stop_url} style='color:#{[r.route_color for r in self.all_routes][-1]};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
+            f"<body style='color:#ffffff;text-align: left;'>"
+            f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc)}</br>"
+            f"—————————————————————————————————</br>"
+            f"{alert} {wheelchair}</br>"
+            f"Routes: {', '.join([r.route_short_name or r.route_long_name for r in self.all_routes])}</br>"
+            f"Zone: {self.zone_id}</br>"
+            f"<a style='color:grey;font-size:9pt'>"
+            f"Adress: {self.stop_address}</br>"
+            f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"
+            "</a></body>"
+        )
+
+        return html

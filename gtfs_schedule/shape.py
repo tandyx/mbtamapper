@@ -38,18 +38,13 @@ class Shape(GTFSBase):
 
         return LineString([sp.as_point() for sp in self.sorted_points])
 
-    def as_polyline(self) -> str:
-        """Return a polyline string of the shape"""
-
-        return polyline.encode([sp.as_tuple() for sp in self.sorted_points])
-
     def as_feature(self) -> Feature:
         """Returns shape object as a feature."""
 
         feature = Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_dict(),
+            properties=self.trips[0].route.as_html_dict(),
         )
 
         return feature
