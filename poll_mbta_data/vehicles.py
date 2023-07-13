@@ -51,4 +51,4 @@ def get_vehicles(route_type: str = "2") -> pd.DataFrame:
 
     dataframe.rename(columns=RENAME_DICT, inplace=True)
 
-    return dataframe.reset_index(drop=True)
+    return dataframe.reset_index()

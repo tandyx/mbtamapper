@@ -28,3 +28,14 @@ def df_unpack(
         dataframe = pd.concat([exploded.drop([col], axis=1), series], axis=1)
 
     return dataframe
+
+
+def list_unpack(list_to_unpack: list) -> list:
+    """Unpacks a list of dictionaries into a list of lists.
+
+    Args:
+        list_to_unpack (list): list to unpack
+    Returns:
+        list: unpacked list
+    """
+    return [item for sublist in list_to_unpack for item in sublist]

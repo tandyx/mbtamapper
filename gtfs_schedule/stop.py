@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
 
+from shared_code.df_unpack import list_unpack
+
 
 class Stop(GTFSBase):
     """Stop"""
@@ -87,7 +89,20 @@ class Stop(GTFSBase):
     def init_on_load(self):
         """Load the parent_stop relationship on load"""
         # pylint: disable=attribute-defined-outside-init
-        self.all_routes = self.return_all_routes()
+
+        self.all_routes = set(
+            list_unpack(
+                list_unpack(
+                    [
+                        [
+                            t.trip.all_routes if t.trip.all_routes else [t.trip.route]
+                            for t in s.stop_times
+                        ]
+                        for s in self.child_stops
+                    ]
+                )
+            )
+        )
 
     def __repr__(self):
         return f"<Stop(stop_id={self.stop_id})>"
@@ -95,17 +110,6 @@ class Stop(GTFSBase):
     def as_point(self) -> Point:
         """Returns a shapely Point object of the stop"""
         return Point(self.stop_lat, self.stop_lon)
-
-    def return_all_routes(self) -> set:
-        """Returns a list of all routes that serve the stop"""
-        return {
-            item
-            for sublist in [
-                [r.route for r in [t.trip for t in s.stop_times]]
-                for s in self.child_stops
-            ]
-            for item in sublist
-        }
 
     def as_dict(self) -> dict:
         """Returns stop object as a dictionary."""
@@ -160,7 +164,7 @@ class Stop(GTFSBase):
         )
 
         html = (
-            f"<a href = {self.stop_url} style='color:#{[r.route_color for r in self.all_routes][-1]};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
+            f"<a href = {self.stop_url} style='color:#{next((r.route_color for r in self.all_routes), 'ffffff')};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc)}</br>"
             f"—————————————————————————————————</br>"

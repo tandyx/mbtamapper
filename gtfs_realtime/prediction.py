@@ -10,7 +10,7 @@ class Prediction(GTFSBase):
 
     __tablename__ = "predictions"
 
-    prediction_id = Column(String, primary_key=True)
+    prediction_id = Column(String)
     prediction_type = Column(String)
     arrival_time = Column(String)
     departure_time = Column(String)
@@ -50,6 +50,7 @@ class Prediction(GTFSBase):
         primaryjoin="foreign(Prediction.vehicle_id)==Vehicle.vehicle_id",
         viewonly=True,
     )
+
     stop_time = relationship(
         "StopTime",
         primaryjoin="""and_(foreign(Prediction.trip_id)==StopTime.trip_id,

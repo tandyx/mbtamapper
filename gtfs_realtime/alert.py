@@ -1,6 +1,4 @@
 """Alerts"""
-from datetime import datetime
-import pytz
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
@@ -12,7 +10,7 @@ class Alert(GTFSBase):
 
     __tablename__ = "alerts"
 
-    alert_id = Column(String, primary_key=True)
+    alert_id = Column(String)
     alert_type = Column(String)
     banner = Column(String)
     cause = Column(String)

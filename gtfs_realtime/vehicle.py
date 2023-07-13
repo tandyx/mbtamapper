@@ -1,6 +1,4 @@
 """Vehicle"""
-from datetime import datetime
-import pytz
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer, Float
 from sqlalchemy.orm import relationship, reconstructor
@@ -16,7 +14,7 @@ class Vehicle(GTFSBase):
 
     __tablename__ = "vehicles"
 
-    vehicle_id = Column(String, primary_key=True)
+    vehicle_id = Column(String)
     vehicle_type = Column(String)
     bearing = Column(Float)
     current_status = Column(String)
@@ -171,9 +169,10 @@ class Vehicle(GTFSBase):
     def as_html_icon(self) -> str:
         """Returns vehicle as html for an icon."""
         html = (
-            """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:white;font-family:montserrat,Helvetica,sans-serif">"""
+            """<a style="position:absolute;top:100%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=50 height=50 style="transform:rotate({self.bearing}deg);">"""
-            f"""{self.trip.trip_short_name if self.route.route_type == 2 else ""}</a>"""
+            """<a style="position:absolute;top:80%;left:50%;transform:translate(-50%,-50%);text-align:center;color:white;font-family:montserrat,Helvetica,sans-serif;">"""
+            f"""{self.trip.trip_short_name if self.route.route_type == "2" else ""}</a></a>"""
         )
 
         return html

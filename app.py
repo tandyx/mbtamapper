@@ -1,5 +1,4 @@
 """Flask app for MBTA GTFS data."""
-
 from geojson import FeatureCollection
 
 from sqlalchemy import select
@@ -14,10 +13,9 @@ from gtfs_schedule import Shape, Stop, Route
 from gtfs_realtime import Vehicle, Prediction, Alert
 
 from poll_mbta_data import predictions, vehicles, alerts
-from shared_code.to_sql import to_sql
+from shared_code.return_date import get_date
 
-
-feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "2")
+feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "3", get_date(-3))
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = feed.engine.url

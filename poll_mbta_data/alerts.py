@@ -74,4 +74,4 @@ def get_alerts(route_type: str = "2") -> pd.DataFrame:
         if col not in dataframe.columns:
             dataframe[col] = np.nan
 
-    return dataframe.reset_index(drop=True)
+    return dataframe.reset_index()

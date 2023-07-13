@@ -27,7 +27,8 @@ def get_predictions(active_routes: str = "CR-Providence,CR-Fitchburg") -> pd.Dat
     """Downloads realtime predictions data from the mbta api.
 
     Args:
-        active_routes (str, optional): comma separated list of active routes. Defaults to "".
+        active_routes (str, optional): comma separated list of active routes.
+        Defaults to "CR-Providence,CR-Fitchburg".
     Returns:
         pd.DataFrame: realtime predictions data
     """
@@ -55,4 +56,4 @@ def get_predictions(active_routes: str = "CR-Providence,CR-Fitchburg") -> pd.Dat
 
     dataframe.rename(columns=RENAME_DICT, inplace=True)
 
-    return dataframe.reset_index(drop=True)
+    return dataframe.reset_index()

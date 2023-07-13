@@ -3,6 +3,7 @@ import os
 import time
 import logging
 import tempfile
+from datetime import datetime
 
 import pandas as pd
 
@@ -11,13 +12,12 @@ from sqlalchemy.sql import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
-from poll_mbta_data import predictions, vehicles, alerts
 from shared_code.download_zip import download_zip
 from shared_code.to_sql import to_sql
 from gtfs_schedule import *
+from gtfs_realtime import *
 from .gtfs_base import GTFSBase
 from .query import Query
-from gtfs_realtime import Prediction, Vehicle, Alert
 
 
 class Feed:
@@ -26,25 +26,29 @@ class Feed:
 
     Args:
         url (str): url of GTFS feed
-        route_types (str): route type to load (default: "2")
+        route_types (str): route type to load
+        date (datetime): date to load
     """
 
+    temp_dir: str = tempfile.gettempdir()
+
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, url: str, route_type: str = "2") -> None:
+    def __init__(self, url: str, route_type: str, date: datetime) -> None:
         self.url = url
         self.route_type = route_type
         # ------------------------------- Connection/Session Setup ------------------------------- #
-        self.temp_dir = tempfile.gettempdir()
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(self.temp_dir, self.gtfs_name)
-        self.db_path = os.path.join(self.temp_dir, f"{self.gtfs_name}_{route_type}.db")
+        self.db_path = os.path.join(
+            self.temp_dir, f"{self.gtfs_name}_{route_type}_{date.strftime('%Y%m%d')}.db"
+        )
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.session = sessionmaker(self.engine)()
         # ------------------------------- Query Setup ------------------------------- #
         self.queries = Query(route_type)
 
     def __repr__(self) -> str:
-        return f"<Feed(url={self.url}, route_types={self.route_type})>"
+        return f"<Feed(url={self.url}, route_type={self.route_type})>"
 
     def import_gtfs(self, chunksize: int = 10**5) -> None:
         """Dumps GTFS data into a SQLite database.
@@ -116,11 +120,9 @@ class Feed:
             Shape.shape_id.notin_(select(Trip.shape_id))
         )
         routes_stmt = delete(Route.__table__).where(
-            Route.route_id.notin_(
-                or_(select(Trip.route_id).distinct()),
-                select(MultiRouteTrip.added_route_id),
-            )
+            Route.route_id.notin_(select(Trip.route_id).distinct()),
         )
+
         for stmt in [trips_stmt, stops_stmt, shapes_stmt, routes_stmt]:
             res: CursorResult = self.session.execute(stmt)
             self.session.commit()  # seperate commits to avoid giant journal file
