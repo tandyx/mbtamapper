@@ -1,16 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
-from datetime import datetime, timedelta
-
-import numpy as np
-import pandas as pd
-
-import shapely.ops
-from shapely.geometry import LineString
-
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
-
-from shared_code.gtfs_helper_time_functions import seconds_to_iso
 from gtfs_loader.gtfs_base import GTFSBase
 
 
@@ -22,10 +12,7 @@ class Trip(GTFSBase):
     route_id = Column(
         String, ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    service_id = Column(
-        String,
-        ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
-    )
+    service_id = Column(String)
     trip_id = Column(String, primary_key=True)
     trip_headsign = Column(String)
     trip_short_name = Column(String)
@@ -42,7 +29,7 @@ class Trip(GTFSBase):
     )
     shape = relationship("Shape", back_populates="trips")
     stop_times = relationship("StopTime", back_populates="trip", passive_deletes=True)
-    calendar = relationship("Calendar", back_populates="trips")
+    # calendar = relationship("Calendar", back_populates="trips")
     route = relationship("Route", back_populates="trips")
     to_trip_transfers = relationship(
         "Transfer",
@@ -95,8 +82,8 @@ class Trip(GTFSBase):
         # pylint: disable=attribute-defined-outside-init
         self.is_added = bool(self.multi_route_trips)
         self.active = bool(self.predictions)
-        self.origin_stop_time = min(self.stop_times, key=lambda x: x.stop_sequence)
-        self.destination_stop_time = max(self.stop_times, key=lambda x: x.stop_sequence)
+        # self.origin_stop_time = min(self.stop_times, key=lambda x: x.stop_sequence)
+        # self.destination_stop_time = max(self.stop_times, key=lambda x: x.stop_sequence)
 
     def __repr__(self) -> str:
         return f"<Trip(trip_id={self.trip_id})>"

@@ -1,44 +1,46 @@
-from datetime import datetime
+"""Class to store query information for GTFS data."""
+
 from sqlalchemy import or_, not_, and_
 from sqlalchemy.sql import selectable, select
 
-from gtfs_schedule import *
+from gtfs_schedule import *  # pylint: disable=unused-wildcard-import
 
 
 class Query:
     """Class to store query information for GTFS data.
 
     Args:
-        route_types (str): A comma separated string of route types to query.
+        route_type (str): Route type to query for.
     """
 
-    def __init__(self, route_types: str):
-        self.route_types = route_types.split(",")
+    def __init__(self, route_type: str):
+        self.route_type = route_type
         self.mrt_query = self.return_mrt_query()
         self.base_stop_query = self.return_base_stop_query()
         self.parent_stops_query = self.return_parent_stops_query()
         self.platform_stops_query = self.return_platform_stops_query()
+        self.route_trips = self.return_route_trips_query()
 
     def __repr__(self) -> str:
-        return f"<Query(route_types={self.route_types})>"
+        return f"<Query(route_types={self.route_type})>"
 
     def return_mrt_query(self) -> selectable.Select:
         """Returns query for multi route trips"""
         mrt_subquery = (
             select(Trip)
             .join(Route, Trip.route_id == Route.route_id)
-            .where(Route.route_type.in_(self.route_types))
+            .where(Route.route_type == self.route_type)
             .subquery()
         )
 
         mrt_query = (
             select(MultiRouteTrip)
-            .join(Route, MultiRouteTrip.added_route_id.in_(self.route_types))
+            .join(Route, MultiRouteTrip.added_route_id == self.route_type)
             .outerjoin(
                 mrt_subquery, MultiRouteTrip.trip_id == mrt_subquery.columns.trip_id
             )
             .where(
-                Route.route_type.in_(self.route_types),
+                Route.route_type == self.route_type,
                 mrt_subquery.columns.trip_id.is_(None),
             )
         )
@@ -78,82 +80,24 @@ class Query:
                     Stop.parent_station.in_(
                         select(self.base_stop_query.columns.parent_station)
                     ),
-                    Stop.vehicle_type.in_(self.route_types),
+                    Stop.vehicle_type == self.route_type,
                 )
             )
         )
 
         return platform_stops
 
-    def return_all_calendars_query(self, date: datetime) -> selectable.Select:
-        """Returns query for all calendars
-
-        Args:
-            date (datetime): Date to query for."""
-        all_calendars = select(Calendar).where(
-            Calendar.service_id.in_(
-                (
-                    select(Calendar.service_id)
-                    .distinct()
-                    .join(Trip, Trip.service_id == Calendar.service_id)
-                    .join(
-                        CalendarAttribute,
-                        Calendar.service_id == CalendarAttribute.service_id,
-                    )
-                    .join(Route, Trip.route_id == Route.route_id)
-                    .where(
-                        not_(
-                            or_(
-                                Calendar.start_date > date.strftime("%Y%m%d"),
-                                Calendar.end_date < date.strftime("%Y%m%d"),
-                                CalendarAttribute.service_schedule_typicality == "6",
-                            )
-                        ),
-                        or_(
-                            Route.route_type.in_(self.route_types),
-                            Trip.trip_id.in_(select(self.mrt_query.columns.trip_id)),
-                        ),
-                    )
-                )
-            )
-        )
-
-        return all_calendars
-
-    def return_active_calendars_query(self, date: datetime) -> selectable.Select:
-        """Returns query for active calendars
-
-        Args:
-            date (datetime): Date to query for."""
-
-        cal_stmt = (
-            select(Calendar)
-            .join(
-                CalendarDate,
-                Calendar.service_id == CalendarDate.service_id,
-                isouter=True,
-            )
+    def return_route_trips_query(self) -> selectable.Select:
+        """Returns query for route trips"""
+        route_trips = (
+            select(Trip)
+            .join(Route, Trip.route_id == Route.route_id)
             .where(
                 or_(
-                    and_(
-                        Calendar.start_date <= date.strftime("%Y%m%d"),
-                        Calendar.end_date >= date.strftime("%Y%m%d"),
-                        getattr(Calendar, date.strftime("%A").lower()) == 1,
-                        not_(
-                            and_(
-                                CalendarDate.date == date.strftime("%Y%m%d"),
-                                CalendarDate.exception_type == "2",
-                                CalendarDate.service_id.isnot(None),
-                            )
-                        ),
-                    ),
-                    and_(
-                        CalendarDate.date == date.strftime("%Y%m%d"),
-                        CalendarDate.exception_type == "1",
-                        CalendarDate.service_id.isnot(None),
-                    ),
+                    Route.route_type == self.route_type,
+                    Trip.trip_id.in_(select(self.mrt_query.columns.trip_id)),
                 )
             )
         )
 
-        return cal_stmt
+        return route_trips

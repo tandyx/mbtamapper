@@ -23,7 +23,7 @@ RENAME_DICT = {
 }
 
 
-def get_predictions(active_routes: str = "CR-Providence") -> pd.DataFrame:
+def get_predictions(active_routes: str = "CR-Providence,CR-Fitchburg") -> pd.DataFrame:
     """Downloads realtime predictions data from the mbta api.
 
     Args:
@@ -55,4 +55,4 @@ def get_predictions(active_routes: str = "CR-Providence") -> pd.DataFrame:
 
     dataframe.rename(columns=RENAME_DICT, inplace=True)
 
-    return dataframe
+    return dataframe.reset_index(drop=True)

@@ -131,8 +131,8 @@
 
         var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-        plotShapes();
         plotStops();
+        plotShapes();
         plotVehicles();
 
         // calls function every 15 seconds
@@ -146,9 +146,8 @@
             $.getJSON("/vehicles", function (vehicle_dict) {
                 vehicle_layer.clearLayers();
                 const features = vehicle_dict.features;
+                console.log("vehicles_recieved")
                 for (const vehicle of features) {
-
-                    console.log(vehicle.properties.icon);
 
                     var icon = L.divIcon({
                         html: vehicle.properties.icon,
@@ -156,12 +155,11 @@
                     });
 
                     var marker = L.marker(vehicle.geometry.coordinates, {
-                        icon: icon,
+                        icon: icon
                     }).setZIndexOffset(100);
 
-                    var popup = marker.bindPopup(vehicle.properties.popupContent, { maxWidth: "auto" });
-                    var tooltip = marker.bindTooltip(vehicle.id);
-
+                    marker.bindPopup(vehicle.properties.popupContent, { maxWidth: "auto" });
+                    marker.bindTooltip(vehicle.id);
                     marker.addTo(vehicle_layer);
                 }
             });
@@ -176,12 +174,12 @@
 
             $.getJSON("/stops", function (stops_dict) {
                 stop_layer.clearLayers();
-                console.log(stops_dict);
                 const features = stops_dict.features;
+                console.log("stops_recieved")
                 for (const stop of features) {
                     var marker = L.marker(stop.geometry.coordinates, { icon: stopIcon }).setZIndexOffset(-100);
-                    var popup = marker.bindPopup(stop.properties.popupContent, { maxWidth: "auto" });
-                    var tooltip = marker.bindTooltip(stop.properties.stop_name);
+                    marker.bindPopup(stop.properties.popupContent, { maxWidth: "auto" });
+                    marker.bindTooltip(stop.properties.stop_name);
                     marker.addTo(stop_layer);
                 }
             });
@@ -193,6 +191,8 @@
                 shape_layer.clearLayers();
                 bus_replacement_layer.clearLayers();
                 const features = shapes_dict.features;
+
+                console.log("shapes_recieved")
 
                 for (const shape of features) {
 

@@ -15,3 +15,4 @@ streamlit_folium
 flask
 sqlalchemy
 geojson
+flask_sqlalchemy

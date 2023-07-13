@@ -1,5 +1,4 @@
 """predictions"""
-from datetime import datetime
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
@@ -25,6 +24,7 @@ class Prediction(GTFSBase):
     stop_id = Column(String)
     trip_id = Column(String)
     vehicle_id = Column(String)
+    index = Column(Integer, primary_key=True)
 
     route = relationship(
         "Route",

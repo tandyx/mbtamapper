@@ -45,7 +45,7 @@ class Stop(GTFSBase):
         foreign_keys="Transfer.from_stop_id",
         passive_deletes=True,
     )
-    facilities = relationship("Facility", back_populates="stop", passive_deletes=True)
+    # facilities = relationship("Facility", back_populates="stop", passive_deletes=True)
     parent_stop = relationship(
         "Stop", primaryjoin="foreign(Stop.parent_station)==remote(Stop.stop_id)"
     )
