@@ -57,6 +57,9 @@ class Feed:
             return NotImplemented
         return self.url == __value.url and self.route_type == __value.route_type
 
+    def __hash__(self) -> int:
+        return hash((self.url, self.route_type))
+
     def import_gtfs(self, chunksize: int = 10**5) -> None:
         """Dumps GTFS data into a SQLite database.
 
@@ -162,12 +165,16 @@ class Feed:
         with self.session.begin():
             return self.session.execute(query).all()
 
-    def query_vehicles(self) -> list[tuple[Vehicle]]:
+    def query_vehicles(self, use_session: Session = None) -> list[tuple[Vehicle]]:
         """Downloads realtime data from the mbta api and returns active vehicles.
         Note that this method also deletes all realtime data from the database and replaces it
 
+        Args:
+            use_session (Session): optional session to use (default: this feed's session)
         Returns:
             list[tuple[Vehicle]]: list of vehicles"""
+
+        use_session = use_session or self.session
 
         orm_func_mapper = {
             Vehicle: vehicles.get_vehicles,

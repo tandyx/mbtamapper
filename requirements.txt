@@ -17,3 +17,4 @@ sqlalchemy
 geojson
 flask_sqlalchemy
 flask_sqlalchemy_session
+schedule

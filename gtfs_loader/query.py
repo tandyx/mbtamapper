@@ -96,6 +96,7 @@ class Query:
                 or_(
                     Route.route_type == self.route_type,
                     Trip.trip_id.in_(select(self.mrt_query.columns.trip_id)),
+                    Route.route_id.in_(select(self.mrt_query.columns.added_route_id)),
                 )
             )
         )
