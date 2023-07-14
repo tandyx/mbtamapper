@@ -175,6 +175,15 @@ class Feed:
             list[tuple[Vehicle]]: list of vehicles"""
 
         use_session = use_session or self.session
+        # GTFSBase.metadata.drop_all(
+        #     self.engine,
+        #     tables=[Vehicle.__table__, Alert.__table__, Prediction.__table__],
+        # )
+
+        # GTFSBase.metadata.create_all(
+        #     self.engine,
+        #     tables=[Vehicle.__table__, Alert.__table__, Prediction.__table__],
+        # )
 
         orm_func_mapper = {
             Vehicle: vehicles.get_vehicles,
