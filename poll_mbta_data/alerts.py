@@ -45,11 +45,11 @@ def get_alerts(route_type: str = "2") -> pd.DataFrame:
         pd.DataFrame: realtime alerts data"""
 
     url = (
-        os.environ.get("MBTA_API_URL")
+        (os.environ.get("MBTA_API_URL") or "https://api-v3.mbta.com")
         + "/alerts?filter[route_type]="
         + route_type
         + "&filter[datetime]=NOW&include=routes,trips&api_key="
-        + os.environ.get("MBTA_API_Key")
+        + (os.environ.get("MBTA_API_Key") or "98945a313953423b80d585ecb7582b1a")
     )
 
     req = rq.get(url, timeout=500)

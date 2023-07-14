@@ -33,11 +33,11 @@ def get_predictions(active_routes: str = "CR-Providence,CR-Fitchburg") -> pd.Dat
         pd.DataFrame: realtime predictions data
     """
     url = (
-        os.environ.get("MBTA_API_URL")
+        (os.environ.get("MBTA_API_URL") or "https://api-v3.mbta.com")
         + "/predictions?filter[route]="
         + active_routes
         + "&include=stop,trip,route,vehicle,schedule&api_key="
-        + os.environ.get("MBTA_API_Key")
+        + (os.environ.get("MBTA_API_Key") or "98945a313953423b80d585ecb7582b1a")
     )
 
     req = rq.get(url, timeout=500)

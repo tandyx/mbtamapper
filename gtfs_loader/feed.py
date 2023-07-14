@@ -8,8 +8,8 @@ from datetime import datetime
 import pandas as pd
 
 from sqlalchemy import create_engine, or_, not_, delete, CursorResult
-from sqlalchemy.sql import select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import select, insert, selectable
+from sqlalchemy.orm import sessionmaker, Session, scoped_session
 from sqlalchemy.exc import IntegrityError
 
 from shared_code.download_zip import download_zip
@@ -18,6 +18,7 @@ from gtfs_schedule import *  # pylint: disable=unused-wildcard-import
 from gtfs_realtime import *  # pylint: disable=unused-wildcard-import
 from .gtfs_base import GTFSBase
 from .query import Query
+from poll_mbta_data import predictions, vehicles, alerts
 
 
 class Feed:
@@ -28,6 +29,7 @@ class Feed:
         url (str): url of GTFS feed
         route_types (str): route type to load
         date (datetime): date to load
+        engine (bool): whether to create an engine and session (default: True)
     """
 
     temp_dir: str = tempfile.gettempdir()
@@ -37,6 +39,7 @@ class Feed:
         self.url = url
         self.route_type = route_type
         self.date = date
+        self.queries = Query(route_type)
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(Feed.temp_dir, self.gtfs_name)
@@ -44,9 +47,7 @@ class Feed:
             Feed.temp_dir, f"{self.gtfs_name}_{route_type}_{date.strftime('%Y%m%d')}.db"
         )
         self.engine = create_engine(f"sqlite:///{self.db_path}")
-        self.session = sessionmaker(self.engine)()
-        # ------------------------------- Query Setup ------------------------------- #
-        self.queries = Query(route_type)
+        self.session = sessionmaker(self.engine, expire_on_commit=False)()
 
     def __repr__(self) -> str:
         return f"<Feed(url={self.url}, route_type={self.route_type})>"
@@ -156,15 +157,39 @@ class Feed:
             os.remove(file_path)
             logging.info("Deleted file %s", file)
 
-    def close_connection(self) -> None:
-        """Closes the connection to the database."""
+    def return_query(self, query: selectable.Select) -> list[tuple[GTFSBase]]:
+        """Returns a list of tuples of the specified table."""
+        with self.session.begin():
+            return self.session.execute(query).all()
 
-        def close_conn_sub() -> None:
-            self.session.close()
-            self.engine.dispose()
+    def query_vehicles(self) -> list[tuple[Vehicle]]:
+        """Downloads realtime data from the mbta api and returns active vehicles.
+        Note that this method also deletes all realtime data from the database and replaces it
 
-        try:
-            close_conn_sub()
-        except:
-            self.session.rollback()
-            close_conn_sub()
+        Returns:
+            list[tuple[Vehicle]]: list of vehicles"""
+
+        orm_func_mapper = {
+            Vehicle: vehicles.get_vehicles,
+            Alert: alerts.get_alerts,
+            Prediction: predictions.get_predictions,
+        }
+
+        active_routes = ",".join(
+            item[0]
+            for item in self.session.execute(select(Route.route_id).distinct()).all()
+        )
+        vehicle_list = []
+        for orm, function in orm_func_mapper.items():
+            data = function(self.route_type if orm != Prediction else active_routes)
+            try:
+                self.session.execute(delete(orm))
+                self.session.execute(
+                    insert(orm), data.to_dict(orient="records", index=True)
+                )
+            except IntegrityError:
+                logging.error("Error inserting %s", orm.__name__)
+            self.session.commit()
+        vehicle_list += self.session.execute(select(Vehicle)).all()
+
+        return vehicle_list

@@ -3,50 +3,73 @@ from geojson import FeatureCollection
 
 from sqlalchemy import select
 
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
+import atexit
 
 from gtfs_loader import Feed
-from gtfs_loader.flask_app import FlaskApp
+
 from gtfs_schedule import Shape, Stop
+from gtfs_realtime import Vehicle
 from shared_code.return_date import get_date
 
-feed_1 = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "0", get_date(-3))
-feed_2 = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "1", get_date(-3))
-flask_app = FlaskApp(Flask(__name__), [feed_1, feed_2])
+date = get_date(-4)
+
+feed_list = [
+    Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "0", date),
+    Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "1", date),
+    Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "2", date),
+    Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "4", date),
+]
+stops: list[tuple[Stop]] = []
+routes: list[tuple[Shape]] = []
+for feed in feed_list:
+    routes += feed.return_query(select(Shape))
+    stops += feed.return_query(feed.queries.parent_stops_query)
 
 
-@flask_app.app.route("/")
+app = Flask(__name__)
+
+
+@app.route("/")
 def index():
     """Returns index.html."""
     return render_template("index.html")
 
 
-@flask_app.app.route("/vehicles")
+@app.route("/vehicles")
 def get_vehicles():
     """Returns vehicles as geojson."""
-    data = flask_app.query_and_return_vehicles()
-    return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
+    data: list[tuple[Vehicle]] = []
+    for feed in feed_list:
+        data += feed.query_vehicles()
+    return jsonify([v[0].as_feature() for v in data])
 
 
-@flask_app.app.route("/stops")
+@app.route("/stops")
 def get_stops():
     """Returns stops as geojson."""
-    data: list[tuple[Stop]] = flask_app.return_data(Shape)
-    return jsonify(FeatureCollection([s[0].as_feature() for s in data]))
+    return jsonify(FeatureCollection([s[0].as_feature() for s in stops]))
 
 
-@flask_app.app.route("/shapes")
+@app.route("/shapes")
 def get_shapes():
     """Returns shapes as geojson."""
-    data: list[tuple[Shape]] = flask_app.return_data(Shape)
+
     return jsonify(
         FeatureCollection(
             sorted(
-                [s[0].as_feature() for s in data], key=lambda x: x["id"], reverse=True
+                [s[0].as_feature() for s in routes], key=lambda x: x["id"], reverse=True
             )
         )
     )
 
 
+def exit_handler() -> None:
+    """Closes all database sessions."""
+    for feed in feed_list:
+        feed.session.close()
+
+
 if __name__ == "__main__":
-    flask_app.app.run(debug=True)
+    app.run(debug=True)
+    atexit.register(exit_handler)

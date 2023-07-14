@@ -166,7 +166,7 @@ class Stop(GTFSBase):
         html = (
             f"<a href = {self.stop_url} style='color:#{next((r.route_color for r in self.all_routes), 'ffffff')};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
-            f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc)}</br>"
+            f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc if self.child_stops else self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"
             f"{alert} {wheelchair}</br>"
             f"Routes: {', '.join([r.route_short_name or r.route_long_name for r in self.all_routes])}</br>"

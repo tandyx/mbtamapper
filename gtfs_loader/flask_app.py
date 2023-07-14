@@ -34,7 +34,8 @@ class FlaskApp:
         return f"<FlaskApp {self.app.name} {','.join(self.feeds)}>"
 
     def return_db(self) -> SQLAlchemy:
-        return SQLAlchemy(self.app)
+        db = SQLAlchemy(self.app)
+        return db
 
     def update_app_config(self, config_dict: dict[str] = None) -> None:
         """Sets the config for the flask app
@@ -47,9 +48,12 @@ class FlaskApp:
         """
 
         config_dict = config_dict or {
-            "SQLALCHEMY_DATABASE_URI": str(next(iter(self.feeds.values())).engine.url),
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///"
+            + next(iter(self.feeds.values())).db_path,
             "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-            "SQLALCHEMY_BINDS": {k: str(v.engine.url) for k, v in self.feeds.items()},
+            "SQLALCHEMY_BINDS": {
+                k: "sqlite:///" + v.db_path for k, v in self.feeds.items()
+            },
         }
 
         self.app.config.update(config_dict)
@@ -62,31 +66,38 @@ class FlaskApp:
             list[tuple[Vehicle]]: list of vehicles"""
 
         vehicle_list = []
-        for route_type, feed in self.feeds.items():
+        for route_type, engine in self.db.engines.items():
+            if not route_type:
+                continue
+
+            sess = sessionmaker(bind=engine, expire_on_commit=False)()
+
             active_routes = ",".join(
                 item[0]
-                for item in feed.session.execute(
-                    select(Route.route_id).distinct()
-                ).all()
+                for item in sess.execute(select(Route.route_id).distinct()).all()
             )
 
             for orm, function in FlaskApp.orm_func_mapper.items():
                 data = function(route_type if orm != Prediction else active_routes)
                 try:
-                    feed.session.execute(delete(orm))
-                    feed.session.execute(
+                    sess.execute(delete(orm))
+                    sess.execute(
                         insert(orm), data.to_dict(orient="records", index=True)
                     )
                 except IntegrityError:
-                    feed.session.rollback()
-                feed.session.commit()
-            vehicle_list += feed.session.execute(select(Vehicle)).all()
-            feed.session.close()
+                    sess.rollback()
+                sess.commit()
+            vehicle_list += sess.execute(select(Vehicle)).all()
+            sess.close()
 
         return vehicle_list
 
     def return_data(self, orm: GTFSBase) -> list[tuple[GTFSBase]]:
         data = []
-        for feed in self.feeds.values():
-            data += feed.session.execute(select(orm)).all()
-            feed.session.close()
+        for route_type, engine in self.db.engines.items():
+            if not route_type:
+                continue
+            session = sessionmaker(bind=engine, expire_on_commit=False)()
+            data += session.execute(select(orm)).all()
+
+        return data

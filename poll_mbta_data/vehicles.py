@@ -28,11 +28,11 @@ def get_vehicles(route_type: str = "2") -> pd.DataFrame:
     """Downloads realtime vehicle data from the mbta api."""
 
     url = (
-        os.environ.get("MBTA_API_URL")
+        (os.environ.get("MBTA_API_URL") or "https://api-v3.mbta.com")
         + "/vehicles?filter[route_type]="
         + route_type
         + "&include=trip,stop,route&api_key="
-        + os.environ.get("MBTA_API_Key")
+        + (os.environ.get("MBTA_API_Key") or "98945a313953423b80d585ecb7582b1a")
     )
 
     req = rq.get(url, timeout=500)
