@@ -14,8 +14,8 @@ from sqlalchemy.exc import IntegrityError
 
 from shared_code.download_zip import download_zip
 from shared_code.to_sql import to_sql
-from gtfs_schedule import *
-from gtfs_realtime import *
+from gtfs_schedule import *  # pylint: disable=unused-wildcard-import
+from gtfs_realtime import *  # pylint: disable=unused-wildcard-import
 from .gtfs_base import GTFSBase
 from .query import Query
 
@@ -36,11 +36,12 @@ class Feed:
     def __init__(self, url: str, route_type: str, date: datetime) -> None:
         self.url = url
         self.route_type = route_type
+        self.date = date
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
-        self.zip_path = os.path.join(self.temp_dir, self.gtfs_name)
+        self.zip_path = os.path.join(Feed.temp_dir, self.gtfs_name)
         self.db_path = os.path.join(
-            self.temp_dir, f"{self.gtfs_name}_{route_type}_{date.strftime('%Y%m%d')}.db"
+            Feed.temp_dir, f"{self.gtfs_name}_{route_type}_{date.strftime('%Y%m%d')}.db"
         )
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.session = sessionmaker(self.engine)()
@@ -131,3 +132,21 @@ class Feed:
         logging.info(
             "Purged data from %s in %f seconds", self.db_path, time.time() - start
         )
+
+    def delete_old_databases(self, days_ago: int = 2) -> None:
+        """Deletes files older than 2 days from the given path and date.
+
+        Args:
+            days_ago (int): number of days ago to delete files from (default: 2)"""
+
+        for file in os.listdir(Feed.temp_dir):
+            file_path = os.path.join(file_path, file)
+            if (
+                not file.endswith(".db")
+                or not os.path.getmtime(file_path)
+                < self.date.timestamp() - days_ago * 86400
+                or not f"{self.gtfs_name}_{self.gtfs_name}" in file
+            ):
+                continue
+            os.remove(file_path)
+            logging.info("Deleted file %s", file)

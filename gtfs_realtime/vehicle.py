@@ -153,7 +153,7 @@ class Vehicle(GTFSBase):
             f"""<a href = {self.route.route_url} style="color:#{self.route.route_color};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
-            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next(p.stop.stop_name for p in self.predictions)}</body></br>"""
+            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in self.predictions), "Unknown")}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes}</br>"""
             f"""{self.return_current_status()}</br>"""

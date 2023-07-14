@@ -15,13 +15,17 @@ from gtfs_realtime import Vehicle, Prediction, Alert
 from poll_mbta_data import predictions, vehicles, alerts
 from shared_code.return_date import get_date
 
-feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "3", get_date(-3))
-
+feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "0", get_date(-3))
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = feed.engine.url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
 db = SQLAlchemy(app)
+
+app2 = Flask(__name__)
+feed2 = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", "1", get_date(-3))
+app2.config["SQLALCHEMY_DATABASE_URI"] = feed2.engine.url
+app2.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db2 = SQLAlchemy(app2)
 
 
 @app.route("/")

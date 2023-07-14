@@ -3,7 +3,6 @@ import logging
 from gtfs_loader import Feed
 
 from shared_code.return_date import get_date
-from shared_code.database_ops import delete_old_databases
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -14,5 +13,4 @@ for route_type in ["0", "1", "2", "3", "4"]:
     feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", route_type, date)
     feed.import_gtfs()
     feed.purge_and_filter()
-
-delete_old_databases(date, Feed.temp_dir, 4)
+    feed.delete_old_databases(date)
