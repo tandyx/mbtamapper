@@ -115,7 +115,8 @@
         var bus_replacement_layer = L.layerGroup().addTo(map);
         var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: 12 }).addTo(map);
         // var vehicle_layer = L.layerGroup().addTo(map);
-
+        plotStops();
+        plotShapes();
 
         var overlays = {
             "Vehicles": vehicle_layer,
@@ -131,8 +132,7 @@
 
         var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-        plotStops();
-        plotShapes();
+
         plotVehicles();
 
         // calls function every 15 seconds

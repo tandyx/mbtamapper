@@ -62,3 +62,4 @@ launch.json
 st_testing.py
 static/leaflet-rotatedmarker/
 static/leaflet.markercluster-1.4.1/
+*.flaskenv

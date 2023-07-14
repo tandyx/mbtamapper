@@ -51,6 +51,11 @@ class Feed:
     def __repr__(self) -> str:
         return f"<Feed(url={self.url}, route_type={self.route_type})>"
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Feed):
+            return NotImplemented
+        return self.url == __value.url and self.route_type == __value.route_type
+
     def import_gtfs(self, chunksize: int = 10**5) -> None:
         """Dumps GTFS data into a SQLite database.
 
@@ -140,7 +145,7 @@ class Feed:
             days_ago (int): number of days ago to delete files from (default: 2)"""
 
         for file in os.listdir(Feed.temp_dir):
-            file_path = os.path.join(file_path, file)
+            file_path = os.path.join(self.temp_dir, file)
             if (
                 not file.endswith(".db")
                 or not os.path.getmtime(file_path)
@@ -150,3 +155,16 @@ class Feed:
                 continue
             os.remove(file_path)
             logging.info("Deleted file %s", file)
+
+    def close_connection(self) -> None:
+        """Closes the connection to the database."""
+
+        def close_conn_sub() -> None:
+            self.session.close()
+            self.engine.dispose()
+
+        try:
+            close_conn_sub()
+        except:
+            self.session.rollback()
+            close_conn_sub()

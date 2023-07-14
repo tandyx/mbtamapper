@@ -13,4 +13,4 @@ for route_type in ["0", "1", "2", "3", "4"]:
     feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", route_type, date)
     feed.import_gtfs()
     feed.purge_and_filter()
-    feed.delete_old_databases(date)
+    feed.delete_old_databases()
