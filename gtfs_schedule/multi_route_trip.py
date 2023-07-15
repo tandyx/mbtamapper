@@ -19,7 +19,6 @@ class MultiRouteTrip(GTFSBase):
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-
     trip = relationship("Trip", back_populates="multi_route_trips")
     route = relationship("Route", back_populates="multi_route_trips")
 

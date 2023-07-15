@@ -31,18 +31,6 @@ class Trip(GTFSBase):
     stop_times = relationship("StopTime", back_populates="trip", passive_deletes=True)
     # calendar = relationship("Calendar", back_populates="trips")
     route = relationship("Route", back_populates="trips")
-    to_trip_transfers = relationship(
-        "Transfer",
-        back_populates="to_trip",
-        foreign_keys="Transfer.to_trip_id",
-        passive_deletes=True,
-    )
-    from_trip_transfers = relationship(
-        "Transfer",
-        back_populates="from_trip",
-        foreign_keys="Transfer.from_trip_id",
-        passive_deletes=True,
-    )
     all_routes = relationship(
         "Route",
         primaryjoin="""or_(Trip.route_id==foreign(Route.route_id),
@@ -68,13 +56,6 @@ class Trip(GTFSBase):
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
     )
-
-    TRIP_FIELD_MAPPING = {
-        "trip_headsign": "headsign",
-        "direction_id": "direction",
-        "trip_id": "externaltripid",
-        "trip_short_name": "shortname",
-    }
 
     @reconstructor
     def init_on_load(self) -> None:

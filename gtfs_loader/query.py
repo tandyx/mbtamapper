@@ -1,104 +1,75 @@
-"""Class to store query information for GTFS data."""
-
-from sqlalchemy import or_, not_, and_
-from sqlalchemy.sql import selectable, select
-
-from gtfs_schedule import *  # pylint: disable=unused-wildcard-import
+"""Defines a class to hold and generate queries."""
+# pylint: disable=unused-wildcard-import
+# pylint: disable=unused-import
+# pylint: disable=wildcard-import
+from sqlalchemy.sql import select, selectable, or_
+from sqlalchemy.orm import aliased
+from gtfs_schedule import *
 
 
 class Query:
-    """Class to store query information for GTFS data.
+    """Class to hold and generate queries.
 
     Args:
-        route_type (str): Route type to query for.
+        route_types (list[str]): list of route_types to query
     """
 
-    def __init__(self, route_type: str):
-        self.route_type = route_type
-        self.mrt_query = self.return_mrt_query()
-        self.base_stop_query = self.return_base_stop_query()
-        self.parent_stops_query = self.return_parent_stops_query()
-        self.platform_stops_query = self.return_platform_stops_query()
-        self.route_trips = self.return_route_trips_query()
+    def __init__(self, route_types: list[str] = None) -> None:
+        self.route_types = route_types or []
+        self.trip_query = self.return_trip_query()
 
     def __repr__(self) -> str:
-        return f"<Query(route_types={self.route_type})>"
+        return f"<Query(route_types={self.route_types})>"
 
-    def return_mrt_query(self) -> selectable.Select:
-        """Returns query for multi route trips"""
-        mrt_subquery = (
+    def return_trip_query(self) -> selectable.Select:
+        """Returns a query for trips."""
+        trip_query = (
             select(Trip)
-            .join(Route, Trip.route_id == Route.route_id)
-            .where(Route.route_type == self.route_type)
-            .subquery()
-        )
-
-        mrt_query = (
-            select(MultiRouteTrip)
-            .join(Route, MultiRouteTrip.added_route_id == self.route_type)
-            .outerjoin(
-                mrt_subquery, MultiRouteTrip.trip_id == mrt_subquery.columns.trip_id
-            )
-            .where(
-                Route.route_type == self.route_type,
-                mrt_subquery.columns.trip_id.is_(None),
-            )
-        )
-
-        return mrt_query
-
-    def return_base_stop_query(self) -> selectable.Select:
-        """Returns base stop query"""
-        active_stops = (
-            select(Stop, Trip)
-            .join(StopTime, Stop.stop_id == StopTime.stop_id)
-            .join(Trip, StopTime.trip_id == Trip.trip_id)
             .distinct()
-        )
-
-        return active_stops
-
-    def return_parent_stops_query(self) -> selectable.Select:
-        """Returns query for parent stations"""
-        parent_stops = (
-            select(Stop)
-            .distinct()
-            .where(
-                Stop.stop_id.in_(select(self.base_stop_query.columns.parent_station))
-            )
-        )
-
-        return parent_stops
-
-    def return_platform_stops_query(self) -> selectable.Select:
-        """Returns query for platform stops"""
-        platform_stops = (
-            select(Stop)
-            .distinct()
-            .where(
-                and_(
-                    Stop.parent_station.in_(
-                        select(self.base_stop_query.columns.parent_station)
-                    ),
-                    Stop.vehicle_type == self.route_type,
-                )
-            )
-        )
-
-        return platform_stops
-
-    def return_route_trips_query(self) -> selectable.Select:
-        """Returns query for route trips"""
-        route_trips = (
-            select(Trip)
             .join(Route, Trip.route_id == Route.route_id)
             .where(
                 or_(
-                    Route.route_type == self.route_type,
-                    Trip.trip_id.in_(select(self.mrt_query.columns.trip_id)),
-                    Route.route_id.in_(select(self.mrt_query.columns.added_route_id)),
+                    Route.route_type.in_(self.route_types),
+                    Trip.trip_id.in_(
+                        select(Trip.trip_id)
+                        .distinct()
+                        .join(MultiRouteTrip, Trip.trip_id == MultiRouteTrip.trip_id)
+                        .join(Route, MultiRouteTrip.added_route_id == Route.route_id)
+                        .where(Route.route_type.in_(self.route_types))
+                    ),
                 )
             )
         )
 
-        return route_trips
+        return trip_query
+
+    def return_parent_stops(self) -> selectable.Select:
+        """Returns a query for parent stops."""
+
+        parent = aliased(Stop)
+        return (
+            select(parent)
+            .distinct()
+            .where(parent.location_type == "1")
+            .join(Stop, parent.stop_id == Stop.parent_station)
+            .join(StopTime, Stop.stop_id == StopTime.stop_id)
+            .where(StopTime.trip_id.in_(select(self.trip_query.columns.trip_id)))
+        )
+
+    def return_shapes_query(self) -> selectable.Select:
+        """Returns a query for shapes."""
+        return (
+            select(Shape)
+            .distinct()
+            .join(Trip, Shape.shape_id == Trip.shape_id)
+            .where(Trip.trip_id.in_(select(self.trip_query.columns.trip_id)))
+        )
+
+    def return_routes_query(self) -> selectable.Select:
+        """Returns a query for routes."""
+
+        return (
+            select(Route)
+            .distinct()
+            .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
+        )

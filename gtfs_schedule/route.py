@@ -93,7 +93,7 @@ class Route(GTFSBase):
         """Return a proper HTML popup representation of the route object"""
 
         alert = (
-            f"""<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;"></br>"""
+            """<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;"></br>"""
             if self.alerts
             else ""
         )

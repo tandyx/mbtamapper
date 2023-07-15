@@ -1,12 +1,41 @@
 """Vehicle"""
+
+import os
+import logging
+import pandas as pd
+import requests as rq
+
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer, Float
 from sqlalchemy.orm import relationship, reconstructor
+from sqlalchemy.engine import Engine
+
 
 from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
+from shared_code.to_sql import to_sql
+
+
+RENAME_DICT = {
+    "id": "vehicle_id",
+    "type": "vehicle_type",
+    "attributes_bearing": "bearing",
+    "attributes_current_status": "current_status",
+    "attributes_current_stop_sequence": "current_stop_sequence",
+    "attributes_direction_id": "direction_id",
+    "attributes_label": "label",
+    "attributes_latitude": "latitude",
+    "attributes_longitude": "longitude",
+    "attributes_occupancy_status": "occupancy_status",
+    "attributes_speed": "speed",
+    "attributes_updated_at": "updated_at",
+    "links_self": "links_self",
+    "relationships_route_data_id": "route_id",
+    "relationships_stop_data_id": "stop_id",
+    "relationships_trip_data_id": "trip_id",
+}
 
 
 class Vehicle(GTFSBase):
@@ -176,3 +205,45 @@ class Vehicle(GTFSBase):
         )
 
         return html
+
+    def get_realtime(
+        self,
+        engine: Engine,
+        route_types: str,
+        base_url: str = None,
+        api_key: str = None,
+    ) -> None:
+        """Downloads realtime vehicle data from the mbta api.
+
+        Args:
+            engine (Engine): database engine
+            route_types (str): comma sep str of route types to query
+            base_url (str, optional): base url for api. Defaults to env var.
+            api_key (str, optional): api key for api. Defaults to env var."""
+
+        url = (
+            (base_url or os.environ.get("MBTA_API_URL"))
+            + "/vehicles?filter[route_type]="
+            + route_types
+            + "&include=trip,stop,route&api_key="
+            + (api_key or os.environ.get("MBTA_API_Key"))
+        )
+
+        req = rq.get(url, timeout=500)
+
+        if req.ok and req.json().get("data"):
+            dataframe = pd.json_normalize(req.json()["data"], sep="_")
+        else:
+            logging.error("Failed to query vehicles: %s", req.text)
+            dataframe = pd.DataFrame()
+
+        dataframe.drop(
+            columns=[col for col in dataframe.columns if col not in RENAME_DICT],
+            axis=1,
+            inplace=True,
+        )
+        dataframe.rename(columns=RENAME_DICT, inplace=True)
+        dataframe.reset_index(inplace=True)
+        self.metadata.drop_all(engine, [self.__table__])
+        self.metadata.create_all(engine, [self.__table__])
+        to_sql(engine, dataframe, self.__class__)

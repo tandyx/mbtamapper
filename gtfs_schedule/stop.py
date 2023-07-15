@@ -6,8 +6,6 @@ from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
 
-from shared_code.df_unpack import list_unpack
-
 
 class Stop(GTFSBase):
     """Stop"""
@@ -35,28 +33,10 @@ class Stop(GTFSBase):
     vehicle_type = Column(String)
 
     stop_times = relationship("StopTime", back_populates="stop", passive_deletes=True)
-    to_stop_transfers = relationship(
-        "Transfer",
-        back_populates="to_stop",
-        foreign_keys="Transfer.to_stop_id",
-        passive_deletes=True,
-    )
-    from_stop_transfers = relationship(
-        "Transfer",
-        back_populates="from_stop",
-        foreign_keys="Transfer.from_stop_id",
-        passive_deletes=True,
-    )
-    # facilities = relationship("Facility", back_populates="stop", passive_deletes=True)
     parent_stop = relationship(
-        "Stop", primaryjoin="foreign(Stop.parent_station)==remote(Stop.stop_id)"
+        "Stop", remote_side=[stop_id], back_populates="child_stops"
     )
-    child_stops = relationship(
-        "Stop",
-        primaryjoin="foreign(Stop.stop_id)==remote(Stop.parent_station)",
-        viewonly=True,
-        uselist=True,
-    )
+    child_stops = relationship("Stop", back_populates="parent_stop")
 
     predictions = relationship(
         "Prediction",
@@ -77,32 +57,18 @@ class Stop(GTFSBase):
         viewonly=True,
     )
 
-    exclude_keys = [
-        "_sa_instance_state",
-        "parent_station",
-        "stop_times",
-        "facilities",
-        "parent_stop",
-    ]
+    routes = relationship(
+        "Route",
+        primaryjoin="Stop.stop_id==StopTime.stop_id",
+        secondary="join(StopTime, Trip, StopTime.trip_id==Trip.trip_id)",
+        secondaryjoin="Trip.route_id==Route.route_id",
+        overlaps="trips,stop_times,route,stop",
+    )
 
     @reconstructor
     def init_on_load(self):
         """Load the parent_stop relationship on load"""
         # pylint: disable=attribute-defined-outside-init
-
-        self.all_routes = set(
-            list_unpack(
-                list_unpack(
-                    [
-                        [
-                            t.trip.all_routes if t.trip.all_routes else [t.trip.route]
-                            for t in s.stop_times
-                        ]
-                        for s in self.child_stops
-                    ]
-                )
-            )
-        )
 
     def __repr__(self):
         return f"<Stop(stop_id={self.stop_id})>"
@@ -135,7 +101,10 @@ class Stop(GTFSBase):
         }
 
     def as_feature(self) -> Feature:
-        """Returns stop object as a feature."""
+        """Returns stop object as a feature.
+
+        Args:
+            route_types: A list of route types to include routes for."""
 
         feature = Feature(
             id=self.stop_id,
@@ -149,7 +118,19 @@ class Stop(GTFSBase):
         return feature
 
     def as_html_popup(self) -> str:
-        """Returns stop object as an html popup."""
+        """Returns stop object as an html popup.
+        Args:
+            route_types: A list of route types to include routes for."""
+        routes = []
+        for child_stop in self.child_stops:
+            if child_stop.location_type != "0":
+                continue
+            for route in child_stop.routes:
+                if route in routes:
+                    continue
+                routes.append(route)
+
+        routes = sorted(routes, key=lambda x: x.route_type)
 
         alert = (
             """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
@@ -162,15 +143,19 @@ class Stop(GTFSBase):
             if "1" in [s.wheelchair_boarding for s in self.child_stops]
             else ""
         )
+        route_colors = ", </a>".join(
+            f"<a style='color:#{r.route_color or 'ffffff'};'>{r.route_short_name or r.route_long_name}"
+            for r in routes
+        )
 
         html = (
-            f"<a href = {self.stop_url} style='color:#{next((r.route_color for r in self.all_routes), 'ffffff')};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
+            f"<a href = {self.stop_url} style='color:#{next((r.route_color for r in routes), '008EAA')};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc if self.child_stops else self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"
             f"{alert} {wheelchair}</br>"
-            f"Routes: {', '.join([r.route_short_name or r.route_long_name for r in self.all_routes])}</br>"
-            f"Zone: {self.zone_id}</br>"
+            f"Routes: {route_colors}</a></br>"
+            f"Zone: {self.zone_id or ','.join(set(c.zone_id for c in self.child_stops))}</br>"
             f"<a style='color:grey;font-size:9pt'>"
             f"Adress: {self.stop_address}</br>"
             f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"

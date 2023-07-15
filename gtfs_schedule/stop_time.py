@@ -1,10 +1,7 @@
 """File to hold the Calendar class and its associated methods."""
-from datetime import datetime
 
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
-
-from shared_code.gtfs_helper_time_functions import to_seconds, seconds_to_iso
 from gtfs_loader.gtfs_base import GTFSBase
 
 
@@ -35,32 +32,11 @@ class StopTime(GTFSBase):
     stop = relationship("Stop", back_populates="stop_times")
     trip = relationship("Trip", back_populates="stop_times")
 
-    to_transfer = relationship(
-        "Transfer",
-        primaryjoin="""and_(
-            StopTime.trip_id==foreign(Transfer.to_trip_id),
-            StopTime.stop_id==foreign(Transfer.to_stop_id) 
-            )""",
-        viewonly=True,
-    )
-
-    from_transfer = relationship(
-        "Transfer",
-        primaryjoin="""and_(
-            StopTime.trip_id==foreign(Transfer.from_trip_id),
-            StopTime.stop_id==foreign(Transfer.from_stop_id)
-            )""",
-        viewonly=True,
-    )
-
     @reconstructor
     def init_on_load(self):
         """Reconstructs the object on load from the database.
         executes after the object is loaded from the database and in init"""
         # pylint: disable=attribute-defined-outside-init
-
-        self.arrival_seconds = to_seconds(self.arrival_time)
-        self.departure_seconds = to_seconds(self.departure_time)
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
 
     def __repr__(self) -> str:

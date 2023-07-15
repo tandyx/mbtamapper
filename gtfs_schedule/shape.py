@@ -1,5 +1,4 @@
 """File to hold the Calendar class and its associated methods."""
-import polyline
 from shapely.geometry import LineString
 from geojson import Feature
 
