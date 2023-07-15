@@ -34,7 +34,7 @@ def nightly_import() -> None:
     # )
     geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
     for query_obj in [
-        Query(["0", "1", "4"]),
+        Query(["0", "1"]),
         Query(["2"]),
         Query(["3"]),
         Query(["4"]),

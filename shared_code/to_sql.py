@@ -21,3 +21,16 @@ def to_sql(
     except IntegrityError:
         res = data.iloc[1:].to_sql(orm.__tablename__, engine, None, "append", index)
     logging.info("Added %s rows to %s", res, orm.__tablename__)
+
+
+def to_sql_excpetion(
+    engine: Engine, data: pd.DataFrame, orm: GTFSBase, index: bool = False
+) -> None:
+    """Helper function to dump dataframe to sql.
+
+    Args:
+        engine (Engine): sqlalchemy engine
+        data (pd.DataFrame): dataframe to dump
+        orm (any): table to dump to
+        index (bool, optional): whether to include index in dump. Defaults to False.
+    """

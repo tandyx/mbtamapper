@@ -15,7 +15,7 @@ from shared_code.return_date import get_date
 date = get_date(-4)
 
 feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", date)
-query = Query(["0", "1", "4"])
+query = Query(["3"])
 session = scoped_session(feed.sessionmkr)
 
 routes = ",".join(

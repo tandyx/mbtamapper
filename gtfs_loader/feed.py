@@ -130,22 +130,7 @@ class Feed:
                     data += self.session.execute(
                         select(Stop).where(Stop.vehicle_type == "4")
                     ).all()
-                if "0" in query_obj.route_types or "1" in query_obj.route_types:
-                    data += self.session.execute(
-                        Query(["3"]).return_parent_stops()
-                    ).all()
 
-            if name == "shapes" and (
-                "0" in query_obj.route_types or "1" in query_obj.route_types
-            ):
-                data += self.session.execute(
-                    select(Shape)
-                    .join(Trip, Shape.shape_id == Trip.shape_id)
-                    .join(Route, Trip.route_id == Route.route_id)
-                    .where(
-                        Route.line_id.in_(["line-SLWashington", "line-SLWaterfront"])
-                    )
-                ).all()
             features = FeatureCollection([s[0].as_feature() for s in data])
 
             if query_obj.route_types == ["0", "1", "2", "3", "4"]:
@@ -153,3 +138,19 @@ class Feed:
             else:
                 for route_type in query_obj.route_types:
                     open_helper(features, f"{name}_{route_type}.json")
+            # if "0" in query_obj.route_types or "1" in query_obj.route_types:
+            #     data += self.session.execute(
+            #         Query(["3"]).return_parent_stops()
+            #     ).all()
+
+            # if name == "shapes" and (
+            #     "0" in query_obj.route_types or "1" in query_obj.route_types
+            # ):
+            #     data += self.session.execute(
+            #         select(Shape)
+            #         .join(Trip, Shape.shape_id == Trip.shape_id)
+            #         .join(Route, Trip.route_id == Route.route_id)
+            #         .where(
+            #             Route.line_id.in_(["line-SLWashington", "line-SLWaterfront"])
+            #         )
+            #     ).all()
