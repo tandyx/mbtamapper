@@ -7,15 +7,14 @@ import requests as rq
 
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer, Float
-from sqlalchemy.orm import relationship, reconstructor
-from sqlalchemy.engine import Engine
+from sqlalchemy.orm import relationship, reconstructor, Session
 
 
 from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.to_sql import to_sql
+from shared_code.to_sql import to_sql_excpetion
 
 
 RENAME_DICT = {
@@ -208,7 +207,7 @@ class Vehicle(GTFSBase):
 
     def get_realtime(
         self,
-        engine: Engine,
+        session: Session,
         route_types: str,
         base_url: str = None,
         api_key: str = None,
@@ -244,6 +243,4 @@ class Vehicle(GTFSBase):
         )
         dataframe.rename(columns=RENAME_DICT, inplace=True)
         dataframe.reset_index(inplace=True)
-        self.metadata.drop_all(engine, [self.__table__])
-        self.metadata.create_all(engine, [self.__table__])
-        to_sql(engine, dataframe, self.__class__)
+        to_sql_excpetion(session, dataframe, self.__class__)

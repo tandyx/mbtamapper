@@ -103,13 +103,16 @@ class Feed:
             os.remove(file_path)
             logging.info("Deleted file %s", file)
 
-    def export_geojsons(self, query_obj: Query, file_path="") -> None:
+    def export_geojsons(self, key: str, file_path: str) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
-            query (Query): Query object
-            file_path (str): path to save geojsons to (default: current directory)
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            file_path (str): path to export files to
         """
+
+        query_obj = Query(os.environ.get(key).split(","))
+
         query_dict = {
             "stops": query_obj.return_parent_stops(),
             "shapes": query_obj.return_shapes_query(),
@@ -124,33 +127,30 @@ class Feed:
 
         for name, query in query_dict.items():
             data = self.session.execute(query).all()
-
             if name == "stops":
                 if "4" in query_obj.route_types:
                     data += self.session.execute(
                         select(Stop).where(Stop.vehicle_type == "4")
                     ).all()
+                if key == "RAPID_TRANSIT":
+                    data += self.session.execute(
+                        Query(["3"]).return_parent_stops()
+                    ).all()
+            if name == "shapes":
+                if key == "RAPID_TRANSIT":
+                    data += self.session.execute(
+                        select(Shape)
+                        .join(Trip, Shape.shape_id == Trip.shape_id)
+                        .join(Route, Trip.route_id == Route.route_id)
+                        .where(
+                            Route.line_id.in_(
+                                ["line-SLWashington", "line-SLWaterfront"]
+                            )
+                        )
+                    ).all()
 
-            features = FeatureCollection([s[0].as_feature() for s in data])
+            features = FeatureCollection(
+                [s[0].as_feature() for s in data if hasattr(s[0], "as_feature")]
+            )
 
-            if query_obj.route_types == ["0", "1", "2", "3", "4"]:
-                open_helper(features, f"{name}_all.json")
-            else:
-                for route_type in query_obj.route_types:
-                    open_helper(features, f"{name}_{route_type}.json")
-            # if "0" in query_obj.route_types or "1" in query_obj.route_types:
-            #     data += self.session.execute(
-            #         Query(["3"]).return_parent_stops()
-            #     ).all()
-
-            # if name == "shapes" and (
-            #     "0" in query_obj.route_types or "1" in query_obj.route_types
-            # ):
-            #     data += self.session.execute(
-            #         select(Shape)
-            #         .join(Trip, Shape.shape_id == Trip.shape_id)
-            #         .join(Route, Trip.route_id == Route.route_id)
-            #         .where(
-            #             Route.line_id.in_(["line-SLWashington", "line-SLWaterfront"])
-            #         )
-            #     ).all()
+            open_helper(features, f"{name}_{key}.json")

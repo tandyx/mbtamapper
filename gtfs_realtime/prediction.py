@@ -7,10 +7,9 @@ from dateutil.parser import isoparse
 import json_api_doc as jad
 
 from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import relationship, reconstructor
-from sqlalchemy.engine import Engine
+from sqlalchemy.orm import relationship, reconstructor, Session
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.to_sql import to_sql
+from shared_code.to_sql import to_sql_excpetion
 
 
 RENAME_DICT = {
@@ -139,7 +138,7 @@ class Prediction(GTFSBase):
 
     def get_realtime(
         self,
-        engine: Engine,
+        session: Session,
         routes: str,
         base_url: str = None,
         api_key: str = None,
@@ -176,9 +175,7 @@ class Prediction(GTFSBase):
         dataframe.rename(columns=RENAME_DICT, inplace=True)
         dataframe.reset_index()
         dataframe["index"] = dataframe.index
-        self.metadata.drop_all(engine, [self.__table__])
-        self.metadata.create_all(engine, [self.__table__])
-        to_sql(engine, dataframe, self.__class__)
+        to_sql_excpetion(session, dataframe, self.__class__)
 
 
 def checker(_obj, attr1: str, attr2: str):

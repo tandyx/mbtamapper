@@ -1,5 +1,6 @@
 import logging
-from sqlalchemy import Engine
+from sqlalchemy import Engine, delete
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from gtfs_loader.gtfs_base import GTFSBase
@@ -24,7 +25,7 @@ def to_sql(
 
 
 def to_sql_excpetion(
-    engine: Engine, data: pd.DataFrame, orm: GTFSBase, index: bool = False
+    session: Session, data: pd.DataFrame, orm: GTFSBase, index: bool = False
 ) -> None:
     """Helper function to dump dataframe to sql.
 
@@ -34,3 +35,9 @@ def to_sql_excpetion(
         orm (any): table to dump to
         index (bool, optional): whether to include index in dump. Defaults to False.
     """
+    session.execute(delete(orm))
+    session.commit()
+    try:
+        to_sql(session.connection().engine, data, orm, index)
+    except IntegrityError:
+        logging.error("Integrity Error")

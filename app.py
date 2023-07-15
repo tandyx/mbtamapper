@@ -8,14 +8,15 @@ from sqlalchemy.orm import scoped_session
 
 from gtfs_loader import Feed
 from gtfs_loader.query import Query
-from gtfs_schedule import Shape, Stop
+
+# from gtfs_schedule import Shape, Stop
 from gtfs_realtime import *
 from shared_code.return_date import get_date
 
 date = get_date(-4)
 
 feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", date)
-query = Query(["3"])
+query = Query(["0", "1"])
 session = scoped_session(feed.sessionmkr)
 
 routes = ",".join(
@@ -34,11 +35,11 @@ def index():
 @app.route("/vehicles")
 def get_vehicles():
     """Returns vehicles as geojson."""
-    Alert().get_realtime(feed.engine, ",".join(query.route_types))
-    Prediction().get_realtime(feed.engine, routes)
-    Vehicle().get_realtime(feed.engine, ",".join(query.route_types))
-
-    data: list[tuple[Vehicle]] = session().execute(select(Vehicle)).all()
+    sess = session()
+    Alert().get_realtime(sess, ",".join(query.route_types))
+    Prediction().get_realtime(sess, routes)
+    Vehicle().get_realtime(sess, ",".join(query.route_types))
+    data: list[tuple[Vehicle]] = sess.execute(select(Vehicle)).all()
     return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
 
 
