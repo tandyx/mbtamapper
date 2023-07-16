@@ -174,7 +174,7 @@ class Vehicle(GTFSBase):
             """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
-            f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
+            f"""<tr style="background-color:#ffff00;font-weight:bold;">"""
             """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
             f"""{"".join(a.as_html() for a in self.trip.alerts) if self.trip else ""}</table>"""
             """</span></div>"""

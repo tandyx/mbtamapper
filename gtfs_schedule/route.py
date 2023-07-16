@@ -93,7 +93,14 @@ class Route(GTFSBase):
         """Return a proper HTML popup representation of the route object"""
 
         alert = (
-            """<img src ="static/alert.png" alt = "alert" width=25 height=25 style="margin:2px;"></br>"""
+            """<div class = "popup" onclick="showAlertPopup()" >"""
+            """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<span class="popuptext" id="alertPopup">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#ffff00;font-weight:bold;">"""
+            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
+            f"""{"".join(a.as_html() for a in self.alerts)}</table>"""
+            """</span></div>"""
             if self.alerts
             else ""
         )
@@ -102,7 +109,7 @@ class Route(GTFSBase):
             f"""<a href = {self.route_url} style="color:#{self.route_color};font-size:28pt;text-decoration: none;text-align: left"> {self.route_short_name or self.route_long_name} </a></br>"""
             f"""<body style="color:#ffffff;text-align: left;"> {self.route_desc} - {self.route_long_name} </br>"""
             "—————————————————————————————————</br>"
-            f"{alert}"
+            f"{alert}</br>"
             f"Agency: <a href = {self.agency.agency_url}> {self.agency.agency_name} </a> </br>"
             f"Fare Class: {self.route_fare_class} </br>"
             """<a style="color:grey;font-size:9pt">"""

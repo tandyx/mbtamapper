@@ -135,19 +135,25 @@ class Stop(GTFSBase):
         alert = (
             """<div class = "popup" onclick="showAlertPopup()" >"""
             """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
-            """<span class="popuptext" id="alertPopup">A Simple Popup!</span></div>"""
+            """<span class="popuptext" id="alertPopup">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#ffff00;font-weight:bold;">"""
+            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
+            f"""{"".join(a.as_html() for a in self.alerts)}</table>"""
+            """</span></div>"""
             if self.alerts
             else ""
         )
+
         wheelchair = (
             """<div class = "tooltip">"""
-            """<img src="static/wheelchair.png" alt="accessible" title = "Wheelchair Accessible" width=25 height=25 style="margin:2px;">"""
-            """<span class="tooltiptext">This stop is wheelchair accessible.</span></div>"""
+            """<img src="static/wheelchair.png" alt="accessible" width=25 height=25 style="margin:2px;">"""
+            """<span class="tooltiptext">Wheelchair Accessible.</span></div>"""
             if "1" in [s.wheelchair_boarding for s in self.child_stops]
             else ""
         )
         route_colors = ", </a>".join(
-            f"<a href = '{r.route_url}' style='color:#{r.route_color or 'ffffff'};'>{r.route_short_name or r.route_long_name}"
+            f"<a href = '{r.route_url}' style='color:#{r.route_color or 'ffffff'};text-decoration: none;'>{r.route_short_name or r.route_long_name}"
             for r in routes
         )
 
