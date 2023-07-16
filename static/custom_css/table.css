@@ -1,0 +1,13 @@
+.table,
+.table th,
+.table td {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    border-radius: 0.5px;
+    border-color: #d8d8d8;
+    border-style: solid;
+    table-layout: fixed;
+    font-family: "montserrat", Helvetica, sans-serif;
+    max-height: 150px;
+}

@@ -15,8 +15,10 @@
     <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" />
     <script src="/static/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
     <script src="/static/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
-
     <link rel="stylesheet" href="/static/custom_css/popup.css" />
+    <link rel="stylesheet" href="/static/custom_css/tooltip.css" />
+    <link rel="stylesheet" href="/static/custom_css/table.css" />
+    <link rel="stylesheet" href="/static/custom_css/scrollbar.css" />
 
     <style>
         #map {
@@ -89,7 +91,7 @@
     <div id="map"></div>
     <script>
 
-        const ROUTE_TYPE = "1"
+        const ROUTE_TYPE = "SUBWAY"
 
         var map = L.map('map').setView([42.3519, -71.0552], 13);
 
@@ -119,6 +121,7 @@
         // var vehicle_layer = L.layerGroup().addTo(map);
         plotStops();
         plotShapes();
+        plotVehicles();
 
         var overlays = {
             "Vehicles": vehicle_layer,
@@ -135,13 +138,10 @@
 
         var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-
-        plotVehicles();
-
         // calls function every 15 seconds
         var intervalId = window.setInterval(function () {
             plotVehicles();
-        }, 15000);
+        }, 30000);
 
 
         function plotVehicles() {
@@ -211,6 +211,16 @@
                         route.addTo(shape_layer);
                 }
             });
+        }
+
+
+        function showPredictionPopup() {
+            var predictionPopup = document.getElementById("predictionPopup");
+            predictionPopup.classList.toggle("show");
+        }
+        function showAlertPopup() {
+            var alertPopup = document.getElementById("alertPopup");
+            alertPopup.classList.toggle("show");
         }
     </script>
 

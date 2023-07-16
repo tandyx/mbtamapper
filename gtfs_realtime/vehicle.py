@@ -14,7 +14,8 @@ from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.to_sql import to_sql_excpetion
+from shared_code.to_sql import to_sql
+from shared_code.color_mapping import return_delay_colors, hex_to_css
 
 
 RENAME_DICT = {
@@ -37,6 +38,7 @@ RENAME_DICT = {
 }
 
 
+# filter: invert(23%) sepia(76%) saturate(4509%) hue-rotate(353deg) brightness(88%) contrast(92%);
 class Vehicle(GTFSBase):
     """Vehicle"""
 
@@ -109,18 +111,17 @@ class Vehicle(GTFSBase):
         """Returns current status of vehicle."""
         if self.stop:
             current_status = (
-                f"""Vehicle {self.label or self.vehicle_id} """
+                f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} </a>"""
                 f"""{self.current_status.lower().replace("_", " ")} """
-                f"""<a href={self.stop.stop_url}>{self.stop.stop_name}</a> {"- " + self.stop.platform_name if self.stop.platform_code else ''} """
-                f"""{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else '(Delay Unknown)'}"""
+                f"""<a href={self.stop.stop_url} style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}</a> {"- " + self.stop.platform_name if self.stop.platform_code else ''} """
+                f"""<a style="color:{return_delay_colors(self.next_stop_prediction.delay if self.next_stop_prediction else 0)};">{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else ' (Delay Unknown)'}</a>"""
             )
         else:
             current_status = (
-                f"""Vehicle {self.label or self.vehicle_id} on """
-                f"""<a href={self.route.route_url}>{self.route.route_long_name}</a>"""
-                f"""{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else ' (Delay Unknown)'}"""
+                f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} on </a>"""
+                f"""<a href={self.route.route_url if self.route else ""} style='text-decoration:none;color:#{self.route.route_color if self.route else ""};'>{self.route.route_long_name if self.route else self.route_id}</a>"""
+                f"""<a style="color:{return_delay_colors(self.next_stop_prediction.delay if self.next_stop_prediction else 0)};">{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else ' (Delay Unknown)'}</a>"""
             )
-
         return current_status
 
     def as_point(self) -> Point:
@@ -162,34 +163,51 @@ class Vehicle(GTFSBase):
         """Returns vehicle as html for a popup."""
 
         bikes = (
-            """<img src ="static/bike.png" alt="bikes allowed" title="Bicycles Allowed" width=25 height=25 style="margin:2px;">"""
+            """<div class = "tooltip">"""
+            """<img src ="static/bike.png" alt="bike" width=25 height=25 style="margin:2px;">"""
+            """<span class="tooltiptext">Bicycles are allowed on this trip.</span></div>"""
             if self.trip and self.trip.bikes_allowed == 1
             else ""
         )
         alert = (
+            """<div class = "popup" onclick="showAlertPopup()" >"""
             """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<span class="popuptext" id="alertPopup">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
+            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
+            f"""{"".join(a.as_html() for a in self.trip.alerts) if self.trip else ""}</table>"""
+            """</span></div>"""
             if self.trip and self.trip.alerts
             else ""
         )
+
         prediction = (
-            """<img src="static/train_icon.png" alt="prediction" width=25 height=25 style="margin:2px;">"""
+            """<div class = "popup" onclick="showPredictionPopup()">"""
+            """<img src ="static/train_icon.png" alt="prediction" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
+            """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
+            """<td>Stop</td><td>Platform</td><td>Predicted</td><td>Scheduled</td><td>Delay</td></tr>"""
+            f"""{"".join(p.as_html() for p in self.predictions if p.predicted)}</table>"""
+            """</span></div>"""
             if self.trip and self.trip.predictions
             else ""
         )
 
         html = (
-            f"""<a href = {self.route.route_url} style="color:#{self.route.route_color};font-size:28pt;text-decoration: none;text-align: left">"""
+            f"""<a href = {self.route.route_url if self.route else ""} style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in self.predictions), "Unknown")}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes}</br>"""
-            f"""{self.return_current_status()}</br>"""
-            f"""Speed: {int(self.speed * 2.23694) if self.speed else "Unknown"} mph</br>"""
+            f"""<a >{self.return_current_status()}</a></br>"""
+            f"""Speed: {int(self.speed * 2.23694) if self.speed is not None else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M%p")}</br>"""
-            f"""Route: {self.route.route_long_name} - {self.route_id}</br>"""
+            f"""Route: {self.route.route_long_name if self.route else ""} - {self.route_id}</br>"""
             f"""Trip: {self.trip_id}</a>"""
         )
         return html
@@ -197,10 +215,10 @@ class Vehicle(GTFSBase):
     def as_html_icon(self) -> str:
         """Returns vehicle as html for an icon."""
         html = (
-            """<a style="position:absolute;top:100%;left:50%;transform:translate(-50%,-50%);">"""
-            f"""<img src ="static/icon.png" alt="vehicle" width=50 height=50 style="transform:rotate({self.bearing}deg);">"""
-            """<a style="position:absolute;top:80%;left:50%;transform:translate(-50%,-50%);text-align:center;color:white;font-family:montserrat,Helvetica,sans-serif;">"""
-            f"""{self.trip.trip_short_name if self.route.route_type == "2" else ""}</a></a>"""
+            """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
+            f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
+            """<a style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);color:white;font-family:montserrat,Helvetica,sans-serif;">"""
+            f"""{self.trip.trip_short_name if self.route and self.route.route_type == "2" else ""}</a></a>"""
         )
 
         return html
@@ -243,4 +261,8 @@ class Vehicle(GTFSBase):
         )
         dataframe.rename(columns=RENAME_DICT, inplace=True)
         dataframe.reset_index(inplace=True)
-        to_sql_excpetion(session, dataframe, self.__class__)
+        to_sql(session, dataframe, self.__class__, True)
+
+
+def hex_to_css_filter(hex: str) -> str:
+    """Converts hex to css filter."""

@@ -133,18 +133,21 @@ class Stop(GTFSBase):
         routes = sorted(routes, key=lambda x: x.route_type)
 
         alert = (
+            """<div class = "popup" onclick="showAlertPopup()" >"""
             """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<span class="popuptext" id="alertPopup">A Simple Popup!</span></div>"""
             if self.alerts
             else ""
         )
-
         wheelchair = (
+            """<div class = "tooltip">"""
             """<img src="static/wheelchair.png" alt="accessible" title = "Wheelchair Accessible" width=25 height=25 style="margin:2px;">"""
+            """<span class="tooltiptext">This stop is wheelchair accessible.</span></div>"""
             if "1" in [s.wheelchair_boarding for s in self.child_stops]
             else ""
         )
         route_colors = ", </a>".join(
-            f"<a style='color:#{r.route_color or 'ffffff'};'>{r.route_short_name or r.route_long_name}"
+            f"<a href = '{r.route_url}' style='color:#{r.route_color or 'ffffff'};'>{r.route_short_name or r.route_long_name}"
             for r in routes
         )
 

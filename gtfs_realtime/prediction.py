@@ -9,7 +9,8 @@ import json_api_doc as jad
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor, Session
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.to_sql import to_sql_excpetion
+from shared_code.to_sql import to_sql
+from shared_code.color_mapping import return_delay_colors
 
 
 RENAME_DICT = {
@@ -113,28 +114,21 @@ class Prediction(GTFSBase):
     def __repr__(self):
         return f"<Prediction(id={self.prediction_id})>"
 
-    def as_dict(self):
-        """Returns prediction as dict."""
-        prediction = {
-            "stop": self.stop.parent_stop.stop_name,
-            "trip": self.trip.as_label(),
-            "status": self.status,
-            "route": self.route.route_short_name or self.route.route_long_name,
-            "delay": self.delay,
-        }
-
-        for key, value in {
-            "predicted": self.predicted,
-            "scheduled": self.scheduled,
-        }.items():
-            if value:
-                prediction[key] = value.strftime("%I:%M%p")
-
-        return prediction
-
     def status_as_string(self) -> str:
         """Returns status as string."""
         return f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"
+
+    def as_html(self) -> str:
+        """Returns prediction as html."""
+        return (
+            """<tr>"""
+            f"""<td>{self.stop.parent_stop.stop_name if self.stop.parent_stop else self.stop.stop_name}</td>"""
+            f"""<td>{self.stop.platform_name}</td>"""
+            f"""<td>{self.predicted.strftime("%I:%M%p") if self.predicted else "Unknown"} </td>"""
+            f"""<td>{self.scheduled.strftime("%I:%M%p") if self.scheduled else "Unknown"}</td>"""
+            f"""<td style="color:{return_delay_colors(self.delay)};">{self.status_as_string().replace('(', '').replace(')', '').replace(" late", "")}</td>"""
+            """</tr>"""
+        )
 
     def get_realtime(
         self,
@@ -175,7 +169,7 @@ class Prediction(GTFSBase):
         dataframe.rename(columns=RENAME_DICT, inplace=True)
         dataframe.reset_index()
         dataframe["index"] = dataframe.index
-        to_sql_excpetion(session, dataframe, self.__class__)
+        to_sql(session, dataframe, self.__class__, True)
 
 
 def checker(_obj, attr1: str, attr2: str):

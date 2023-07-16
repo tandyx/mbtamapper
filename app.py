@@ -1,6 +1,8 @@
 """Flask app for MBTA GTFS data."""
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
+import os
+from dotenv import load_dotenv
 from geojson import FeatureCollection
 from flask import Flask, render_template, jsonify
 from sqlalchemy import select
@@ -14,9 +16,12 @@ from gtfs_realtime import *
 from shared_code.return_date import get_date
 
 date = get_date(-4)
+KEY = "SUBWAY"
+load_dotenv()
 
+route_types = os.environ.get(KEY)
 feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", date)
-query = Query(["0", "1"])
+query = Query(route_types.split(","))
 session = scoped_session(feed.sessionmkr)
 
 routes = ",".join(
@@ -36,9 +41,9 @@ def index():
 def get_vehicles():
     """Returns vehicles as geojson."""
     sess = session()
-    Alert().get_realtime(sess, ",".join(query.route_types))
+    Alert().get_realtime(sess, route_types)
     Prediction().get_realtime(sess, routes)
-    Vehicle().get_realtime(sess, ",".join(query.route_types))
+    Vehicle().get_realtime(sess, route_types)
     data: list[tuple[Vehicle]] = sess.execute(select(Vehicle)).all()
     return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
 
@@ -46,8 +51,11 @@ def get_vehicles():
 @app.teardown_appcontext
 def shutdown_session(exception=None) -> None:  # pylint: disable=unused-argument
     """Tears down database session."""
-
     session.remove()
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 # @app.route("/stops")
@@ -72,7 +80,3 @@ def shutdown_session(exception=None) -> None:  # pylint: disable=unused-argument
 #             )
 #         )
 #     )
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

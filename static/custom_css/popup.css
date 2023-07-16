@@ -1,37 +1,68 @@
-.hoverme {
+.popup {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-.hoverme .hovermetext {
+/* The actual popup */
+.popup .popuptext {
   visibility: hidden;
-  width: 120px;
-  background-color: black;
+  background-color: #161616;
+  opacity: 0.95;
+  width: 1750%;
   color: #fff;
-  text-align: left;
+  text-align: center;
   border-radius: 6px;
-  padding: 5px 0;
+  padding: 8px 8px;
   position: absolute;
   z-index: 1;
-  top: 150%;
-  left: 50%;
-  margin-left: -60px;
-  opacity: 0;
-  transition: opacity 1s;
+  top: -5px;
+  left: 105%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 450px;
 }
 
-.hoverme .hovermetext::after {
+/* Popup arrow */
+.popup .popuptext::after {
   content: "";
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -5px;
+  top: 50%;
+  left: 100%;
+  margin-top: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent black transparent;
+  border-color: transparent transparent transparent black;
 }
 
-.hoverme:hover .hovermetext {
+/* Toggle this class - hide and show the popup */
+.popup .show {
   visibility: visible;
+  -webkit-animation: fadeIn 1s;
+  animation: fadeIn 1s;
+}
+
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.9;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.9;
+  }
 }

@@ -80,8 +80,8 @@ class Feed:
             ) as read:
                 for chunk in read:
                     if file == "shapes.txt":
-                        to_sql(self.engine, chunk["shape_id"].drop_duplicates(), Shape)
-                    to_sql(self.engine, chunk, orm)
+                        to_sql(self.session, chunk["shape_id"].drop_duplicates(), Shape)
+                    to_sql(self.session, chunk, orm)
 
         logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
 
@@ -134,7 +134,9 @@ class Feed:
                     ).all()
                 if key == "RAPID_TRANSIT":
                     data += self.session.execute(
-                        Query(["3"]).return_parent_stops()
+                        Query(["3"])
+                        .return_parent_stops()
+                        .where(Stop.zone_id.not_like("CR%"))
                     ).all()
             if name == "shapes":
                 if key == "RAPID_TRANSIT":
@@ -145,7 +147,8 @@ class Feed:
                         .where(
                             Route.line_id.in_(
                                 ["line-SLWashington", "line-SLWaterfront"]
-                            )
+                            ),
+                            Route.route_type != "2",
                         )
                     ).all()
 
