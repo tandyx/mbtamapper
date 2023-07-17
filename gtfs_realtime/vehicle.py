@@ -262,7 +262,3 @@ class Vehicle(GTFSBase):
         dataframe.rename(columns=RENAME_DICT, inplace=True)
         dataframe.reset_index(inplace=True)
         to_sql(session, dataframe, self.__class__, True)
-
-
-def hex_to_css_filter(hex: str) -> str:
-    """Converts hex to css filter."""
