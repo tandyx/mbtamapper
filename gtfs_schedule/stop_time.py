@@ -3,6 +3,7 @@
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
+from shared_code.gtfs_helper_time_functions import format_time, to_seconds
 
 
 class StopTime(GTFSBase):
@@ -38,10 +39,20 @@ class StopTime(GTFSBase):
         executes after the object is loaded from the database and in init"""
         # pylint: disable=attribute-defined-outside-init
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
+        self.departure_seconds = to_seconds(self.departure_time)
 
     def __repr__(self) -> str:
         return f"<StopTime(trip_id={self.trip_id}, stop_id={self.stop_id})>"
 
-    def is_destination(self) -> bool:
-        """Returns True if the stop time is the destination for the trip"""
-        return self == self.trip.destination_stop_time
+    def as_html(self) -> str:
+        """Returns a StopTime obj as an html row"""
+
+        html = (
+            f"""<tr> <td style='text-decoration:none;color:#{self.trip.route.route_color};'>{self.trip.route.route_short_name or self.trip.route.route_long_name}</td>"""
+            f"""<td>{self.trip.trip_short_name or self.trip_id}</td>"""
+            f"""<td>{self.stop.platform_name}</td>"""
+            f"""<td>{self.trip.return_direction()} to {self.destination_label}</td>"""
+            f"""<td>{format_time(self.departure_time)}</td></tr>"""
+        )
+
+        return html

@@ -2,7 +2,8 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=unused-import
 # pylint: disable=wildcard-import
-from sqlalchemy.sql import select, selectable, or_
+from datetime import datetime
+from sqlalchemy.sql import select, selectable, or_, not_, and_
 from sqlalchemy.orm import aliased
 from gtfs_schedule import *
 
@@ -20,6 +21,49 @@ class Query:
 
     def __repr__(self) -> str:
         return f"<Query(route_types={self.route_types})>"
+
+    def return_active_calendar_query(self, date: datetime) -> selectable.Select:
+        """Returns a query for active calendars on a date.
+
+        Args:
+            date (datetime): date to query"""
+
+        cal_query = (
+            select(Calendar)
+            .join(
+                CalendarAttribute, Calendar.service_id == CalendarAttribute.service_id
+            )
+            .join(
+                CalendarDate,
+                Calendar.service_id == CalendarDate.service_id,
+                isouter=True,
+            )
+            .where(
+                or_(
+                    and_(
+                        CalendarAttribute.service_schedule_typicality != "6",
+                        Calendar.start_date <= date.strftime("%Y%m%d"),
+                        Calendar.end_date >= date.strftime("%Y%m%d"),
+                        getattr(Calendar, date.strftime("%A").lower()) == 1,
+                        not_(
+                            and_(
+                                CalendarDate.date == date.strftime("%Y%m%d"),
+                                CalendarDate.exception_type == "2",
+                                CalendarDate.service_id.isnot(None),
+                            )
+                        ),
+                    ),
+                    and_(
+                        CalendarDate.date == date.strftime("%Y%m%d"),
+                        CalendarDate.exception_type == "1",
+                        CalendarDate.service_id.isnot(None),
+                        CalendarAttribute.service_schedule_typicality != "6",
+                    ),
+                )
+            )
+        )
+
+        return cal_query
 
     def return_trip_query(self) -> selectable.Select:
         """Returns a query for trips."""

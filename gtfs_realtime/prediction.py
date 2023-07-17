@@ -114,9 +114,9 @@ class Prediction(GTFSBase):
     def __repr__(self):
         return f"<Prediction(id={self.prediction_id})>"
 
-    def status_as_string(self) -> str:
-        """Returns status as string."""
-        return f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"
+    def status_as_html(self) -> str:
+        """Returns status as html."""
+        return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"}</a>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
@@ -124,9 +124,7 @@ class Prediction(GTFSBase):
             """<tr>"""
             f"""<td>{self.stop.parent_stop.stop_name if self.stop.parent_stop else self.stop.stop_name}</td>"""
             f"""<td>{self.stop.platform_name}</td>"""
-            f"""<td>{self.predicted.strftime("%I:%M%p") if self.predicted else "Unknown"} </td>"""
-            f"""<td>{self.scheduled.strftime("%I:%M%p") if self.scheduled else "Unknown"}</td>"""
-            f"""<td style="color:{return_delay_colors(self.delay)};">{self.status_as_string().replace('(', '').replace(')', '').replace(" late", "")}</td>"""
+            f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {self.status_as_html()}</td>"""
             """</tr>"""
         )
 

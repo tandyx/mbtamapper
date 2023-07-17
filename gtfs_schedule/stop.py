@@ -2,9 +2,12 @@
 from shapely.geometry import Point
 from geojson import Feature
 
-from sqlalchemy.orm import relationship, reconstructor
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
+
+from shared_code.df_unpack import list_unpack
+from shared_code.gtfs_helper_time_functions import get_date
 
 
 class Stop(GTFSBase):
@@ -65,11 +68,6 @@ class Stop(GTFSBase):
         overlaps="trips,stop_times,route,stop",
     )
 
-    @reconstructor
-    def init_on_load(self):
-        """Load the parent_stop relationship on load"""
-        # pylint: disable=attribute-defined-outside-init
-
     def __repr__(self):
         return f"<Stop(stop_id={self.stop_id})>"
 
@@ -77,28 +75,18 @@ class Stop(GTFSBase):
         """Returns a shapely Point object of the stop"""
         return Point(self.stop_lat, self.stop_lon)
 
-    def as_dict(self) -> dict:
-        """Returns stop object as a dictionary."""
-        return {
-            "stop_id": self.stop_id,
-            "stop_name": self.stop_name,
-            "stop_desc": self.stop_desc,
-            "platform_code": self.platform_code,
-            "platform_name": self.platform_name,
-            "zone_id": self.zone_id,
-            "stop_address": self.stop_address,
-            "stop_url": self.stop_url,
-            "level_id": self.level_id,
-            "location_type": self.location_type,
-            "parent_station": self.parent_station,
-            "wheelchair_boarding": self.wheelchair_boarding,
-            "municipality": self.municipality,
-            "on_street": self.on_street,
-            "at_street": self.at_street,
-            "vehicle_type": self.vehicle_type,
-            "alerts": [alert.as_dict() for alert in self.alerts],
-            "predictions": [prediction.as_dict() for prediction in self.predictions],
-        }
+    def return_routes(self) -> list:
+        """Returns a list of routes that stop at this stop"""
+        routes = []
+        for child_stop in self.child_stops:
+            if child_stop.location_type != "0":
+                continue
+            for route in child_stop.routes:
+                if route in routes:
+                    continue
+                routes.append(route)
+
+        return sorted(routes, key=lambda x: x.route_type)
 
     def as_feature(self) -> Feature:
         """Returns stop object as a feature.
@@ -117,20 +105,20 @@ class Stop(GTFSBase):
 
         return feature
 
+    def return_route_color(self, routes: list = None) -> str:
+        """Returns the route color for the stop.
+
+        Args:
+            routes: A list of routes to return the color for. If None, the stop's routes will be used.
+        """
+        return next((r.route_color for r in routes or self.routes), "008EAA")
+
     def as_html_popup(self) -> str:
         """Returns stop object as an html popup.
         Args:
             route_types: A list of route types to include routes for."""
-        routes = []
-        for child_stop in self.child_stops:
-            if child_stop.location_type != "0":
-                continue
-            for route in child_stop.routes:
-                if route in routes:
-                    continue
-                routes.append(route)
-
-        routes = sorted(routes, key=lambda x: x.route_type)
+        routes = self.routes or self.return_routes()
+        stop_color = self.return_route_color(routes)
 
         alert = (
             """<div class = "popup" onclick="showAlertPopup()" >"""
@@ -152,17 +140,31 @@ class Stop(GTFSBase):
             if "1" in [s.wheelchair_boarding for s in self.child_stops]
             else ""
         )
+
+        schedule = (
+            """<div class = "popup" onclick="showPredictionPopup()">"""
+            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
+            """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
+            """<td>Route</td><td>Trip</td><td>Platform</td><td>Headsign</td><td>Scheduled</td></tr>"""
+            f"""{"".join((st.as_html() for st in sorted(list_unpack([s.stop_times for s in self.child_stops ]), key= lambda x: x.departure_seconds) if st.departure_seconds > (get_date().timestamp() - get_date().replace(hour = 0, minute=0, second = 0).timestamp() - 1800)))}</tr></table>"""
+            """</span></div>"""
+            if self.child_stops
+            else ""
+        )
+
         route_colors = ", </a>".join(
             f"<a href = '{r.route_url}' style='color:#{r.route_color or 'ffffff'};text-decoration: none;'>{r.route_short_name or r.route_long_name}"
             for r in routes
         )
 
         html = (
-            f"<a href = {self.stop_url} style='color:#{next((r.route_color for r in routes), '008EAA')};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
+            f"<a href = {self.stop_url} style='color:#{stop_color};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc if self.child_stops else self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"
-            f"{alert} {wheelchair}</br>"
+            f"{alert} {schedule} {wheelchair} {'</br>' if any([alert, schedule, wheelchair]) else ''}"
             f"Routes: {route_colors}</a></br>"
             f"Zones: {', '.join(set(c.zone_id for c in self.child_stops if c.zone_id))}</br>"
             f"<a style='color:grey;font-size:9pt'>"

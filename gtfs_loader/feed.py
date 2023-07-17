@@ -13,11 +13,12 @@ from geojson import FeatureCollection, dump
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, delete
+from sqlalchemy import CursorResult
 
 from shared_code.download_zip import download_zip
 from shared_code.to_sql import to_sql
-from shared_code.return_date import get_date
+from shared_code.gtfs_helper_time_functions import get_date
 from gtfs_schedule import *
 from gtfs_realtime import *
 from .query import Query
@@ -66,6 +67,9 @@ class Feed:
         # note that the order of these tables matters; avoids foreign key errors
         table_dict = {
             "agency.txt": Agency,
+            "calendar.txt": Calendar,
+            "calendar_dates.txt": CalendarDate,
+            "calendar_attributes.txt": CalendarAttribute,
             "stops.txt": Stop,
             "routes.txt": Route,
             "shapes.txt": ShapePoint,
@@ -84,6 +88,24 @@ class Feed:
                     to_sql(self.session, chunk, orm)
 
         logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
+
+    def purge_and_filter(self) -> None:
+        """Purges and filters the database."""
+
+        query_obj = Query(os.environ.get("ALL_ROUTES").split(","))
+
+        cal_stmt = delete(Calendar).where(
+            Calendar.service_id.not_in(
+                select(
+                    query_obj.return_active_calendar_query(self.date).columns.service_id
+                )
+            )
+        )
+
+        for stmt in [cal_stmt]:
+            res: CursorResult = self.session.execute(stmt)
+            self.session.commit()  # seperate commits to avoid giant journal file
+            logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
 
     def delete_old_databases(self, days_ago: int = 2) -> None:
         """Deletes files older than 2 days from the given path and date.
@@ -118,13 +140,6 @@ class Feed:
             "shapes": query_obj.return_shapes_query(),
         }
 
-        def open_helper(data, file_name):
-            """Helper function to open files."""
-            path_to = os.path.join(file_path, file_name)
-            with open(path_to, "w", encoding="utf-8") as file:
-                dump(data, file)
-                logging.info("Exported %s", file.name)
-
         for name, query in query_dict.items():
             data = self.session.execute(query).all()
             if name == "stops":
@@ -152,8 +167,16 @@ class Feed:
                         )
                     ).all()
 
+                data = sorted(data, key=lambda x: x[0].shape_id)
+
             features = FeatureCollection(
                 [s[0].as_feature() for s in data if hasattr(s[0], "as_feature")]
             )
+            file_subpath = os.path.join(file_path, key, name + ".json")
+            for path in [file_path, os.path.join(file_path, key)]:
+                if not os.path.exists(path):
+                    os.mkdir(path)
 
-            open_helper(features, f"{name}_{key}.json")
+            with open(file_subpath, "w", encoding="utf-8") as file:
+                dump(features, file)
+                logging.info("Exported %s", file.name)

@@ -12,7 +12,10 @@ class Trip(GTFSBase):
     route_id = Column(
         String, ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    service_id = Column(String)
+    service_id = Column(
+        String,
+        ForeignKey("calendars.service_id", ondelete="CASCADE", onupdate="CASCADE"),
+    )
     trip_id = Column(String, primary_key=True)
     trip_headsign = Column(String)
     trip_short_name = Column(String)
@@ -24,6 +27,7 @@ class Trip(GTFSBase):
     route_pattern_id = Column(String)
     bikes_allowed = Column(Integer)
 
+    calendar = relationship("Calendar", back_populates="trips")
     multi_route_trips = relationship(
         "MultiRouteTrip", back_populates="trip", passive_deletes=True
     )
@@ -57,12 +61,17 @@ class Trip(GTFSBase):
         viewonly=True,
     )
 
+    DIRECTION_ID_MAPPER = {"0": "Outbound", "1": "Inbound"}
+
     @reconstructor
     def init_on_load(self) -> None:
         """Post-load initialization"""
         # pylint: disable=attribute-defined-outside-init
         self.is_added = bool(self.multi_route_trips)
         self.active = bool(self.predictions)
+        # self.trip_start_seconds = min(
+        #     to_seconds(stop_time.departure_time) for stop_time in self.stop_times
+        # )
         # self.origin_stop_time = min(self.stop_times, key=lambda x: x.stop_sequence)
         # self.destination_stop_time = max(self.stop_times, key=lambda x: x.stop_sequence)
 
@@ -72,3 +81,10 @@ class Trip(GTFSBase):
     def as_label(self) -> str:
         """Returns trip as label"""
         return f"{self.trip_short_name or self.trip_id}: {self.trip_headsign}"
+
+    def return_direction(self) -> str:
+        """Returns trip as label"""
+        return self.DIRECTION_ID_MAPPER.get(str(self.direction_id), "Unknown")
+
+    def return_trip_start_time(self) -> str:
+        """Returns trip as label"""

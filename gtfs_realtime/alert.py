@@ -115,8 +115,8 @@ class Alert(GTFSBase):
         return (
             f"<tr><td href = '{self.url}' style:'text-decoration:none;'>{str(self.service_effect).lower()}</td>"
             f"<td>{self.short_header or self.header}</td>"
-            f"<td>{self.created_at_datetime.strftime('%m/%d/%Y %I:%M%p')}</td>"  # pylint: disable=no-member
-            f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M%p')}</td>"  # pylint: disable=no-member
+            f"<td>{self.created_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
+            f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
             "</tr>"
         )
 
@@ -168,21 +168,3 @@ class Alert(GTFSBase):
         dataframe["index"] = dataframe.index
 
         to_sql(session, dataframe, self.__class__, True)
-
-    # def as_dict(self):
-    #     """Returns alert as dict."""
-    #     return {
-    #         "service_effect": self.service_effect,
-    #         "alert_id": self.alert_id,
-    #         "cause": self.cause,
-    #         "timestamp": self.created_at_datetime.strftime("%m/%d/%Y %I:%M%p"),
-    #         "age_days": (
-    #             datetime.now(pytz.timezone("America/New_York"))
-    #             - self.created_at_datetime
-    #         ).days,
-    #         "through": f"{self.start_datetime.strftime('%m/%d/%Y %I:%M%p')} - {self.end_datetime.strftime('%m/%d/%Y %I:%M%p') if hasattr(self, 'end_datetime') else 'Indefinite'}",
-    #         "url": self.url,
-    #         "description": self.description,
-    #         "header": self.header,
-    #         "short_header": self.short_header,
-    #     }

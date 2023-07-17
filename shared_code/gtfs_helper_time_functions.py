@@ -27,3 +27,47 @@ def seconds_to_iso(date: datetime, seconds: int, zone: str = "America/New_York")
 
     date_time = pytz.timezone(zone).localize(date + timedelta(seconds=seconds))
     return date_time.astimezone(pytz.utc).isoformat()
+
+
+def format_time(time_str: str) -> str:
+    """Formats Time, uses current date
+
+    Args:
+        time_str (str): Time in HH:MM:SS format
+    Returns:
+        str: Formatted time in HH:MM:SS AM/PM format"""
+
+    hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
+
+    int_hour = int(hour)
+
+    if int_hour < 12:
+        return f"{hour}:{minute} AM"
+    if 12 <= int_hour < 24:
+        return f"{return_format_hour(int_hour, 12)}:{minute} PM"
+    if int_hour >= 24:
+        return f"{return_format_hour(int_hour, 24)}:{minute} AM"
+
+
+def return_format_hour(hour: int, offset: int = 12) -> str:
+    """Returns formatted hour
+
+    Args:
+        hour (int): Hour
+        offset (int, optional): Offset. Defaults to 12.
+    Returns:
+        str: Formatted hour"""
+
+    return str(hour - offset) if hour - offset else "12"
+
+
+def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
+    """Returns the current date in the given timezone
+
+    Args:
+        offset (int, optional): The number of hours to offset the date. Defaults to 0.
+        zone (str, optional): The timezone to return the date in. Defaults to "America/New_York".
+    Returns:
+        datetime: The current date in the given timezone"""
+
+    return datetime.now(pytz.timezone(zone)) + timedelta(hours=offset)

@@ -2,11 +2,12 @@
 import os
 import logging
 from dotenv import load_dotenv
-from sqlalchemy import select
+
+# from sqlalchemy import select
 
 from gtfs_loader.feed import Feed
-from gtfs_realtime import Alert, Vehicle
-from shared_code.return_date import get_date
+from gtfs_realtime import Alert
+from shared_code.gtfs_helper_time_functions import get_date
 
 load_dotenv()
 
@@ -19,9 +20,11 @@ def nightly_import() -> None:
 
     logging.getLogger().setLevel(logging.INFO)
     feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date())
-    feed.import_gtfs()
+    # feed.import_gtfs()
+    # feed.purge_and_filter()
+    # feed.delete_old_databases()
     geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
-    for key in ["SUBWAY", "RAPID_TRANSIT", "COMMUTER_RAIL", "BUS", "FERRY"]:
+    for key in os.getenv("LIST_KEYS").split(","):
         Alert().get_realtime(feed.session, os.environ.get(key))
         feed.export_geojsons(key, geojson_path)
 

@@ -21,3 +21,8 @@ class Agency(GTFSBase):
 
     def __repr__(self) -> str:
         return f"<Agency(agency_id={self.agency_id})>"
+
+    def as_html(self) -> str:
+        """Return the agency as HTML"""
+
+        return f"""<a href = {self.agency_url} style='text-decoration:none;color:#ffffff;'> {self.agency_name} ({self.agency_phone})</a>"""

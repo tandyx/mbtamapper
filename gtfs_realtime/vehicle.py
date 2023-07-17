@@ -109,43 +109,30 @@ class Vehicle(GTFSBase):
 
     def return_current_status(self) -> str:
         """Returns current status of vehicle."""
+        prd_status = (
+            self.next_stop_prediction.status_as_html()
+            if self.next_stop_prediction
+            else "<a style ='color:#ffffff;'> (Delay Unknown)</a>"
+        )
+
         if self.stop:
             current_status = (
                 f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} </a>"""
                 f"""{self.current_status.lower().replace("_", " ")} """
-                f"""<a href={self.stop.stop_url} style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}</a> {"- " + self.stop.platform_name if self.stop.platform_code else ''} """
-                f"""<a style="color:{return_delay_colors(self.next_stop_prediction.delay if self.next_stop_prediction else 0)};">{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else ' (Delay Unknown)'}</a>"""
+                f"""<a href={self.stop.stop_url} style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
+                f"""{prd_status}"""
             )
         else:
             current_status = (
                 f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} on </a>"""
                 f"""<a href={self.route.route_url if self.route else ""} style='text-decoration:none;color:#{self.route.route_color if self.route else ""};'>{self.route.route_long_name if self.route else self.route_id}</a>"""
-                f"""<a style="color:{return_delay_colors(self.next_stop_prediction.delay if self.next_stop_prediction else 0)};">{self.next_stop_prediction.status_as_string() if self.next_stop_prediction else ' (Delay Unknown)'}</a>"""
+                f"""{prd_status}"""
             )
         return current_status
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
         return Point(self.latitude, self.longitude)
-
-    def as_dict(self) -> dict[str]:
-        """Returns vehicle as dict."""
-
-        return {
-            "label": self.label or self.vehicle_id,
-            "trip": self.trip.trip_short_name or self.trip.trip_headsign,
-            "direction": self.DIRECTION_MAPPER.get(self.direction_id, "Unknown"),
-            "vehicle_type": self.vehicle_type,
-            "bearing": self.bearing,
-            "current_status": self.return_current_status(),
-            "current_stop_sequence": self.current_stop_sequence,
-            "direction_id": self.direction_id,
-            "occupancy_status": self.occupancy_status,
-            "speed": self.speed,
-            "updated_at": self.updated_at_datetime.strftime("%m/%d/%Y %I:%M%p"),
-            "alerts": [a.as_dict() for a in self.trip.alerts],
-            "predictions": [prediction.as_dict() for prediction in self.predictions],
-        }
 
     def as_feature(self) -> Feature:
         """Returns vehicle as feature."""
@@ -171,7 +158,7 @@ class Vehicle(GTFSBase):
         )
         alert = (
             """<div class = "popup" onclick="showAlertPopup()" >"""
-            """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<img src ="static/alert.png" title="Show Alerts" alt="alert" width=25 height=25 style="margin:2px;">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
@@ -185,11 +172,11 @@ class Vehicle(GTFSBase):
         prediction = (
             """<div class = "popup" onclick="showPredictionPopup()">"""
             """<img src ="static/train_icon.png" alt="prediction" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
-            """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
+            """<span class="popuptext" id="predictionPopup" style="z-index=-1;width:1850%;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
-            """<td>Stop</td><td>Platform</td><td>Predicted</td><td>Scheduled</td><td>Delay</td></tr>"""
-            f"""{"".join(p.as_html() for p in self.predictions if p.predicted)}</table>"""
+            """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
+            f"""{"".join(p.as_html() for p in sorted((p for p in self.predictions if p.predicted), key = lambda x: x.predicted))}</table>"""
             """</span></div>"""
             if self.trip and self.trip.predictions
             else ""
@@ -201,12 +188,12 @@ class Vehicle(GTFSBase):
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in self.predictions), "Unknown")}</body></br>"""
             """—————————————————————————————————</br>"""
-            f"""{alert} {prediction} {bikes}</br>"""
+            f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"""<a >{self.return_current_status()}</a></br>"""
             f"""Speed: {int(self.speed * 2.23694) if self.speed is not None else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
-            f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M%p")}</br>"""
+            f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""
             f"""Route: {self.route.route_long_name if self.route else ""} - {self.route_id}</br>"""
             f"""Trip: {self.trip_id}</a>"""
         )
@@ -217,7 +204,7 @@ class Vehicle(GTFSBase):
         html = (
             """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
-            """<a style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);color:white;font-family:montserrat,Helvetica,sans-serif;">"""
+            """<a style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);color:white;font-family:montserrat,Helvetica,sans-serif;">"""
             f"""{self.trip.trip_short_name if self.route and self.route.route_type == "2" else ""}</a></a>"""
         )
 
