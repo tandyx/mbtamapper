@@ -16,7 +16,7 @@ from gtfs_realtime import *
 from shared_code.return_date import get_date
 
 date = get_date(-4)
-KEY = "SUBWAY"
+KEY = "COMMUTER_RAIL"
 load_dotenv()
 
 route_types = os.environ.get(KEY)

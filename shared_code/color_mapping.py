@@ -24,16 +24,15 @@ def return_delay_colors(delay: int) -> str:
     """
 
     delay_dict = {
+        "#ffffff": delay < 5,  # white
         "#ffff00": 5 <= delay < 10,
-        "#ff0000": 10 <= delay < 15,
-        "#800000": delay >= 15,
+        "#ff8000": 10 <= delay < 15,
+        "#ff0000": delay >= 15,
     }
 
     for color, condition in delay_dict.items():
         if condition:
             return color
-
-    return "#ffffff"
 
 
 def hex_to_css(hex_code: str) -> str:

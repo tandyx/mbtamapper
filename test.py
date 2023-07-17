@@ -19,7 +19,7 @@ def nightly_import() -> None:
 
     logging.getLogger().setLevel(logging.INFO)
     feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date())
-    # feed.import_gtfs()
+    feed.import_gtfs()
     geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
     for key in ["SUBWAY", "RAPID_TRANSIT", "COMMUTER_RAIL", "BUS", "FERRY"]:
         Alert().get_realtime(feed.session, os.environ.get(key))

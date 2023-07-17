@@ -11,7 +11,7 @@
 /* The actual popup */
 .popup .popuptext {
   visibility: hidden;
-  background-color: #161616;
+  background-color: #000000;
   opacity: 0.95;
   width: 1750%;
   color: #fff;
