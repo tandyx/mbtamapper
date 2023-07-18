@@ -7,6 +7,7 @@ import time
 import logging
 import tempfile
 from datetime import datetime
+from dotenv import load_dotenv
 
 import pandas as pd
 from geojson import FeatureCollection, dump
@@ -24,21 +25,23 @@ from gtfs_realtime import *
 from .query import Query
 from .gtfs_base import GTFSBase
 
+load_dotenv()
+
 
 class Feed:
     """Loads GTFS data into a route_type specific SQLite database.
     This class also contains methods to query the database.
 
     Args:
-        url (str): url of GTFS feed
+        url (str): url of GTFS feed (default: MBTA GTFS feed)
         date (datetime): date to load (default: today)
     """
 
     temp_dir: str = tempfile.gettempdir()
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, url: str, date: datetime = None) -> None:
-        self.url = url
+    def __init__(self, url: str = None, date: datetime = None) -> None:
+        self.url = url or os.environ.get("GTFS_ZIP_LINK")
         self.date = date or get_date()
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]

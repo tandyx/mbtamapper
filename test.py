@@ -1,7 +1,9 @@
 """Test"""
 import os
 import logging
+import time
 from dotenv import load_dotenv
+import schedule
 
 # from sqlalchemy import select
 
@@ -12,17 +14,25 @@ from shared_code.gtfs_helper_time_functions import get_date
 load_dotenv()
 
 
-def nightly_import() -> None:
+def nightly_import(feed: Feed = None) -> None:
     """Runs the nightly import.
 
     Args:
-        date: The date to import. Defaults to today."""
+        feed (Feed): GTFS feed (default: None)
+    """
+    feed = feed or Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_date())
+    feed.import_gtfs()
+    feed.purge_and_filter()
+    feed.delete_old_databases()
 
-    logging.getLogger().setLevel(logging.INFO)
-    feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date())
-    # feed.import_gtfs()
-    # feed.purge_and_filter()
-    # feed.delete_old_databases()
+
+def geojson_exports(feed: Feed = None) -> None:
+    """Exports geojsons.
+
+    Args:
+        feed (Feed): GTFS feed (default: None)
+    """
+    feed = feed or Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_date())
     geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
     for key in os.getenv("LIST_KEYS").split(","):
         Alert().get_realtime(feed.session, os.environ.get(key))
@@ -30,14 +40,12 @@ def nightly_import() -> None:
 
 
 if __name__ == "__main__":
-    nightly_import()
-    # feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date())
-    # feed.session.execute(select(Vehicle)).all()
-    # app.run(debug=True, host="
+    logging.getLogger().setLevel(logging.INFO)
+    # nightly_import(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
+    # geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
 
-
-# logging.getLogger().setLevel(logging.INFO)
-# schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
-# while True:
-#     schedule.run_pending()
-#     time.sleep(60)  # wait one minute
+    schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
+    schedule.every(5).minutes.at(":00", tz="America/New_York").do(geojson_exports, None)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)  # wait one minute

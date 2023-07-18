@@ -1,4 +1,6 @@
 """Flask app for MBTA GTFS data."""
+# pylint: disable=wildcard-import
+# pylint: disable=unused-wildcard-import
 import os
 from geojson import FeatureCollection
 
@@ -7,7 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
 from gtfs_loader.query import Query
 from gtfs_loader.feed import Feed
-from gtfs_realtime import *  # pylint: disable=wildcard-import # pylint: disable=unused-wildcard-import
+from gtfs_realtime import *
+from shared_code.dirname import return_dirname
 
 
 # def render_index():
@@ -18,8 +21,7 @@ from gtfs_realtime import *  # pylint: disable=wildcard-import # pylint: disable
 class FlaskApp:
     """Flask app for MBTA GTFS data."""
 
-    # app = Flask(__name__)
-    # app.route("/")(render_index)
+    ROOT_DIR = return_dirname(__file__, 3)
 
     def __init__(self, key: str, feed: Feed):
         self.key = key
@@ -27,7 +29,7 @@ class FlaskApp:
         self.route_types = os.environ.get(key)
         self.query = Query(self.route_types.split(","))
         self.session = scoped_session(self.feed.sessionmkr)
-        self.app = Flask(__name__)
+        self.app = Flask(__name__, root_path=self.ROOT_DIR)
         self.routes = self._get_routes()
         self._setup_routes()
 
@@ -43,10 +45,9 @@ class FlaskApp:
 
     def _setup_routes(self):
         """Sets up the app routes."""
-        self.app.route("/")(self.render_index)
-        self.app.route(f"/{self.key}")(self.render_map)
+        self.app.route("/")(self.render_map)
         self.app.route("/value")(self.get_value)
-        self.app.route(f"/{self.key}/vehicles")(self.get_vehicles)
+        self.app.route(f"/vehicles")(self.get_vehicles)
         self.app.teardown_appcontext(self.shutdown_session)
 
     def render_map(self):

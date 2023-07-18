@@ -11,10 +11,18 @@
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="">
         </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" />
+    <!-- <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" />
     <script src="/static/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
-    <script src="/static/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script>
+    <script src="/static/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script> -->
+
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/src/MarkerClusterGroup.js"></script>
+
+
     <link rel="stylesheet" href="/static/custom_css/popup.css" />
     <link rel="stylesheet" href="/static/custom_css/tooltip.css" />
     <link rel="stylesheet" href="/static/custom_css/table.css" />
@@ -90,7 +98,6 @@
 <body>
     <div id="map"></div>
     <script>
-
         const ROUTE_TYPE = getRouteType();
         let zoomTolerance = ROUTE_TYPE == "COMMUTER_RAIL" ? 11 : 12;
         let defaultZoom = ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13;
@@ -151,7 +158,7 @@
 
         function plotVehicles() {
 
-            $.getJSON(`${ROUTE_TYPE}/vehicles`, function (vehicle_dict) {
+            $.getJSON(`/vehicles`, function (vehicle_dict) {
                 vehicle_layer.clearLayers();
                 const features = vehicle_dict.features;
                 console.log("vehicles_recieved")
@@ -240,9 +247,12 @@
                 'success': function (data) {
                     tmp = data;
                 }
-            });
+            }
+            );
+            console.log(tmp)
             return tmp;
         };
+
 
     </script>
 

@@ -91,7 +91,9 @@ class Route(GTFSBase):
 
     def as_html_popup(self) -> str:
         """Return a proper HTML popup representation of the route object"""
-
+        alert_row = "".join(
+            set(a.as_html() for a in self.alerts if not a.stop and not a.trip)
+        )
         alert = (
             """<div class = "popup" onclick="showAlertPopup()" >"""
             """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
@@ -99,9 +101,9 @@ class Route(GTFSBase):
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.alerts if not a.stop and not a.trip))}</table>"""
+            f"""{alert_row}</table>"""
             """</span></div>"""
-            if self.alerts
+            if alert_row
             else ""
         )
 
