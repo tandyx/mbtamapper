@@ -15,7 +15,7 @@ from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
 from shared_code.to_sql import to_sql
-from shared_code.color_mapping import return_delay_colors, hex_to_css
+from shared_code.color_mapping import hex_to_css
 
 
 RENAME_DICT = {
