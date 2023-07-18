@@ -45,7 +45,9 @@ if __name__ == "__main__":
     # geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
 
     schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
-    schedule.every(5).minutes.at(":00", tz="America/New_York").do(geojson_exports, None)
+    schedule.every(20).minutes.at(":00", tz="America/New_York").do(
+        geojson_exports, None
+    )
     while True:
         schedule.run_pending()
         time.sleep(60)  # wait one minute
