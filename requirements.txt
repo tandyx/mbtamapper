@@ -2,16 +2,7 @@ pandas
 numpy
 requests
 json_api_doc
-geopandas
 shapely
-matplotlib
-folium
-branca
-css_inline
-polyline
-geocoder
-streamlit
-streamlit_folium
 flask
 sqlalchemy
 geojson
