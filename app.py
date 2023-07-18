@@ -1,138 +1,25 @@
-import sqlite3
-import polyline
-import pandas as pd
-from datetime import datetime
-from flask import Flask, render_template, jsonify, request
-from shared_code.from_sql import GrabData
+"""Main entry point for the application."""
 
-app = Flask(__name__)
-route_type = 0
+import os
+import logging
+from dotenv import load_dotenv
+from threading import Thread
+from flask_apps.flask_app import FlaskApp
+from gtfs_loader.feed import Feed
 
+from shared_code.gtfs_helper_time_functions import get_date
+from flask_apps import *
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-@app.route(f"/vehicles/{route_type}")
-def get_vehicles():
-    conn = sqlite3.connect("mbta_data.db")
-    data = GrabData(route_type, conn).grabvehicles()
-    alert_data = GrabData(route_type, conn).grabalerts()
-    predictions = GrabData(route_type, conn).grabpredictions()
-    for ind, row in data.iterrows():
-        try:
-            data.at[ind, "alert"] = (
-                alert_data.loc[alert_data["trip_id"] == row["trip_id"], :]
-                .drop_duplicates(subset="alert_id")
-                .to_dict(orient="records")
-            )
-        except (ValueError, KeyError):
-            data.at[ind, "alert"] = None
-        try:
-            data.at[ind, "predictions"] = predictions.loc[
-                predictions["trip_id"] == row["trip_id"], :
-            ].to_dict(orient="records")
-        except (ValueError, KeyError):
-            data.at[ind, "predictions"] = None
-
-    data["alert"] = (
-        data["alert"]
-        .apply(lambda x: [x] if isinstance(x, dict) else x)
-        .apply(lambda y: None if y == y and len(y) == 0 else y)
-    )
-    data["predictions"] = (
-        data["predictions"]
-        .apply(lambda x: [x] if isinstance(x, dict) else x)
-        .apply(lambda y: None if y == y and len(y) == 0 else y)
-    )
-    data["vehicle_timestamp"] = pd.to_datetime(data["vehicle_timestamp"]).apply(
-        pd.Timestamp.strftime, args=("%m/%d/%Y %I:%M:%S %p ",)
-    )
-
-    # trip_alert = (
-    #     alert_data.groupby("trip_id")["Value"]
-    #     .apply(lambda x: dict(zip(range(len(x)), x)))
-    #     .reset_index(name="DictValue")
-    # )
-    data["trip_short_name"] = data["trip_short_name"].fillna(data["trip_id"])
-    data["stop_status"] = data["stop_status"].apply(
-        lambda x: x.lower().replace("_", " ") if x == x else x
-    )
-    data.drop(columns=["polyline"], inplace=True)
-    return jsonify(data.fillna("unknown").to_dict(orient="records"))
-
-
-@app.route(f"/stops/{route_type}")
-def get_stops():
-    conn = sqlite3.connect("mbta_data.db")
-    data = GrabData(route_type, conn).grabstops()
-    alert_data = GrabData(route_type, conn).grabalerts()
-    predictions = GrabData(route_type, conn).grabpredictions()
-    for ind, row in data.iterrows():
-        try:
-            data.at[ind, "alert"] = (
-                alert_data.loc[alert_data["stop_id"] == row["parent_station"], :]
-                .drop_duplicates(subset="alert_id")
-                .to_dict(orient="records")
-            )
-        except (ValueError, KeyError):
-            data.at[ind, "alert"] = None
-        try:
-            data.at[ind, "predictions"] = (
-                predictions.loc[predictions["stop_id"] == row["stop_id"], :]
-                .drop_duplicates(subset="trip_id")
-                .to_dict(orient="records")
-            )
-        except (ValueError, KeyError):
-            data.at[ind, "predictions"] = None
-
-    data["alert"] = (
-        data["alert"]
-        .apply(lambda x: [x] if isinstance(x, dict) else x)
-        .apply(lambda y: None if y == y and len(y) == 0 else y)
-    )
-    data["predictions"] = (
-        data["predictions"]
-        .apply(lambda x: [x] if isinstance(x, dict) else x)
-        .apply(lambda y: None if y == y and len(y) == 0 else y)
-    )
-
-    data["stop_timestamp"] = pd.to_datetime(data["stop_timestamp"]).apply(
-        pd.Timestamp.strftime, args=("%m/%d/%Y %I:%M:%S %p ",)
-    )
-
-    return jsonify(data.fillna("unknown").to_dict(orient="records"))
-
-
-@app.route(f"/shapes/{route_type}")
-def get_shapes():
-    conn = sqlite3.connect("mbta_data.db")
-    data = GrabData(route_type, conn).grabshapes()
-    alert_data = GrabData(route_type, conn).grabalerts()
-    for ind, row in data.iterrows():
-        try:
-            data.at[ind, "alert"] = (
-                alert_data.loc[
-                    (alert_data["route_id"] == row["route_id"])
-                    & (alert_data["stop_id"].isna())
-                    & (alert_data["trip_id"].isna()),
-                    :,
-                ]
-                .drop_duplicates(subset="alert_id")
-                .to_dict(orient="records")
-            )
-        except (ValueError, KeyError):
-            data.at[ind, "alert"] = None
-    # data["alert"] = data["alert"].apply(lambda y: None if y == y and len(y) == 0 else y)
-    data["polyline"] = data["polyline"].apply(polyline.decode)
-    data["route_name"] = data["route_name"].fillna(data["route_id"])
-    data["description"].fillna("Bus Replacement")
-    data["shape_timestamp"] = pd.to_datetime(data["shape_timestamp"]).apply(
-        pd.Timestamp.strftime, args=("%m/%d/%Y %I:%M:%S %p ",)
-    )
-    return jsonify(data.fillna("unknown").to_dict(orient="records"))
-
+load_dotenv()
+logging.getLogger().setLevel(logging.INFO)
+DATE = get_date(-2)
+FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", DATE)
+FLASK_APPS = [FlaskApp(key, FEED) for key in os.getenv("LIST_KEYS").split(",")]
+THREADS = [
+    Thread(target=app.run, kwargs={"port": 5000 + index})
+    for index, app in enumerate(FLASK_APPS)
+]
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    for thread in THREADS:
+        thread.start()

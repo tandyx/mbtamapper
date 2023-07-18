@@ -13,3 +13,9 @@ geocoder
 streamlit
 streamlit_folium
 flask
+sqlalchemy
+geojson
+flask_sqlalchemy
+schedule
+python-dotenv
+
