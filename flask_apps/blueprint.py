@@ -4,8 +4,7 @@ from geojson import FeatureCollection
 from flask import Blueprint, render_template, jsonify
 from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
-from gtfs_loader.feed import Feed
-from gtfs_loader.query import Query
+from gtfs_loader import Feed, Query
 from gtfs_realtime import Alert, Prediction, Vehicle
 
 

@@ -9,8 +9,8 @@ import json_api_doc as jad
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor, Session
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.to_sql import to_sql
-from shared_code.color_mapping import return_delay_colors
+
+from helper_functions import to_sql, return_delay_colors
 
 
 RENAME_DICT = {

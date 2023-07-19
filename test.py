@@ -7,9 +7,9 @@ import schedule
 
 # from sqlalchemy import select
 
-from gtfs_loader.feed import Feed
+from gtfs_loader import Feed
 from gtfs_realtime import Alert
-from shared_code.gtfs_helper_time_functions import get_date
+from helper_functions import get_date
 
 load_dotenv()
 

@@ -108,7 +108,7 @@ class Route(GTFSBase):
         )
 
         html = (
-            f"""<a href = {self.route_url} style="color:#{self.route_color};font-size:28pt;text-decoration: none;text-align: left"> {self.route_short_name or self.route_long_name} </a></br>"""
+            f"""<a href = {self.route_url} target="_blank"  style="color:#{self.route_color};font-size:28pt;text-decoration: none;text-align: left"> {self.route_short_name or self.route_long_name} </a></br>"""
             f"""<body style="color:#ffffff;text-align: left;"> {self.route_desc} - {self.route_long_name} </br>"""
             "—————————————————————————————————</br>"
             f"{alert} {'</br>' if alert else ''}"

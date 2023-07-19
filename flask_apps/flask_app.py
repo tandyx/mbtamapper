@@ -7,10 +7,9 @@ from geojson import FeatureCollection
 from flask import Flask, render_template, jsonify
 from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
-from gtfs_loader.query import Query
-from gtfs_loader.feed import Feed
+from gtfs_loader import Feed, Query
 from gtfs_realtime import *
-from shared_code.gtfs_helper_time_functions import get_date
+from helper_functions import get_date
 
 
 feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date(-1))
