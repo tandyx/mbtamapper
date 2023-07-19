@@ -1,6 +1,7 @@
 """Helper functions for time conversions for gtfs loader"""
 from datetime import datetime, timedelta
 import pytz
+from dateutil.parser import parse
 
 
 def to_seconds(time: str) -> int:
@@ -71,3 +72,12 @@ def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
         datetime: The current date in the given timezone"""
 
     return datetime.now(pytz.timezone(zone)) + timedelta(hours=offset)
+
+
+def lazy_convert(time_str: str, zone: str = "America/New_York") -> str:
+    """Lazily converts a timestirng"""
+
+    hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
+    if int(hour) >= 24:
+        time_str = f"{int(hour) - 24}:{minute}:{second}"
+    return pytz.timezone(zone).localize(parse(time_str))

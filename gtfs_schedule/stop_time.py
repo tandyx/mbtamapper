@@ -3,7 +3,7 @@
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.gtfs_helper_time_functions import format_time, to_seconds
+from shared_code.gtfs_helper_time_functions import format_time, to_seconds, lazy_convert
 
 
 class StopTime(GTFSBase):
@@ -40,6 +40,7 @@ class StopTime(GTFSBase):
         # pylint: disable=attribute-defined-outside-init
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
         self.departure_seconds = to_seconds(self.departure_time)
+        self.departure_datetime = lazy_convert(self.departure_time)
 
     def __repr__(self) -> str:
         return f"<StopTime(trip_id={self.trip_id}, stop_id={self.stop_id})>"

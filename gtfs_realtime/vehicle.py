@@ -149,6 +149,8 @@ class Vehicle(GTFSBase):
     def as_html_popup(self) -> str:
         """Returns vehicle as html for a popup."""
 
+        predictions = sorted(set(self.predictions), key=lambda x: x.stop_sequence)
+
         bikes = (
             """<div class = "tooltip">"""
             """<img src ="static/bike.png" alt="bike" width=25 height=25 style="margin:2px;">"""
@@ -176,7 +178,7 @@ class Vehicle(GTFSBase):
             """<table class = "table">"""
             f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
             """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
-            f"""{"".join(set(p.as_html() for p in sorted((p for p in self.predictions if p.predicted), key = lambda x: x.predicted)))}</table>"""
+            f"""{"".join(p.as_html() for p in predictions if p.predicted)}</table>"""
             """</span></div>"""
             if self.trip and self.trip.predictions
             else ""

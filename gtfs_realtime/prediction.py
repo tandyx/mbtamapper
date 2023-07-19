@@ -101,8 +101,11 @@ class Prediction(GTFSBase):
                 setattr(self, value, isoparse(getattr(self, key)))
 
         self.predicted = checker(self, "departure_datetime", "arrival_datetime")
-        self.scheduled = checker(
-            self, "scheduled_departure_datetime", "scheduled_arrival_datetime"
+        self.scheduled = (
+            checker(self, "scheduled_departure_datetime", "scheduled_arrival_datetime")
+            or self.stop_time.departure_datetime
+            if self.stop_time
+            else None
         )
 
         self.delay = (
@@ -116,6 +119,10 @@ class Prediction(GTFSBase):
 
     def status_as_html(self) -> str:
         """Returns status as html."""
+
+        if not self.predicted or not self.scheduled:
+            return "(delay unknown)"
+
         return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"}</a>"""
 
     def as_html(self) -> str:

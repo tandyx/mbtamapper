@@ -27,7 +27,7 @@ class FlaskApp:
 
     def __init__(self, app: Flask, feed_obj: Feed, key: str = None):
         self.app = app
-        self.feed = feed
+        self.feed = feed_obj
         self.key = key or "ALL_ROUTES"
         self.route_types = os.environ.get(key)
         self.query = Query(self.route_types.split(","))
