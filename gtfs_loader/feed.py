@@ -170,7 +170,7 @@ class Feed:
                         )
                     ).all()
 
-                data = sorted(data, key=lambda x: x[0].shape_id)
+                data = sorted(data, key=lambda x: x[0].shape_id, reverse=True)
 
             features = FeatureCollection(
                 [s[0].as_feature() for s in data if hasattr(s[0], "as_feature")]

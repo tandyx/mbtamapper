@@ -10,26 +10,28 @@ from sqlalchemy.orm import scoped_session
 from gtfs_loader.query import Query
 from gtfs_loader.feed import Feed
 from gtfs_realtime import *
-from shared_code.dirname import return_dirname
+from shared_code.gtfs_helper_time_functions import get_date
 
 
-# def render_index():
-#     """Renders index.html."""
-#     return render_template("index.html")
+feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date(-1))
 
 
 class FlaskApp:
-    """Flask app for MBTA GTFS data."""
+    """Flask app for MBTA GTFS data.
 
-    ROOT_DIR = return_dirname(__file__, 3)
+    Attributes:
+        app (Flask): Flask app
+        feed_obj (Feed): GTFS feed
+        key (str): key for route types
+    """
 
-    def __init__(self, key: str, feed: Feed):
-        self.key = key
-        self.feed = feed
+    def __init__(self, app: Flask, feed_obj: Feed, key: str = None):
+        self.app = app
+        self.feed = feed_obj
+        self.key = key or "ALL_ROUTES"
         self.route_types = os.environ.get(key)
         self.query = Query(self.route_types.split(","))
         self.session = scoped_session(self.feed.sessionmkr)
-        self.app = Flask(__name__, root_path=self.ROOT_DIR)
         self.routes = self._get_routes()
         self._setup_routes()
 
@@ -47,7 +49,7 @@ class FlaskApp:
         """Sets up the app routes."""
         self.app.route("/")(self.render_map)
         self.app.route("/value")(self.get_value)
-        self.app.route(f"/vehicles")(self.get_vehicles)
+        self.app.route("/vehicles")(self.get_vehicles)
         self.app.teardown_appcontext(self.shutdown_session)
 
     def render_map(self):

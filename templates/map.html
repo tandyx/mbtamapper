@@ -35,6 +35,7 @@
             bottom: 0;
             left: 0;
             right: 0;
+
         }
     </style>
     <style>
@@ -104,6 +105,7 @@
         let polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
 
         var map = L.map('map', { minZoom: 9 }).setView([42.3519, -71.0552], defaultZoom);
+        map.invalidateSize();
 
         var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -153,7 +155,10 @@
         // calls function every 15 seconds
         var intervalId = window.setInterval(function () {
             plotVehicles();
-        }, 30000);
+            map.invalidateSize();
+        }, 20000);
+
+        map.invalidateSize();
 
 
         function plotVehicles() {
@@ -176,6 +181,7 @@
                     marker.bindPopup(vehicle.properties.popupContent, { maxWidth: "auto" });
                     marker.bindTooltip(vehicle.id);
                     marker.addTo(vehicle_layer);
+
                 }
             });
         }
@@ -218,6 +224,7 @@
 
                     route.bindPopup(shape.properties.popupContent, { maxWidth: "auto" });
                     route.bindTooltip(shape.properties.name);
+
                     if (shape.properties.is_added === true)
                         route.addTo(bus_replacement_layer);
                     else
@@ -253,6 +260,9 @@
             return tmp;
         };
 
+        $("a[href='#map']").on('shown.bs.tab', function (e) {
+            map.invalidateSize();
+        });
 
     </script>
 
