@@ -1,0 +1,52 @@
+.leaflet-popup-content-wrapper,
+.leaflet-tooltip {
+    background: rgb(0, 0, 0, 0.95) !important;
+    color: #ffffff !important;
+    font-family: 'montserrat', Helvetica, sans-serif !important;
+    font-size: 12pt !important;
+    text-align: left !important;
+    border: 15px rgb(0, 0, 0, 0.95) !important;
+}
+
+.leaflet-tooltip-right:before {
+    left: 0;
+    margin-left: -12px;
+    border-right-color: rgb(0, 0, 0, 0.95);
+}
+
+.leaflet-tooltip-left:before {
+    right: 0;
+    margin-right: -12px;
+    border-left-color: rgb(0, 0, 0, 0.95);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background: rgb(0, 0, 0, 0.95) !important;
+    color: #ffffff !important;
+    font-family: 'montserrat', Helvetica, sans-serif !important;
+    font-size: 10pt !important;
+    text-align: left !important;
+}
+
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+    font-family: 'montserrat', Helvetica, sans-serif !important;
+    font-size: 8pt !important;
+    background: rgb(0, 0, 0, 0.7) !important;
+    color: rgb(255, 255, 255, 0.7) !important;
+}
+
+.leaflet-control-layers-expanded {
+    background: rgb(0, 0, 0, 0.95) !important;
+    color: #ffffff !important;
+    font-family: 'montserrat', Helvetica, sans-serif !important;
+    font-size: 8pt !important;
+}
+
+.leaflet-control-layers label {
+    background: rgb(0, 0, 0, 0.95) !important;
+    color: #ffffff !important;
+    font-family: 'montserrat', Helvetica, sans-serif !important;
+    font-size: 8pt !important;
+}

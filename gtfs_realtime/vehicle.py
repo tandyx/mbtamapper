@@ -131,7 +131,7 @@ class Vehicle(GTFSBase):
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
-        return Point(self.latitude, self.longitude)
+        return Point(self.longitude, self.latitude)
 
     def as_feature(self) -> Feature:
         """Returns vehicle as feature."""

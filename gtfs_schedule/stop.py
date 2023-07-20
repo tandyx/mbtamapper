@@ -72,7 +72,7 @@ class Stop(GTFSBase):
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the stop"""
-        return Point(self.stop_lat, self.stop_lon)
+        return Point(self.stop_lon, self.stop_lat)
 
     def return_routes(self) -> list:
         """Returns a list of routes that stop at this stop"""

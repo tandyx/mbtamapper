@@ -3,7 +3,8 @@
 
 
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" charset="UTF-8"
+        content="width=device-width, initial-scale=0.65, maximum-scale=1.0, user-scalable=no" />
     <link rel="icon" href="/static/mbta.png" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
         integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
@@ -11,88 +12,35 @@
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="">
         </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="/static/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css" />
-    <script src="/static/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster-src.js"></script>
-    <script src="/static/Leaflet.markercluster-1.4.1/src/MarkerClusterGroup.js"></script> -->
-
-
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/src/MarkerClusterGroup.js"></script>
+    <script src="/static/custom_js/leaflet-realtime/leaflet-realtime.js"></script>
+    <script src="/static/custom_js/leaflet-realtime/leaflet-realtime.min.js"></script>
+    <link rel="stylesheet" href="/static/custom_js/leaflet-fullscreen/Control.FullScreen.css" />
+    <script src="/static/custom_js/leaflet-fullscreen/Control.FullScreen.js"></script>
 
-
+    <script src="/static/custom_js/index.js" type="text/javascript"></script>
     <link rel="stylesheet" href="/static/custom_css/popup.css" />
     <link rel="stylesheet" href="/static/custom_css/tooltip.css" />
     <link rel="stylesheet" href="/static/custom_css/table.css" />
     <link rel="stylesheet" href="/static/custom_css/scrollbar.css" />
+    <link rel="stylesheet" href="/static/custom_css/leaflet_custom.css" />
 
     <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body,
         #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-
+            height: 100%;
+            width: 100vw;
         }
     </style>
-    <style>
-        .leaflet-popup-content-wrapper,
-        .leaflet-tooltip {
-            background: rgb(0, 0, 0, 0.95) !important;
-            color: #ffffff !important;
-            font-family: 'montserrat', Helvetica, sans-serif !important;
-            font-size: 12pt !important;
-            text-align: left !important;
-            border: 15px rgb(0, 0, 0, 0.95) !important;
-        }
-
-        .leaflet-tooltip-right:before {
-            left: 0;
-            margin-left: -12px;
-            border-right-color: rgb(0, 0, 0, 0.95);
-        }
-
-        .leaflet-tooltip-left:before {
-            right: 0;
-            margin-right: -12px;
-            border-left-color: rgb(0, 0, 0, 0.95);
-        }
-
-        .leaflet-popup-content-wrapper,
-        .leaflet-popup-tip {
-            background: rgb(0, 0, 0, 0.95) !important;
-            color: #ffffff !important;
-            font-family: 'montserrat', Helvetica, sans-serif !important;
-            font-size: 10pt !important;
-            text-align: left !important;
-        }
-
-        .leaflet-control-attribution,
-        .leaflet-control-scale-line {
-            font-family: 'montserrat', Helvetica, sans-serif !important;
-            font-size: 8pt !important;
-            background: rgb(0, 0, 0, 0.7) !important;
-            color: rgb(255, 255, 255, 0.7) !important;
-        }
-
-        .leaflet-control-layers-expanded {
-            background: rgb(0, 0, 0, 0.95) !important;
-            color: #ffffff !important;
-            font-family: 'montserrat', Helvetica, sans-serif !important;
-            font-size: 8pt !important;
-        }
-
-        .leaflet-control-layers label {
-            background: rgb(0, 0, 0, 0.95) !important;
-            color: #ffffff !important;
-            font-family: 'montserrat', Helvetica, sans-serif !important;
-            font-size: 8pt !important;
-        }
-    </style>
-
     <title>MBTA System Map</title>
 </head>
 
@@ -102,167 +50,133 @@
         const ROUTE_TYPE = getRouteType();
         let zoomTolerance = ROUTE_TYPE == "COMMUTER_RAIL" ? 11 : 12;
         let defaultZoom = ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13;
-        let polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
 
-        var map = L.map('map', { minZoom: 9 }).setView([42.3519, -71.0552], defaultZoom);
-        map.invalidateSize();
+        var map = L.map('map', {
+            minZoom: 9, fullscreenControl: true,
+            fullscreenControlOptions: {
+                position: 'topleft'
+            }
+        }).setView([42.3519, -71.0552], defaultZoom);
 
         var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
-
         var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
             maxZoom: 20
         });
 
-        var Stadia_AlidadeSmoothDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-            maxZoom: 20,
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-        });
-
-        // Create a layer group for the vehicles
-
-
         var stop_layer = L.layerGroup().addTo(map);
         var shape_layer = L.layerGroup().addTo(map);
-        var bus_replacement_layer = L.layerGroup().addTo(map);
         var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: zoomTolerance }).addTo(map);
 
-        // var vehicle_layer = L.layerGroup().addTo(map);
-        plotStops();
-        plotShapes();
-        plotVehicles();
+        plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
+        plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
+        plotVehicles("/vehicles", vehicle_layer).addTo(map);
+
 
         var overlays = {
             "Vehicles": vehicle_layer,
             "Stops": stop_layer,
             "Shapes": shape_layer,
-            "Bus Replacement": bus_replacement_layer,
         };
 
         var baseMaps = {
             "Dark": CartoDB_DarkMatter,
-            "Light": CartoDB_Positron,
-            "Alt Dark": Stadia_AlidadeSmoothDark,
+            "Light": CartoDB_Positron
         };
 
         var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
-
-        // calls function every 15 seconds
-        var intervalId = window.setInterval(function () {
-            plotVehicles();
-            map.invalidateSize();
-        }, 20000);
-
         map.invalidateSize();
 
+        function plotVehicles(url, layer) {
 
-        function plotVehicles() {
-
-            $.getJSON(`/vehicles`, function (vehicle_dict) {
-                vehicle_layer.clearLayers();
-                const features = vehicle_dict.features;
-                console.log("vehicles_recieved")
-                for (const vehicle of features) {
-
-                    var icon = L.divIcon({
-                        html: vehicle.properties.icon,
-                        iconSize: [15, 15],
-                    });
-
-                    var marker = L.marker(vehicle.geometry.coordinates, {
-                        icon: icon
-                    }).setZIndexOffset(100);
-
-                    marker.bindPopup(vehicle.properties.popupContent, { maxWidth: "auto" });
-                    marker.bindTooltip(vehicle.id);
-                    marker.addTo(vehicle_layer);
-
+            return L.realtime(
+                url,
+                {
+                    interval: 15000,
+                    type: 'FeatureCollection',
+                    container: layer,
+                    cache: true,
+                    removeMissing: true,
+                    getFeatureId(f) {
+                        return f.id;
+                    },
+                    onEachFeature(f, l) {
+                        var icon = L.divIcon({
+                            html: f.properties.icon,
+                            iconSize: [15, 15],
+                        });
+                        l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+                        l.bindTooltip(f.id);
+                        l.setIcon(icon);
+                        l.setZIndexOffset(100);
+                    },
                 }
-            });
+            )
         }
 
-        function plotStops() {
+        function plotStops(url, layer) {
 
             const stopIcon = L.icon({
                 iconUrl: "/static/mbta.png",
                 iconSize: [15, 15],
             });
 
-            $.getJSON(`/static/geojsons/${ROUTE_TYPE}/stops.json`, function (stops_dict) {
-                stop_layer.clearLayers();
-                const features = stops_dict.features;
-                console.log("stops_recieved")
-                for (const stop of features) {
-                    var marker = L.marker(stop.geometry.coordinates, { icon: stopIcon }).setZIndexOffset(-100);
-                    marker.bindPopup(stop.properties.popupContent, { maxWidth: "auto" });
-                    marker.bindTooltip(stop.properties.stop_name);
-                    marker.addTo(stop_layer);
+            return L.realtime(
+                url,
+                {
+                    interval: 3600000,
+                    type: 'FeatureCollection',
+                    container: layer,
+                    cache: true,
+                    removeMissing: true,
+                    getFeatureId(f) {
+                        return f.id;
+                    },
+                    onEachFeature(f, l) {
+                        // l.setStyle({ renderer: L.canvas({ padding: 0.5, tolerance: 10 }) });
+                        l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+                        l.bindTooltip(f.properties.stop_name);
+                        l.setIcon(stopIcon);
+                        l.setZIndexOffset(-100);
+                    },
                 }
-            });
+            )
         }
 
-        function plotShapes() {
+        function plotShapes(url, layer) {
 
+            let polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
 
-            $.getJSON(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, function (shapes_dict) {
-                shape_layer.clearLayers();
-                bus_replacement_layer.clearLayers();
-                const features = shapes_dict.features;
+            return L.realtime(
+                url,
+                {
+                    interval: 3600000,
+                    type: 'FeatureCollection',
+                    container: layer,
+                    cache: true,
+                    removeMissing: true,
+                    getFeatureId(f) {
+                        return f.id;
+                    },
+                    onEachFeature(f, l) {
+                        l.setStyle({
+                            color: f.properties.color,
+                            opacity: f.properties.opacity,
+                            weight: f.properties.weight,
+                            renderer: polyLineRender
+                        });
 
-                console.log("shapes_recieved")
-
-                for (const shape of features) {
-
-                    var route = L.polyline(shape.geometry.coordinates, {
-                        color: shape.properties.color, opacity: shape.properties.opacity, weight: shape.properties.weight, renderer: polyLineRender
-                    });
-
-                    route.bindPopup(shape.properties.popupContent, { maxWidth: "auto" });
-                    route.bindTooltip(shape.properties.name);
-
-                    if (shape.properties.is_added === true)
-                        route.addTo(bus_replacement_layer);
-                    else
-                        route.addTo(shape_layer);
+                        l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+                        l.bindTooltip(f.properties.name);
+                    },
                 }
-            });
+            )
         }
-
-
-        function showPredictionPopup() {
-            var predictionPopup = document.getElementById("predictionPopup");
-            predictionPopup.classList.toggle("show");
-        }
-        function showAlertPopup() {
-            var alertPopup = document.getElementById("alertPopup");
-            alertPopup.classList.toggle("show");
-        }
-        function getRouteType() {
-            var tmp = null;
-            $.ajax({
-                'async': false,
-                'type': "GET",
-                'global': false,
-                'dataType': 'html',
-                'url': "/value",
-                'data': { 'request': "", 'target': 'arrange_url', 'method': 'method_target' },
-                'success': function (data) {
-                    tmp = data;
-                }
-            }
-            );
-            console.log(tmp)
-            return tmp;
-        };
-
-        $("a[href='#map']").on('shown.bs.tab', function (e) {
-            map.invalidateSize();
-        });
 
     </script>
 
