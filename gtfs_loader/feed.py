@@ -16,7 +16,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select, delete
 from sqlalchemy import CursorResult
-from helper_functions import get_date, get_date, to_sql
+from helper_functions import get_date, get_date, to_sql, download_zip
 from gtfs_schedule import *
 from gtfs_realtime import *
 from .query import Query
