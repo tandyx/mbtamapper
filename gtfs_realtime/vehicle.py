@@ -191,7 +191,7 @@ class Vehicle(GTFSBase):
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"""<a >{self.return_current_status()}</a></br>"""
-            f"""Speed: {int(self.speed * 2.23694) if self.speed is not None else "Unknown"} mph</br>"""
+            f"""Speed: {int((self.speed or 0) * 2.23694) if self.speed is not None or self.current_status == "STOPPED_AT" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""
