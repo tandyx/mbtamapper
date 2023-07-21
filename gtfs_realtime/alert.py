@@ -9,10 +9,8 @@ from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor, Session
 
-
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.df_unpack import df_unpack
-from shared_code.to_sql import to_sql
+from helper_functions import to_sql, df_unpack
 
 RENAME_DICT = {
     "id": "alert_id",
@@ -113,7 +111,7 @@ class Alert(GTFSBase):
     def as_html(self):
         """Returns alert as html."""
         return (
-            f"<tr><td href = '{self.url}' style:'text-decoration:none;'>{str(self.service_effect).lower()}</td>"
+            f"<tr><td href = '{self.url}' target='_blank'  style:'text-decoration:none;'>{str(self.service_effect).lower()}</td>"
             f"<td>{self.short_header or self.header}</td>"
             f"<td>{self.created_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
             f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member

@@ -3,7 +3,7 @@
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.gtfs_helper_time_functions import format_time, to_seconds, lazy_convert
+from helper_functions import format_time, to_seconds, lazy_convert
 
 
 class StopTime(GTFSBase):

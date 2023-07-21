@@ -28,4 +28,4 @@ class ShapePoint(GTFSBase):
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the shape point"""
-        return Point(self.shape_pt_lat, self.shape_pt_lon)
+        return Point(self.shape_pt_lon, self.shape_pt_lat)

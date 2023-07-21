@@ -6,8 +6,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
 
-from shared_code.df_unpack import list_unpack
-from shared_code.gtfs_helper_time_functions import get_date
+from helper_functions import list_unpack, get_date
 
 
 class Stop(GTFSBase):
@@ -73,7 +72,7 @@ class Stop(GTFSBase):
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the stop"""
-        return Point(self.stop_lat, self.stop_lon)
+        return Point(self.stop_lon, self.stop_lat)
 
     def return_routes(self) -> list:
         """Returns a list of routes that stop at this stop"""
@@ -155,12 +154,12 @@ class Stop(GTFSBase):
         )
 
         route_colors = ", </a>".join(
-            f"<a href = '{r.route_url}' style='color:#{r.route_color or 'ffffff'};text-decoration: none;'>{r.route_short_name or r.route_long_name}"
+            f"<a href = '{r.route_url}' target='_blank' style='color:#{r.route_color or 'ffffff'};text-decoration: none;'>{r.route_short_name or r.route_long_name}"
             for r in routes
         )
 
         html = (
-            f"<a href = {self.stop_url} style='color:#{stop_color};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
+            f"<a href = '{self.stop_url}' target='_blank' style='color:#{stop_color};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc if self.child_stops else self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"

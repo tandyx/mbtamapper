@@ -14,8 +14,7 @@ from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
-from shared_code.to_sql import to_sql
-from shared_code.color_mapping import hex_to_css
+from helper_functions import to_sql, hex_to_css
 
 
 RENAME_DICT = {
@@ -119,20 +118,20 @@ class Vehicle(GTFSBase):
             current_status = (
                 f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} </a>"""
                 f"""{self.current_status.lower().replace("_", " ")} """
-                f"""<a href={self.stop.stop_url} style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
+                f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
                 f"""{prd_status}"""
             )
         else:
             current_status = (
                 f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} on </a>"""
-                f"""<a href={self.route.route_url if self.route else ""} style='text-decoration:none;color:#{self.route.route_color if self.route else ""};'>{self.route.route_long_name if self.route else self.route_id}</a>"""
+                f"""<a href={self.route.route_url if self.route else ""} target="_blank" style='text-decoration:none;color:#{self.route.route_color if self.route else ""};'>{self.route.route_long_name if self.route else self.route_id}</a>"""
                 f"""{prd_status}"""
             )
         return current_status
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
-        return Point(self.latitude, self.longitude)
+        return Point(self.longitude, self.latitude)
 
     def as_feature(self) -> Feature:
         """Returns vehicle as feature."""
@@ -185,14 +184,14 @@ class Vehicle(GTFSBase):
         )
 
         html = (
-            f"""<a href = {self.route.route_url if self.route else ""} style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
+            f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in self.predictions), "Unknown")}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"""<a >{self.return_current_status()}</a></br>"""
-            f"""Speed: {int(self.speed * 2.23694) if self.speed is not None else "Unknown"} mph</br>"""
+            f"""Speed: {int((self.speed or 0) * 2.23694) if self.speed is not None or self.current_status == "STOPPED_AT" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""

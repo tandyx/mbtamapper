@@ -11,10 +11,9 @@ from flask import Flask, Blueprint
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.exceptions import NotFound
 from flask_apps import FlaskApp, BluePrintApp
-from gtfs_loader.feed import Feed
+from gtfs_loader import Feed
 
-from shared_code.gtfs_helper_time_functions import get_date
-from shared_code.dirname import return_dirname
+from helper_functions import get_date
 
 # from flask_apps import *
 
@@ -30,9 +29,11 @@ APPS = [
 
 if __name__ == "__main__":
     threads = [
-        Thread(target=app.app.run, kwargs={"host": "0.0.0.0", "port": 5000 + i})
+        Thread(target=app.app.run, kwargs={"host": "0.0.0.0", "port": 80 + i})
         for i, app in enumerate(APPS)
     ]
 
     for thread in threads:
         thread.start()
+
+    # APPS[2].app.run(debug=True)
