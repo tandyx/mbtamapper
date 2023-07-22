@@ -116,14 +116,12 @@ class Vehicle(GTFSBase):
 
         if self.stop:
             current_status = (
-                f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} </a>"""
-                f"""{self.current_status.lower().replace("_", " ")} """
+                f"""<a style="color:#ffffff">{self.current_status.title().replace("_", " ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
-                f"""{prd_status}"""
+                f"""at {self.next_stop_prediction.predicted.strftime("%I:%M %p") if self.next_stop_prediction and self.next_stop_prediction.predicted else ""} {prd_status}"""
             )
         else:
             current_status = (
-                f"""<a style="color:#ffffff;">Vehicle {self.label or self.vehicle_id} on </a>"""
                 f"""<a href={self.route.route_url if self.route else ""} target="_blank" style='text-decoration:none;color:#{self.route.route_color if self.route else ""};'>{self.route.route_long_name if self.route else self.route_id}</a>"""
                 f"""{prd_status}"""
             )
@@ -187,16 +185,16 @@ class Vehicle(GTFSBase):
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
-            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in self.predictions), "Unknown")}</body></br>"""
+            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in sorted(self.predictions, key=lambda x: x.stop_sequence, reverse=True)),  "Unknown")}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
-            f"""<a >{self.return_current_status()}</a></br>"""
+            f"""<a>{self.return_current_status()}</a></br>"""
             f"""Speed: {int((self.speed or 0) * 2.23694) if self.speed is not None or self.current_status == "STOPPED_AT" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
+            f"""Vehicle: {self.vehicle_id}</br>"""
+            f"""Route: {self.route.route_long_name if self.route else self.route_id}</br>"""
             f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""
-            f"""Route: {self.route.route_long_name if self.route else ""} - {self.route_id}</br>"""
-            f"""Trip: {self.trip_id}</a>"""
         )
         return html
 
