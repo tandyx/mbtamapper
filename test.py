@@ -34,8 +34,8 @@ def geojson_exports(feed: Feed = None) -> None:
     """
     feed = feed or Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_date())
     geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
-    # for key in os.getenv("LIST_KEYS").split(","):
-    for key in ["COMMUTER_RAIL"]:
+    for key in os.getenv("LIST_KEYS").split(","):
+        # for key in ["COMMUTER_RAIL"]:
         Alert().get_realtime(feed.session, os.environ.get(key))
         feed.export_geojsons(key, geojson_path)
 

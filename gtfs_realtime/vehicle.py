@@ -118,7 +118,7 @@ class Vehicle(GTFSBase):
             current_status = (
                 f"""<a style="color:#ffffff">{self.current_status.capitalize().replace("_", " ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
-                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted else ""} {prd_status}"""
+                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "STOPPED_AT" else ""} {prd_status}"""
             )
         else:
             current_status = prd_status
