@@ -149,9 +149,7 @@ class Feed:
                     ).all()
                 if key == "RAPID_TRANSIT":
                     data += self.session.execute(
-                        Query(["3"])
-                        .return_parent_stops()
-                        .where(Stop.zone_id.not_like("CR%"))
+                        Query(["3"]).return_parent_stops().where(Stop.zone_id.is_(None))
                     ).all()
 
                 features = FeatureCollection(

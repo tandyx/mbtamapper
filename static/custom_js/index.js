@@ -42,7 +42,7 @@ var baseMaps = {
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-for (realtime of [stopsRealtime, shapesRealtime, vehiclesRealtime]) {
+for (realtime of [stopsRealtime, shapesRealtime]) {
 
 realtime.on('update', function(e) {
     Object.keys(e.update,).forEach(function(id) {
@@ -53,14 +53,35 @@ realtime.on('update', function(e) {
        }
        
        this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-       console.log(this.getLayer(id).getPopup().isOpen());
        
        if (wasOpen === true) {
             this.getLayer(id).openPopup();
        }
+
+
    }.bind(this));
 });
 }
+
+vehiclesRealtime.on('update', function(e) {
+    Object.keys(e.update,).forEach(function(id) {
+       var feature = e.update[id];
+       var wasOpen = this.getLayer(id).getPopup().isOpen();
+       if (wasOpen === true) {
+            this.getLayer(id).closePopup();
+       }
+       this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
+       this.getLayer(id).setIcon(L.divIcon({
+                html: feature.properties.icon,
+                iconSize: [15, 15],
+            }));
+       if (wasOpen === true) {
+            this.getLayer(id).openPopup();
+       }
+
+
+   }.bind(this));
+});
 
 
 

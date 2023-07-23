@@ -51,9 +51,9 @@ class StopTime(GTFSBase):
         html = (
             f"""<tr> <td style='text-decoration:none;color:#{self.trip.route.route_color};'>{self.trip.route.route_short_name or self.trip.route.route_long_name}</td>"""
             f"""<td>{self.trip.trip_short_name or self.trip_id}</td>"""
-            f"""<td>{self.stop.platform_name}</td>"""
-            f"""<td>{self.trip.return_direction()} to {self.destination_label}</td>"""
-            f"""<td>{format_time(self.departure_time)}</td></tr>"""
+            f"""<td>{self.destination_label}</td>"""
+            f"""<td>{format_time(self.departure_time)}</td>"""
+            f"""<td>{self.stop.platform_name}</td></tr>"""
         )
 
         return html

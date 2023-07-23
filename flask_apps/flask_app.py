@@ -68,7 +68,13 @@ class FlaskApp:
         sess = self.session()
         Alert().get_realtime(sess, self.route_types)
         Prediction().get_realtime(sess, self.routes)
-        Vehicle().get_realtime(sess, self.route_types)
+
+        Vehicle().get_realtime(
+            sess,
+            self.route_types,
+            "741,742,743,751,749,746" if self.key == "RAPID_TRANSIT" else "",
+        )
+
         data: list[tuple[Vehicle]] = sess.execute(select(Vehicle)).all()
         geojson_features = [v[0].as_feature() for v in data]
         return jsonify(FeatureCollection(geojson_features))

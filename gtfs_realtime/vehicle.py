@@ -211,14 +211,16 @@ class Vehicle(GTFSBase):
         self,
         session: Session,
         route_types: str,
+        additional_routes: str = "",
         base_url: str = None,
         api_key: str = None,
     ) -> None:
         """Downloads realtime vehicle data from the mbta api.
 
         Args:
-            engine (Engine): database engine
+            session (Session): sqlalchemy session
             route_types (str): comma sep str of route types to query
+            additional_routes (str, optional): comma sep str of additional routes to query. Defaults to "".
             base_url (str, optional): base url for api. Defaults to env var.
             api_key (str, optional): api key for api. Defaults to env var."""
 
@@ -230,13 +232,17 @@ class Vehicle(GTFSBase):
             + (api_key or os.environ.get("MBTA_API_Key"))
         )
 
-        req = rq.get(url, timeout=500)
+        dataframe = query_helper(url)
 
-        if req.ok and req.json().get("data"):
-            dataframe = pd.json_normalize(req.json()["data"], sep="_")
-        else:
-            logging.error("Failed to query vehicles: %s", req.text)
-            dataframe = pd.DataFrame()
+        if additional_routes:
+            url = (
+                (base_url or os.environ.get("MBTA_API_URL"))
+                + "/vehicles?filter[route]="
+                + additional_routes
+                + "&include=trip,stop,route&api_key="
+                + (api_key or os.environ.get("MBTA_API_Key"))
+            )
+            dataframe = pd.concat([dataframe, query_helper(url)])
 
         dataframe.drop(
             columns=[col for col in dataframe.columns if col not in RENAME_DICT],
@@ -244,5 +250,23 @@ class Vehicle(GTFSBase):
             inplace=True,
         )
         dataframe.rename(columns=RENAME_DICT, inplace=True)
-        dataframe.reset_index(inplace=True)
+        dataframe.reset_index(drop=True, inplace=True)
+        dataframe["index"] = dataframe.index
         to_sql(session, dataframe, self.__class__, True)
+
+
+def query_helper(url) -> pd.DataFrame:
+    """Helper function to query the mbta api.
+
+    Args:
+        url (str): url to query
+    Returns:
+        pd.DataFrame: dataframe of query results"""
+
+    req = rq.get(url, timeout=500)
+
+    if req.ok and req.json().get("data"):
+        return pd.json_normalize(req.json()["data"], sep="_")
+    else:
+        logging.error("Failed to query vehicles: %s", req.text)
+        return pd.DataFrame()

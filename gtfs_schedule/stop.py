@@ -132,13 +132,15 @@ class Stop(GTFSBase):
                 )
                 if st.trip.calendar.operates_on_date(date)
                 and st.departure_seconds
-                > (get_current_time().timestamp() - get_date().timestamp() - 1800)
+                > (
+                    get_current_time().timestamp() - get_date().timestamp()
+                )  # - 1800 # 30 minutes
             )
         )
 
         alert = (
             """<div class = "popup" onclick="showAlertPopup()" >"""
-            """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<img src ="static/alert.png" alt="alert" width=25 height=25 title = "Show Alerts" style="margin:2px;">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
@@ -159,11 +161,11 @@ class Stop(GTFSBase):
 
         schedule = (
             """<div class = "popup" onclick="showPredictionPopup()">"""
-            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
+            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Schedule" style="margin:2px;">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
-            """<td>Route</td><td>Trip</td><td>Platform</td><td>Headsign</td><td>Scheduled</td></tr>"""
+            """<td>Route</td><td>Trip</td><td>Headsign</td><td>Scheduled</td><td>Platform</td></tr>"""
             f"""{stop_time_html}</tr></table>"""
             """</span></div>"""
             if self.child_stops and stop_time_html
