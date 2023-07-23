@@ -149,16 +149,10 @@ class Feed:
                     ).all()
                 if key == "RAPID_TRANSIT":
                     data += self.session.execute(
-                        Query(["3"]).return_parent_stops().where(Stop.zone_id.is_(None))
+                        Query(["3"]).return_parent_stops()
                     ).all()
 
-                features = FeatureCollection(
-                    [
-                        s[0].as_feature(self.date)
-                        for s in data
-                        if hasattr(s[0], "as_feature")
-                    ]
-                )
+                features = FeatureCollection([s[0].as_feature(self.date) for s in data])
             if name == "shapes":
                 if key == "RAPID_TRANSIT":
                     data += self.session.execute(
@@ -175,9 +169,7 @@ class Feed:
 
                 data = sorted(data, key=lambda x: x[0].shape_id, reverse=True)
 
-                features = FeatureCollection(
-                    [s[0].as_feature() for s in data if hasattr(s[0], "as_feature")]
-                )
+                features = FeatureCollection([s[0].as_feature() for s in data])
             file_subpath = os.path.join(file_path, key, name + ".json")
             for path in [file_path, os.path.join(file_path, key)]:
                 if not os.path.exists(path):

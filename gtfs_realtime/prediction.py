@@ -146,7 +146,7 @@ class Prediction(GTFSBase):
         """Downloads realtime predictions data from the mbta api.
 
         Args:
-            engine (Engine): database engine
+            session (Session): SQLAlchemy session
             routes (str): comma separated string of routes
             base_url (str, optional): base url for mbta api. Defaults to env var.
             api_key (str, optional): api key for mbta api. Defaults to env var.

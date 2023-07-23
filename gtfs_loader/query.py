@@ -88,10 +88,14 @@ class Query:
         return trip_query
 
     def return_parent_stops(self) -> selectable.Select:
-        """Returns a query for parent stops."""
+        """Returns a query for parent stops.
+
+        Returns:
+            A query for parent stops.
+        """
 
         parent = aliased(Stop)
-        return (
+        query = (
             select(parent)
             .distinct()
             .where(parent.location_type == "1")
@@ -99,6 +103,8 @@ class Query:
             .join(StopTime, Stop.stop_id == StopTime.stop_id)
             .where(StopTime.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
+
+        return query
 
     def return_shapes_query(self) -> selectable.Select:
         """Returns a query for shapes."""

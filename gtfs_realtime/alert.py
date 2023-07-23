@@ -10,7 +10,7 @@ from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor, Session
 
 from gtfs_loader.gtfs_base import GTFSBase
-from helper_functions import to_sql, df_unpack
+from helper_functions import to_sql, df_unpack, query_helper
 
 RENAME_DICT = {
     "id": "alert_id",
@@ -122,14 +122,16 @@ class Alert(GTFSBase):
         self,
         session: Session,
         route_types: str,
+        additional_routes: str = "",
         base_url: str = None,
         api_key: str = None,
     ) -> None:
         """Inserts alerts into realtime database.
 
         Args:
-            engine (Engine): database engine
+            session (Session): SQLAlchemy session
             route_types (str): route types to download, comma separated
+            additional_routes (str, optional): additional routes to download, comma separated. Defaults to "".
             base_url (str, optional): base url for api. Defaults to environment variable MBTA_API_URL.
             api_key (str, optional): api key. Defaults to environment variable MBTA_API_Key.
         """
@@ -142,15 +144,19 @@ class Alert(GTFSBase):
             + (api_key or os.environ.get("MBTA_API_Key"))
         )
 
-        req = requests.get(url, timeout=500)
+        dataframe = df_unpack(query_helper(url), UNPACK_LIST)
 
-        if req.ok and req.json().get("data"):
-            dataframe = df_unpack(
-                pd.json_normalize(req.json()["data"], sep="_"), UNPACK_LIST
+        if additional_routes:
+            url = (
+                (base_url or os.environ.get("MBTA_API_URL"))
+                + "/alerts?filter[route]="
+                + additional_routes
+                + "&filter[datetime]=NOW&include=routes,trips&api_key="
+                + (api_key or os.environ.get("MBTA_API_Key"))
             )
-        else:
-            logging.error("Invalid response from MBTA Alerts: %s", req.text)
-            dataframe = pd.DataFrame()
+            dataframe = pd.concat(
+                [dataframe, df_unpack(query_helper(url), UNPACK_LIST)]
+            )
 
         dataframe.drop(
             columns=[col for col in dataframe.columns if col not in RENAME_DICT],
@@ -158,7 +164,7 @@ class Alert(GTFSBase):
             inplace=True,
         )
         dataframe.rename(columns=RENAME_DICT, inplace=True)
-        dataframe.reset_index(inplace=True)
+        dataframe.reset_index(drop=True, inplace=True)
         for col in ["trip_id", "stop_id", "direction_id"]:
             if col not in dataframe.columns:
                 dataframe[col] = np.nan

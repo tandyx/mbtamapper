@@ -9,7 +9,7 @@ import schedule
 
 from gtfs_loader import Feed
 from gtfs_realtime import Alert
-from helper_functions import get_date
+from helper_functions import get_date, get_current_time
 
 load_dotenv()
 

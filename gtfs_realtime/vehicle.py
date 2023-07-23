@@ -14,7 +14,7 @@ from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
-from helper_functions import to_sql, hex_to_css
+from helper_functions import to_sql, hex_to_css, query_helper
 
 
 RENAME_DICT = {
@@ -253,20 +253,3 @@ class Vehicle(GTFSBase):
         dataframe.reset_index(drop=True, inplace=True)
         dataframe["index"] = dataframe.index
         to_sql(session, dataframe, self.__class__, True)
-
-
-def query_helper(url) -> pd.DataFrame:
-    """Helper function to query the mbta api.
-
-    Args:
-        url (str): url to query
-    Returns:
-        pd.DataFrame: dataframe of query results"""
-
-    req = rq.get(url, timeout=500)
-
-    if req.ok and req.json().get("data"):
-        return pd.json_normalize(req.json()["data"], sep="_")
-    else:
-        logging.error("Failed to query vehicles: %s", req.text)
-        return pd.DataFrame()
