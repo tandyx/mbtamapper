@@ -1,4 +1,5 @@
 """predictions"""
+# pylint: disable=line-too-long
 import os
 import logging
 import requests
@@ -121,9 +122,9 @@ class Prediction(GTFSBase):
         """Returns status as html."""
 
         if not self.predicted or not self.scheduled:
-            return "(delay unknown)"
+            return ""
 
-        return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"}</a>"""
+        return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else ""}</a>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""

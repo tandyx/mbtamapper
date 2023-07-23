@@ -25,10 +25,9 @@ var stop_layer = L.layerGroup().addTo(map);
 var shape_layer = L.layerGroup().addTo(map);
 var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: zoomTolerance }).addTo(map);
 
-plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
-plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
-plotVehicles("/vehicles", vehicle_layer).addTo(map);
-
+var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
+var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
+var vehiclesRealtime = plotVehicles("/vehicles", vehicle_layer).addTo(map);
 
 var overlays = {
     "Vehicles": vehicle_layer,
@@ -42,6 +41,29 @@ var baseMaps = {
 };
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+
+for (realtime of [stopsRealtime, shapesRealtime, vehiclesRealtime]) {
+
+realtime.on('update', function(e) {
+    Object.keys(e.update,).forEach(function(id) {
+       var feature = e.update[id];
+       var wasOpen = this.getLayer(id).getPopup().isOpen();
+       if (wasOpen === true) {
+            this.getLayer(id).closePopup();
+       }
+       
+       this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
+       console.log(this.getLayer(id).getPopup().isOpen());
+       
+       if (wasOpen === true) {
+            this.getLayer(id).openPopup();
+       }
+   }.bind(this));
+});
+}
+
+
+
 
 function plotVehicles(url, layer) {
 
@@ -118,7 +140,7 @@ function plotShapes(url, layer) {
                 l.setStyle({
                     color: f.properties.color,
                     opacity: f.properties.opacity,
-                    weight: 1.1,
+                    weight: 1.3,
                     renderer: polyLineRender
                 });
 

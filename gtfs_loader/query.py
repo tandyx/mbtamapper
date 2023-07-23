@@ -44,20 +44,20 @@ class Query:
                         CalendarAttribute.service_schedule_typicality != "6",
                         Calendar.start_date <= date.strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
-                        getattr(Calendar, date.strftime("%A").lower()) == 1,
-                        not_(
-                            and_(
-                                CalendarDate.date == date.strftime("%Y%m%d"),
-                                CalendarDate.exception_type == "2",
-                                CalendarDate.service_id.isnot(None),
-                            )
-                        ),
-                    ),
-                    and_(
-                        CalendarDate.date == date.strftime("%Y%m%d"),
-                        CalendarDate.exception_type == "1",
-                        CalendarDate.service_id.isnot(None),
-                        CalendarAttribute.service_schedule_typicality != "6",
+                        # getattr(Calendar, date.strftime("%A").lower()) == 1,
+                        #     not_(
+                        #         and_(
+                        #             CalendarDate.date == date.strftime("%Y%m%d"),
+                        #             CalendarDate.exception_type == "2",
+                        #             CalendarDate.service_id.isnot(None),
+                        #         )
+                        #     ),
+                        # ),
+                        # and_(
+                        #     CalendarDate.date == date.strftime("%Y%m%d"),
+                        #     CalendarDate.exception_type == "1",
+                        #     CalendarDate.service_id.isnot(None),
+                        #     CalendarAttribute.service_schedule_typicality != "6",
                     ),
                 )
             )

@@ -16,7 +16,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select, delete
 from sqlalchemy import CursorResult
-from helper_functions import get_date, get_date, to_sql, download_zip
+from helper_functions import get_date, to_sql, download_zip
 from gtfs_schedule import *
 from gtfs_realtime import *
 from .query import Query
@@ -153,6 +153,14 @@ class Feed:
                         .return_parent_stops()
                         .where(Stop.zone_id.not_like("CR%"))
                     ).all()
+
+                features = FeatureCollection(
+                    [
+                        s[0].as_feature(self.date)
+                        for s in data
+                        if hasattr(s[0], "as_feature")
+                    ]
+                )
             if name == "shapes":
                 if key == "RAPID_TRANSIT":
                     data += self.session.execute(
@@ -169,9 +177,9 @@ class Feed:
 
                 data = sorted(data, key=lambda x: x[0].shape_id, reverse=True)
 
-            features = FeatureCollection(
-                [s[0].as_feature() for s in data if hasattr(s[0], "as_feature")]
-            )
+                features = FeatureCollection(
+                    [s[0].as_feature() for s in data if hasattr(s[0], "as_feature")]
+                )
             file_subpath = os.path.join(file_path, key, name + ".json")
             for path in [file_path, os.path.join(file_path, key)]:
                 if not os.path.exists(path):

@@ -1,5 +1,5 @@
 """Vehicle"""
-
+# pylint: disable=line-too-long
 import os
 import logging
 import pandas as pd
@@ -64,7 +64,7 @@ class Vehicle(GTFSBase):
     predictions = relationship(
         "Prediction",
         back_populates="vehicle",
-        primaryjoin="Vehicle.vehicle_id==foreign(Prediction.vehicle_id)",
+        primaryjoin="Vehicle.trip_id==foreign(Prediction.trip_id)",
         viewonly=True,
     )
     route = relationship(
@@ -111,21 +111,19 @@ class Vehicle(GTFSBase):
         prd_status = (
             self.next_stop_prediction.status_as_html()
             if self.next_stop_prediction
-            else "<a style ='color:#ffffff;'> (Delay Unknown)</a>"
+            else ""
         )
 
         if self.stop:
             current_status = (
-                f"""<a style="color:#ffffff">{self.current_status.title().replace("_", " ")} </a>"""
+                f"""<a style="color:#ffffff">{self.current_status.capitalize().replace("_", " ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
-                f"""at {self.next_stop_prediction.predicted.strftime("%I:%M %p") if self.next_stop_prediction and self.next_stop_prediction.predicted else ""} {prd_status}"""
+                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted else ""} {prd_status}"""
             )
         else:
-            current_status = (
-                f"""<a href={self.route.route_url if self.route else ""} target="_blank" style='text-decoration:none;color:#{self.route.route_color if self.route else ""};'>{self.route.route_long_name if self.route else self.route_id}</a>"""
-                f"""{prd_status}"""
-            )
-        return current_status
+            current_status = prd_status
+
+        return f"<a>{current_status}</a>" + ("</br>" if current_status else "")
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
@@ -146,12 +144,12 @@ class Vehicle(GTFSBase):
     def as_html_popup(self) -> str:
         """Returns vehicle as html for a popup."""
 
-        predictions = sorted(set(self.predictions), key=lambda x: x.stop_sequence)
+        predicted_html = "".join(p.as_html() for p in self.predictions if p.predicted)
 
         bikes = (
             """<div class = "tooltip">"""
             """<img src ="static/bike.png" alt="bike" width=25 height=25 style="margin:2px;">"""
-            """<span class="tooltiptext">Bicycles are allowed on this trip.</span></div>"""
+            """<span class="tooltiptext">Bikes allowed.</span></div>"""
             if self.trip and self.trip.bikes_allowed == 1
             else ""
         )
@@ -175,9 +173,9 @@ class Vehicle(GTFSBase):
             """<table class = "table">"""
             f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
             """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
-            f"""{"".join(p.as_html() for p in predictions if p.predicted)}</table>"""
+            f"""{predicted_html}</table>"""
             """</span></div>"""
-            if self.trip and self.trip.predictions
+            if self.trip and self.trip.predictions and predicted_html
             else ""
         )
 
@@ -188,12 +186,12 @@ class Vehicle(GTFSBase):
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in sorted(self.predictions, key=lambda x: x.stop_sequence, reverse=True)),  "Unknown")}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
-            f"""<a>{self.return_current_status()}</a></br>"""
+            f"{self.return_current_status()}"
             f"""Speed: {int((self.speed or 0) * 2.23694) if self.speed is not None or self.current_status == "STOPPED_AT" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Vehicle: {self.vehicle_id}</br>"""
-            f"""Route: {self.route.route_long_name if self.route else self.route_id}</br>"""
+            f"""Route: {f'({self.route.route_short_name}) ' if self.route and self.route.route_type == "3" else ""}{self.route.route_long_name if self.route else self.route_id}</br>"""
             f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""
         )
         return html
@@ -203,7 +201,7 @@ class Vehicle(GTFSBase):
         html = (
             """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
-            """<a style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);color:white;font-family:montserrat,Helvetica,sans-serif;">"""
+            """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'montserrat','Helvetica',sans-serif;">"""
             f"""{self.trip.trip_short_name if self.route and self.route.route_type == "2" else ""}</a></a>"""
         )
 
