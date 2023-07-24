@@ -5,21 +5,19 @@
 
 import os
 import logging
-from dotenv import load_dotenv
 from threading import Thread
-from flask import Flask, Blueprint
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from werkzeug.exceptions import NotFound
-from flask_apps import FlaskApp, BluePrintApp
+from dotenv import load_dotenv
+from flask import Flask
+from flask_apps import FlaskApp
 from gtfs_loader import Feed
 
-from helper_functions import get_date
+from helper_functions import get_current_time
 
 # from flask_apps import *
 
 load_dotenv()
 logging.getLogger().setLevel(logging.INFO)
-DATE = get_date(-2)
+DATE = get_current_time(-1)
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", DATE)
 
 APPS = [

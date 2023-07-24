@@ -17,7 +17,7 @@
     z-index: 1;
     top: -5px;
     left: 110%;
-    font-family: 'montserrat', Helvetica, sans-serif !important;
+    font-family: 'montserrat', 'Helvetica', sans-serif !important;
 }
 
 .tooltip .tooltiptext::after {

@@ -35,16 +35,17 @@ def geojson_exports(feed: Feed = None) -> None:
     feed = feed or Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_date())
     geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
     for key in os.getenv("LIST_KEYS").split(","):
+        # for key in ["COMMUTER_RAIL"]:
         Alert().get_realtime(feed.session, os.environ.get(key))
         feed.export_geojsons(key, geojson_path)
 
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    nightly_import(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
-    geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
+    # nightly_import(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
+    # geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
     schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
-    schedule.every(20).minutes.at(":00", tz="America/New_York").do(
+    schedule.every(60).minutes.at(":00", tz="America/New_York").do(
         geojson_exports, None
     )
     while True:

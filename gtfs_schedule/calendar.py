@@ -1,5 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
 from datetime import datetime
+import pytz
 
 from sqlalchemy import Integer, Column, String
 from sqlalchemy.orm import relationship, reconstructor
@@ -35,8 +36,14 @@ class Calendar(GTFSBase):
     def init_on_load(self) -> None:
         """Initialize the calendar object on load"""
         # pylint: disable=attribute-defined-outside-init
-        self.start_datetime = datetime.strptime(self.start_date, "%Y%m%d")
-        self.end_datetime = datetime.strptime(self.end_date, "%Y%m%d")
+
+        self.start_datetime = pytz.timezone("America/New_York").localize(
+            datetime.strptime(self.start_date, "%Y%m%d")
+        )
+
+        self.end_datetime = pytz.timezone("America/New_York").localize(
+            datetime.strptime(self.end_date, "%Y%m%d")
+        )
 
     def __repr__(self) -> str:
         return f"<Calendar(service_id={self.service_id})>"

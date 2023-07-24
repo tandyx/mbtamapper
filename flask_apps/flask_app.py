@@ -9,10 +9,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
-from helper_functions import get_date
-
-
-feed = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date(-1))
 
 
 class FlaskApp:
@@ -23,6 +19,8 @@ class FlaskApp:
         feed_obj (Feed): GTFS feed
         key (str): key for route types
     """
+
+    SILVER_LINE_ROUTES = "741,742,743,751,749,746"
 
     def __init__(self, app: Flask, feed_obj: Feed, key: str = None):
         self.app = app
@@ -66,9 +64,12 @@ class FlaskApp:
     def get_vehicles(self):
         """Returns vehicles as geojson."""
         sess = self.session()
-        Alert().get_realtime(sess, self.route_types)
-        Prediction().get_realtime(sess, self.routes)
-        Vehicle().get_realtime(sess, self.route_types)
+        add_routes = self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
+
+        Alert().get_realtime(sess, self.route_types, add_routes)
+        Prediction().get_realtime(sess, self.routes + "," + add_routes)
+        Vehicle().get_realtime(sess, self.route_types, add_routes)
+
         data: list[tuple[Vehicle]] = sess.execute(select(Vehicle)).all()
         geojson_features = [v[0].as_feature() for v in data]
         return jsonify(FeatureCollection(geojson_features))

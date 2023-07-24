@@ -1,4 +1,5 @@
 """predictions"""
+# pylint: disable=line-too-long
 import os
 import logging
 import requests
@@ -121,9 +122,9 @@ class Prediction(GTFSBase):
         """Returns status as html."""
 
         if not self.predicted or not self.scheduled:
-            return "(delay unknown)"
+            return ""
 
-        return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else "(on time)"}</a>"""
+        return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else ""}</a>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
@@ -145,7 +146,7 @@ class Prediction(GTFSBase):
         """Downloads realtime predictions data from the mbta api.
 
         Args:
-            engine (Engine): database engine
+            session (Session): SQLAlchemy session
             routes (str): comma separated string of routes
             base_url (str, optional): base url for mbta api. Defaults to env var.
             api_key (str, optional): api key for mbta api. Defaults to env var.

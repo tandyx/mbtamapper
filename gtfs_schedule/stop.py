@@ -1,4 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
+# pylint: disable=line-too-long
+from datetime import datetime
 from shapely.geometry import Point
 from geojson import Feature
 
@@ -6,7 +8,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
 
-from helper_functions import list_unpack, get_date
+from helper_functions import list_unpack, get_date, get_current_time
 
 
 class Stop(GTFSBase):
@@ -87,17 +89,20 @@ class Stop(GTFSBase):
 
         return sorted(routes, key=lambda x: x.route_type)
 
-    def as_feature(self) -> Feature:
+    def as_feature(self, date: datetime) -> Feature:
         """Returns stop object as a feature.
 
         Args:
-            route_types: A list of route types to include routes for."""
+            date: The date to return the feature for.
+        Returns:
+            A geojson feature.
+        """
 
         feature = Feature(
             id=self.stop_id,
             geometry=self.as_point(),
             properties={
-                "popupContent": self.as_html_popup(),
+                "popupContent": self.as_html_popup(date),
                 "stop_name": self.stop_name,
             },
         )
@@ -112,16 +117,30 @@ class Stop(GTFSBase):
         """
         return next((r.route_color for r in routes or self.routes), "008EAA")
 
-    def as_html_popup(self) -> str:
+    def as_html_popup(self, date: datetime) -> str:
         """Returns stop object as an html popup.
         Args:
-            route_types: A list of route types to include routes for."""
+            date: The date to return the popup for."""
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
+        stop_time_html = "".join(
+            (
+                st.as_html()
+                for st in sorted(
+                    list_unpack([s.stop_times for s in self.child_stops]),
+                    key=lambda x: x.departure_seconds,
+                )
+                if st.trip.calendar.operates_on_date(date)
+                and st.departure_seconds
+                > (
+                    get_current_time().timestamp() - get_date().timestamp()
+                )  # - 1800 # 30 minutes
+            )
+        )
 
         alert = (
             """<div class = "popup" onclick="showAlertPopup()" >"""
-            """<img src ="static/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<img src ="static/alert.png" alt="alert" width=25 height=25 title = "Show Alerts" style="margin:2px;">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
@@ -142,14 +161,14 @@ class Stop(GTFSBase):
 
         schedule = (
             """<div class = "popup" onclick="showPredictionPopup()">"""
-            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
+            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Schedule" style="margin:2px;">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
-            """<td>Route</td><td>Trip</td><td>Platform</td><td>Headsign</td><td>Scheduled</td></tr>"""
-            f"""{"".join((st.as_html() for st in sorted(list_unpack([s.stop_times for s in self.child_stops ]), key= lambda x: x.departure_seconds) if st.departure_seconds > (get_date().timestamp() - get_date().replace(hour = 0, minute=0, second = 0).timestamp() - 1800)))}</tr></table>"""
+            """<td>Route</td><td>Trip</td><td>Headsign</td><td>Scheduled</td><td>Platform</td></tr>"""
+            f"""{stop_time_html}</tr></table>"""
             """</span></div>"""
-            if self.child_stops
+            if self.child_stops and stop_time_html
             else ""
         )
 
