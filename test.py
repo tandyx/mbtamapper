@@ -9,7 +9,7 @@ import schedule
 
 from gtfs_loader import Feed
 from gtfs_realtime import Alert
-from helper_functions import get_date, get_current_time
+from helper_functions import get_date
 
 load_dotenv()
 
@@ -43,7 +43,7 @@ def geojson_exports(feed: Feed = None) -> None:
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     # nightly_import(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
-    geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
+    # geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
     schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
     schedule.every(60).minutes.at(":00", tz="America/New_York").do(
         geojson_exports, None

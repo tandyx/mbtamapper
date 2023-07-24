@@ -1,3 +1,4 @@
+"""Helper function to dump dataframe to sql."""
 import logging
 from sqlalchemy import delete
 from sqlalchemy.orm import Session

@@ -1,7 +1,6 @@
 """Alerts"""
+# pylint: disable=line-too-long
 import os
-import logging
-import requests
 import pandas as pd
 import numpy as np
 from dateutil.parser import isoparse

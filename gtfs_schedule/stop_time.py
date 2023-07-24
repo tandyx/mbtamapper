@@ -1,5 +1,5 @@
 """File to hold the Calendar class and its associated methods."""
-
+# pylint: disable=line-too-long
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase

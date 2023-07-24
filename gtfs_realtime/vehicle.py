@@ -1,9 +1,7 @@
 """Vehicle"""
 # pylint: disable=line-too-long
 import os
-import logging
 import pandas as pd
-import requests as rq
 
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer, Float

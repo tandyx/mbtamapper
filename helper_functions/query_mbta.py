@@ -1,3 +1,4 @@
+"""Helper functions to query the mbta api."""
 import logging
 import requests as rq
 import pandas as pd
