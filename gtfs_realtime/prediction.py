@@ -6,7 +6,7 @@ from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
 
-from helper_functions import return_delay_colors
+from helper_functions import return_delay_colors, lazy_convert
 
 
 class Prediction(GTFSBase):
@@ -54,9 +54,9 @@ class Prediction(GTFSBase):
     stop_time = relationship(
         "StopTime",
         primaryjoin="""and_(foreign(Prediction.trip_id)==StopTime.trip_id,
-                            foreign(Prediction.stop_sequence)==StopTime.stop_sequence,
                             foreign(Prediction.stop_id)==StopTime.stop_id,)""",
         viewonly=True,
+        uselist=False,
     )
 
     DATETIME_MAPPER = {
@@ -73,7 +73,13 @@ class Prediction(GTFSBase):
                 setattr(self, value, isoparse(getattr(self, key)))
 
         self.predicted = checker(self, "departure_datetime", "arrival_datetime")
-        self.scheduled = self.stop_time.departure_datetime if self.stop_time else None
+        self.scheduled = (
+            self.stop_time.departure_datetime
+            if hasattr(self.stop_time, "departure_datetime")
+            else lazy_convert(self.stop_time.departure_time)
+            if hasattr(self.stop_time, "departure_time")
+            else None
+        )
         self.delay = (
             int((self.predicted - self.scheduled).total_seconds() / 60)
             if (self.predicted and self.scheduled)

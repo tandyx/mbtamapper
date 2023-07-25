@@ -20,8 +20,8 @@ def nightly_import(feed: Feed = None) -> None:
         feed (Feed): GTFS feed (default: None)
     """
     feed = feed or Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_date())
-    # feed.import_gtfs()
-    # feed.purge_and_filter()
+    feed.import_gtfs()
+    feed.purge_and_filter()
     feed.import_realtime()
     feed.delete_old_databases()
 
@@ -51,8 +51,8 @@ def update_realtime(feed: Feed = None) -> None:
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     # nightly_import(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
-    geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
-    update_realtime(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date(0)))
+    # geojson_exports(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date()))
+    # update_realtime(Feed("https://cdn.mbta.com/MBTA_GTFS.zip", get_date(0)))
     schedule.every(15).seconds.do(update_realtime, None)
     schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
     schedule.every(60).minutes.at(":00", tz="America/New_York").do(

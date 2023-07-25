@@ -100,7 +100,7 @@ class Route(GTFSBase):
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
-            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
+            """<td>Alert</td><td>Updated</td></tr>"""
             f"""{alert_row}</table>"""
             """</span></div>"""
             if alert_row

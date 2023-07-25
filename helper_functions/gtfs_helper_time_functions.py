@@ -4,6 +4,7 @@ import pytz
 from dateutil.parser import parse
 
 import pandas as pd
+import numpy as np
 
 
 def to_seconds(time: str) -> int:
@@ -107,6 +108,9 @@ def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
         col (str): The column of timestamps
     Returns:
         pd.Series: A series of iso strings"""
+
+    if col not in dataframe.columns:
+        return np.nan
 
     return dataframe[col].apply(
         lambda x: pytz.timezone("America/New_York")

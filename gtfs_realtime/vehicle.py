@@ -140,7 +140,7 @@ class Vehicle(GTFSBase):
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
-            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
+            """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
             """</span></div>"""
             if self.trip and self.trip.alerts

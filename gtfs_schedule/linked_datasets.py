@@ -1,6 +1,7 @@
 """LinkedDatasets"""
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
+import time
 import logging
 import requests as rq
 import pandas as pd
@@ -119,11 +120,10 @@ class LinkedDataset(GTFSBase):
         feed = FeedMessage()
         response = rq.get(self.url, timeout=10)
         if not response.ok:
-            logging.error(f"Error retrieving data from {self.url}")
+            logging.error("Error retrieving data from %s", self.url)
             return
-        else:
-            logging.info(f"Retrieved data from {self.url}")
 
+        logging.info("Retrieved data from %s", self.url)
         feed.ParseFromString(response.content)
 
         for key, value in self.DATASET_MAPPER.items():
@@ -135,12 +135,28 @@ class LinkedDataset(GTFSBase):
             dataset_dict["unpack"],
         )
 
+        if dataframe.empty:
+            logging.warning("Empty dataframe from %s", self.url)
+
         if getattr(self, "service_alerts"):
-            dataframe["alert_informed_entity_trip"] = dataframe[
-                "alert_informed_entity_trip"
-            ].apply(lambda x: x.get("trip_id") if x == x else None)
+            dataframe["alert_informed_entity_trip"] = (
+                dataframe["alert_informed_entity_trip"].apply(
+                    lambda x: x.get("trip_id") if x == x else None
+                )
+                if "alert_informed_entity_trip" in dataframe.columns
+                else None
+            )
 
             dataframe["timestamp"] = get_current_time().isoformat()
+
+        if getattr(self, "vehicle_positions"):
+            dataframe["vehicle_position_speed"] = (
+                dataframe["vehicle_position_speed"] * 2.23694
+                if "vehicle_position_speed" in dataframe.columns
+                else None
+            )
+
+            dataframe = dataframe[dataframe["vehicle_timestamp"] > time.time() - 300]
 
         dataframe.reset_index(drop=True, inplace=True)
 

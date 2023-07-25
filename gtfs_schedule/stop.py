@@ -123,6 +123,7 @@ class Stop(GTFSBase):
             date: The date to return the popup for."""
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
+        alerts = self.alerts or list_unpack([s.alerts for s in self.child_stops])
         stop_time_html = "".join(
             (
                 st.as_html()
@@ -144,10 +145,10 @@ class Stop(GTFSBase):
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
-            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.alerts))}</table>"""
+            """<td>Alert</td><td>Updated</td></tr>"""
+            f"""{"".join(set(a.as_html() for a in alerts ))}</table>"""
             """</span></div>"""
-            if self.alerts
+            if alerts
             else ""
         )
 

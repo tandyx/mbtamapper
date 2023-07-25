@@ -71,7 +71,6 @@ class Alert(GTFSBase):
         """Returns alert as html."""
         return (
             f"<tr><td href = '{self.url}' target='_blank'  style:'text-decoration:none;'>{str(self.header).lower()}</td>"
-            f"<td>{self.start_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
             f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
             "</tr>"
         )
