@@ -9,4 +9,4 @@ geojson
 flask_sqlalchemy
 schedule
 python-dotenv
-
+gtfs-realtime-bindings
