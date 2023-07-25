@@ -11,7 +11,7 @@ from sqlalchemy.orm import relationship, reconstructor, Session
 from shapely.geometry import Point
 from geojson import Feature
 
-from gtfs_loader.gtfs_base import GTFSBase
+from gtfs_loader import GTFSBase
 from helper_functions import to_sql, hex_to_css, query_helper
 
 
