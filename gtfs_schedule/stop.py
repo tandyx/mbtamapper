@@ -186,7 +186,7 @@ class Stop(GTFSBase):
             f"Routes: {route_colors}</a></br>"
             f"Zones: {', '.join(set(c.zone_id for c in self.child_stops if c.zone_id))}</br>"
             f"<a style='color:grey;font-size:9pt'>"
-            f"Adress: {self.stop_address}</br>"
+            f"Address: {self.stop_address}</br>"
             f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"
             "</a></body>"
         )
