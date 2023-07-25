@@ -1,5 +1,6 @@
 
 const ROUTE_TYPE = getRouteType();
+document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
 let zoomTolerance = ROUTE_TYPE == "COMMUTER_RAIL" ? 11 : 12;
 let defaultZoom = ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13;
 
@@ -196,3 +197,9 @@ function getRouteType() {
     console.log(tmp)
     return tmp;
 };
+
+function titleCase(str, split = "_") {
+    return str.toLowerCase().split(split).map(function (word) {
+        return (word.charAt(0).toUpperCase() + word.slice(1));
+    }).join(' ');
+}

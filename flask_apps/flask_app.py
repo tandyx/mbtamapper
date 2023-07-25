@@ -66,7 +66,7 @@ class FlaskApp:
         sess = self.session()
         add_routes = self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
 
-        Alert().get_realtime(sess, self.route_types, add_routes)
+        Alert().get_realtime(sess, os.environ.get("ALL_ROUTES"))
         Prediction().get_realtime(sess, self.routes + "," + add_routes)
         Vehicle().get_realtime(sess, self.route_types, add_routes)
 
