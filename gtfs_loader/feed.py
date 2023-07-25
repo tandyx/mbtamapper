@@ -76,6 +76,7 @@ class Feed:
             "trips.txt": Trip,
             "multi_route_trips.txt": MultiRouteTrip,
             "stop_times.txt": StopTime,
+            "linked_datasets.txt": LinkedDataset,
         }
         # ------------------------------- Dump Data ------------------------------- #
         for file, orm in table_dict.items():
@@ -88,6 +89,12 @@ class Feed:
                     to_sql(self.session, chunk, orm)
 
         logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
+
+    def import_realtime(self) -> None:
+        """pass"""
+        dataset: tuple[LinkedDataset]
+        for dataset in self.session.execute(select(LinkedDataset)).all():
+            dataset[0].dump_realtime(self.session)
 
     def purge_and_filter(self) -> None:
         """Purges and filters the database."""

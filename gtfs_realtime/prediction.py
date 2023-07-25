@@ -1,35 +1,12 @@
 """predictions"""
 # pylint: disable=line-too-long
-import os
-import logging
-import requests
-import pandas as pd
 from dateutil.parser import isoparse
-import json_api_doc as jad
 
 from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import relationship, reconstructor, Session
+from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
 
-from helper_functions import to_sql, return_delay_colors
-
-
-RENAME_DICT = {
-    "id": "prediction_id",
-    "type": "prediction_type",
-    "arrival_time": "arrival_time",
-    "departure_time": "departure_time",
-    "direction_id": "direction_id",
-    "schedule_relationship": "schedule_relationship",
-    "status": "status",
-    "stop_sequence": "stop_sequence",
-    "schedule_arrival_time": "scheduled_arrival_time",
-    "schedule_departure_time": "scheduled_departure_time",
-    "route_id": "route_id",
-    "stop_id": "stop_id",
-    "trip_id": "trip_id",
-    "vehicle_id": "vehicle_id",
-}
+from helper_functions import return_delay_colors
 
 
 class Prediction(GTFSBase):
@@ -38,14 +15,10 @@ class Prediction(GTFSBase):
     __tablename__ = "predictions"
 
     prediction_id = Column(String)
-    prediction_type = Column(String)
     arrival_time = Column(String)
     departure_time = Column(String)
-    scheduled_arrival_time = Column(String)
-    scheduled_departure_time = Column(String)
     direction_id = Column(String)
     schedule_relationship = Column(String)
-    status = Column(String)
     stop_sequence = Column(Integer)
     route_id = Column(String)
     stop_id = Column(String)
@@ -89,8 +62,6 @@ class Prediction(GTFSBase):
     DATETIME_MAPPER = {
         "arrival_time": "arrival_datetime",
         "departure_time": "departure_datetime",
-        "scheduled_arrival_time": "scheduled_arrival_datetime",
-        "scheduled_departure_time": "scheduled_departure_datetime",
     }
 
     @reconstructor
@@ -102,18 +73,14 @@ class Prediction(GTFSBase):
                 setattr(self, value, isoparse(getattr(self, key)))
 
         self.predicted = checker(self, "departure_datetime", "arrival_datetime")
-        self.scheduled = (
-            checker(self, "scheduled_departure_datetime", "scheduled_arrival_datetime")
-            or self.stop_time.departure_datetime
-            if self.stop_time
-            else None
-        )
-
+        self.scheduled = self.stop_time.departure_datetime if self.stop_time else None
         self.delay = (
             int((self.predicted - self.scheduled).total_seconds() / 60)
             if (self.predicted and self.scheduled)
             else 0
         )
+
+        self.stop_sequence = self.stop_sequence or 0
 
     def __repr__(self):
         return f"<Prediction(id={self.prediction_id})>"
@@ -130,52 +97,11 @@ class Prediction(GTFSBase):
         """Returns prediction as html."""
         return (
             """<tr>"""
-            f"""<td>{self.stop.parent_stop.stop_name if self.stop.parent_stop else self.stop.stop_name}</td>"""
+            f"""<td>{self.stop.parent_stop.stop_name if self.stop and self.stop.parent_stop else self.stop.stop_name}</td>"""
             f"""<td>{self.stop.platform_name}</td>"""
             f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {self.status_as_html()}</td>"""
             """</tr>"""
         )
-
-    def get_realtime(
-        self,
-        session: Session,
-        routes: str,
-        base_url: str = None,
-        api_key: str = None,
-    ) -> None:
-        """Downloads realtime predictions data from the mbta api.
-
-        Args:
-            session (Session): SQLAlchemy session
-            routes (str): comma separated string of routes
-            base_url (str, optional): base url for mbta api. Defaults to env var.
-            api_key (str, optional): api key for mbta api. Defaults to env var.
-        """
-        url = (
-            (base_url or os.environ.get("MBTA_API_URL"))
-            + "/predictions?filter[route]="
-            + routes
-            + "&include=stop,trip,route,vehicle,schedule&api_key="
-            + (api_key or os.environ.get("MBTA_API_Key"))
-        )
-
-        req = requests.get(url, timeout=500)
-
-        if req.ok and req.json().get("data"):
-            dataframe = pd.json_normalize(jad.deserialize(req.json()), sep="_")
-        else:
-            logging.error("Failed to query predictions: %s", req.text)
-            dataframe = pd.DataFrame()
-
-        dataframe.drop(
-            columns=[col for col in dataframe.columns if col not in RENAME_DICT],
-            axis=1,
-            inplace=True,
-        )
-        dataframe.rename(columns=RENAME_DICT, inplace=True)
-        dataframe.reset_index()
-        dataframe["index"] = dataframe.index
-        to_sql(session, dataframe, self.__class__, True)
 
 
 def checker(_obj, attr1: str, attr2: str):

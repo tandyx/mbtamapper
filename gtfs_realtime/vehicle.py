@@ -1,38 +1,16 @@
 """Vehicle"""
 # pylint: disable=line-too-long
-import os
-import pandas as pd
 
 from dateutil.parser import isoparse
 from sqlalchemy import Column, String, Integer, Float
-from sqlalchemy.orm import relationship, reconstructor, Session
+from sqlalchemy.orm import relationship, reconstructor
 
 
 from shapely.geometry import Point
 from geojson import Feature
 
-from gtfs_loader import GTFSBase
-from helper_functions import to_sql, hex_to_css, query_helper
-
-
-RENAME_DICT = {
-    "id": "vehicle_id",
-    "type": "vehicle_type",
-    "attributes_bearing": "bearing",
-    "attributes_current_status": "current_status",
-    "attributes_current_stop_sequence": "current_stop_sequence",
-    "attributes_direction_id": "direction_id",
-    "attributes_label": "label",
-    "attributes_latitude": "latitude",
-    "attributes_longitude": "longitude",
-    "attributes_occupancy_status": "occupancy_status",
-    "attributes_speed": "speed",
-    "attributes_updated_at": "updated_at",
-    "links_self": "links_self",
-    "relationships_route_data_id": "route_id",
-    "relationships_stop_data_id": "stop_id",
-    "relationships_trip_data_id": "trip_id",
-}
+from gtfs_loader.gtfs_base import GTFSBase
+from helper_functions import hex_to_css
 
 
 # filter: invert(23%) sepia(76%) saturate(4509%) hue-rotate(353deg) brightness(88%) contrast(92%);
@@ -42,21 +20,20 @@ class Vehicle(GTFSBase):
     __tablename__ = "vehicles"
 
     vehicle_id = Column(String)
-    vehicle_type = Column(String)
-    bearing = Column(Float)
-    current_status = Column(String)
-    current_stop_sequence = Column(Integer)
+    trip_id = Column(String)
+    route_id = Column(String)
     direction_id = Column(String)
-    label = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
-    occupancy_status = Column(String)
-    speed = Column(Float)
-    updated_at = Column(String)
-    links_self = Column(String)
-    route_id = Column(String)
+    bearing = Column(Float)
+    current_stop_sequence = Column(Integer)
+    current_status = Column(String)
+    timestamp = Column(String)
     stop_id = Column(String)
-    trip_id = Column(String)
+    label = Column(String)
+    occupancy_status = Column(String)
+    occupancy_percentage = Column(Integer)
+    speed = Column(Float)
     index = Column(Integer, primary_key=True)
 
     predictions = relationship(
@@ -94,12 +71,18 @@ class Vehicle(GTFSBase):
     DATETIME_MAPPER = {"updated_at": "updated_at_datetime"}
 
     DIRECTION_MAPPER = {"0": "Outbound", "1": "Inbound"}
+    CURRENT_STATUS_MAPPER = {
+        "0": "Incoming at ",
+        "1": "Stopped at ",
+        "2": "In Transit to ",
+    }
 
     @reconstructor
     def init_on_load(self):
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
-        self.updated_at_datetime = isoparse(self.updated_at)
+        self.updated_at_datetime = isoparse(self.timestamp)
+        self.current_stop_sequence = self.current_stop_sequence or 0
 
     def __repr__(self):
         return f"<Vehicle(id={self.vehicle_id})>"
@@ -114,7 +97,7 @@ class Vehicle(GTFSBase):
 
         if self.stop:
             current_status = (
-                f"""<a style="color:#ffffff">{self.current_status.capitalize().replace("_", " ")} </a>"""
+                f"""<a style="color:#ffffff">{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In Transit to ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
                 f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "STOPPED_AT" else ""} {prd_status}"""
             )
@@ -181,7 +164,7 @@ class Vehicle(GTFSBase):
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
-            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else next((p.stop.stop_name for p in sorted(self.predictions, key=lambda x: x.stop_sequence, reverse=True)),  "Unknown")}</body></br>"""
+            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions and max(self.predictions, key=lambda x: x.stop_sequence).stop else "Unknown"}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"{self.return_current_status()}"
@@ -204,50 +187,3 @@ class Vehicle(GTFSBase):
         )
 
         return html
-
-    def get_realtime(
-        self,
-        session: Session,
-        route_types: str,
-        additional_routes: str = "",
-        base_url: str = None,
-        api_key: str = None,
-    ) -> None:
-        """Downloads realtime vehicle data from the mbta api.
-
-        Args:
-            session (Session): sqlalchemy session
-            route_types (str): comma sep str of route types to query
-            additional_routes (str, optional): comma sep str of additional routes to query. Defaults to "".
-            base_url (str, optional): base url for api. Defaults to env var.
-            api_key (str, optional): api key for api. Defaults to env var."""
-
-        url = (
-            (base_url or os.environ.get("MBTA_API_URL"))
-            + "/vehicles?filter[route_type]="
-            + route_types
-            + "&include=trip,stop,route&api_key="
-            + (api_key or os.environ.get("MBTA_API_Key"))
-        )
-
-        dataframe = query_helper(url)
-
-        if additional_routes:
-            url = (
-                (base_url or os.environ.get("MBTA_API_URL"))
-                + "/vehicles?filter[route]="
-                + additional_routes
-                + "&include=trip,stop,route&api_key="
-                + (api_key or os.environ.get("MBTA_API_Key"))
-            )
-            dataframe = pd.concat([dataframe, query_helper(url)])
-
-        dataframe.drop(
-            columns=[col for col in dataframe.columns if col not in RENAME_DICT],
-            axis=1,
-            inplace=True,
-        )
-        dataframe.rename(columns=RENAME_DICT, inplace=True)
-        dataframe.reset_index(drop=True, inplace=True)
-        dataframe["index"] = dataframe.index
-        to_sql(session, dataframe, self.__class__, True)

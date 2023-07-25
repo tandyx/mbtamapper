@@ -11,3 +11,4 @@ from .shape import Shape
 from .stop_time import StopTime
 from .stop import Stop
 from .trip import Trip
+from .linked_datasets import LinkedDataset
