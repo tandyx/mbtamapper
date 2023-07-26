@@ -156,11 +156,11 @@ class Vehicle(GTFSBase):
             """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
             f"""{predicted_html}</table>"""
             """</span></div>"""
-            if self.trip and self.trip.predictions and predicted_html
+            if predicted_html
             else ""
         )
 
-        html = (
+        return (
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
@@ -175,15 +175,12 @@ class Vehicle(GTFSBase):
             f"""Route: {f'({self.route.route_short_name}) ' if self.route and self.route.route_type == "3" else ""}{self.route.route_long_name if self.route else self.route_id}</br>"""
             f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""
         )
-        return html
 
     def as_html_icon(self) -> str:
         """Returns vehicle as html for an icon."""
-        html = (
+        return (
             """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
             """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'montserrat','Helvetica',sans-serif;">"""
             f"""{self.trip.trip_short_name if self.route and self.route.route_type == "2" else ""}</a></a>"""
         )
-
-        return html

@@ -73,19 +73,6 @@ class Prediction(GTFSBase):
                 setattr(self, value, isoparse(getattr(self, key)))
 
         self.predicted = checker(self, "departure_datetime", "arrival_datetime")
-        self.scheduled = (
-            self.stop_time.departure_datetime
-            if hasattr(self.stop_time, "departure_datetime")
-            else lazy_convert(self.stop_time.departure_time)
-            if hasattr(self.stop_time, "departure_time")
-            else None
-        )
-        self.delay = (
-            int((self.predicted - self.scheduled).total_seconds() / 60)
-            if (self.predicted and self.scheduled)
-            else 0
-        )
-
         self.stop_sequence = self.stop_sequence or 0
 
     def __repr__(self):
@@ -94,10 +81,17 @@ class Prediction(GTFSBase):
     def status_as_html(self) -> str:
         """Returns status as html."""
 
-        if not self.predicted or not self.scheduled:
+        scheduled = self.stop_time.departure_datetime if self.stop_time else None
+        delay = (
+            int((self.predicted - scheduled).total_seconds() / 60)
+            if (self.predicted and scheduled)
+            else 0
+        )
+
+        if not self.predicted or not scheduled:
             return ""
 
-        return f"""<a style="color:{return_delay_colors(self.delay)};">{f"({str(self.delay)} minutes late)" if self.delay > 2 else ""}</a>"""
+        return f"""<a style="color:{return_delay_colors(delay)};">{f"({str(delay)} minutes late)" if delay > 2 else ""}</a>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""

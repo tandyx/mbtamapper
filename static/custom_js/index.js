@@ -43,6 +43,9 @@ var baseMaps = {
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
+var comp = new L.Control.Compass({position: 'topleft'});
+map.addControl(comp);
+
 for (realtime of [stopsRealtime, shapesRealtime]) {
 
 realtime.on('update', function(e) {
@@ -92,7 +95,7 @@ function plotVehicles(url, layer) {
     return L.realtime(
         url,
         {
-            interval: 15000,
+            interval: 10000,
             type: 'FeatureCollection',
             container: layer,
             cache: false,
