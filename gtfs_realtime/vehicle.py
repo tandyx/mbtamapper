@@ -74,7 +74,7 @@ class Vehicle(GTFSBase):
     CURRENT_STATUS_MAPPER = {
         "0": "Incoming at ",
         "1": "Stopped at ",
-        "2": "In Transit to ",
+        "2": "In transit to ",
     }
 
     @reconstructor
@@ -97,7 +97,7 @@ class Vehicle(GTFSBase):
 
         if self.stop:
             current_status = (
-                f"""<a style="color:#ffffff">{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In Transit to ")} </a>"""
+                f"""<a style="color:#ffffff">{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In transit to ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
                 f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""} {prd_status}"""
             )
@@ -168,7 +168,7 @@ class Vehicle(GTFSBase):
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"{self.return_current_status()}"
-            f"""Speed: {int((self.speed or 0) * 2.23694) if self.speed is not None or self.current_status == "STOPPED_AT" else "Unknown"} mph</br>"""
+            f"""Speed: {int(self.speed) or 0 if self.speed is not None or self.current_status == "1" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Vehicle: {self.vehicle_id}</br>"""
