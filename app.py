@@ -30,7 +30,7 @@ if __name__ == "__main__":
         Thread(target=app.app.run, kwargs={"host": "0.0.0.0", "port": 80 + i})
         for i, app in enumerate(APPS)
     ]
-
+    # "host": "0.0.0.0",
     for thread in threads:
         thread.start()
 

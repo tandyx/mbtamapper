@@ -9,4 +9,5 @@ geojson
 flask_sqlalchemy
 schedule
 python-dotenv
-
+gtfs-realtime-bindings
+protobuf3-to-dict

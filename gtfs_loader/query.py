@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlalchemy.sql import select, selectable, or_, not_, and_
 from sqlalchemy.orm import aliased
 from gtfs_schedule import *
+from gtfs_realtime import Vehicle
 
 
 class Query:
@@ -122,4 +123,26 @@ class Query:
             select(Route)
             .distinct()
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
+        )
+
+    def return_vehicles_query(self, add_routes: str) -> selectable.Select:
+        """Returns a query for vehicles.
+
+        Args:
+            add_routes (str): comma-separated string of route_ids to add to the query
+        """
+
+        return (
+            select(Vehicle)
+            .distinct()
+            .join(Route, Vehicle.route_id == Route.route_id)
+            .where(
+                or_(
+                    Vehicle.route_id.in_(
+                        select(self.return_routes_query().columns.route_id)
+                    ),
+                    Vehicle.trip_id.in_(select(self.trip_query.columns.trip_id)),
+                    Vehicle.route_id.in_(add_routes.split(",")),
+                )
+            )
         )

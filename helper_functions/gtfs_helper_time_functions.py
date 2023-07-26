@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 import pytz
 from dateutil.parser import parse
 
+import pandas as pd
+import numpy as np
+
 
 def to_seconds(time: str) -> int:
     """Converts a string in HH:MM:SS format to seconds past midnight
@@ -94,4 +97,26 @@ def lazy_convert(time_str: str, zone: str = "America/New_York") -> str:
     hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
     if int(hour) >= 24:
         time_str = f"{int(hour) - 24}:{minute}:{second}"
+        return pytz.timezone(zone).localize(parse(time_str) + timedelta(days=1))
     return pytz.timezone(zone).localize(parse(time_str))
+
+
+def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
+    """Takes a dataframe and a column of timestamps and converts them to iso strings
+
+    Args:
+        dataframe (pd.DataFrame): A dataframe
+        col (str): The column of timestamps
+    Returns:
+        pd.Series: A series of iso strings"""
+
+    if col not in dataframe.columns:
+        return np.nan
+
+    return dataframe[col].apply(
+        lambda x: pytz.timezone("America/New_York")
+        .localize(datetime.fromtimestamp(x.get("time") if isinstance(x, dict) else x))
+        .isoformat()
+        if x == x
+        else None
+    )

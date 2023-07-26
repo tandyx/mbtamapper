@@ -76,6 +76,7 @@ class Feed:
             "trips.txt": Trip,
             "multi_route_trips.txt": MultiRouteTrip,
             "stop_times.txt": StopTime,
+            "linked_datasets.txt": LinkedDataset,
         }
         # ------------------------------- Dump Data ------------------------------- #
         for file, orm in table_dict.items():
@@ -88,6 +89,22 @@ class Feed:
                     to_sql(self.session, chunk, orm)
 
         logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
+
+    def import_realtime(self) -> None:
+        """pass"""
+
+        dataset_mapper = {
+            Alert: "process_service_alerts",
+            Prediction: "process_trip_updates",
+            Vehicle: "process_vehicle_positions",
+        }
+
+        dataset: tuple[LinkedDataset]
+        for dataset in self.session.execute(select(LinkedDataset)).all():
+            for orm, func in dataset_mapper.items():
+                if dataset[0].is_dataset(orm):
+                    to_sql(self.session, getattr(dataset[0], func)(), orm, True)
+                    break
 
     def purge_and_filter(self) -> None:
         """Purges and filters the database."""
@@ -134,47 +151,73 @@ class Feed:
         """
 
         query_obj = Query(os.environ.get(key).split(","))
+        file_subpath = os.path.join(file_path, key)
+        for path in [file_path, file_subpath]:
+            if not os.path.exists(path):
+                os.mkdir(path)
+        for export in "export_stops", "export_shapes":
+            getattr(self, export)(key, file_subpath, query_obj)
 
-        query_dict = {
-            "stops": query_obj.return_parent_stops(),
-            "shapes": query_obj.return_shapes_query(),
-        }
+    def export_stops(self, key: str, file_path: str, query_obj: Query) -> None:
+        """Generates geojsons for stops and shapes.
 
-        for name, query in query_dict.items():
-            data = self.session.execute(query).all()
-            if name == "stops":
-                if "4" in query_obj.route_types:
-                    data += self.session.execute(
-                        select(Stop).where(Stop.vehicle_type == "4")
-                    ).all()
-                if key == "RAPID_TRANSIT":
-                    data += self.session.execute(
-                        Query(["3"]).return_parent_stops()
-                    ).all()
+        Args:
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            file_path (str): path to export files to
+            query_obj (Query): Query object
+        """
+        stops_data = self.session.execute(query_obj.return_parent_stops()).all()
+        if key == "RAPID_TRANSIT":
+            stops_data += self.session.execute(Query(["3"]).return_parent_stops()).all()
+        if "4" in query_obj.route_types:
+            stops_data += self.session.execute(
+                select(Stop).where(Stop.vehicle_type == "4")
+            ).all()
 
-                features = FeatureCollection([s[0].as_feature(self.date) for s in data])
-            if name == "shapes":
-                if key == "RAPID_TRANSIT":
-                    data += self.session.execute(
-                        select(Shape)
-                        .join(Trip, Shape.shape_id == Trip.shape_id)
-                        .join(Route, Trip.route_id == Route.route_id)
-                        .where(
-                            Route.line_id.in_(
-                                ["line-SLWashington", "line-SLWaterfront"]
-                            ),
-                            Route.route_type != "2",
+        with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
+            dump(
+                FeatureCollection([s[0].as_feature(self.date) for s in stops_data]),
+                file,
+            )
+            logging.info("Exported %s", file.name)
+
+    def export_shapes(self, key: str, file_path: str, query_obj: Query) -> None:
+        """Generates geojsons for shapes.
+
+        Args:
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            file_path (str): path to export files to
+            query_obj (Query): Query object
+        """
+
+        shape_data = self.session.execute(query_obj.return_shapes_query()).all()
+
+        if key == "RAPID_TRANSIT":
+            shape_data += self.session.execute(
+                select(Shape)
+                .join(Trip, Shape.shape_id == Trip.shape_id)
+                .join(Route, Trip.route_id == Route.route_id)
+                .where(
+                    Route.line_id.in_(["line-SLWashington", "line-SLWaterfront"]),
+                    Route.route_type != "2",
+                )
+            ).all()
+
+            shape_data = sorted(shape_data, key=lambda x: x[0].shape_id, reverse=True)
+
+        with open(
+            os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"
+        ) as file:
+            dump(
+                FeatureCollection(
+                    [
+                        s[0].as_feature()
+                        for s in sorted(
+                            shape_data, key=lambda x: x[0].shape_id, reverse=True
                         )
-                    ).all()
+                    ]
+                ),
+                file,
+            )
 
-                data = sorted(data, key=lambda x: x[0].shape_id, reverse=True)
-
-                features = FeatureCollection([s[0].as_feature() for s in data])
-            file_subpath = os.path.join(file_path, key, name + ".json")
-            for path in [file_path, os.path.join(file_path, key)]:
-                if not os.path.exists(path):
-                    os.mkdir(path)
-
-            with open(file_subpath, "w", encoding="utf-8") as file:
-                dump(features, file)
-                logging.info("Exported %s", file.name)
+            logging.info("Exported %s", file.name)

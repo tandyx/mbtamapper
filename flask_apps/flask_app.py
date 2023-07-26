@@ -5,7 +5,6 @@ import os
 from geojson import FeatureCollection
 
 from flask import Flask, render_template, jsonify
-from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
@@ -64,13 +63,10 @@ class FlaskApp:
     def get_vehicles(self):
         """Returns vehicles as geojson."""
         sess = self.session()
-        add_routes = self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
-
-        Alert().get_realtime(sess, os.environ.get("ALL_ROUTES"))
-        Prediction().get_realtime(sess, self.routes + "," + add_routes)
-        Vehicle().get_realtime(sess, self.route_types, add_routes)
-
-        data: list[tuple[Vehicle]] = sess.execute(select(Vehicle)).all()
+        query = self.query.return_vehicles_query(
+            self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
+        )
+        data: list[tuple[Vehicle]] = sess.execute(query).all()
         geojson_features = [v[0].as_feature() for v in data]
         return jsonify(FeatureCollection(geojson_features))
 

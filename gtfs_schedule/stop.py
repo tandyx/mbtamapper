@@ -98,7 +98,7 @@ class Stop(GTFSBase):
             A geojson feature.
         """
 
-        feature = Feature(
+        return Feature(
             id=self.stop_id,
             geometry=self.as_point(),
             properties={
@@ -106,8 +106,6 @@ class Stop(GTFSBase):
                 "stop_name": self.stop_name,
             },
         )
-
-        return feature
 
     def return_route_color(self, routes: list = None) -> str:
         """Returns the route color for the stop.
@@ -123,11 +121,13 @@ class Stop(GTFSBase):
             date: The date to return the popup for."""
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
+        alerts = self.alerts or list_unpack([s.alerts for s in self.child_stops])
         stop_time_html = "".join(
             (
                 st.as_html()
                 for st in sorted(
-                    list_unpack([s.stop_times for s in self.child_stops]),
+                    self.stop_times
+                    or list_unpack([s.stop_times for s in self.child_stops]),
                     key=lambda x: x.departure_seconds,
                 )
                 if st.trip.calendar.operates_on_date(date)
@@ -144,10 +144,10 @@ class Stop(GTFSBase):
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
-            """<td>Alert</td><td>Header</td><td>Created</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.alerts))}</table>"""
+            """<td>Alert</td><td>Updated</td></tr>"""
+            f"""{"".join(set(a.as_html() for a in alerts ))}</table>"""
             """</span></div>"""
-            if self.alerts
+            if alerts
             else ""
         )
 
@@ -168,7 +168,7 @@ class Stop(GTFSBase):
             """<td>Route</td><td>Trip</td><td>Headsign</td><td>Scheduled</td><td>Platform</td></tr>"""
             f"""{stop_time_html}</tr></table>"""
             """</span></div>"""
-            if self.child_stops and stop_time_html
+            if stop_time_html
             else ""
         )
 
@@ -177,10 +177,10 @@ class Stop(GTFSBase):
             for r in routes
         )
 
-        html = (
+        return (
             f"<a href = '{self.stop_url}' target='_blank' style='color:#{stop_color};font-size:28pt;text-decoration: none;text-align: left'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
-            f"{next((s.stop_desc for s in self.child_stops if not s.platform_code), self.child_stops[0].stop_desc if self.child_stops else self.stop_desc)}</br>"
+            f"{self.stop_desc or next((s.stop_desc for s in self.child_stops), self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"
             f"{alert} {schedule} {wheelchair} {'</br>' if any([alert, schedule, wheelchair]) else ''}"
             f"Routes: {route_colors}</a></br>"
@@ -190,5 +190,3 @@ class Stop(GTFSBase):
             f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"
             "</a></body>"
         )
-
-        return html

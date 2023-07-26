@@ -1,6 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
 from sqlalchemy import Integer, ForeignKey, Column, String
-from sqlalchemy.orm import relationship, reconstructor
+from sqlalchemy.orm import relationship
 from gtfs_loader.gtfs_base import GTFSBase
 
 
@@ -63,18 +63,6 @@ class Trip(GTFSBase):
 
     DIRECTION_ID_MAPPER = {"0": "Outbound", "1": "Inbound"}
 
-    @reconstructor
-    def init_on_load(self) -> None:
-        """Post-load initialization"""
-        # pylint: disable=attribute-defined-outside-init
-        self.is_added = bool(self.multi_route_trips)
-        self.active = bool(self.predictions)
-        # self.trip_start_seconds = min(
-        #     to_seconds(stop_time.departure_time) for stop_time in self.stop_times
-        # )
-        # self.origin_stop_time = min(self.stop_times, key=lambda x: x.stop_sequence)
-        # self.destination_stop_time = max(self.stop_times, key=lambda x: x.stop_sequence)
-
     def __repr__(self) -> str:
         return f"<Trip(trip_id={self.trip_id})>"
 
@@ -85,6 +73,3 @@ class Trip(GTFSBase):
     def return_direction(self) -> str:
         """Returns trip as label"""
         return self.DIRECTION_ID_MAPPER.get(str(self.direction_id), "Unknown")
-
-    def return_trip_start_time(self) -> str:
-        """Returns trip as label"""
