@@ -53,7 +53,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     feed = Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_date())
     # nightly_import(feed)
-    # geojson_exports(feed)
+    geojson_exports(feed)
     # update_realtime(feed)
     schedule.every(5).seconds.do(update_realtime)
     schedule.every().day.at("00:00", tz="America/New_York").do(nightly_import, None)
