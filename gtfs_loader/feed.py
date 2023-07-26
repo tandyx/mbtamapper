@@ -102,9 +102,15 @@ class Feed:
         dataset: tuple[LinkedDataset]
         for dataset in self.session.execute(select(LinkedDataset)).all():
             for orm, func in dataset_mapper.items():
-                if dataset[0].is_dataset(orm):
+                if not dataset[0].is_dataset(orm):
+                    continue
+                try:
                     to_sql(self.session, getattr(dataset[0], func)(), orm, True)
                     break
+                except KeyError:
+                    logging.error(
+                        "Error processing %s for %s", orm.__tablename__, dataset[0].url
+                    )
 
     def purge_and_filter(self) -> None:
         """Purges and filters the database."""

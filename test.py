@@ -47,6 +47,7 @@ def update_realtime(feed: Feed = None) -> None:
     """
     feed = feed or Feed(url=os.environ.get("GTFS_ZIP_LINK"), date=get_current_time(-1))
     feed.import_realtime()
+    logging.info("Updated realtime data:, %s", feed)
 
 
 if __name__ == "__main__":
