@@ -15,6 +15,7 @@ from geojson import FeatureCollection, dump
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select, delete
+from sqlalchemy.exc import OperationalError
 from sqlalchemy import CursorResult
 from helper_functions import get_date, to_sql, download_zip
 from gtfs_schedule import *
@@ -108,6 +109,14 @@ class Feed:
                     logging.error(
                         "Error processing %s for %s", orm.__tablename__, dataset[0].url
                     )
+                except OperationalError as err:
+                    logging.error(
+                        "Error processing %s for %s: %s",
+                        orm.__tablename__,
+                        dataset[0].url,
+                        err,
+                    )
+                    time.sleep(1)
 
     def purge_and_filter(self, date: datetime = None) -> None:
         """Purges and filters the database.
@@ -196,8 +205,6 @@ class Feed:
                     Route.route_type != "2",
                 )
             ).all()
-
-            shape_data = sorted(shape_data, key=lambda x: x[0].shape_id, reverse=True)
 
         with open(
             os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"

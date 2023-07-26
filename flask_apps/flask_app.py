@@ -6,6 +6,7 @@ from geojson import FeatureCollection
 
 from flask import Flask, render_template, jsonify
 from sqlalchemy.orm import scoped_session
+from sqlalchemy.exc import OperationalError
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
 
@@ -66,7 +67,10 @@ class FlaskApp:
         query = self.query.return_vehicles_query(
             self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
         )
-        data: list[tuple[Vehicle]] = sess.execute(query).all()
+        try:
+            data: list[tuple[Vehicle]] = sess.execute(query).all()
+        except OperationalError:
+            data = []
         geojson_features = [v[0].as_feature() for v in data]
         return jsonify(FeatureCollection(geojson_features))
 
