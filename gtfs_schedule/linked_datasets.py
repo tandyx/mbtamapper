@@ -8,12 +8,11 @@ import pandas as pd
 from google.transit.gtfs_realtime_pb2 import FeedMessage
 from protobuf_to_dict import protobuf_to_dict
 from sqlalchemy import Integer, Column, String
-from sqlalchemy.orm import Session
 
 from gtfs_loader.gtfs_base import GTFSBase
 from gtfs_realtime import *
 
-from helper_functions import df_unpack, timestamp_col_to_iso, get_current_time, to_sql
+from helper_functions import df_unpack, timestamp_col_to_iso, get_current_time
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -62,21 +61,6 @@ PREDICTION_RENAME_DICT = {
     "trip_update_trip_trip_id": "trip_id",
     "trip_update_vehicle_id": "vehicle_id",
 }
-# ALERT_UNPACK = [
-#     "alert_informed_entity",
-#     "alert_active_period",
-#     "alert_header_text_translation",
-#     "alert_description_text_translation",
-#     "alert_url_translation",
-# ]
-# VEHICLE_UNPACK = []
-# TRIPUPDATES_UNPACK = ["trip_update_stop_time_update"]
-# ALERT_CONVERT = ["alert_active_period_start", "alert_active_period_end"]
-# VEHICLE_CONVERT = ["vehicle_timestamp"]
-# PREDICTION_CONVERT = [
-#     "trip_update_stop_time_update_departure",
-#     "trip_update_stop_time_update_arrival",
-# ]
 
 
 class LinkedDataset(GTFSBase):
@@ -95,27 +79,6 @@ class LinkedDataset(GTFSBase):
         Vehicle: "vehicle_positions",
         Alert: "service_alerts",
     }
-
-    # DATASET_MAPPER = {
-    #     "trip_updates": {
-    #         "rename": PREDICTION_RENAME_DICT,
-    #         "unpack": TRIPUPDATES_UNPACK,
-    #         "convert": PREDICTION_CONVERT,
-    #         "class": Prediction,
-    #     },
-    #     "vehicle_positions": {
-    #         "rename": VEHICLE_RENAME_DICT,
-    #         "unpack": VEHICLE_UNPACK,
-    #         "convert": VEHICLE_CONVERT,
-    #         "class": Vehicle,
-    #     },
-    #     "service_alerts": {
-    #         "rename": ALERT_RENAME_DICT,
-    #         "unpack": ALERT_UNPACK,
-    #         "convert": ALERT_CONVERT,
-    #         "class": Alert,
-    #     },
-    # }
 
     def __repr__(self) -> str:
         return f"<LinkedDataset(url={self.url})>"
@@ -213,63 +176,3 @@ class LinkedDataset(GTFSBase):
             dataframe[col] = timestamp_col_to_iso(dataframe, col)
 
         return self._post_process(dataframe, ALERT_RENAME_DICT)
-
-    # def dump_realtime(self, session: Session) -> None:
-    #     """Returns realtime data from the linked dataset."""
-
-    #     feed = FeedMessage()
-    #     response = rq.get(self.url, timeout=10)
-    #     if not response.ok:
-    #         logging.error("Error retrieving data from %s", self.url)
-    #         return
-
-    #     logging.info("Retrieved data from %s", self.url)
-    #     feed.ParseFromString(response.content)
-
-    #     for key, value in self.DATASET_MAPPER.items():
-    #         if getattr(self, key):
-    #             dataset_dict = value
-
-    #     dataframe = df_unpack(
-    #         pd.json_normalize(protobuf_to_dict(feed)["entity"], sep="_"),
-    #         dataset_dict["unpack"],
-    #     )
-
-    #     if dataframe.empty:
-    #         logging.warning("Empty dataframe from %s", self.url)
-
-    #     if getattr(self, "service_alerts"):
-    #         dataframe["alert_informed_entity_trip"] = (
-    #             dataframe["alert_informed_entity_trip"].apply(
-    #                 lambda x: x.get("trip_id") if x == x else None
-    #             )
-    #             if "alert_informed_entity_trip" in dataframe.columns
-    #             else None
-    #         )
-
-    #         dataframe["timestamp"] = get_current_time().isoformat()
-
-    #     if getattr(self, "vehicle_positions"):
-    #         dataframe["vehicle_position_speed"] = (
-    #             dataframe["vehicle_position_speed"] * 2.23694
-    #             if "vehicle_position_speed" in dataframe.columns
-    #             else None
-    #         )
-
-    #         dataframe = dataframe[dataframe["vehicle_timestamp"] > time.time() - 300]
-
-    #     for col in dataset_dict["convert"]:
-    #         dataframe[col] = timestamp_col_to_iso(dataframe, col)
-    #     dataframe.reset_index(drop=True, inplace=True)
-
-    #     dataframe.drop(
-    #         columns=[
-    #             col for col in dataframe.columns if col not in dataset_dict["rename"]
-    #         ],
-    #         inplace=True,
-    #         axis=1,
-    #     )
-    #     dataframe.rename(columns=dataset_dict["rename"], inplace=True)
-    #     dataframe["index"] = dataframe.index
-
-    #     to_sql(session, dataframe, dataset_dict["class"], True)

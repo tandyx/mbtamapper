@@ -97,6 +97,7 @@ def lazy_convert(time_str: str, zone: str = "America/New_York") -> str:
     hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
     if int(hour) >= 24:
         time_str = f"{int(hour) - 24}:{minute}:{second}"
+        return pytz.timezone(zone).localize(parse(time_str) + timedelta(days=1))
     return pytz.timezone(zone).localize(parse(time_str))
 
 

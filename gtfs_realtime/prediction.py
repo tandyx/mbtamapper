@@ -6,7 +6,7 @@ from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
 from gtfs_loader.gtfs_base import GTFSBase
 
-from helper_functions import return_delay_colors, lazy_convert
+from helper_functions import return_delay_colors
 
 
 class Prediction(GTFSBase):
