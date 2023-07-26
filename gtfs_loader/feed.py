@@ -31,39 +31,36 @@ class Feed:
 
     Args:
         url (str): url of GTFS feed (default: MBTA GTFS feed)
-        date (datetime): date to load (default: today)
     """
 
     temp_dir: str = tempfile.gettempdir()
 
-    # pylint: disable=too-many-instance-attributes
-    def __init__(self, url: str = None, date: datetime = None) -> None:
-        self.url = url or os.environ.get("GTFS_ZIP_LINK")
-        self.date = date or get_date()
+    def __init__(self, url: str) -> None:
+        self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(Feed.temp_dir, self.gtfs_name)
-        self.db_path = os.path.join(
-            Feed.temp_dir, f"{self.gtfs_name}_{date.strftime('%Y%m%d')}.db"
-        )
+        self.db_path = os.path.join(Feed.temp_dir, f"{self.gtfs_name}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
         self.session = self.sessionmkr()
 
     def __repr__(self) -> str:
-        return f"<Feed(url={self.url}, date={self.date.strftime('%Y%m%d')}))>"
+        return f"<Feed(url={self.url})>"
 
-    def import_gtfs(self, chunksize: int = 10**5) -> None:
+    def import_gtfs(self, chunksize: int = 10**5, purge: bool = True) -> None:
         """Dumps GTFS data into a SQLite database.
 
         Args:
-            chunksize (int): number of rows to insert at a time (default: 10**5)
+            chunksize (int): number of rows to insert at a time (default: 10**5),
+            purge (bool): whether to purge the database before loading (default: False)
         """
         # ------------------------------- Create Tables ------------------------------- #
         start = time.time()
         download_zip(self.url, self.zip_path)
-        GTFSBase.metadata.drop_all(self.engine)
-        GTFSBase.metadata.create_all(self.engine)
+        if purge:
+            GTFSBase.metadata.drop_all(self.engine)
+            GTFSBase.metadata.create_all(self.engine)
         # note that the order of these tables matters; avoids foreign key errors
         table_dict = {
             "agency.txt": Agency,
@@ -91,7 +88,7 @@ class Feed:
         logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
 
     def import_realtime(self) -> None:
-        """pass"""
+        """Imports realtime data into the database."""
 
         dataset_mapper = {
             Alert: "process_service_alerts",
@@ -112,16 +109,17 @@ class Feed:
                         "Error processing %s for %s", orm.__tablename__, dataset[0].url
                     )
 
-    def purge_and_filter(self) -> None:
-        """Purges and filters the database."""
+    def purge_and_filter(self, date: datetime = None) -> None:
+        """Purges and filters the database.
 
+        Args:
+            date (datetime): date to filter on, defaults to today"""
+        date = date or get_date()
         query_obj = Query(os.environ.get("ALL_ROUTES").split(","))
 
         cal_stmt = delete(Calendar).where(
             Calendar.service_id.not_in(
-                select(
-                    query_obj.return_active_calendar_query(self.date).columns.service_id
-                )
+                select(query_obj.return_active_calendar_query(date).columns.service_id)
             )
         )
 
@@ -130,30 +128,13 @@ class Feed:
             self.session.commit()  # seperate commits to avoid giant journal file
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
 
-    def delete_old_databases(self, days_ago: int = 2) -> None:
-        """Deletes files older than 2 days from the given path and date.
-
-        Args:
-            days_ago (int): number of days ago to delete files from (default: 2)"""
-
-        for file in os.listdir(Feed.temp_dir):
-            file_path = os.path.join(self.temp_dir, file)
-            if (
-                not file.endswith(".db")
-                or not os.path.getmtime(file_path)
-                < self.date.timestamp() - days_ago * 86400
-                or not f"{self.gtfs_name}" in file
-            ):
-                continue
-            os.remove(file_path)
-            logging.info("Deleted file %s", file)
-
-    def export_geojsons(self, key: str, file_path: str) -> None:
+    def export_geojsons(self, key: str, file_path: str, date: datetime = None) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             file_path (str): path to export files to
+            date (datetime): date to export (default: today)
         """
 
         query_obj = Query(os.environ.get(key).split(","))
@@ -161,17 +142,22 @@ class Feed:
         for path in [file_path, file_subpath]:
             if not os.path.exists(path):
                 os.mkdir(path)
-        for export in "export_stops", "export_shapes":
-            getattr(self, export)(key, file_subpath, query_obj)
 
-    def export_stops(self, key: str, file_path: str, query_obj: Query) -> None:
+        self.export_shapes(key, file_subpath, query_obj)
+        self.export_stops(key, file_subpath, query_obj, date)
+
+    def export_stops(
+        self, key: str, file_path: str, query_obj: Query, date: datetime = None
+    ) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             file_path (str): path to export files to
             query_obj (Query): Query object
+            date (datetime): date to export (default: today)
         """
+
         stops_data = self.session.execute(query_obj.return_parent_stops()).all()
         if key == "RAPID_TRANSIT":
             stops_data += self.session.execute(Query(["3"]).return_parent_stops()).all()
@@ -182,7 +168,9 @@ class Feed:
 
         with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
             dump(
-                FeatureCollection([s[0].as_feature(self.date) for s in stops_data]),
+                FeatureCollection(
+                    [s[0].as_feature(date or get_date()) for s in stops_data]
+                ),
                 file,
             )
             logging.info("Exported %s", file.name)
