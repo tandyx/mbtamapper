@@ -3,7 +3,7 @@ import os
 import logging
 import time
 from threading import Thread
-from typing import NoReturn
+from typing import NoReturn, Callable
 from dotenv import load_dotenv
 import schedule
 from sqlalchemy.exc import OperationalError
@@ -48,11 +48,13 @@ class FeedLoader:
         self.feed.import_realtime()
         logging.info("Updated realtime data:, %s", self.feed)
 
-    def threader(self, func) -> None:
+    def threader(self, func: Callable) -> None:
         """Threader function."""
 
         job_thread = Thread(target=func)
         job_thread.start()
+        if func == self.update_realtime:  # pylint: disable=comparison-with-callable
+            job_thread.join()
 
     def scheduler(self) -> NoReturn:
         """Schedules jobs."""
@@ -63,6 +65,9 @@ class FeedLoader:
         schedule.every().hour.at(":00", tz="America/New_York").do(
             self.threader, self.geojson_exports
         )
+        # schedule.every().minute.at(":00", tz="America/New_York").do(
+        #     self.threader, self.geojson_exports
+        # )
         while True:
             schedule.run_pending()
             time.sleep(1)  # wait one minute

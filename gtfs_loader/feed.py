@@ -13,7 +13,7 @@ import pandas as pd
 from geojson import FeatureCollection, dump
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import select, delete
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import CursorResult
@@ -45,6 +45,7 @@ class Feed:
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
         self.session = self.sessionmkr()
+        self.scoped_session = scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
         return f"<Feed(url={self.url})>"
@@ -90,6 +91,7 @@ class Feed:
 
     def import_realtime(self) -> None:
         """Imports realtime data into the database."""
+        session = self.scoped_session()
 
         dataset_mapper = {
             Alert: "process_service_alerts",
@@ -98,12 +100,12 @@ class Feed:
         }
 
         dataset: tuple[LinkedDataset]
-        for dataset in self.session.execute(select(LinkedDataset)).all():
+        for dataset in session.execute(select(LinkedDataset)).all():
             for orm, func in dataset_mapper.items():
                 if not dataset[0].is_dataset(orm):
                     continue
                 try:
-                    to_sql(self.session, getattr(dataset[0], func)(), orm, True)
+                    to_sql(session, getattr(dataset[0], func)(), orm, True)
                     break
                 except KeyError:
                     logging.error(
@@ -123,6 +125,7 @@ class Feed:
 
         Args:
             date (datetime): date to filter on, defaults to today"""
+
         date = date or get_date()
         query_obj = Query(os.environ.get("ALL_ROUTES").split(","))
 
@@ -166,12 +169,13 @@ class Feed:
             query_obj (Query): Query object
             date (datetime): date to export (default: today)
         """
+        session = self.scoped_session()
 
-        stops_data = self.session.execute(query_obj.return_parent_stops()).all()
+        stops_data = session.execute(query_obj.return_parent_stops()).all()
         if key == "RAPID_TRANSIT":
-            stops_data += self.session.execute(Query(["3"]).return_parent_stops()).all()
+            stops_data += session.execute(Query(["3"]).return_parent_stops()).all()
         if "4" in query_obj.route_types:
-            stops_data += self.session.execute(
+            stops_data += session.execute(
                 select(Stop).where(Stop.vehicle_type == "4")
             ).all()
 
@@ -192,11 +196,12 @@ class Feed:
             file_path (str): path to export files to
             query_obj (Query): Query object
         """
+        session = self.scoped_session()
 
-        shape_data = self.session.execute(query_obj.return_shapes_query()).all()
+        shape_data = session.execute(query_obj.return_shapes_query()).all()
 
         if key == "RAPID_TRANSIT":
-            shape_data += self.session.execute(
+            shape_data += session.execute(
                 select(Shape)
                 .join(Trip, Shape.shape_id == Trip.shape_id)
                 .join(Route, Trip.route_id == Route.route_id)
