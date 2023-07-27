@@ -78,5 +78,5 @@ if __name__ == "__main__":
     feed_obj = Feed(url="http://cdn.mbta.com/MBTA_GTFS.zip")
     fead_loader = FeedLoader(feed_obj)
     # fead_loader.nightly_import()
-    fead_loader.geojson_exports()
+    # fead_loader.geojson_exports()
     fead_loader.scheduler()

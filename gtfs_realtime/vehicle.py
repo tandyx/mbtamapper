@@ -10,7 +10,7 @@ from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
-from helper_functions import hex_to_css
+from helper_functions import hex_to_css, return_occupancy_colors
 
 
 # filter: invert(23%) sepia(76%) saturate(4509%) hue-rotate(353deg) brightness(88%) contrast(92%);
@@ -89,20 +89,15 @@ class Vehicle(GTFSBase):
 
     def return_current_status(self) -> str:
         """Returns current status of vehicle."""
-        prd_status = (
-            self.next_stop_prediction.status_as_html()
-            if self.next_stop_prediction
-            else ""
-        )
 
         if self.stop:
             current_status = (
                 f"""<a style="color:#ffffff">{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In transit to ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
-                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""} {prd_status}"""
+                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""}"""
             )
         else:
-            current_status = prd_status
+            current_status = ""
 
         return f"<a>{current_status}</a>" + ("</br>" if current_status else "")
 
@@ -126,6 +121,12 @@ class Vehicle(GTFSBase):
         """Returns vehicle as html for a popup."""
 
         predicted_html = "".join(p.as_html() for p in self.predictions if p.predicted)
+
+        occupancy = (
+            f"""Occupancy: <a style="color:{return_occupancy_colors(self.occupancy_percentage)};">{int(self.occupancy_percentage)}%</a></br>"""
+            if self.occupancy_status
+            else ""
+        )
 
         bikes = (
             """<div class = "tooltip">"""
@@ -160,6 +161,12 @@ class Vehicle(GTFSBase):
             else ""
         )
 
+        prd_status = (
+            self.next_stop_prediction.status_as_html()
+            if self.next_stop_prediction
+            else ""
+        )
+
         return (
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
@@ -168,6 +175,8 @@ class Vehicle(GTFSBase):
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"{self.return_current_status()}"
+            f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
+            f"""{occupancy}"""
             f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
