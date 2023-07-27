@@ -141,7 +141,7 @@ class Vehicle(GTFSBase):
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.trip.alerts if not a.stop)) if self.trip else ""}</table>"""
+            f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
             """</span></div>"""
             if self.trip and self.trip.alerts
             else ""
@@ -182,5 +182,5 @@ class Vehicle(GTFSBase):
             """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
             """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'montserrat','Helvetica',sans-serif;">"""
-            f"""{self.trip.trip_short_name if self.route and self.route.route_type == "2" else ""}</a></a>"""
+            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</a></a>"""
         )
