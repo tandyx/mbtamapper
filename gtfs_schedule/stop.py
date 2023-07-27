@@ -121,7 +121,9 @@ class Stop(GTFSBase):
             date: The date to return the popup for."""
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
-        alerts = self.alerts or list_unpack([s.alerts for s in self.child_stops])
+        alerts = self.alerts or list_unpack(
+            [[a for a in s.alerts if not a.trip] for s in self.child_stops]
+        )
         stop_time_html = "".join(
             (
                 st.as_html()

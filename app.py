@@ -11,15 +11,11 @@ from flask import Flask
 from flask_apps import FlaskApp
 from gtfs_loader import Feed
 
-from helper_functions import get_current_time
-
 # from flask_apps import *
 
 load_dotenv()
 logging.getLogger().setLevel(logging.INFO)
-DATE = get_current_time(-1)
-FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip", DATE)
-
+FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
 APPS = [
     FlaskApp(Flask(__name__), FEED, key) for key in os.getenv("LIST_KEYS").split(",")
 ]
@@ -27,7 +23,10 @@ APPS = [
 
 if __name__ == "__main__":
     threads = [
-        Thread(target=app.app.run, kwargs={"host": "0.0.0.0", "port": 80 + i})
+        Thread(
+            target=app.app.run,
+            kwargs={"host": "0.0.0.0", "port": 80 + i},
+        )
         for i, app in enumerate(APPS)
     ]
     # "host": "0.0.0.0",

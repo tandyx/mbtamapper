@@ -141,7 +141,7 @@ class Vehicle(GTFSBase):
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
+            f"""{"".join(set(a.as_html() for a in self.trip.alerts if not a.stop)) if self.trip else ""}</table>"""
             """</span></div>"""
             if self.trip and self.trip.alerts
             else ""
