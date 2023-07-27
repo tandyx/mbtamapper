@@ -179,13 +179,12 @@ class Feed:
                 select(Stop).where(Stop.vehicle_type == "4")
             ).all()
 
+        feature_collection = FeatureCollection(
+            [s[0].as_feature(date or get_date()) for s in stops_data]
+        )
+
         with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
-            dump(
-                FeatureCollection(
-                    [s[0].as_feature(date or get_date()) for s in stops_data]
-                ),
-                file,
-            )
+            dump(feature_collection, file)
             logging.info("Exported %s", file.name)
 
     def export_shapes(self, key: str, file_path: str, query_obj: Query) -> None:
@@ -211,19 +210,15 @@ class Feed:
                 )
             ).all()
 
+        feature_collection = FeatureCollection(
+            [
+                s[0].as_feature()
+                for s in sorted(shape_data, key=lambda x: x[0].shape_id, reverse=True)
+            ]
+        )
+
         with open(
             os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"
         ) as file:
-            dump(
-                FeatureCollection(
-                    [
-                        s[0].as_feature()
-                        for s in sorted(
-                            shape_data, key=lambda x: x[0].shape_id, reverse=True
-                        )
-                    ]
-                ),
-                file,
-            )
-
+            dump(feature_collection, file)
             logging.info("Exported %s", file.name)
