@@ -5,7 +5,6 @@ import os
 from geojson import FeatureCollection
 
 from flask import Flask, render_template, jsonify
-from sqlalchemy.orm import scoped_session
 from sqlalchemy.exc import OperationalError
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
@@ -28,19 +27,10 @@ class FlaskApp:
         self.key = key or "ALL_ROUTES"
         self.route_types = os.environ.get(key)
         self.query = Query(self.route_types.split(","))
-        self.session = scoped_session(self.feed.sessionmkr)
-        self.routes = self._get_routes()
         self._setup_routes()
 
     def __repr__(self) -> str:
         return f"<FlaskApp(key={self.key}, feed={self.feed})>"
-
-    def _get_routes(self) -> str:
-        """Returns a comma-separated string of route IDs."""
-        return ",".join(
-            i[0].route_id
-            for i in self.session.execute(self.query.return_routes_query()).all()
-        )
 
     def _setup_routes(self):
         """Sets up the app routes."""
@@ -63,7 +53,7 @@ class FlaskApp:
 
     def get_vehicles(self):
         """Returns vehicles as geojson."""
-        sess = self.session()
+        sess = self.feed.scoped_session()
         query = self.query.return_vehicles_query(
             self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
         )
@@ -77,7 +67,7 @@ class FlaskApp:
     # pylint: disable=unused-argument
     def shutdown_session(self, exception=None) -> None:
         """Tears down database session."""
-        self.session.remove()
+        self.feed.scoped_session.remove()
 
     def run(self, **options) -> None:
         """Runs the app."""

@@ -55,3 +55,9 @@ class StopTime(GTFSBase):
             f"""<td>{format_time(self.departure_time)}</td>"""
             f"""<td>{self.stop.platform_name}</td></tr>"""
         )
+
+    def is_destination(self) -> bool:
+        """Returns true if this StopTime is the last stop in the trip"""
+        return self.stop_sequence == max(
+            st.stop_sequence for st in self.trip.stop_times
+        )
