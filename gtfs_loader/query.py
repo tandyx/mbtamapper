@@ -2,8 +2,8 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=unused-import
 # pylint: disable=wildcard-import
-from datetime import datetime
-from sqlalchemy.sql import select, selectable, or_, not_, and_
+from datetime import datetime, timedelta
+from sqlalchemy.sql import select, selectable, or_, and_
 from sqlalchemy.orm import aliased
 from gtfs_schedule import *
 from gtfs_realtime import Vehicle
@@ -43,7 +43,8 @@ class Query:
                 or_(
                     and_(
                         CalendarAttribute.service_schedule_typicality != "6",
-                        Calendar.start_date <= date.strftime("%Y%m%d"),
+                        Calendar.start_date
+                        <= (date + timedelta(days=7)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
                         # getattr(Calendar, date.strftime("%A").lower()) == 1,
                         #     not_(
