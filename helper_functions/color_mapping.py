@@ -44,3 +44,21 @@ def hex_to_css(hex_code: str) -> str:
         str: css filter, e.g. 'filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);'
     """
     return HEX_TO_CSS.get(hex_code, HEX_TO_CSS.get("ffffff"))
+
+
+def return_occupancy_colors(occupancy: int) -> str:
+    """Returns a color based on the occupancy.
+
+    Args:
+        occupancy (int): occupancy percentage"""
+
+    occupancy_dict = {
+        "#ffffff": occupancy < 40,  # white
+        "#ffff00": 40 <= occupancy < 60,
+        "#ff8000": 60 <= occupancy < 80,
+        "#ff0000": occupancy >= 80,
+    }
+
+    for color, condition in occupancy_dict.items():
+        if condition:
+            return color

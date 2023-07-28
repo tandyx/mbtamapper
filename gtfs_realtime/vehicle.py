@@ -10,7 +10,7 @@ from shapely.geometry import Point
 from geojson import Feature
 
 from gtfs_loader.gtfs_base import GTFSBase
-from helper_functions import hex_to_css
+from helper_functions import hex_to_css, return_occupancy_colors
 
 
 # filter: invert(23%) sepia(76%) saturate(4509%) hue-rotate(353deg) brightness(88%) contrast(92%);
@@ -89,20 +89,15 @@ class Vehicle(GTFSBase):
 
     def return_current_status(self) -> str:
         """Returns current status of vehicle."""
-        prd_status = (
-            self.next_stop_prediction.status_as_html()
-            if self.next_stop_prediction
-            else ""
-        )
 
         if self.stop:
             current_status = (
                 f"""<a style="color:#ffffff">{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In transit to ")} </a>"""
                 f"""<a href={self.stop.stop_url} target="_blank" style='text-decoration:none;color:#{self.route.route_color};'>{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
-                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""} {prd_status}"""
+                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""}"""
             )
         else:
-            current_status = prd_status
+            current_status = ""
 
         return f"<a>{current_status}</a>" + ("</br>" if current_status else "")
 
@@ -127,6 +122,12 @@ class Vehicle(GTFSBase):
 
         predicted_html = "".join(p.as_html() for p in self.predictions if p.predicted)
 
+        occupancy = (
+            f"""Occupancy: <a style="color:{return_occupancy_colors(self.occupancy_percentage)};">{int(self.occupancy_percentage)}%</a></br>"""
+            if self.occupancy_status
+            else ""
+        )
+
         bikes = (
             """<div class = "tooltip">"""
             """<img src ="static/bike.png" alt="bike" width=25 height=25 style="margin:2px;">"""
@@ -141,7 +142,7 @@ class Vehicle(GTFSBase):
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.trip.alerts if not a.stop)) if self.trip else ""}</table>"""
+            f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
             """</span></div>"""
             if self.trip and self.trip.alerts
             else ""
@@ -160,6 +161,12 @@ class Vehicle(GTFSBase):
             else ""
         )
 
+        prd_status = (
+            self.next_stop_prediction.status_as_html()
+            if self.next_stop_prediction
+            else ""
+        )
+
         return (
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
@@ -168,6 +175,8 @@ class Vehicle(GTFSBase):
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"{self.return_current_status()}"
+            f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
+            f"""{occupancy}"""
             f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" else "Unknown"} mph</br>"""
             f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
@@ -182,5 +191,5 @@ class Vehicle(GTFSBase):
             """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
             """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'montserrat','Helvetica',sans-serif;">"""
-            f"""{self.trip.trip_short_name if self.route and self.route.route_type == "2" else ""}</a></a>"""
+            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</a></a>"""
         )

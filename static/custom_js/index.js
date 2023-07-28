@@ -43,48 +43,48 @@ var baseMaps = {
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-var comp = new L.Control.Compass({position: 'topleft'});
+var comp = new L.Control.Compass({ position: 'topleft' });
 map.addControl(comp);
 
 for (realtime of [stopsRealtime, shapesRealtime]) {
 
-realtime.on('update', function(e) {
-    Object.keys(e.update,).forEach(function(id) {
-       var feature = e.update[id];
-       var wasOpen = this.getLayer(id).getPopup().isOpen();
-       if (wasOpen === true) {
-            this.getLayer(id).closePopup();
-       }
-       
-       this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-       
-       if (wasOpen === true) {
-            this.getLayer(id).openPopup();
-       }
+    realtime.on('update', function (e) {
+        Object.keys(e.update,).forEach(function (id) {
+            var feature = e.update[id];
+            var wasOpen = this.getLayer(id).getPopup().isOpen();
+            if (wasOpen === true) {
+                this.getLayer(id).closePopup();
+            }
+
+            this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
+
+            if (wasOpen === true) {
+                this.getLayer(id).openPopup();
+            }
 
 
-   }.bind(this));
-});
+        }.bind(this));
+    });
 }
 
-vehiclesRealtime.on('update', function(e) {
-    Object.keys(e.update,).forEach(function(id) {
-       var feature = e.update[id];
-       var wasOpen = this.getLayer(id).getPopup().isOpen();
-       if (wasOpen === true) {
+vehiclesRealtime.on('update', function (e) {
+    Object.keys(e.update,).forEach(function (id) {
+        var feature = e.update[id];
+        var wasOpen = this.getLayer(id).getPopup().isOpen();
+        if (wasOpen === true) {
             this.getLayer(id).closePopup();
-       }
-       this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-       this.getLayer(id).setIcon(L.divIcon({
-                html: feature.properties.icon,
-                iconSize: [15, 15],
-            }));
-       if (wasOpen === true) {
+        }
+        this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
+        this.getLayer(id).setIcon(L.divIcon({
+            html: feature.properties.icon,
+            iconSize: [15, 15],
+        }));
+        if (wasOpen === true) {
             this.getLayer(id).openPopup();
-       }
+        }
 
 
-   }.bind(this));
+    }.bind(this));
 });
 
 
@@ -95,7 +95,7 @@ function plotVehicles(url, layer) {
     return L.realtime(
         url,
         {
-            interval: 10000,
+            interval: 15000,
             type: 'FeatureCollection',
             container: layer,
             cache: false,

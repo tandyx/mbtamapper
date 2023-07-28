@@ -88,10 +88,10 @@ class Prediction(GTFSBase):
             else 0
         )
 
-        if not self.predicted or not scheduled:
+        if delay <= 2:
             return ""
-
-        return f"""<a style="color:{return_delay_colors(delay)};">{f"({str(delay)} minutes late)" if delay > 2 else ""}</a>"""
+        if delay > 2:
+            return f"""<a style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</a>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
@@ -99,7 +99,7 @@ class Prediction(GTFSBase):
             """<tr>"""
             f"""<td>{self.stop.parent_stop.stop_name if self.stop and self.stop.parent_stop else self.stop.stop_name}</td>"""
             f"""<td>{self.stop.platform_name}</td>"""
-            f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {self.status_as_html()}</td>"""
+            f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {"—" if self.status_as_html() else ""} {self.status_as_html()}</td>"""
             """</tr>"""
         )
 
