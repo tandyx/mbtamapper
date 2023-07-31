@@ -10,6 +10,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 import pandas as pd
+from requests.exceptions import ConnectTimeout
 from geojson import FeatureCollection, dump
 
 from sqlalchemy import create_engine
@@ -107,7 +108,7 @@ class Feed:
                 try:
                     to_sql(session, getattr(dataset[0], func)(), orm, True)
                     break
-                except KeyError:
+                except (KeyError, ConnectTimeout):
                     logging.error(
                         "Error processing %s for %s", orm.__tablename__, dataset[0].url
                     )
