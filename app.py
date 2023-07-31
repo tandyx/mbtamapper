@@ -25,7 +25,7 @@ if __name__ == "__main__":
     threads = [
         Thread(
             target=app.app.run,
-            kwargs={"host": HOST, "port": 100 + i},
+            kwargs={"host": HOST, "port": 500 + i},
         )
         for i, app in enumerate(APPS)
     ]
