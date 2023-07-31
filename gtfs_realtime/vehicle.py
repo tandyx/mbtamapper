@@ -171,7 +171,7 @@ class Vehicle(GTFSBase):
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or self.trip_id}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
-            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions and max(self.predictions, key=lambda x: x.stop_sequence).stop else "Unknown"}</body></br>"""
+            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.predicted).stop.stop_name if self.predictions and max(self.predictions, key=lambda x: x.stop_sequence).stop else "Unknown"}</body></br>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
             f"{self.return_current_status()}"
@@ -190,6 +190,6 @@ class Vehicle(GTFSBase):
         return (
             """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
             f"""<img src ="static/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
-            """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'montserrat','Helvetica',sans-serif;">"""
+            """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'stonesans','Helvetica',sans-serif;">"""
             f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</a></a>"""
         )
