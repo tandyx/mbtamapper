@@ -29,7 +29,6 @@ if __name__ == "__main__":
         )
         for i, app in enumerate(APPS)
     ]
-    # "host": "0.0.0.0",
     for thread in threads:
         thread.start()
 
