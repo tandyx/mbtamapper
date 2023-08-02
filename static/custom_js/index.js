@@ -1,30 +1,30 @@
 
 const ROUTE_TYPE = getRouteType();
 document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
-let zoomTolerance = ROUTE_TYPE == "COMMUTER_RAIL" ? 11 : 12;
-let defaultZoom = ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13;
 
 var map = L.map('map', {
-    minZoom: 9, fullscreenControl: true,
+    minZoom: 9,
+    maxZoom: 20,
+    fullscreenControl: true,
     fullscreenControlOptions: {
         position: 'topleft'
     }
-}).setView([42.3519, -71.0552], defaultZoom);
+}).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13);
+
+map.setMaxBounds(map.getBounds());
 
 var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
-    maxZoom: 20
 }).addTo(map);
 var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
-    maxZoom: 20
 });
 
 var stop_layer = L.layerGroup().addTo(map);
 var shape_layer = L.layerGroup().addTo(map);
-var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: zoomTolerance }).addTo(map);
+var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: ROUTE_TYPE == "COMMUTER_RAIL" ? 11 : 12 }).addTo(map);
 
 var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
 var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);

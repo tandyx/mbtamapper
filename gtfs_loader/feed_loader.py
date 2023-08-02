@@ -57,7 +57,7 @@ class FeedLoader:
 
     def scheduler(self) -> NoReturn:
         """Schedules jobs."""
-        schedule.every(5).seconds.do(self.threader, self.update_realtime)
+        # schedule.every(5).seconds.do(self.threader, self.update_realtime)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
         )
