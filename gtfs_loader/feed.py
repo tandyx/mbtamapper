@@ -121,6 +121,8 @@ class Feed:
                     )
                     time.sleep(1)
 
+        self.scoped_session.remove()
+
     def purge_and_filter(self, date: datetime = None) -> None:
         """Purges and filters the database.
 
@@ -188,6 +190,8 @@ class Feed:
             dump(feature_collection, file)
             logging.info("Exported %s", file.name)
 
+        self.scoped_session.remove()
+
     def export_shapes(self, key: str, file_path: str, query_obj: Query) -> None:
         """Generates geojsons for shapes.
 
@@ -223,3 +227,5 @@ class Feed:
         ) as file:
             dump(feature_collection, file)
             logging.info("Exported %s", file.name)
+
+        self.scoped_session.remove()

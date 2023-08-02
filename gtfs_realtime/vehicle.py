@@ -169,7 +169,7 @@ class Vehicle(GTFSBase):
 
         return (
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;text-decoration: none;text-align: left">"""
-            f"""{(self.trip.trip_short_name if self.trip else None) or (self.trip_id[:30] + '...') if len(self.trip_id) > 30 else self.trip_id}</a></br>"""
+            f"""{(self.trip.trip_short_name if self.trip else None) or ((self.trip_id[:25] + '...') if len(self.trip_id) > 25 else self.trip_id)}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.predicted).stop.stop_name if self.predictions and max(self.predictions, key=lambda x: x.stop_sequence).stop else "Unknown"}</body></br>"""
             """—————————————————————————————————</br>"""

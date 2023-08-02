@@ -162,7 +162,7 @@ class Stop(GTFSBase):
 
         schedule = (
             """<div class = "popup" onclick="showPredictionPopup()">"""
-            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Schedule" style="margin:2px;">"""
+            """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Departures" style="margin:2px;">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""

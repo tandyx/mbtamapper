@@ -57,7 +57,7 @@ class FlaskApp:
         query = self.query.return_vehicles_query(
             self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
         )
-        self.feed.import_realtime()
+        # self.feed.import_realtime()
         try:
             data: list[tuple[Vehicle]] = sess.execute(query).all()
         except OperationalError:
