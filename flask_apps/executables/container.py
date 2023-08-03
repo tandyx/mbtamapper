@@ -2,5 +2,5 @@
 from gtfs_loader import Feed
 
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
-# HOST = "0.0.0.0"
-HOST = "127.0.0.1"
+HOST = "0.0.0.0"
+# HOST = "127.0.0.1"
