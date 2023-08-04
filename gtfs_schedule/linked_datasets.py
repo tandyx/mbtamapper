@@ -55,7 +55,7 @@ PREDICTION_RENAME_DICT = {
     "trip_update_stop_time_update_departure": "departure_time",
     "trip_update_trip_direction_id": "direction_id",
     "stop_time_update_schedule_relationship": "schedule_relationship",
-    "stop_time_update_stop_sequence": "stop_sequence",
+    "trip_update_stop_time_update_stop_sequence": "stop_sequence",
     "trip_update_trip_route_id": "route_id",
     "trip_update_stop_time_update_stop_id": "stop_id",
     "trip_update_trip_trip_id": "trip_id",
@@ -133,6 +133,12 @@ class LinkedDataset(GTFSBase):
             "trip_update_stop_time_update_arrival",
         ]:
             dataframe[col] = timestamp_col_to_iso(dataframe, col)
+
+        dataframe["trip_update_stop_time_update_stop_sequence"] = (
+            dataframe["trip_update_stop_time_update_stop_sequence"]
+            .fillna(0)
+            .astype(int)
+        )
 
         return self._post_process(dataframe, PREDICTION_RENAME_DICT)
 
