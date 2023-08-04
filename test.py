@@ -12,7 +12,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     fead_loader = FeedLoader(FEED)
     # fead_loader.nightly_import()
-    fead_loader.geojson_exports()
+    # fead_loader.geojson_exports()
     if not os.path.exists(fead_loader.feed.db_path):
         fead_loader.nightly_import()
         fead_loader.geojson_exports()

@@ -80,7 +80,7 @@ class Prediction(GTFSBase):
 
     def status_as_html(self) -> str:
         """Returns status as html."""
-
+        self.stop_sequence = self.stop_sequence or 0
         scheduled = self.stop_time.departure_datetime if self.stop_time else None
         delay = (
             int((self.predicted - scheduled).total_seconds() / 60)
