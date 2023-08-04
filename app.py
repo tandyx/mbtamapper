@@ -8,7 +8,7 @@ import logging
 from threading import Thread
 from dotenv import load_dotenv
 from flask import Flask
-from flask_apps import FlaskApp, HOST
+from flask_apps import FlaskApp, HOST, PORT
 from gtfs_loader import Feed
 
 # from flask_apps import *
@@ -23,10 +23,7 @@ APPS = [
 
 if __name__ == "__main__":
     threads = [
-        Thread(
-            target=app.app.run,
-            kwargs={"host": HOST, "port": 500 + i},
-        )
+        Thread(target=app.app.run, kwargs={"host": HOST, "port": PORT + i})
         for i, app in enumerate(APPS)
     ]
     for thread in threads:
