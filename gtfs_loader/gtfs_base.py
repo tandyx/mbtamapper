@@ -20,7 +20,10 @@ def on_connect(dbapi_connection, connection_record):
     if isinstance(dbapi_connection, sqlite3.Connection):
         cursor = dbapi_connection.cursor()
         for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
-            cursor.execute(f"PRAGMA {pragma}")
+            try:
+                cursor.execute(f"PRAGMA {pragma}")
+            except sqlite3.OperationalError:
+                pass
         cursor.close()
 
 
@@ -30,5 +33,8 @@ def on_close(dbapi_connection, connection_record):
     # pylint: disable=unused-argument
     if isinstance(dbapi_connection, sqlite3.Connection):
         cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA optimize")
+        try:
+            cursor.execute("PRAGMA optimize")
+        except sqlite3.OperationalError:
+            pass
         cursor.close()
