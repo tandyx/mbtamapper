@@ -1,4 +1,5 @@
 """This module contains functions that return colors based on the delay."""
+# pylint: disable=line-too-long
 
 HEX_TO_CSS = {
     "FFC72C": "filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%);",

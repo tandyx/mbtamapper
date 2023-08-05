@@ -14,5 +14,4 @@ def return_dirname(file: str, levels: int = 3) -> str:
     file = os.path.abspath(file)
     for _ in range(levels):
         file = os.path.dirname(file)
-
     return file

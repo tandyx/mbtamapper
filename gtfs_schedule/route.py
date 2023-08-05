@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, ForeignKey, Integer
 from gtfs_loader.gtfs_base import GTFSBase
 
+# pylint: disable=line-too-long
+
 
 class Route(GTFSBase):
     """Route"""
@@ -108,7 +110,7 @@ class Route(GTFSBase):
             "Ferry": 0.9,
         }
 
-        dictionary = {
+        return {
             "name": self.route_short_name or self.route_long_name,
             "color": "#" + self.route_color,
             "opacity": opacity_dict.get(self.route_desc, 0.5),
@@ -116,5 +118,3 @@ class Route(GTFSBase):
             "popupContent": self.as_html_popup(),
             "is_added": self.network_id == "rail_replacement_bus",
         }
-
-        return dictionary
