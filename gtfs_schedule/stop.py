@@ -122,14 +122,14 @@ class Stop(GTFSBase):
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
         alerts = self.alerts or list_unpack(
-            [[a for a in s.alerts if not a.trip] for s in self.child_stops]
+            ((a for a in s.alerts if not a.trip) for s in self.child_stops)
         )
         stop_time_html = "".join(
             (
                 st.as_html()
                 for st in sorted(
                     self.stop_times
-                    or list_unpack([s.stop_times for s in self.child_stops]),
+                    or list_unpack(s.stop_times for s in self.child_stops),
                     key=lambda x: x.departure_seconds,
                 )
                 if st.trip.calendar.operates_on_date(date)

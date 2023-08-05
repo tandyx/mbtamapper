@@ -91,8 +91,14 @@ def get_current_time(offset: int = 0, zone: str = "America/New_York") -> datetim
     return datetime.now(pytz.timezone(zone)) + timedelta(hours=offset)
 
 
-def lazy_convert(time_str: str, zone: str = "America/New_York") -> str:
-    """Lazily converts a timestirng"""
+def lazy_convert(time_str: str, zone: str = "America/New_York") -> datetime:
+    """Lazily converts a HH:MM:SS time string to a datetime object
+
+    Args:
+        time_str (str): A time string
+        zone (str, optional): The timezone to return the time in. Defaults to "America/New_York".
+    Returns:
+        datetime: A datetime object"""
 
     hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
     if int(hour) >= 24:

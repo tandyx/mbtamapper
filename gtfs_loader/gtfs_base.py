@@ -1,12 +1,16 @@
 """holds base class for all gtfs loader elements and initalizes sqlite foreign keys"""
+import logging
 import sqlite3
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase
 
-
 # pylint disable=unused-argument
 # pylint disable=too-few-public-methods
+
+logging.getLogger().setLevel(logging.INFO)
+
+
 class GTFSBase(DeclarativeBase):
     """Base class for all GTFS schedule elements"""
 
@@ -23,7 +27,7 @@ def on_connect(dbapi_connection, connection_record):
             try:
                 cursor.execute(f"PRAGMA {pragma}")
             except sqlite3.OperationalError:
-                pass
+                logging.warning("PRAGMA %s failed", pragma)
         cursor.close()
 
 
@@ -36,5 +40,5 @@ def on_close(dbapi_connection, connection_record):
         try:
             cursor.execute("PRAGMA optimize")
         except sqlite3.OperationalError:
-            pass
+            logging.warning("PRAGMA optimize failed")
         cursor.close()

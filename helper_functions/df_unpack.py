@@ -1,3 +1,5 @@
+"""Unpacks a column of a dataframe that contains a list of dictionaries."""
+from typing import Iterable
 import pandas as pd
 
 
@@ -30,12 +32,18 @@ def df_unpack(
     return dataframe
 
 
-def list_unpack(list_to_unpack: list) -> list:
+def list_unpack(list_to_unpack: Iterable, astype: str = "") -> list | set | Iterable:
     """Unpacks a list of dictionaries into a list of lists.
 
     Args:
-        list_to_unpack (list): list to unpack
+        list_to_unpack (Iterable): list to unpack
+        astype (str, optional): type to return. Defaults to generator, can be "list" or "set".
     Returns:
         list: unpacked list
     """
-    return [item for sublist in list_to_unpack for item in sublist]
+    astype = astype.lower()
+    if astype == "list":
+        return [item for sublist in list_to_unpack for item in sublist]
+    if astype == "set":
+        return {item for sublist in list_to_unpack for item in sublist}
+    return (item for sublist in list_to_unpack for item in sublist)
