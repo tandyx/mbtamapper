@@ -114,6 +114,9 @@ class Vehicle(GTFSBase):
             properties={
                 "popupContent": self.as_html_popup(),
                 "icon": self.as_html_icon(),
+                "name": self.trip.trip_short_name or self.trip_id
+                if self.trip
+                else self.trip_id,
             },
         )
 
