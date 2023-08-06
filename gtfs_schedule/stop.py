@@ -76,18 +76,16 @@ class Stop(GTFSBase):
         """Returns a shapely Point object of the stop"""
         return Point(self.stop_lon, self.stop_lat)
 
-    def return_routes(self) -> list:
+    def return_routes(self) -> set:
         """Returns a list of routes that stop at this stop"""
-        routes = []
-        for child_stop in self.child_stops:
-            if child_stop.location_type != "0":
-                continue
-            for route in child_stop.routes:
-                if route in routes:
-                    continue
-                routes.append(route)
-
-        return sorted(routes, key=lambda x: x.route_type)
+        return sorted(
+            {
+                r
+                for cs in (cs for cs in self.child_stops if cs.location_type == "0")
+                for r in cs.routes
+            },
+            key=lambda x: x.route_type,
+        )
 
     def as_feature(self, date: datetime) -> Feature:
         """Returns stop object as a feature.
@@ -103,7 +101,7 @@ class Stop(GTFSBase):
             geometry=self.as_point(),
             properties={
                 "popupContent": self.as_html_popup(date),
-                "stop_name": self.stop_name,
+                "name": self.stop_name,
             },
         )
 

@@ -29,6 +29,17 @@ var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_
 var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
 var vehiclesRealtime = plotVehicles("/vehicles", vehicle_layer).addTo(map);
 
+L.control.search({
+    layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer]),
+    initial: false,
+    propertyName: 'name',
+    zoom: 15,
+    marker: false,
+    textPlaceholder: "",
+})
+.addTo(map);
+
+
 var overlays = {
     "Vehicles": vehicle_layer,
     "Stops": stop_layer,
@@ -42,7 +53,6 @@ var baseMaps = {
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-var comp = new L.Control.Compass({ position: 'topleft' });
 map.addControl(comp);
 
 for (realtime of [stopsRealtime, shapesRealtime]) {
@@ -135,7 +145,7 @@ function plotStops(url, layer) {
             onEachFeature(f, l) {
                 // l.setStyle({ renderer: L.canvas({ padding: 0.5, tolerance: 10 }) });
                 l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-                l.bindTooltip(f.properties.stop_name);
+                l.bindTooltip(f.properties.name);
                 l.setIcon(stopIcon);
                 l.setZIndexOffset(-100);
             },
@@ -172,6 +182,17 @@ function plotShapes(url, layer) {
         }
     )
 }
+
+
+
+
+
+
+
+
+
+
+
 function showPredictionPopup() {
     var predictionPopup = document.getElementById("predictionPopup");
     predictionPopup.classList.toggle("show");
