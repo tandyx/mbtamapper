@@ -154,7 +154,8 @@ class Stop(GTFSBase):
             """<div class = "tooltip">"""
             """<img src="static/wheelchair.png" alt="accessible" width=25 height=25 style="margin:2px;">"""
             """<span class="tooltiptext">Wheelchair Accessible.</span></div>"""
-            if "1" in [s.wheelchair_boarding for s in self.child_stops]
+            if self.wheelchair_boarding == "1"
+            or "1" in [s.wheelchair_boarding for s in self.child_stops]
             else ""
         )
 
