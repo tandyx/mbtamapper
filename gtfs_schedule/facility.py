@@ -74,6 +74,7 @@ class Facility(GTFSBase):
         """Returns facility object as a html string."""
         contact_url = self.return_property("contact-url")
         owner = self.return_property("owner", "Unknown")
+        payment_app_id = self.return_property("payment-app-id")
 
         return (
             f"<a href = '{contact_url}' target='_blank' style='font-size:28pt;text-decoration: none;text-align: left;color:{Facility.ACCENT_COLOR};'>{self.facility_long_name}</a></br>"
@@ -81,7 +82,7 @@ class Facility(GTFSBase):
             f"{owner if owner not in ['City/Town', 'Unknown'] else self.return_property('operator', owner)}</br>"
             f"—————————————————————————————————</br>"
             f"Capacity: {self.return_formatted_capacity()} </br>"
-            f"Payment App: <a href = {self.return_property('payment-app-url')} target='_blank' style='text-decoration: none;color:{Facility.ACCENT_COLOR};'>{self.return_property('payment-app', 'Unknown')}</a></br>"
+            f"Payment App: <a href = {self.return_property('payment-app-url')} target='_blank' style='text-decoration: none;color:{Facility.ACCENT_COLOR};'>{self.return_property('payment-app', 'Unknown') }</a>{(f' - {payment_app_id}') if payment_app_id else ''}</br>"
             f"Daily Rate: {self.return_property('fee-daily', 'Unknown')}</br>"
             f"Monthly Rate: {self.return_property('fee-monthly', 'Unknown')}</br>"
             f"<a style='color:grey;font-size:9pt'>"
