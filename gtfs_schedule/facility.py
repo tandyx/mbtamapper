@@ -46,9 +46,13 @@ class Facility(GTFSBase):
     def as_feature(self) -> Feature:
         """Returns facility object as a feature."""
 
+        point = self.as_point()
+        if point == self.stop.as_point():
+            point = Point(self.facility_lon + 0.001, self.facility_lat + 0.001)
+
         return Feature(
             id=self.facility_id,
-            geometry=self.as_point(),
+            geometry=point,
             properties={
                 "popupContent": self.as_html_popup(),
                 "name": self.facility_long_name or self.facility_short_name,
