@@ -1,5 +1,5 @@
 """Unpacks a column of a dataframe that contains a list of dictionaries."""
-from typing import Iterable
+from typing import Iterable, Union
 import pandas as pd
 
 
@@ -32,7 +32,9 @@ def df_unpack(
     return dataframe
 
 
-def list_unpack(list_to_unpack: Iterable, astype: str = "") -> list | set | Iterable:
+def list_unpack(
+    list_to_unpack: Iterable, astype: str = ""
+) -> Union[list, set, Iterable]:
     """Unpacks a list of dictionaries into a list of lists.
 
     Args:

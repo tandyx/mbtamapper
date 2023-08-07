@@ -18,7 +18,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import select, delete
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import CursorResult
-from helper_functions import get_date, to_sql, download_zip
+from helper_functions import get_date, get_current_time, to_sql, download_zip
 from gtfs_schedule import *
 from gtfs_realtime import *
 from .query import Query
@@ -183,7 +183,7 @@ class Feed:
             ).all()
 
         feature_collection = FeatureCollection(
-            [s[0].as_feature(date or get_date()) for s in stops_data]
+            [s[0].as_feature(date or get_current_time(-3.5)) for s in stops_data]
         )
 
         with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
