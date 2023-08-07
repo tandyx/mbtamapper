@@ -147,7 +147,7 @@ class Query:
         """Returns a query for parking facilities.
 
         Args:
-            types (list[str]): list of facility types to query, defaults to ["parking-area", "bike-storage"]
+            types (list[str]): list of facility types, default: ["parking-area", "bike-storage"]
         """
         return (
             select(Facility)
