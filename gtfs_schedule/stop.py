@@ -37,6 +37,7 @@ class Stop(GTFSBase):
     vehicle_type = Column(String)
 
     stop_times = relationship("StopTime", back_populates="stop", passive_deletes=True)
+    facilities = relationship("Facility", back_populates="stop", passive_deletes=True)
     parent_stop = relationship(
         "Stop", remote_side=[stop_id], back_populates="child_stops"
     )
@@ -172,6 +173,32 @@ class Stop(GTFSBase):
             else ""
         )
 
+        parking = (
+            """<div class = "popup" onclick="showParkingPopup()">"""
+            """<img src ="static/parking.png" alt="parking" width=25 height=25 title = "Show Parking" style="margin:2px;">"""
+            """<span class="popuptext" id="parkingPopup" style="z-index=-1;">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
+            """<td>Parking Lot</td><td>Spaces</td><td>Daily Cost</td></tr>"""
+            f"""{"".join({p.as_html_row() for p in self.facilities if p.facility_type == "parking-area"})}</tr></table>"""
+            """</span></div>"""
+            if [p for p in self.facilities if p.facility_type == "parking-area"]
+            else ""
+        )
+
+        bikes = (
+            """<div class = "popup" onclick="showBikePopup()">"""
+            """<img src ="static/bike.png" alt="bike" width=25 height=25 title = "Show Bike Parking" style="margin:2px;">"""
+            """<span class="popuptext" id="bikePopup" style="z-index=-1;">"""
+            """<table class = "table">"""
+            f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
+            """<td>Bike Parking</td><td>Spaces</td></tr>"""
+            f"""{"".join({p.as_html_row(False) for p in self.facilities if p.facility_type == "bike-storage"})}</tr></table>"""
+            """</span></div>"""
+            if [p for p in self.facilities if p.facility_type == "bike-storage"]
+            else ""
+        )
+
         route_colors = ", </a>".join(
             f"<a href = '{r.route_url}' target='_blank' style='color:#{r.route_color or 'ffffff'};text-decoration: none;'>{r.route_short_name or r.route_long_name}"
             for r in routes
@@ -182,7 +209,7 @@ class Stop(GTFSBase):
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{self.stop_desc or next((s.stop_desc for s in self.child_stops), self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"
-            f"{alert} {schedule} {wheelchair} {'</br>' if any([alert, schedule, wheelchair]) else ''}"
+            f"{alert} {schedule} {bikes} {parking} {wheelchair} {'</br>' if any([alert, schedule, wheelchair, bikes, parking]) else ''}"
             f"Routes: {route_colors}</a></br>"
             f"Zones: {', '.join(set(c.zone_id for c in self.child_stops if c.zone_id))}</br>"
             f"<a style='color:grey;font-size:9pt'>"

@@ -4,7 +4,7 @@ document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
 
 var map = L.map('map', {
     minZoom: 9,
-    maxZoom: 18,
+    maxZoom: 20,
     maxBounds: L.latLngBounds(L.latLng(40, -74), L.latLng(44, -69)),
     fullscreenControl: true,
     fullscreenControlOptions: {
@@ -15,35 +15,42 @@ var map = L.map('map', {
 var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
+    maxZoom: 20,
 }).addTo(map);
 var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
+    maxZoom: 20,
 });
 
 var stop_layer = L.layerGroup().addTo(map);
 var shape_layer = L.layerGroup().addTo(map);
 var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 12 }).addTo(map);
+var parking_lots = L.layerGroup();
 
 var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
 var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
 var vehiclesRealtime = plotVehicles("/vehicles", vehicle_layer).addTo(map);
+var facilitiesRealtime = plotFacilities(`/static/geojsons/${ROUTE_TYPE}/park.json`, parking_lots);
+
+
+
 
 L.control.search({
-    layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer]),
+    layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),
     initial: false,
     propertyName: 'name',
-    zoom: 15,
+    zoom: 16,
     marker: false,
     textPlaceholder: "",
-})
-.addTo(map);
+}).addTo(map);
 
 
 var overlays = {
     "Vehicles": vehicle_layer,
     "Stops": stop_layer,
     "Shapes": shape_layer,
+    "Parking Lots": parking_lots,
 };
 
 var baseMaps = {
@@ -53,9 +60,11 @@ var baseMaps = {
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
-map.addControl(comp);
+if (map.hasLayer(parking_lots) == true) {
+    map.removeLayer(parking_lots);
+}
 
-for (realtime of [stopsRealtime, shapesRealtime]) {
+for (realtime of [stopsRealtime, shapesRealtime, facilitiesRealtime]) {
 
     realtime.on('update', function (e) {
         Object.keys(e.update,).forEach(function (id) {
@@ -96,6 +105,17 @@ vehiclesRealtime.on('update', function (e) {
     }.bind(this));
 });
 
+map.on('zoomend', function () {
+    if (map.getZoom() < 16) {
+        map.removeLayer(parking_lots);
+    }
+    if (map.getZoom() >= 16){
+        map.addLayer(parking_lots);
+    }   
+    console.log(map.getZoom());
+});
+
+
 
 function plotVehicles(url, layer) {
 
@@ -116,7 +136,7 @@ function plotVehicles(url, layer) {
                     iconSize: [15, 15],
                 });
                 l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-                l.bindTooltip(f.id);
+                l.bindTooltip(f.properties.name);
                 l.setIcon(icon);
                 l.setZIndexOffset(100);
             },
@@ -136,7 +156,7 @@ function plotStops(url, layer) {
         {
             interval: 3600000,
             type: 'FeatureCollection',
-            container: layer,
+            container: layer,   
             cache: false,
             removeMissing: true,
             getFeatureId(f) {
@@ -184,13 +204,33 @@ function plotShapes(url, layer) {
 }
 
 
+function plotFacilities(url, layer) {
 
-
-
-
-
-
-
+    const facilityIcon = L.icon({
+        iconUrl: "/static/parking.png",
+        iconSize: [15, 15],
+    });
+    
+    return L.realtime(
+        url,
+        {
+            interval: 3600000,
+            type: 'FeatureCollection',
+            container: layer,
+            cache: false,
+            removeMissing: true,
+            getFeatureId(f) {
+                return f.id;
+            },
+            onEachFeature(f, l) {
+                l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+                l.bindTooltip(f.properties.name);
+                l.setIcon(facilityIcon);
+                l.setZIndexOffset(-150);
+            },
+        }
+    )
+}
 
 
 function showPredictionPopup() {
@@ -201,6 +241,17 @@ function showAlertPopup() {
     var alertPopup = document.getElementById("alertPopup");
     alertPopup.classList.toggle("show");
 }
+function showParkingPopup() {
+    var parkingPopup = document.getElementById("parkingPopup");
+    parkingPopup.classList.toggle("show");
+}
+
+function showBikePopup() {
+    var bikePopup = document.getElementById("bikePopup");
+    bikePopup.classList.toggle("show");
+}
+
+
 function getRouteType() {
     var tmp = null;
     $.ajax({

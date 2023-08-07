@@ -77,6 +77,9 @@ class Feed:
             "multi_route_trips.txt": MultiRouteTrip,
             "stop_times.txt": StopTime,
             "linked_datasets.txt": LinkedDataset,
+            "facilities.txt": Facility,
+            "facilities_properties_definitions.txt": FacilityPropertyDefintion,
+            "facilities_properties.txt": FacilityProperty,
         }
         # ------------------------------- Dump Data ------------------------------- #
         for file, orm in table_dict.items():
@@ -108,18 +111,8 @@ class Feed:
                 try:
                     to_sql(session, getattr(dataset[0], func)(), orm, True)
                     break
-                except (KeyError, ConnectTimeout):
-                    logging.error(
-                        "Error processing %s for %s", orm.__tablename__, dataset[0].url
-                    )
-                except OperationalError as err:
-                    logging.error(
-                        "Error processing %s for %s: %s",
-                        orm.__tablename__,
-                        dataset[0].url,
-                        err,
-                    )
-                    time.sleep(1)
+                except (KeyError, ConnectTimeout, OperationalError) as err:
+                    logging.error("Couldn't dump into %s: %s", orm.__tablename__, err)
 
         self.scoped_session.remove()
 
@@ -138,7 +131,13 @@ class Feed:
             )
         )
 
-        for stmt in [cal_stmt]:
+        facilities_stmt = delete(Facility).where(
+            Facility.facility_id.not_in(
+                select(query_obj.return_facilities_query().columns.facility_id)
+            )
+        )
+
+        for stmt in [cal_stmt, facilities_stmt]:
             res: CursorResult = self.session.execute(stmt)
             self.session.commit()  # seperate commits to avoid giant journal file
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
@@ -158,6 +157,7 @@ class Feed:
             if not os.path.exists(path):
                 os.mkdir(path)
 
+        self.export_parking_lots(key, file_subpath, query_obj)
         self.export_shapes(key, file_subpath, query_obj)
         self.export_stops(key, file_subpath, query_obj, date)
 
@@ -174,9 +174,9 @@ class Feed:
         """
         session = self.scoped_session()
 
-        stops_data = session.execute(query_obj.return_parent_stops()).all()
+        stops_data = session.execute(query_obj.parent_stops_query).all()
         if key == "RAPID_TRANSIT":
-            stops_data += session.execute(Query(["3"]).return_parent_stops()).all()
+            stops_data += session.execute(Query(["3"]).parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops_data += session.execute(
                 select(Stop).where(Stop.vehicle_type == "4")
@@ -225,6 +225,41 @@ class Feed:
         with open(
             os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"
         ) as file:
+            dump(feature_collection, file)
+            logging.info("Exported %s", file.name)
+
+        self.scoped_session.remove()
+
+    def export_parking_lots(self, key: str, file_path: str, query_obj: Query) -> None:
+        """Generates geojsons for facilities.
+
+        Args:
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            file_path (str): path to export files to
+            query_obj (Query): Query object
+        """
+
+        session = self.scoped_session()
+
+        facilities = session.execute(
+            query_obj.return_facilities_query(["parking-area"])
+        ).all()
+
+        if key == "RAPID_TRANSIT":
+            facilities += session.execute(
+                Query(["3"]).return_facilities_query(["parking-area"])
+            ).all()
+
+        if "4" in query_obj.route_types:
+            facilities += session.execute(
+                select(Facility)
+                .join(Stop, Facility.stop_id == Stop.stop_id)
+                .where(Stop.vehicle_type == "4")
+            ).all()
+
+        feature_collection = FeatureCollection([f[0].as_feature() for f in facilities])
+
+        with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
             dump(feature_collection, file)
             logging.info("Exported %s", file.name)
 

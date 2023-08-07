@@ -19,6 +19,7 @@ class Query:
     def __init__(self, route_types: list[str] = None) -> None:
         self.route_types = route_types or []
         self.trip_query = self.return_trip_query()
+        self.parent_stops_query = self.return_parent_stops()
 
     def __repr__(self) -> str:
         return f"<Query(route_types={self.route_types})>"
@@ -29,7 +30,7 @@ class Query:
         Args:
             date (datetime): date to query"""
 
-        cal_query = (
+        return (
             select(Calendar)
             .join(
                 CalendarAttribute, Calendar.service_id == CalendarAttribute.service_id
@@ -65,11 +66,9 @@ class Query:
             )
         )
 
-        return cal_query
-
     def return_trip_query(self) -> selectable.Select:
         """Returns a query for trips."""
-        trip_query = (
+        return (
             select(Trip)
             .distinct()
             .join(Route, Trip.route_id == Route.route_id)
@@ -87,8 +86,6 @@ class Query:
             )
         )
 
-        return trip_query
-
     def return_parent_stops(self) -> selectable.Select:
         """Returns a query for parent stops.
 
@@ -97,7 +94,7 @@ class Query:
         """
 
         parent = aliased(Stop)
-        query = (
+        return (
             select(parent)
             .distinct()
             .where(parent.location_type == "1")
@@ -105,8 +102,6 @@ class Query:
             .join(StopTime, Stop.stop_id == StopTime.stop_id)
             .where(StopTime.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
-
-        return query
 
     def return_shapes_query(self) -> selectable.Select:
         """Returns a query for shapes."""
@@ -145,5 +140,20 @@ class Query:
                     Vehicle.trip_id.in_(select(self.trip_query.columns.trip_id)),
                     Vehicle.route_id.in_(add_routes.split(",")),
                 )
+            )
+        )
+
+    def return_facilities_query(self, types: list[str] = None) -> selectable.Select:
+        """Returns a query for parking facilities.
+
+        Args:
+            types (list[str]): list of facility types to query, defaults to ["parking-area", "bike-storage"]
+        """
+        return (
+            select(Facility)
+            .distinct()
+            .where(
+                Facility.stop_id.in_(select(self.parent_stops_query.columns.stop_id)),
+                Facility.facility_type.in_(types or ["parking-area", "bike-storage"]),
             )
         )
