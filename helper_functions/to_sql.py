@@ -6,6 +6,8 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from gtfs_loader.gtfs_base import GTFSBase
 
+# pylint: disable=broad-except
+
 
 def to_sql(
     session: Session,
@@ -35,7 +37,10 @@ def to_sql(
             res = data.iloc[1:].to_sql(
                 orm.__tablename__, session.connection().engine, None, "append", False
             )
-        except Exception as error:  # pylint: disable=broad-except
+        except Exception as error:
             logging.error("Failed to insert %s: %s", orm.__tablename__, error)
             return
+    except Exception as error:
+        logging.error("Failed to insert %s: %s", orm.__tablename__, error)
+        return
     logging.info("Added %s rows to %s", res, orm.__tablename__)
