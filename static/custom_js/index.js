@@ -36,7 +36,7 @@ var facilitiesRealtime = plotFacilities(`/static/geojsons/${ROUTE_TYPE}/park.jso
 
 
 
-L.control.search({
+controlSearch = L.control.search({
     layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),
     initial: false,
     propertyName: 'name',
@@ -63,6 +63,12 @@ var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 if (map.hasLayer(parking_lots) == true) {
     map.removeLayer(parking_lots);
 }
+
+
+controlSearch.on('search:locationfound', function(event) {
+    event.layer.openPopup();
+});
+
 
 for (realtime of [stopsRealtime, shapesRealtime, facilitiesRealtime]) {
 
