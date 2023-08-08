@@ -58,15 +58,10 @@ class FeedLoader:
     def scheduler(self) -> NoReturn:
         """Schedules jobs."""
         schedule.every(5).seconds.do(self.threader, self.update_realtime)
+        schedule.every().hour.at(":00").do(self.threader, self.geojson_exports)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
         )
-        schedule.every().hour.at(":00", tz="America/New_York").do(
-            self.threader, self.geojson_exports
-        )
-        # schedule.every().minute.at(":00", tz="America/New_York").do(
-        #     self.threader, self.update_realtime
-        # )
         while True:
             schedule.run_pending()
             time.sleep(1)  # wait one minute

@@ -60,8 +60,8 @@ class Calendar(GTFSBase):
             (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
         )
 
-        return (
-            self.start_datetime <= date <= self.end_datetime
+        return bool(
+            self.start_datetime.date() <= date.date() <= self.end_datetime.date()
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")

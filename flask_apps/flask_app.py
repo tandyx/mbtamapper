@@ -43,10 +43,6 @@ class FlaskApp:
         """Returns index.html."""
         return render_template("map.html")
 
-    def render_index(self):
-        """Returns index.html."""
-        return render_template("index.html")
-
     def get_value(self):
         """Returns value of KEY."""
         return self.key
@@ -54,16 +50,15 @@ class FlaskApp:
     def get_vehicles(self):
         """Returns vehicles as geojson."""
         sess = self.feed.scoped_session()
-        query = self.query.return_vehicles_query(
-            self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
-        )
-        # self.feed.import_realtime()
         try:
-            data: list[tuple[Vehicle]] = sess.execute(query).all()
+            data: list[tuple[Vehicle]] = sess.execute(
+                self.query.return_vehicles_query(
+                    self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
+                )
+            ).all()
         except OperationalError:
             data = []
-        geojson_features = [v[0].as_feature() for v in data]
-        return jsonify(FeatureCollection(geojson_features))
+        return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
 
     # pylint: disable=unused-argument
     def shutdown_session(self, exception=None) -> None:
