@@ -10,3 +10,5 @@ schedule
 python-dotenv
 gtfs-realtime-bindings
 protobuf3-to-dict
+waitress
+werkzeug
