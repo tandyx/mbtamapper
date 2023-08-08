@@ -34,7 +34,7 @@ class Facility(GTFSBase):
 
     stop = relationship("Stop", back_populates="facilities")
 
-    ACCENT_COLOR = "#4086f7"
+    ACCENT_COLOR = "#007ebb"
 
     def __repr__(self) -> str:
         return f"<Facilities(facility_id={self.facility_id})>"
@@ -67,6 +67,7 @@ class Facility(GTFSBase):
             f"<td>{self.facility_long_name}</td>"
             f"<td>{self.return_formatted_capacity()}</td>"
             f"{('<td>' + self.return_property('fee-daily', 'Unknown') + '</td>') if parking else ''}"
+            f"{('<td>' + self.return_formatted_payment_app('Unknown') + '</td>') if parking else ''}"
             "</tr>"
         )
 
@@ -74,19 +75,35 @@ class Facility(GTFSBase):
         """Returns facility object as a html string."""
         contact_url = self.return_property("contact-url")
         owner = self.return_property("owner", "Unknown")
-        payment_app_id = self.return_property("payment-app-id")
+        daily_rate = self.return_property("fee-daily")
+        monthly_rate = self.return_property("fee-monthly")
+        payment_app_html = self.return_formatted_payment_app()
+        header_html = (
+            f"<a href = '{contact_url}' target='_blank' style='font-size:28pt;text-decoration: none;text-align: left;color:{Facility.ACCENT_COLOR};'>{self.facility_long_name}</a></br>"
+            if contact_url
+            else f"<a style='font-size:28pt;text-align: left;color:{Facility.ACCENT_COLOR};'>{self.facility_long_name}</a></br>"
+        )
+
+        daily_rate_html = f"Daily Rate: {daily_rate}</br>" if daily_rate else ""
+        monthly_rate_html = f"Monthly Rate: {monthly_rate}</br>" if monthly_rate else ""
+
+        contact_html = (
+            f"Contact: <a href = '{contact_url}' target='_blank' style='text-decoration: none;color:{Facility.ACCENT_COLOR};font-size:9pt'>{self.return_property('contact', 'Unknown')}</a><a style='color:grey;font-size:9pt'> ({self.return_property('contact-phone')})</a></br>"
+            if contact_url
+            else ""
+        )
 
         return (
-            f"<a href = '{contact_url}' target='_blank' style='font-size:28pt;text-decoration: none;text-align: left;color:{Facility.ACCENT_COLOR};'>{self.facility_long_name}</a></br>"
+            f"{header_html}"
             f"<body style='color:#ffffff;text-align: left;'>"
-            f"{owner if owner not in ['City/Town', 'Unknown'] else self.return_property('operator', owner)}</br>"
+            f"{owner if owner not in ['City/Town', 'Unknown', 'Private'] else self.return_property('operator', owner)}</br>"
             f"—————————————————————————————————</br>"
             f"Capacity: {self.return_formatted_capacity()} </br>"
-            f"Payment App: <a href = {self.return_property('payment-app-url')} target='_blank' style='text-decoration: none;color:{Facility.ACCENT_COLOR};'>{self.return_property('payment-app', 'Unknown') }</a>{(f' - {payment_app_id}') if payment_app_id else ''}</br>"
-            f"Daily Rate: {self.return_property('fee-daily', 'Unknown')}</br>"
-            f"Monthly Rate: {self.return_property('fee-monthly', 'Unknown')}</br>"
+            f"{('Payment App: ' + payment_app_html) if payment_app_html else ''}"
+            f"{daily_rate_html}"
+            f"{monthly_rate_html}"
             f"<a style='color:grey;font-size:9pt'>"
-            f"Contact: <a href = '{contact_url}' target='_blank' style='text-decoration: none;color:{Facility.ACCENT_COLOR};font-size:9pt'>{self.return_property('contact', 'Unknown')}</a><a style='color:grey;font-size:9pt'> ({self.return_property('contact-phone')})</a></br>"
+            f"{contact_html}"
             f"<a style='color:grey;font-size:9pt'>Overnight Parking: {self.return_property('overnight-allowed', 'Unknown')}</a></br>"
             "</a></body>"
         )
@@ -109,9 +126,27 @@ class Facility(GTFSBase):
             default,
         )
 
-    def return_formatted_capacity(self) -> str:
+    def return_formatted_payment_app(self, default: str = "") -> str:
+        """Returns the payment app of the facility as a formatted string.
+
+        Args:
+            default (str, optional): The default value to return if the payment app is not found. Defaults to "".
+        Returns:
+            str: The payment app of the facility as a formatted string.
+        """
+        payment_app_url = self.return_property("payment-app-url")
+        payment_app_id = self.return_property("payment-app-id")
+        return (
+            f"<a href = {payment_app_url} target='_blank' style='text-decoration: none;color:{Facility.ACCENT_COLOR};'>{self.return_property('payment-app', 'Unknown') }</a>{(f' - {payment_app_id}') if payment_app_id else ''}</br>"
+            if payment_app_url
+            else default
+        )
+
+    def return_formatted_capacity(self, default: str = "") -> str:
         """Returns the capacity of the facility as a formatted string.
 
+        Args:
+            default (str, optional): The default value to return if the capacity is not found. Defaults to "".
         Returns:
             str: The capacity of the facility as a formatted string.
         """
@@ -119,7 +154,7 @@ class Facility(GTFSBase):
         accessible_spots = (
             f"<a style='color:{Facility.ACCENT_COLOR};'>({accessible_spots})</a>"
             if accessible_spots != ""
-            else ""
+            else default
         )
 
         return self.return_property("capacity", "Unknown") + " " + accessible_spots

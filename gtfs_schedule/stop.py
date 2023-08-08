@@ -179,7 +179,7 @@ class Stop(GTFSBase):
             """<span class="popuptext" id="parkingPopup" style="z-index=-1;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
-            """<td>Parking Lot</td><td>Spaces</td><td>Daily Cost</td></tr>"""
+            """<td>Parking Lot</td><td>Spaces</td><td>Daily Cost</td><td>Payment App</td></tr>"""
             f"""{"".join({p.as_html_row() for p in self.facilities if p.facility_type == "parking-area"})}</tr></table>"""
             """</span></div>"""
             if [p for p in self.facilities if p.facility_type == "parking-area"]

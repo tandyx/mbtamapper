@@ -133,10 +133,12 @@ class Feed:
 
         facilities_stmt = delete(Facility).where(
             Facility.facility_id.not_in(
-                select(query_obj.return_facilities_query().columns.facility_id)
+                select(Facility.facility_id).where(
+                    Facility.facility_type.in_(["parking-area", "bike-storage"]),
+                    Facility.stop_id.isnot(None),
+                )
             )
         )
-
         for stmt in [cal_stmt, facilities_stmt]:
             res: CursorResult = self.session.execute(stmt)
             self.session.commit()  # seperate commits to avoid giant journal file
@@ -156,7 +158,6 @@ class Feed:
         for path in [file_path, file_subpath]:
             if not os.path.exists(path):
                 os.mkdir(path)
-
         self.export_parking_lots(key, file_subpath, query_obj)
         self.export_shapes(key, file_subpath, query_obj)
         self.export_stops(key, file_subpath, query_obj, date)
@@ -182,12 +183,11 @@ class Feed:
                 select(Stop).where(Stop.vehicle_type == "4")
             ).all()
 
-        feature_collection = FeatureCollection(
+        features = FeatureCollection(
             [s[0].as_feature(date or get_current_time(-3.5)) for s in stops_data]
         )
-
         with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
-            dump(feature_collection, file)
+            dump(features, file)
             logging.info("Exported %s", file.name)
 
         self.scoped_session.remove()
@@ -215,17 +215,16 @@ class Feed:
                 )
             ).all()
 
-        feature_collection = FeatureCollection(
+        features = FeatureCollection(
             [
                 s[0].as_feature()
                 for s in sorted(shape_data, key=lambda x: x[0].shape_id, reverse=True)
             ]
         )
-
         with open(
             os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"
         ) as file:
-            dump(feature_collection, file)
+            dump(features, file)
             logging.info("Exported %s", file.name)
 
         self.scoped_session.remove()
@@ -255,12 +254,11 @@ class Feed:
                 select(Facility)
                 .join(Stop, Facility.stop_id == Stop.stop_id)
                 .where(Stop.vehicle_type == "4")
+                .where(Facility.facility_type == "parking-area")
             ).all()
-
-        feature_collection = FeatureCollection([f[0].as_feature() for f in facilities])
-
+        features = FeatureCollection([f[0].as_feature() for f in facilities])
         with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
-            dump(feature_collection, file)
+            dump(features, file)
             logging.info("Exported %s", file.name)
 
         self.scoped_session.remove()
