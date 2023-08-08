@@ -4,12 +4,13 @@ import logging
 from dotenv import load_dotenv
 from flask_apps import FEED
 from gtfs_loader import FeedLoader
+from helper_functions import instantiate_logger
 
 load_dotenv()
 
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.INFO)
+    instantiate_logger(logging.getLogger())
     fead_loader = FeedLoader(FEED)
     # fead_loader.nightly_import()
     # fead_loader.geojson_exports()

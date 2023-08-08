@@ -5,6 +5,7 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase
 
+
 # pylint disable=unused-argument
 # pylint disable=too-few-public-methods
 
