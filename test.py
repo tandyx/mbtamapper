@@ -1,13 +1,14 @@
 """Test"""
 import os
 import logging
+from typing import NoReturn
 from dotenv import load_dotenv
 from flask_apps import FEED
 from gtfs_loader import FeedLoader
 from helper_functions import instantiate_logger
 
 
-def feed_loader():
+def feed_loader() -> NoReturn:
     """Feed loader."""
     load_dotenv()
     instantiate_logger(logging.getLogger())
