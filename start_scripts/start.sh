@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#export SUBWAY="0 1"
-#export RAPID_TRANSIT="0 1 4"
-#export COMMUTER_RAIL=2
-#export BUS=3
-#export FERRY=4
-#export ALL_ROUTES="0 1 2 3 4"
-#export LIST_KEYS="SUBWAY RAPID_TRANSIT COMMUTER_RAIL BUS FERRY ALL_ROUTES"
+# export SUBWAY="0 1"
+# export RAPID_TRANSIT="0 1 4"
+# export COMMUTER_RAIL=2
+# export BUS=3
+# export FERRY=4
+# export ALL_ROUTES="0 1 2 3 4"
+# export LIST_KEYS="SUBWAY RAPID_TRANSIT COMMUTER_RAIL BUS FERRY ALL_ROUTES"
 
 # python2 -m pip install virtualenv
 # virtualenv ./.venv/Scripts/activate --upgrade-deps
