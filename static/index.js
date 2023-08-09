@@ -1,5 +1,5 @@
 
-const ROUTE_TYPE = getRouteType();
+const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
 document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
 
 var map = L.map('map', {
@@ -30,7 +30,7 @@ var parking_lots = L.layerGroup();
 
 var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
 var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
-var vehiclesRealtime = plotVehicles("/vehicles", vehicle_layer).addTo(map);
+var vehiclesRealtime = plotVehicles(`/${ROUTE_TYPE.toLowerCase()}/vehicles`, vehicle_layer).addTo(map);
 var facilitiesRealtime = plotFacilities(`/static/geojsons/${ROUTE_TYPE}/park.json`, parking_lots);
 
 
@@ -65,7 +65,7 @@ if (map.hasLayer(parking_lots) == true) {
 }
 
 
-controlSearch.on('search:locationfound', function(event) {
+controlSearch.on('search:locationfound', function (event) {
     event.layer.openPopup();
 });
 
@@ -115,9 +115,9 @@ map.on('zoomend', function () {
     if (map.getZoom() < 16) {
         map.removeLayer(parking_lots);
     }
-    if (map.getZoom() >= 16){
+    if (map.getZoom() >= 16) {
         map.addLayer(parking_lots);
-    }   
+    }
     console.log(map.getZoom());
 });
 
@@ -162,7 +162,7 @@ function plotStops(url, layer) {
         {
             interval: 3600000,
             type: 'FeatureCollection',
-            container: layer,   
+            container: layer,
             cache: false,
             removeMissing: true,
             getFeatureId(f) {
@@ -216,7 +216,7 @@ function plotFacilities(url, layer) {
         iconUrl: "/static/parking.png",
         iconSize: [15, 15],
     });
-    
+
     return L.realtime(
         url,
         {
@@ -256,25 +256,6 @@ function showBikePopup() {
     var bikePopup = document.getElementById("bikePopup");
     bikePopup.classList.toggle("show");
 }
-
-
-function getRouteType() {
-    var tmp = null;
-    $.ajax({
-        'async': false,
-        'type': "GET",
-        'global': false,
-        'dataType': 'html',
-        'url': "/value",
-        'data': { 'request': "", 'target': 'arrange_url', 'method': 'method_target' },
-        'success': function (data) {
-            tmp = data;
-        }
-    }
-    );
-    console.log(tmp)
-    return tmp;
-};
 
 function titleCase(str, split = "_") {
     return str.toLowerCase().split(split).map(function (word) {
