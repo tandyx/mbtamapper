@@ -1,11 +1,20 @@
 set /A DEV=0
-set HOST="127.0.0.1"
+
+set HOST=0.0.0.0
+@REM set SUBWAY = 0,1
+@REM set RAPID_TRANSIT = 0,1,4
+@REM set COMMUTER_RAIL = 2
+@REM set BUS = 3
+@REM set FERRY = 4
+@REM set ALL_ROUTES = 0,1,2,3,4
+@REM set LIST_KEYS = SUBWAY,RAPID_TRANSIT,COMMUTER_RAIL,BUS,FERRY,ALL_ROUTES
+
+
 
 @echo off
 python -m venv ./.venv --upgrade-deps
 @REM .venv\Scripts\Activate.bat
 .venv\Scripts\python.exe -m pip install --upgrade pip
-@REM pip install -r requirements.txt
 .venv\Scripts\python.exe setup.py build_ext --force
 pip install --upgrade -r requirements.txt
 
@@ -17,31 +26,10 @@ IF %DEV% NEQ 0 (
     start /B .venv/Scripts/python.exe app.py
 ) ELSE (
     echo "dev mode is off"
-
-    set ROUTE_KEY=COMMUTER_RAIL
-    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=502 --call app:create_app
-
-    @REM FOR %%f in (SUBWAY, RAPID_TRANSIT, COMMUTER_RAIL, BUS, FERRY, ALL_ROUTES) DO (
-
-    @REM     if %%f == SUBWAY (
-    @REM         set /A PORT=500
-    @REM     )
-    @REM     If %%f == RAPID_TRANSIT (
-    @REM         set /A PORT=501
-    @REM     )
-    @REM     If %%f == COMMUTER_RAIL (
-    @REM         set /A PORT=502
-    @REM     )
-    @REM     If %%f == BUS (
-    @REM         set /A PORT=503
-    @REM     )
-    @REM     If %%f == FERRY (
-    @REM         set /A PORT=504
-    @REM     )
-    @REM     If %%f == ALL_ROUTES (
-    @REM         set /A PORT=505
-    @REM     )
-    @REM     set ROUTE_KEY=%%f
-    @REM     start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=!PORT! --call app:create_app
-    @REM )
+    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=500 app:SW_APP
+    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=501 app:RT_APP
+    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=502 app:CR_APP
+    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=503 app:BUS_APP
+    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=504 app:FRR_APP
+    start /B .venv/Scripts/python.exe -m waitress --host %HOST% --port=505 app:ALL_APP
 )

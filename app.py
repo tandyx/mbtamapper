@@ -6,15 +6,18 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_apps import FlaskApp, FEED, HOST, PORT
 
 
-def create_app(key: str = None) -> Flask:
+def create_app(key: str = None, proxies: int = 10) -> Flask:
     """Create app for a given key
 
     Args:
         key (str, optional): Key for the app. Defaults to None."""
 
     key = key or os.environ.get("ROUTE_KEY")
-    app = FlaskApp(Flask(__name__), FEED, key).app
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    flask_app = FlaskApp(Flask(__name__), FEED, key)
+    app = flask_app.app
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=proxies, x_proto=proxies, x_host=proxies, x_prefix=proxies
+    )
     return app
 
 
@@ -23,7 +26,7 @@ RT_APP = create_app("RAPID_TRANSIT")
 CR_APP = create_app("COMMUTER_RAIL")
 BUS_APP = create_app("BUS")
 FRR_APP = create_app("FERRY")
-ALL_APP = create_app("ALL")
+ALL_APP = create_app("ALL_ROUTES")
 
 
 if __name__ == "__main__":
