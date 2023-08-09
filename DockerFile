@@ -17,5 +17,12 @@ RUN python3 -m pip install --upgrade pip
 RUN -m pip install --upgrade -r requirements.txt
 COPY . .
 
+EXPOSE 500
+EXPOSE 501
+EXPOSE 502
+EXPOSE 503
+EXPOSE 504
+EXPOSE 505
+
 CMD ["python3", "test.py"] & ["python3", "-m", "waitress", "--listen=*:500", "app:SW_APP"] & ["python3", "-m", "waitress", "--listen=*:501", "app:RT_APP"] &["python3", "-m", "waitress", "--listen=*:502",  "app:CR_APP"] &["python3", "-m", "waitress", "--listen=*:503", "app:BUS_APP"] &["python3", "-m", "waitress", "--listen=*:504", "app:FRR_APP"] & ["python3", "-m", "waitress", "--listen=*:505", "app:ALL_APP"] 
 # CMD ["wait"]
