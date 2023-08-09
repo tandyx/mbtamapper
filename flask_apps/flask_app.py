@@ -3,13 +3,10 @@
 # pylint: disable=unused-wildcard-import
 import os
 from geojson import FeatureCollection
-from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
 from sqlalchemy.exc import OperationalError
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
-
-load_dotenv()
 
 
 class FlaskApp:

@@ -7,7 +7,6 @@ import time
 import logging
 import tempfile
 from datetime import datetime
-from dotenv import load_dotenv
 
 import pandas as pd
 from requests.exceptions import ConnectTimeout
@@ -23,8 +22,6 @@ from gtfs_schedule import *
 from gtfs_realtime import *
 from .query import Query
 from .gtfs_base import GTFSBase
-
-load_dotenv()
 
 
 class Feed:
