@@ -1,34 +1,29 @@
 #!/bin/bash
 
-DEV=0
+#export SUBWAY="0 1"
+#export RAPID_TRANSIT="0 1 4"
+#export COMMUTER_RAIL=2
+#export BUS=3
+#export FERRY=4
+#export ALL_ROUTES="0 1 2 3 4"
+#export LIST_KEYS="SUBWAY RAPID_TRANSIT COMMUTER_RAIL BUS FERRY ALL_ROUTES"
 
-HOST=0.0.0.0
-# SUBWAY="0 1"
-# RAPID_TRANSIT="0 1 4"
-# COMMUTER_RAIL=2
-# BUS=3
-# FERRY=4
-# ALL_ROUTES="0 1 2 3 4"
-# LIST_KEYS="SUBWAY RAPID_TRANSIT COMMUTER_RAIL BUS FERRY ALL_ROUTES"
+# python2 -m pip install virtualenv
+# virtualenv ./.venv/Scripts/activate --upgrade-deps
+python3 -m venv ./.venv --upgrade-deps
+source ./.venv/Scripts/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade -r requirements.txt
 
-# python -m venv ./.venv --upgrade-deps
-# source ./.venv/bin/activate
-.venv/Scripts/python.exe -m pip install --upgrade pip
-.venv/Scripts/python.exe setup.py build_ext --force
-.venv/Scripts/python.exe -m pip install --upgrade -r requirements.txt
+export PYTHONPATH=/helper_functions:/gtfs_schedule:/gtfs_realtime:/gtfs_loader:
 
-export PYTHONPATH="/helper_functions:/gtfs_schedule:/gtfs_realtime:/gtfs_loader"
+python3 test.py &
 
-.venv/Scripts/python.exe test.py &
+python3 -m waitress --listen=*:500 app:SW_APP &
+python3 -m waitress --listen=*:501 app:RT_APP &
+python3 -m waitress --listen=*:502 app:CR_APP &
+python3 -m waitress --listen=*:503 app:BUS_APP &
+python3 -m waitress --listen=*:504 app:FRR_APP &
+python3 -m waitress --listen=*:505 app:ALL_APP &
 
-if [ "$DEV" -ne 0 ]; then
-    python app.py &
-else
-    echo "dev mode is off"
-    waitress-serve --host $HOST --port 500 app:SW_APP &
-    waitress-serve --host $HOST --port 501 app:RT_APP &
-    waitress-serve --host $HOST --port 502 app:CR_APP &
-    waitress-serve --host $HOST --port 503 app:BUS_APP &
-    waitress-serve --host $HOST --port 504 app:FRR_APP &
-    waitress-serve --host $HOST --port 505 app:ALL_APP &
-fi
+wait 
