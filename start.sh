@@ -11,15 +11,15 @@ HOST=0.0.0.0
 # ALL_ROUTES="0 1 2 3 4"
 # LIST_KEYS="SUBWAY RAPID_TRANSIT COMMUTER_RAIL BUS FERRY ALL_ROUTES"
 
-python -m venv ./.venv --upgrade-deps
-source ./.venv/bin/activate
-python -m pip install --upgrade pip
-python setup.py build_ext --force
-pip install --upgrade -r requirements.txt
+# python -m venv ./.venv --upgrade-deps
+# source ./.venv/bin/activate
+.venv/Scripts/python.exe -m pip install --upgrade pip
+.venv/Scripts/python.exe setup.py build_ext --force
+.venv/Scripts/python.exe -m pip install --upgrade -r requirements.txt
 
 export PYTHONPATH="/helper_functions:/gtfs_schedule:/gtfs_realtime:/gtfs_loader"
 
-python test.py &
+.venv/Scripts/python.exe test.py &
 
 if [ "$DEV" -ne 0 ]; then
     python app.py &
