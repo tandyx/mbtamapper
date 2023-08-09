@@ -6,10 +6,10 @@ from flask_apps import FEED
 from gtfs_loader import FeedLoader
 from helper_functions import instantiate_logger
 
-load_dotenv()
 
-
-if __name__ == "__main__":
+def feed_loader():
+    """Feed loader."""
+    load_dotenv()
     instantiate_logger(logging.getLogger())
     fead_loader = FeedLoader(FEED)
     # fead_loader.nightly_import()
@@ -18,3 +18,7 @@ if __name__ == "__main__":
         fead_loader.nightly_import()
         fead_loader.geojson_exports()
     fead_loader.scheduler()
+
+
+if __name__ == "__main__":
+    feed_loader()
