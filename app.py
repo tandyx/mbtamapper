@@ -6,7 +6,7 @@ from helper_functions import instantiate_logger
 
 set_env()
 instantiate_logger(logging.getLogger())
-app = create_default_app(10)
+app = create_default_app(100)
 
 
 if __name__ == "__main__":

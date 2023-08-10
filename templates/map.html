@@ -5,7 +5,6 @@
 <head>
     <meta name="viewport" charset="UTF-8"
         content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=no" />
-    <link rel="icon" href="/static/mbta.png" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
         integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
@@ -16,22 +15,38 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/src/MarkerClusterGroup.js"></script>
-    <script src="/static/custom_js/leaflet-realtime/leaflet-realtime.js"></script>
-    <script src="/static/custom_js/leaflet-realtime/leaflet-realtime.min.js"></script>
-    <link rel="stylesheet" href="/static/custom_js/leaflet-fullscreen/Control.FullScreen.css" />
-    <script src="/static/custom_js/leaflet-fullscreen/Control.FullScreen.js"></script>
 
-    <script src="/static/custom_js/leaflet-search/leaflet-search.js"></script>
-    <link rel="stylesheet" href="/static/custom_js/leaflet-search/leaflet-search.mobile.css" />
-    <link rel="stylesheet" href="/static/custom_js/leaflet-search/leaflet-search.css" />
+    <script>
+        const RT = window.location.href.split("/").slice(-2)[0];
+        const ARR = [
+            { href: "/static/mbta.png", rel: "icon" },
+            { href: "/static/custom_js/leaflet-realtime/leaflet-realtime.js", rel: "script" },
+            { href: "/static/custom_js/leaflet-realtime/leaflet-realtime.min.js", rel: "script" },
+            { href: "/static/custom_js/leaflet-fullscreen/Control.FullScreen.css", rel: "stylesheet" },
+            { href: "/static/custom_js/leaflet-fullscreen/Control.FullScreen.js", rel: "script" },
+            { href: "/static/custom_js/leaflet-search/leaflet-search.js", rel: "script" },
+            { href: "/static/custom_js/leaflet-search/leaflet-search.mobile.css", rel: "stylesheet" },
+            { href: "/static/custom_js/leaflet-search/leaflet-search.css", rel: "stylesheet" },
+            { href: "/static/custom_css/popup.css", rel: "stylesheet" },
+            { href: "/static/custom_css/tooltip.css", rel: "stylesheet" },
+            { href: "/static/custom_css/table.css", rel: "stylesheet" },
+            { href: "/static/custom_css/scrollbar.css", rel: "stylesheet" },
+            { href: "/static/custom_css/leaflet_custom.css", rel: "stylesheet" }
+        ];
 
+        for (linkdict of ARR) {
+            if (linkdict.rel != "script") {
+                var link = document.createElement("link");
+                link.rel = linkdict.rel;
+                link.href = `/${RT}` + linkdict.href;
+            } else {
+                var link = document.createElement("script");
+                link.src = `/${RT}` + linkdict.href;
+            }
+            document.head.appendChild(link);
+        }
+    </script>
 
-
-    <link rel="stylesheet" href="/static/custom_css/popup.css" />
-    <link rel="stylesheet" href="/static/custom_css/tooltip.css" />
-    <link rel="stylesheet" href="/static/custom_css/table.css" />
-    <link rel="stylesheet" href="/static/custom_css/scrollbar.css" />
-    <link rel="stylesheet" href="/static/custom_css/leaflet_custom.css" />
 
     <style>
         body {
@@ -48,11 +63,13 @@
 
         @font-face {
             font-family: "montserrat";
-            src: url("/static/montserrat.ttf");
+            src: url("https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXo.woff2") format('woff2');
         }
     </style>
     <title>MBTA System Map</title>
 </head>
+
+
 
 <body>
     <div id="map"></div>
