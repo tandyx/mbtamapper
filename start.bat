@@ -1,13 +1,13 @@
 set /A DEV=0
 title MBTA Mapper
 @REM set HOST=0.0.0.0
-@REM set SUBWAY = 0,1
-@REM set RAPID_TRANSIT = 0,1,4
-@REM set COMMUTER_RAIL = 2
-@REM set BUS = 3
-@REM set FERRY = 4
-@REM set ALL_ROUTES = 0,1,2,3,4
-@REM set LIST_KEYS = SUBWAY,RAPID_TRANSIT,COMMUTER_RAIL,BUS,FERRY,ALL_ROUTES
+set SUBWAY = 0,1
+set RAPID_TRANSIT = 0,1,4
+set COMMUTER_RAIL = 2
+set BUS = 3
+set FERRY = 4
+set ALL_ROUTES = 0,1,2,3,4
+set LIST_KEYS = SUBWAY,RAPID_TRANSIT,COMMUTER_RAIL,BUS,FERRY,ALL_ROUTES
 
 
 
@@ -19,16 +19,12 @@ python -m venv ./.venv --upgrade-deps
 
 set PYTHONPATH=/helper_functions;/gtfs_schedule;/gtfs_realtime;/gtfs_loader;
 
-start /B ./.venv/Scripts/python.exe test.py
+start /B ./.venv/Scripts/python.exe startup.py
 
 IF %DEV% NEQ 0 (
     start /B .venv/Scripts/python.exe app.py
 ) ELSE (
     echo "dev mode is off"
-    start /B .venv/Scripts/python.exe -m waitress --listen=*:500 app:SW_APP
-    start /B .venv/Scripts/python.exe -m waitress --listen=*:501 app:RT_APP
-    start /B .venv/Scripts/python.exe -m waitress --listen=*:502 app:CR_APP
-    start /B .venv/Scripts/python.exe -m waitress --listen=*:503 app:BUS_APP
-    start /B .venv/Scripts/python.exe -m waitress --listen=*:504 app:FRR_APP
-    start /B .venv/Scripts/python.exe -m waitress --listen=*:505 app:ALL_APP
+    start /B .venv/Scripts/python.exe -m waitress --listen=*:80 --call startup:create_default_app
+
 )

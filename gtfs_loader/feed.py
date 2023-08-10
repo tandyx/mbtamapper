@@ -22,6 +22,7 @@ from gtfs_schedule import *
 from gtfs_realtime import *
 from .query import Query
 from .gtfs_base import GTFSBase
+from flask_apps.constants import ENV_DICT
 
 
 class Feed:
@@ -120,7 +121,7 @@ class Feed:
             date (datetime): date to filter on, defaults to today"""
 
         date = date or get_date()
-        query_obj = Query(os.environ.get("ALL_ROUTES").split(","))
+        query_obj = Query(ENV_DICT.get("ALL_ROUTES").split(","))
 
         cal_stmt = delete(Calendar).where(
             Calendar.service_id.not_in(
@@ -150,7 +151,7 @@ class Feed:
             date (datetime): date to export (default: today)
         """
 
-        query_obj = Query(os.environ.get(key).split(","))
+        query_obj = Query(ENV_DICT.get(key).split(","))
         file_subpath = os.path.join(file_path, key)
         for path in [file_path, file_subpath]:
             if not os.path.exists(path):

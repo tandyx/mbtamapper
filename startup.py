@@ -1,12 +1,15 @@
 """Test"""
 import os
+import logging
 from typing import NoReturn
-from flask import Flask
+from flask import Flask, render_template
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
-from flask_apps import FlaskApp
+
+from flask_apps import FlaskApp, ENV_DICT
 from gtfs_loader import FeedLoader, Feed
+from helper_functions import instantiate_logger
 
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
 
@@ -30,7 +33,7 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     return app
 
 
-def create_default_app(proxies: int = 10) -> Flask:
+def create_default_app(proxies: int = 100) -> Flask:
     """Creates the default Flask object
 
     Args:
@@ -40,6 +43,11 @@ def create_default_app(proxies: int = 10) -> Flask:
     """
 
     app = Flask(__name__)
+
+    @app.route("/")
+    def index():
+        """Returns index.html."""
+        return render_template("index.html")
 
     if proxies:
         app.wsgi_app = ProxyFix(
@@ -53,7 +61,7 @@ def create_default_app(proxies: int = 10) -> Flask:
         app.wsgi_app,
         {
             f"/{key.lower()}": create_app(key).wsgi_app
-            for key in os.environ["LIST_KEYS"].split(",")
+            for key in ENV_DICT["LIST_KEYS"].split(",")
         },
     )
 
@@ -69,24 +77,6 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     fead_loader.scheduler()
 
 
-def set_env(env_dict: dict[str, str] = None) -> None:
-    """Set environment variables.
-
-    Args:
-        env_dict (dict[str, str], optional): Dictionary of environment variables. Defaults to None.
-    """
-    env_dict = env_dict or {
-        "SUBWAY": "0,1",
-        "RAPID_TRANSIT": "0,1,4",
-        "COMMUTER_RAIL": "2",
-        "BUS": "3",
-        "FERRY": "4",
-        "ALL_ROUTES": "0,1,2,3,4",
-        "LIST_KEYS": "SUBWAY,RAPID_TRANSIT,COMMUTER_RAIL,BUS,FERRY,ALL_ROUTES",
-    }
-    for key, value in env_dict.items():
-        os.environ[key] = value
-
-
 if __name__ == "__main__":
+    instantiate_logger(logging.getLogger())
     feed_loader()
