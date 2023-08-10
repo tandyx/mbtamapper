@@ -6,12 +6,9 @@ import logging
 from typing import NoReturn, Callable
 from threading import Thread
 import schedule
-from dotenv import load_dotenv
 
 from sqlalchemy.exc import OperationalError
 from .feed import Feed
-
-load_dotenv()
 
 
 class FeedLoader:

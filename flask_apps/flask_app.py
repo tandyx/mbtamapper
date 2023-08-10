@@ -1,15 +1,12 @@
 """Flask app for MBTA GTFS data."""
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
-import os
 from geojson import FeatureCollection
-from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
 from sqlalchemy.exc import OperationalError
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
-
-load_dotenv()
+from .constants import ENV_DICT
 
 
 class FlaskApp:
@@ -27,29 +24,28 @@ class FlaskApp:
         self.app = app
         self.feed = feed_obj
         self.key = key or "ALL_ROUTES"
-        self.route_types = os.environ.get(key)
+        self.route_types = ENV_DICT.get(key)
         self.query = Query(self.route_types.split(","))
         self._setup_routes()
 
     def __repr__(self) -> str:
         return f"<FlaskApp(key={self.key}, feed={self.feed})>"
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         """Sets up the app routes."""
         self.app.route("/")(self.render_map)
-        self.app.route("/value")(self.get_value)
         self.app.route("/vehicles")(self.get_vehicles)
         self.app.teardown_appcontext(self.shutdown_session)
 
-    def render_map(self):
+    def render_map(self) -> str:
         """Returns index.html."""
         return render_template("map.html")
 
-    def get_value(self):
+    def get_value(self) -> str:
         """Returns value of KEY."""
         return self.key
 
-    def get_vehicles(self):
+    def get_vehicles(self) -> str:
         """Returns vehicles as geojson."""
         sess = self.feed.scoped_session()
         try:

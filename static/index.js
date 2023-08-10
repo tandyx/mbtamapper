@@ -1,283 +1,173 @@
+const ARRAY = [ 'SUBWAY', 'RAPID_TRANSIT', 'COMMUTER_RAIL', 'BUS', 'FERRY', 'ALL_ROUTES' ]
+window.addEventListener('load', function () {
 
-const ROUTE_TYPE = getRouteType();
-document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
-
-var map = L.map('map', {
-    minZoom: 9,
-    maxZoom: 20,
-    maxBounds: L.latLngBounds(L.latLng(40, -74), L.latLng(44, -69)),
-    fullscreenControl: true,
-    fullscreenControlOptions: {
-        position: 'topleft'
-    }
-}).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 9 : 13);
-
-var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20,
-}).addTo(map);
-var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20,
-});
-
-var stop_layer = L.layerGroup().addTo(map);
-var shape_layer = L.layerGroup().addTo(map);
-var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 12 }).addTo(map);
-var parking_lots = L.layerGroup();
-
-var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
-var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
-var vehiclesRealtime = plotVehicles("/vehicles", vehicle_layer).addTo(map);
-var facilitiesRealtime = plotFacilities(`/static/geojsons/${ROUTE_TYPE}/park.json`, parking_lots);
-
-
-
-
-controlSearch = L.control.search({
-    layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),
-    initial: false,
-    propertyName: 'name',
-    zoom: 16,
-    marker: false,
-    textPlaceholder: "",
-}).addTo(map);
-
-
-var overlays = {
-    "Vehicles": vehicle_layer,
-    "Stops": stop_layer,
-    "Shapes": shape_layer,
-    "Parking Lots": parking_lots,
-};
-
-var baseMaps = {
-    "Dark": CartoDB_DarkMatter,
-    "Light": CartoDB_Positron
-};
-
-var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
-
-if (map.hasLayer(parking_lots) == true) {
-    map.removeLayer(parking_lots);
-}
-
-
-controlSearch.on('search:locationfound', function(event) {
-    event.layer.openPopup();
-});
-
-
-for (realtime of [stopsRealtime, shapesRealtime, facilitiesRealtime]) {
-
-    realtime.on('update', function (e) {
-        Object.keys(e.update,).forEach(function (id) {
-            var feature = e.update[id];
-            var wasOpen = this.getLayer(id).getPopup().isOpen();
-            if (wasOpen === true) {
-                this.getLayer(id).closePopup();
-            }
-
-            this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-
-            if (wasOpen === true) {
-                this.getLayer(id).openPopup();
-            }
-
-
-        }.bind(this));
-    });
-}
-
-vehiclesRealtime.on('update', function (e) {
-    Object.keys(e.update,).forEach(function (id) {
-        var feature = e.update[id];
-        var wasOpen = this.getLayer(id).getPopup().isOpen();
-        if (wasOpen === true) {
-            this.getLayer(id).closePopup();
+    L.Map.include({
+        _initControlPos: function () {
+          var corners = this._controlCorners = {},
+            l = 'leaflet-',
+            container = this._controlContainer =
+              L.DomUtil.create('div', l + 'control-container', this._container);
+      
+          function createCorner(vSide, hSide) {
+            var className = l + vSide + ' ' + l + hSide;
+      
+            corners[vSide + hSide] = L.DomUtil.create('div', className, container);
+          }
+      
+          createCorner('top', 'left');
+          createCorner('top', 'right');
+          createCorner('bottom', 'left');
+          createCorner('bottom', 'right');
+      
+          createCorner('top', 'center');
+          createCorner('middle', 'center');
+          createCorner('middle', 'left');
+          createCorner('middle', 'right');
+          createCorner('bottom', 'center');
         }
-        this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-        this.getLayer(id).setIcon(L.divIcon({
-            html: feature.properties.icon,
-            iconSize: [15, 15],
-        }));
-        if (wasOpen === true) {
-            this.getLayer(id).openPopup();
-        }
+      });
 
 
-    }.bind(this));
-});
+    var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
+    var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
+    var map = L.map('map', {
+        zoomControl: false,
+        maxZoom: zoom,
+        minZoom: zoom,
+    }).setView([42.3519, -71.0552], zoom);
 
-map.on('zoomend', function () {
-    if (map.getZoom() < 16) {
-        map.removeLayer(parking_lots);
-    }
-    if (map.getZoom() >= 16){
-        map.addLayer(parking_lots);
-    }   
-    console.log(map.getZoom());
-});
+    map.dragging.disable();
+    map.touchZoom.disable();
+    map.doubleClickZoom.disable();
+    map.scrollWheelZoom.disable();
+    map.boxZoom.disable();
+    map.keyboard.disable();
+    if (map.tap) map.tap.disable();
+    document.getElementById('map').style.cursor='default';
 
 
-
-function plotVehicles(url, layer) {
-
-    return L.realtime(
-        url,
-        {
-            interval: 15000,
-            type: 'FeatureCollection',
-            container: layer,
-            cache: false,
-            removeMissing: true,
-            getFeatureId(f) {
-                return f.id;
-            },
-            onEachFeature(f, l) {
-                var icon = L.divIcon({
-                    html: f.properties.icon,
-                    iconSize: [15, 15],
-                });
-                l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-                l.bindTooltip(f.properties.name);
-                l.setIcon(icon);
-                l.setZIndexOffset(100);
-            },
-        }
-    )
-}
-
-function plotStops(url, layer) {
-
-    const stopIcon = L.icon({
-        iconUrl: "/static/mbta.png",
-        iconSize: [15, 15],
+    var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20,
+    }).addTo(map);
+    var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20,
     });
 
-    return L.realtime(
-        url,
-        {
-            interval: 3600000,
-            type: 'FeatureCollection',
-            container: layer,   
-            cache: false,
-            removeMissing: true,
-            getFeatureId(f) {
-                return f.id;
-            },
-            onEachFeature(f, l) {
-                // l.setStyle({ renderer: L.canvas({ padding: 0.5, tolerance: 10 }) });
-                l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-                l.bindTooltip(f.properties.name);
-                l.setIcon(stopIcon);
-                l.setZIndexOffset(-100);
-            },
+    var shape_layer = L.layerGroup().addTo(map);
+    realtime = plotShapes(route_type, shape_layer).addTo(map);
+
+    map.on("click", function () {
+        if (map.hasLayer(CartoDB_Positron)) {
+            map.removeLayer(CartoDB_Positron);
+            map.addLayer(CartoDB_DarkMatter);
+        } else {
+            map.removeLayer(CartoDB_DarkMatter);
+            map.addLayer(CartoDB_Positron);
         }
-    )
-}
+    });
+    
+    L.Control.textbox = L.Control.extend({
+		onAdd: function(map) {
+			
+		var text = L.DomUtil.create('div');
+		text.id = "info_text";
+		text.innerHTML = `
+        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 4px;text-align: center;justify-content: center;">
+            <h1>MBTA Mapper</h1>
+            <table style="margin-left: auto;margin-right: auto;width:auto;">
+                <tr>
+                    <td style="padding: 15px">
+                        <a href="/subway/" style="font-weight:bold;text-decoration:none;color:#7C878E;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Icon-mode-subway-default.svg/512px-Icon-mode-subway-default.svg.png" width="125"><br><br>
+                            Subway
+                        </a>
+                    </td>
+                    <td style="padding: 15px">
+                        <a href="/rapid_transit/" style="font-weight:bold;text-decoration:none;color:#ED8B00;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Icon-mode-subway-default.svg/512px-Icon-mode-subway-default.svg.png" width="125" style="filter: invert(60%) sepia(38%) saturate(1600%) hue-rotate(8deg) brightness(102%) contrast(101%);"><br><br>
+                            Rapid Transit
+                        </a>
+                    </td>
+                    <td style="padding: 15px">
+                        <a href="/commuter_rail/" style="font-weight:bold;text-decoration:none;color:#80276C;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Icon-mode-commuter-rail-default.svg/512px-Icon-mode-commuter-rail-default.svg.png" width="125"><br><br>
+                            Commuter Rail
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 15px">
+                        <a href="/bus/" style="font-weight:bold;text-decoration:none;color:#FFC72C;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Icon-mode-bus-default.svg/512px-Icon-mode-bus-default.svg.png" width="125"><br><br>
+                            Bus <a style="color:red">(30s updates)</a>
+                        </a>
+                    </td>
+                    <td style="padding: 15px">
+                        <a href="/ferry/" style="font-weight:bold;text-decoration:none;color:#006595;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Icon-mode-ferry-default.svg/512px-Icon-mode-ferry-default.svg.png" width="125"><br><br>
+                            Ferry <a style="color:red">(no vehicle data)</a>
+                        </a>
+                    </td>
+                    <td style="padding: 15px">
+                        <a href="/all_routes/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+                            <img src="/static/mbta.png" width="125"><br><br>
+                            All Routes <a style="color:red">(30s updates)</a>
+                        </a>
+                    </td>
+                </tr>
+            </table>
+            <div style="margin-top:25px">
+                This was my personal project. While I used to work for Keolis, I have no further affiliation with the MBTA.<br><br>
+                <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;text-decoration:none;color:#ffffff;padding:15px;">
+                    <img src="https://icon-library.com/images/github-icon-white/github-icon-white-5.jpg" width="45">
+                </a>
+                <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/600px-LinkedIn_logo_initials.png" width="45">
+                </a>
+            </div>
+        </div>
+        `
+		return text;
+		},
 
-function plotShapes(url, layer) {
+		onRemove: function(map) {
+			// Nothing to do here
+		}
+	});
+    
+	L.control.textbox = function(opts) { return new L.Control.textbox(opts);}
+	L.control.textbox({ position: 'topcenter' }).addTo(map);
+    
+});
 
-    let polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
+// var zoom = route_type == "commuter_rail" ? 9 : 13;
 
+function plotShapes(key, layer) {
+    let polyLineRender = L.canvas({ padding: 0, tolerance: 0 });
     return L.realtime(
-        url,
+        `/static/geojsons/${key}/shapes.json`,
         {
-            interval: 3600000,
+            interval: 360000000000000,
             type: 'FeatureCollection',
             container: layer,
-            cache: false,
+            cache: true,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
             },
             onEachFeature(f, l) {
                 l.setStyle({
+                    interactive: false,
                     color: f.properties.color,
                     opacity: f.properties.opacity,
                     weight: 1.3,
-                    renderer: polyLineRender
+                    renderer: polyLineRender,
                 });
-
-                l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-                l.bindTooltip(f.properties.name);
             },
         }
     )
-}
-
-
-function plotFacilities(url, layer) {
-
-    const facilityIcon = L.icon({
-        iconUrl: "/static/parking.png",
-        iconSize: [15, 15],
-    });
-    
-    return L.realtime(
-        url,
-        {
-            interval: 3600000,
-            type: 'FeatureCollection',
-            container: layer,
-            cache: false,
-            removeMissing: true,
-            getFeatureId(f) {
-                return f.id;
-            },
-            onEachFeature(f, l) {
-                l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-                l.bindTooltip(f.properties.name);
-                l.setIcon(facilityIcon);
-                l.setZIndexOffset(-150);
-            },
-        }
-    )
-}
-
-
-function showPredictionPopup() {
-    var predictionPopup = document.getElementById("predictionPopup");
-    predictionPopup.classList.toggle("show");
-}
-function showAlertPopup() {
-    var alertPopup = document.getElementById("alertPopup");
-    alertPopup.classList.toggle("show");
-}
-function showParkingPopup() {
-    var parkingPopup = document.getElementById("parkingPopup");
-    parkingPopup.classList.toggle("show");
-}
-
-function showBikePopup() {
-    var bikePopup = document.getElementById("bikePopup");
-    bikePopup.classList.toggle("show");
-}
-
-
-function getRouteType() {
-    var tmp = null;
-    $.ajax({
-        'async': false,
-        'type': "GET",
-        'global': false,
-        'dataType': 'html',
-        'url': "/value",
-        'data': { 'request': "", 'target': 'arrange_url', 'method': 'method_target' },
-        'success': function (data) {
-            tmp = data;
-        }
-    }
-    );
-    console.log(tmp)
-    return tmp;
-};
-
-function titleCase(str, split = "_") {
-    return str.toLowerCase().split(split).map(function (word) {
-        return (word.charAt(0).toUpperCase() + word.slice(1));
-    }).join(' ');
 }
