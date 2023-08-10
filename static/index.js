@@ -1,31 +1,31 @@
-const ARRAY = [ 'SUBWAY', 'RAPID_TRANSIT', 'COMMUTER_RAIL', 'BUS', 'FERRY', 'ALL_ROUTES' ]
+const ARRAY = ['SUBWAY', 'RAPID_TRANSIT', 'COMMUTER_RAIL', 'BUS', 'FERRY', 'ALL_ROUTES']
 window.addEventListener('load', function () {
 
     L.Map.include({
         _initControlPos: function () {
-          var corners = this._controlCorners = {},
-            l = 'leaflet-',
-            container = this._controlContainer =
-              L.DomUtil.create('div', l + 'control-container', this._container);
-      
-          function createCorner(vSide, hSide) {
-            var className = l + vSide + ' ' + l + hSide;
-      
-            corners[vSide + hSide] = L.DomUtil.create('div', className, container);
-          }
-      
-          createCorner('top', 'left');
-          createCorner('top', 'right');
-          createCorner('bottom', 'left');
-          createCorner('bottom', 'right');
-      
-          createCorner('top', 'center');
-          createCorner('middle', 'center');
-          createCorner('middle', 'left');
-          createCorner('middle', 'right');
-          createCorner('bottom', 'center');
+            var corners = this._controlCorners = {},
+                l = 'leaflet-',
+                container = this._controlContainer =
+                    L.DomUtil.create('div', l + 'control-container', this._container);
+
+            function createCorner(vSide, hSide) {
+                var className = l + vSide + ' ' + l + hSide;
+
+                corners[vSide + hSide] = L.DomUtil.create('div', className, container);
+            }
+
+            createCorner('top', 'left');
+            createCorner('top', 'right');
+            createCorner('bottom', 'left');
+            createCorner('bottom', 'right');
+
+            createCorner('top', 'center');
+            createCorner('middle', 'center');
+            createCorner('middle', 'left');
+            createCorner('middle', 'right');
+            createCorner('bottom', 'center');
         }
-      });
+    });
 
 
     var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
@@ -43,7 +43,7 @@ window.addEventListener('load', function () {
     map.boxZoom.disable();
     map.keyboard.disable();
     if (map.tap) map.tap.disable();
-    document.getElementById('map').style.cursor='default';
+    document.getElementById('map').style.cursor = 'default';
 
 
     var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -60,7 +60,19 @@ window.addEventListener('load', function () {
     var shape_layer = L.layerGroup().addTo(map);
     realtime = plotShapes(route_type, shape_layer).addTo(map);
 
-    map.on("click", function () {
+    // L.featureGroup([realtime, CartoDB_DarkMatter, CartoDB_Positron]).on('click', function () {
+    //     console.log(map.tileLayer)
+    //     if (map.hasLayer(CartoDB_Positron)) {
+    //         map.removeLayer(CartoDB_Positron);
+    //         map.addLayer(CartoDB_DarkMatter);
+    //     } else {
+    //         map.removeLayer(CartoDB_DarkMatter);
+    //         map.addLayer(CartoDB_Positron);
+    //     }
+    // });
+
+    map.on("click", function (e) {
+        // console.log(e.originalEvent.target.offsetParent)
         if (map.hasLayer(CartoDB_Positron)) {
             map.removeLayer(CartoDB_Positron);
             map.addLayer(CartoDB_DarkMatter);
@@ -69,13 +81,13 @@ window.addEventListener('load', function () {
             map.addLayer(CartoDB_Positron);
         }
     });
-    
+
     L.Control.textbox = L.Control.extend({
-		onAdd: function(map) {
-			
-		var text = L.DomUtil.create('div');
-		text.id = "info_text";
-		text.innerHTML = `
+        onAdd: function (map) {
+
+            var text = L.DomUtil.create('div');
+            text.id = "info_text";
+            text.innerHTML = `
         <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 4px;text-align: center;justify-content: center;">
             <h1>MBTA Mapper</h1>
             <table style="margin-left: auto;margin-right: auto;width:auto;">
@@ -131,17 +143,17 @@ window.addEventListener('load', function () {
             </div>
         </div>
         `
-		return text;
-		},
+            return text;
+        },
 
-		onRemove: function(map) {
-			// Nothing to do here
-		}
-	});
-    
-	L.control.textbox = function(opts) { return new L.Control.textbox(opts);}
-	L.control.textbox({ position: 'topcenter' }).addTo(map);
-    
+        onRemove: function (map) {
+            // Nothing to do here
+        }
+    });
+
+    L.control.textbox = function (opts) { return new L.Control.textbox(opts); }
+    L.control.textbox({ position: 'topcenter' }).addTo(map);
+
 });
 
 // var zoom = route_type == "commuter_rail" ? 9 : 13;
@@ -154,7 +166,7 @@ function plotShapes(key, layer) {
             interval: 360000000000000,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: false,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;

@@ -13,7 +13,7 @@ window.addEventListener('load', function () {
             position: 'topleft'
         }
     }).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13);
-    
+
     var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
@@ -24,12 +24,12 @@ window.addEventListener('load', function () {
         subdomains: 'abcd',
         maxZoom: 20,
     });
-    
+
     var stop_layer = L.layerGroup().addTo(map);
     var shape_layer = L.layerGroup().addTo(map);
     var vehicle_layer = L.markerClusterGroup({ disableClusteringAtZoom: ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 12 }).addTo(map);
     var parking_lots = L.layerGroup();
-    
+
     var stopsRealtime = plotStops(`/static/geojsons/${ROUTE_TYPE}/stops.json`, stop_layer).addTo(map);
     var shapesRealtime = plotShapes(`/static/geojsons/${ROUTE_TYPE}/shapes.json`, shape_layer).addTo(map);
     var vehiclesRealtime = plotVehicles(`/${ROUTE_TYPE.toLowerCase()}/vehicles`, vehicle_layer).addTo(map);
@@ -52,19 +52,19 @@ window.addEventListener('load', function () {
         "Shapes": shape_layer,
         "Parking Lots": parking_lots,
     }).addTo(map);
-    
+
     if (map.hasLayer(parking_lots) == true) {
         map.removeLayer(parking_lots);
     }
-    
-    
+
+
     controlSearch.on('search:locationfound', function (event) {
         event.layer.openPopup();
     });
-    
-    
+
+
     for (realtime of [stopsRealtime, shapesRealtime, facilitiesRealtime]) {
-    
+
         realtime.on('update', function (e) {
             Object.keys(e.update,).forEach(function (id) {
                 var feature = e.update[id];
@@ -72,18 +72,18 @@ window.addEventListener('load', function () {
                 if (wasOpen === true) {
                     this.getLayer(id).closePopup();
                 }
-    
+
                 this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-    
+
                 if (wasOpen === true) {
                     this.getLayer(id).openPopup();
                 }
-    
-    
+
+
             }.bind(this));
         });
     }
-    
+
     vehiclesRealtime.on('update', function (e) {
         Object.keys(e.update,).forEach(function (id) {
             var feature = e.update[id];
@@ -99,11 +99,11 @@ window.addEventListener('load', function () {
             if (wasOpen === true) {
                 this.getLayer(id).openPopup();
             }
-    
-    
+
+
         }.bind(this));
     });
-    
+
     map.on('zoomend', function () {
         if (map.getZoom() < 16) {
             map.removeLayer(parking_lots);
@@ -113,11 +113,11 @@ window.addEventListener('load', function () {
         }
         console.log(map.getZoom());
     });
-  });
+});
 
 
 
-function onLoad(route_type, array = null){
+function onLoad(route_type, array = null) {
 
     if (array == null) {
         array = [
@@ -163,7 +163,7 @@ function plotVehicles(url, layer) {
             interval: !(ROUTE_TYPE in ["BUS", "ALL_ROUTES"]) ? 30000 : 12500,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: false,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -195,7 +195,7 @@ function plotStops(url, layer) {
             interval: 3600000,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: false,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -221,7 +221,7 @@ function plotShapes(url, layer) {
             interval: 3600000,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: false,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -255,7 +255,7 @@ function plotFacilities(url, layer) {
             interval: 3600000,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: false,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
