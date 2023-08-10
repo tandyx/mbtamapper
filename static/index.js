@@ -1,5 +1,33 @@
 const ARRAY = [ 'SUBWAY', 'RAPID_TRANSIT', 'COMMUTER_RAIL', 'BUS', 'FERRY', 'ALL_ROUTES' ]
 window.addEventListener('load', function () {
+
+    L.Map.include({
+        _initControlPos: function () {
+          var corners = this._controlCorners = {},
+            l = 'leaflet-',
+            container = this._controlContainer =
+              L.DomUtil.create('div', l + 'control-container', this._container);
+      
+          function createCorner(vSide, hSide) {
+            var className = l + vSide + ' ' + l + hSide;
+      
+            corners[vSide + hSide] = L.DomUtil.create('div', className, container);
+          }
+      
+          createCorner('top', 'left');
+          createCorner('top', 'right');
+          createCorner('bottom', 'left');
+          createCorner('bottom', 'right');
+      
+          createCorner('top', 'center');
+          createCorner('middle', 'center');
+          createCorner('middle', 'left');
+          createCorner('middle', 'right');
+          createCorner('bottom', 'center');
+        }
+      });
+
+
     var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
     var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
     var map = L.map('map', {
@@ -41,14 +69,14 @@ window.addEventListener('load', function () {
             map.addLayer(CartoDB_Positron);
         }
     });
-
+    
     L.Control.textbox = L.Control.extend({
 		onAdd: function(map) {
 			
 		var text = L.DomUtil.create('div');
 		text.id = "info_text";
 		text.innerHTML = `
-        <div style="transform: translate(60%, 15%);font-size:12pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 4px;text-align: center;justify-content: center;">
+        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 4px;text-align: center;justify-content: center;">
             <h1>MBTA Mapper</h1>
             <table style="margin-left: auto;margin-right: auto;width:auto;">
                 <tr>
@@ -112,7 +140,7 @@ window.addEventListener('load', function () {
 	});
     
 	L.control.textbox = function(opts) { return new L.Control.textbox(opts);}
-	L.control.textbox({ position: 'topleft' }).addTo(map);
+	L.control.textbox({ position: 'topcenter' }).addTo(map);
     
 });
 

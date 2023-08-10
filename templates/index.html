@@ -21,6 +21,25 @@
     
 
     <style>
+
+        .leaflet-center {
+            left: 50%;
+            transform: translate(-50%, 0%);
+        }
+        
+        .leaflet-middle {
+            top: 50%;
+            position: absolute;
+            z-index: 1000;
+            pointer-events: none;
+          transform: translate(0%, -50%);
+        
+        }
+        
+        .leaflet-center.leaflet-middle {
+          transform: translate(-50%, -50%);
+        }
+
         body {
             padding: 0;
             margin: 0;
@@ -38,7 +57,7 @@
             src: url("https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXo.woff2") format('woff2');
         }
     </style>
-    <title>MBTA System Map</title>
+    <title>MBTA Mapper</title>
 </head>
 
 
