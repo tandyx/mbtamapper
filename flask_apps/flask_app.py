@@ -48,12 +48,10 @@ class FlaskApp:
     def get_vehicles(self) -> str:
         """Returns vehicles as geojson."""
         sess = self.feed.scoped_session()
+        add_routes = self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
+        data: list[tuple[Vehicle]]
         try:
-            data: list[tuple[Vehicle]] = sess.execute(
-                self.query.return_vehicles_query(
-                    self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
-                )
-            ).all()
+            data = sess.execute(self.query.return_vehicles_query(add_routes)).all()
         except OperationalError:
             data = []
         return jsonify(FeatureCollection([v[0].as_feature() for v in data]))

@@ -15,10 +15,13 @@ class FeedLoader:
     """Loads GTFS data into map
 
     Args:
-        feed (Feed): GTFS feed"""
+        feed (Feed): GTFS feed
+        keys (list[str], optional): List of keys to load. Defaults to None.
+    """
 
-    def __init__(self, feed: Feed) -> None:
+    def __init__(self, feed: Feed, keys: list[str] = None) -> None:
         self.feed = feed
+        self.keys = keys or os.environ.get("LIST_KEYS").split(",")
 
     def __repr__(self) -> str:
         return f"<FeedLoader(feed={self.feed})>"
@@ -33,7 +36,7 @@ class FeedLoader:
         """Exports geojsons."""
         self.feed.import_realtime()
         geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
-        for key in os.getenv("LIST_KEYS").split(","):
+        for key in self.keys:
             try:
                 self.feed.export_geojsons(key, geojson_path)
             except OperationalError:
@@ -54,8 +57,8 @@ class FeedLoader:
 
     def scheduler(self) -> NoReturn:
         """Schedules jobs."""
-        schedule.every(5).seconds.do(self.threader, self.update_realtime)
-        schedule.every().hour.at(":00").do(self.threader, self.geojson_exports)
+        schedule.every(7).seconds.do(self.threader, self.update_realtime)
+        schedule.every(1.5).hours.at(":00").do(self.threader, self.geojson_exports)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
         )

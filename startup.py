@@ -70,7 +70,7 @@ def create_default_app(proxies: int = 100) -> Flask:
 
 def feed_loader(import_data: bool = False) -> NoReturn:
     """Feed loader."""
-    fead_loader = FeedLoader(FEED)
+    fead_loader = FeedLoader(FEED, ENV_DICT["LIST_KEYS"].split(","))
     if import_data or not os.path.exists(fead_loader.feed.db_path):
         fead_loader.nightly_import()
         fead_loader.geojson_exports()
