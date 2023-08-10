@@ -260,3 +260,19 @@ class Feed:
             logging.info("Exported %s", file.name)
 
         self.scoped_session.remove()
+
+    # def get_vehicles(self, query: Query, **kwargs) -> FeatureCollection:
+    #     """Returns vehicles as FeatureCollection.
+
+    #     Args:
+    #         query (Query): Query object
+    #         **kwargs: keyword arguments for Query object
+    #     """
+    #     session = self.scoped_session()
+    #     data: list[tuple[Vehicle]]
+    #     try:
+    #         data = session.execute(query.return_vehicles_query(**kwargs)).all()
+    #     except OperationalError:
+    #         data = []
+    #     self.scoped_session.remove()
+    #     return FeatureCollection([v[0].as_feature() for v in data])

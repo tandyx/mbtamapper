@@ -24,7 +24,5 @@ start /B ./.venv/Scripts/python.exe startup.py
 IF %DEV% NEQ 0 (
     start /B .venv/Scripts/python.exe app.py
 ) ELSE (
-    echo "dev mode is off"
     start /B .venv/Scripts/python.exe -m waitress --listen=*:80 --call startup:create_default_app
-
 )

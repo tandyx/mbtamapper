@@ -92,13 +92,22 @@ class Facility(GTFSBase):
             if contact_url
             else ""
         )
+        acessible_spots = int(self.return_property("capacity-accessible", 0))
+        wheelchair = (
+            """<div class = "tooltip">"""
+            """<img src="static/wheelchair.png" alt="accessible" width=25 height=25 style="margin:2px;">"""
+            f"""<span class="tooltiptext">Accessible spots: {acessible_spots}</span></div></br>"""
+            if acessible_spots
+            else ""
+        )
 
         return (
             f"{header_html}"
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{owner if owner not in ['City/Town', 'Unknown', 'Private'] else self.return_property('operator', owner)}</br>"
             f"—————————————————————————————————</br>"
-            f"Capacity: {self.return_formatted_capacity()} </br>"
+            f"{wheelchair}"
+            f"Capacity: {self.return_property('capacity', 'Unknown')} </br>"
             f"{('Payment App: ' + payment_app_html) if payment_app_html else ''}"
             f"{daily_rate_html}"
             f"{monthly_rate_html}"
