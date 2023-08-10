@@ -12,7 +12,7 @@ window.addEventListener('load', function () {
         fullscreenControlOptions: {
             position: 'topleft'
         }
-    }).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 9 : 13);
+    }).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13);
     
     var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
