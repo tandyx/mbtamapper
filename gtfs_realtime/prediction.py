@@ -87,6 +87,8 @@ class Prediction(GTFSBase):
             if (self.predicted and scheduled)
             else 0
         )
+        if self.trip and self.trip.trip_short_name == "431":
+            print()
 
         if delay <= 2:
             return ""

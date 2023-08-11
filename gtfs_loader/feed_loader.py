@@ -19,6 +19,8 @@ class FeedLoader:
         keys (list[str], optional): List of keys to load. Defaults to None.
     """
 
+    GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
+
     def __init__(self, feed: Feed, keys: list[str] = None) -> None:
         self.feed = feed
         self.keys = keys or os.environ.get("LIST_KEYS").split(",")
@@ -35,10 +37,9 @@ class FeedLoader:
     def geojson_exports(self) -> None:
         """Exports geojsons."""
         self.feed.import_realtime()
-        geojson_path = os.path.join(os.getcwd(), "static", "geojsons")
         for key in self.keys:
             try:
-                self.feed.export_geojsons(key, geojson_path)
+                self.feed.export_geojsons(key, FeedLoader.GEOJSON_PATH)
             except OperationalError:
                 logging.warning("OperationalError: %s", key)
 

@@ -104,9 +104,11 @@ def lazy_convert(time_str: str, zone: str = "America/New_York") -> datetime:
     if int(hour) >= 24:
         time_str = f"{int(hour) - 24}:{minute}:{second}"
         if 3.5 < get_current_time(zone=zone).hour < 24:
-            return pytz.timezone(zone).localize(parse(time_str) + timedelta(days=1))
-        return pytz.timezone(zone).localize(parse(time_str))
-    return pytz.timezone(zone).localize(parse(time_str))
+            return parse(time_str).replace(tzinfo=pytz.timezone(zone)) + timedelta(
+                days=1
+            )
+        return parse(time_str).replace(tzinfo=pytz.timezone(zone))
+    return parse(time_str).replace(tzinfo=pytz.timezone(zone))
 
 
 def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
