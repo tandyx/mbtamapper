@@ -1,5 +1,5 @@
-pandas
 numpy
+pandas
 requests
 json_api_doc
 shapely

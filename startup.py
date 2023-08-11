@@ -11,6 +11,10 @@ from flask_apps import FlaskApp, ENV_DICT
 from gtfs_loader import FeedLoader, Feed
 from helper_functions import instantiate_logger
 
+
+from sqlalchemy import select
+from gtfs_realtime import Prediction
+
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
 
 
@@ -70,11 +74,12 @@ def create_default_app(proxies: int = 100) -> Flask:
 
 def feed_loader(import_data: bool = False) -> NoReturn:
     """Feed loader."""
-    fead_loader = FeedLoader(FEED, ENV_DICT["LIST_KEYS"].split(","))
-    if import_data or not os.path.exists(fead_loader.feed.db_path):
-        fead_loader.nightly_import()
-        fead_loader.geojson_exports()
-    fead_loader.scheduler()
+    feadloader = FeedLoader(FEED, ENV_DICT["LIST_KEYS"].split(","))
+    if import_data or not os.path.exists(feadloader.feed.db_path):
+        feadloader.nightly_import()
+    if import_data or not os.path.exists(feadloader.GEOJSON_PATH):
+        feadloader.geojson_exports()
+    feadloader.scheduler()
 
 
 if __name__ == "__main__":

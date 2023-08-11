@@ -99,14 +99,15 @@ def lazy_convert(time_str: str, zone: str = "America/New_York") -> datetime:
         zone (str, optional): The timezone to return the time in. Defaults to "America/New_York".
     Returns:
         datetime: A datetime object"""
-
-    hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
+    hour, minute, second = time_str.split(":")
+    timezone = pytz.timezone(zone)
+    formatted_td = format_timedelta(timezone.utcoffset(datetime.now()))
     if int(hour) >= 24:
-        time_str = f"{int(hour) - 24}:{minute}:{second}"
+        time_str = f"{str(int(hour) - 24).zfill(2)}:{minute}:{second}{formatted_td}"
         if 3.5 < get_current_time(zone=zone).hour < 24:
-            return pytz.timezone(zone).localize(parse(time_str) + timedelta(days=1))
-        return pytz.timezone(zone).localize(parse(time_str))
-    return pytz.timezone(zone).localize(parse(time_str))
+            return parse(time_str) + timedelta(days=1)
+        return parse(time_str)
+    return parse(time_str + formatted_td)
 
 
 def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
@@ -122,9 +123,25 @@ def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
         return np.nan
 
     return dataframe[col].apply(
-        lambda x: pytz.timezone("America/New_York")
-        .localize(datetime.fromtimestamp(x.get("time") if isinstance(x, dict) else x))
-        .isoformat()
+        lambda x: datetime.fromtimestamp(
+            x.get("time") if isinstance(x, dict) else x,
+            tz=pytz.timezone("America/New_York"),
+        ).isoformat()
         if x == x
         else None
     )
+
+
+def format_timedelta(delta: timedelta) -> str:
+    """Formats a timedelta object
+
+    Args:
+        delta (timedelta): A timedelta object
+    Returns:
+        str: A formatted timedelta string"""
+
+    seconds = delta.seconds + delta.days * 86400
+    hours, minutes = divmod(seconds, 3600)
+    if hours >= 0:
+        return f"+{str(hours).zfill(2)}:{str(minutes).zfill(2)}"
+    return f"-{str(hours*-1).zfill(2)}:{str(minutes).zfill(2)}"

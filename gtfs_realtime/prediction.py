@@ -1,5 +1,6 @@
 """predictions"""
 # pylint: disable=line-too-long
+import logging
 from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer
@@ -87,7 +88,8 @@ class Prediction(GTFSBase):
             if (self.predicted and scheduled)
             else 0
         )
-
+        if delay < -1400:
+            delay += 1440
         if delay <= 2:
             return ""
         if delay > 2:

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.11.4-alpine3.17
+FROM python:3.11.4-bookworm
 
 ENV SUBWAY=0,1
 ENV RAPID_TRANSIT=0,1,4
@@ -9,14 +9,18 @@ ENV BUS=3
 ENV FERRY=4
 ENV ALL_ROUTES=0,1,2,3,4
 ENV LIST_KEYS=SUBWAY,RAPID_TRANSIT,COMMUTER_RAIL,BUS,FERRY,ALL_ROUTES
+ENV PYTHONPATH=/helper_functions:/gtfs_schedule:/gtfs_realtime:/gtfs_loader:
 
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
-RUN python3 -m pip install --upgrade pip
-RUN -m pip install --upgrade -r requirements.txt
+RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade -r requirements.txt
 COPY . .
 
-EXPOSE 80
-CMD ["python3", "test.py"] &  ["python3", "-m", "waitress", "--listen=*:505", "--call startup:create_app"] 
+RUN apt-get update && apt-get install -y tzdata
+ENV TZ=America/New_York
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+CMD "./start.sh"
 # CMD ["wait"]
