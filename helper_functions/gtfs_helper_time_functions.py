@@ -99,14 +99,15 @@ def lazy_convert(time_str: str, zone: str = "America/New_York") -> datetime:
         zone (str, optional): The timezone to return the time in. Defaults to "America/New_York".
     Returns:
         datetime: A datetime object"""
-    time_str += format_timedelta(pytz.timezone(zone).utcoffset(datetime.now()))
-    hour, minute, second = time_str.split(":")  # pylint: disable=unused-variable
+    hour, minute, second = time_str.split(":")
+    timezone = pytz.timezone(zone)
+    formatted_td = format_timedelta(timezone.utcoffset(datetime.now()))
     if int(hour) >= 24:
-        time_str = f"{int(hour) - 24}:{minute}:{second}"
+        time_str = f"{str(int(hour) - 24).zfill(2)}:{minute}:{second}{formatted_td}"
         if 3.5 < get_current_time(zone=zone).hour < 24:
             return parse(time_str) + timedelta(days=1)
         return parse(time_str)
-    return parse(time_str)
+    return parse(time_str + formatted_td)
 
 
 def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
@@ -141,7 +142,6 @@ def format_timedelta(delta: timedelta) -> str:
 
     seconds = delta.seconds + delta.days * 86400
     hours, minutes = divmod(seconds, 3600)
-    string = f"{str(hours).zfill(2)}:{str(minutes).zfill(2)}"
-    if not string.startswith("-"):
-        return "+" + string
-    return string
+    if hours >= 0:
+        return f"+{str(hours).zfill(2)}:{str(minutes).zfill(2)}"
+    return f"-{str(hours*-1).zfill(2)}:{str(minutes).zfill(2)}"
