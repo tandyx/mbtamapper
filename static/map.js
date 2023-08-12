@@ -163,7 +163,7 @@ function plotVehicles(url, layer) {
             interval: !(ROUTE_TYPE in ["BUS", "ALL_ROUTES"]) ? 30000 : 12500,
             type: 'FeatureCollection',
             container: layer,
-            cache: false,
+            cache: true,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -195,7 +195,7 @@ function plotStops(url, layer) {
             interval: 3600000,
             type: 'FeatureCollection',
             container: layer,
-            cache: false,
+            cache: true,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -221,7 +221,7 @@ function plotShapes(url, layer) {
             interval: 3600000,
             type: 'FeatureCollection',
             container: layer,
-            cache: false,
+            cache: true,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -255,7 +255,7 @@ function plotFacilities(url, layer) {
             interval: 3600000,
             type: 'FeatureCollection',
             container: layer,
-            cache: false,
+            cache: true,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;

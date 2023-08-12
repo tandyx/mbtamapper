@@ -60,17 +60,6 @@ window.addEventListener('load', function () {
     var shape_layer = L.layerGroup().addTo(map);
     realtime = plotShapes(route_type, shape_layer).addTo(map);
 
-    // L.featureGroup([realtime, CartoDB_DarkMatter, CartoDB_Positron]).on('click', function () {
-    //     console.log(map.tileLayer)
-    //     if (map.hasLayer(CartoDB_Positron)) {
-    //         map.removeLayer(CartoDB_Positron);
-    //         map.addLayer(CartoDB_DarkMatter);
-    //     } else {
-    //         map.removeLayer(CartoDB_DarkMatter);
-    //         map.addLayer(CartoDB_Positron);
-    //     }
-    // });
-
     map.on("click", function (e) {
         // console.log(e.originalEvent.target.offsetParent)
         if (map.hasLayer(CartoDB_Positron)) {
@@ -100,7 +89,7 @@ window.addEventListener('load', function () {
                     </td>
                     <td style="padding: 15px">
                         <a href="/rapid_transit/" style="font-weight:bold;text-decoration:none;color:#ED8B00;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Icon-mode-subway-default.svg/512px-Icon-mode-subway-default.svg.png" width="125" style="filter: invert(60%) sepia(38%) saturate(1600%) hue-rotate(8deg) brightness(102%) contrast(101%);"><br><br>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Icon-orange-line-default.svg/512px-Icon-orange-line-default.svg.png" width="125"><br><br>
                             Rapid Transit
                         </a>
                     </td>
@@ -166,7 +155,7 @@ function plotShapes(key, layer) {
             interval: 360000000000000,
             type: 'FeatureCollection',
             container: layer,
-            cache: false,
+            cache: true,
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
