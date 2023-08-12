@@ -1,8 +1,9 @@
 """Helper function to dump dataframe to sql."""
+import time
 import logging
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, IllegalStateChangeError
 import pandas as pd
 from gtfs_loader.gtfs_base import GTFSBase
 
@@ -26,7 +27,14 @@ def to_sql(
 
     if purge:
         session.execute(delete(orm))
-        session.commit()
+        commited = False
+        while not commited:
+            try:
+                session.commit()
+                commited = True
+            except IllegalStateChangeError:
+                time.sleep(1)
+                session.commit()
 
     try:
         res = data.to_sql(

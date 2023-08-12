@@ -1,12 +1,12 @@
 """Flask app for MBTA GTFS data."""
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
+import os
 from geojson import FeatureCollection
 from flask import Flask, render_template, jsonify
 from sqlalchemy.exc import OperationalError
 from gtfs_loader import Feed, Query
 from gtfs_realtime import *
-from .constants import ENV_DICT
 
 
 class FlaskApp:
@@ -24,7 +24,7 @@ class FlaskApp:
         self.app = app
         self.feed = feed_obj
         self.key = key or "ALL_ROUTES"
-        self.route_types = ENV_DICT.get(key)
+        self.route_types = os.environ.get(key)
         self.query = Query(self.route_types.split(","))
         self._setup_routes()
 
