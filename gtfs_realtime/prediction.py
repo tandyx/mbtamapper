@@ -1,6 +1,5 @@
 """predictions"""
 # pylint: disable=line-too-long
-import logging
 from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer

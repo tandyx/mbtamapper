@@ -2,19 +2,17 @@
 import os
 import logging
 from typing import NoReturn
+from dotenv import load_dotenv
 from flask import Flask, render_template
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 
-from flask_apps import FlaskApp, ENV_DICT
+from flask_apps.flask_app import FlaskApp
 from gtfs_loader import FeedLoader, Feed
 from helper_functions import instantiate_logger
 
-
-from sqlalchemy import select
-from gtfs_realtime import Prediction
-
+load_dotenv()
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
 
 
@@ -65,7 +63,7 @@ def create_default_app(proxies: int = 100) -> Flask:
         app.wsgi_app,
         {
             f"/{key.lower()}": create_app(key).wsgi_app
-            for key in ENV_DICT["LIST_KEYS"].split(",")
+            for key in os.environ.get("LIST_KEYS").split(",")
         },
     )
 
@@ -74,7 +72,7 @@ def create_default_app(proxies: int = 100) -> Flask:
 
 def feed_loader(import_data: bool = False) -> NoReturn:
     """Feed loader."""
-    feadloader = FeedLoader(FEED, ENV_DICT["LIST_KEYS"].split(","))
+    feadloader = FeedLoader(FEED, os.environ.get("LIST_KEYS").split(","))
     if import_data or not os.path.exists(feadloader.feed.db_path):
         feadloader.nightly_import()
     if import_data or not os.path.exists(feadloader.GEOJSON_PATH):

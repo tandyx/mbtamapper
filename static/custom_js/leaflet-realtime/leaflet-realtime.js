@@ -31,7 +31,7 @@ L.Realtime = L.Layer.extend({
             return oldLayer;
           },
         logErrors: true,
-        cache: false,
+        cache: true,
         removeMissing: true,
         onlyRunWhenAdded: false
     },

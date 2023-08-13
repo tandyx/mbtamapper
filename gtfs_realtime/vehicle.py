@@ -82,6 +82,7 @@ class Vehicle(GTFSBase):
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
         self.updated_at_datetime = isoparse(self.timestamp)
+        self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
 
     def __repr__(self):
