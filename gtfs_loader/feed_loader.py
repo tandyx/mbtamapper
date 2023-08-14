@@ -74,7 +74,7 @@ class FeedLoader:
         schedule.every(2).minutes.do(self.threader, self.update_realtime, Alert)
         schedule.every(5).seconds.do(self.threader, self.update_realtime, Vehicle)
         schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
-        schedule.every().minute.do(self.threader, self.geojson_exports)
+        # schedule.every().minute.do(self.threader, self.geojson_exports)
         schedule.every(1.5).hours.at(":00").do(self.threader, self.geojson_exports)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
