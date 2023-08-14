@@ -161,7 +161,7 @@ function plotVehicles(url, layer) {
     return L.realtime(
         url,
         {
-            interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 10000 : 30000,
+            interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
             type: 'FeatureCollection',
             container: layer,
             cache: true,

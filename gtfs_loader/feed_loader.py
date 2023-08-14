@@ -7,6 +7,7 @@ from typing import NoReturn, Callable
 from threading import Thread
 import schedule
 
+from gtfs_realtime import Vehicle, Prediction, Alert
 from sqlalchemy.exc import OperationalError
 from .feed import Feed
 
@@ -20,6 +21,7 @@ class FeedLoader:
     """
 
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
+    REALTIME_BINDINGS = [Alert, Vehicle, Prediction]
 
     def __init__(self, feed: Feed, keys: list[str] = None) -> None:
         self.feed = feed
@@ -31,34 +33,48 @@ class FeedLoader:
     def nightly_import(self) -> None:
         """Runs the nightly import."""
         self.feed.import_gtfs()
-        self.feed.import_realtime()
+        for orm in FeedLoader.REALTIME_BINDINGS:
+            self.feed.import_realtime(orm)
         self.feed.purge_and_filter()
 
     def geojson_exports(self) -> None:
         """Exports geojsons."""
-        self.feed.import_realtime()
+        for orm in FeedLoader.REALTIME_BINDINGS:
+            self.feed.import_realtime(orm)
         for key in self.keys:
             try:
                 self.feed.export_geojsons(key, FeedLoader.GEOJSON_PATH)
             except OperationalError:
                 logging.warning("OperationalError: %s", key)
 
-    def update_realtime(self) -> None:
-        """Updates realtime data.""" ""
-        self.feed.import_realtime()
-        logging.info("Updated realtime data.")
+    def update_realtime(self, _orm: Alert | Vehicle | Prediction = Prediction) -> None:
+        """Updates realtime data.
 
-    def threader(self, func: Callable) -> None:
-        """Threader function."""
+        Args:
+            _orm (Alert | Vehicle | Prediction, optional): ORM to update. Defaults to Prediction.
+        """
+        self.feed.import_realtime(_orm)
+        logging.info("Updated realtime data for %s.", _orm.__tablename__)
 
-        job_thread = Thread(target=func)
+    def threader(self, func: Callable, *args) -> None:
+        """Threader function.
+
+        Args:
+            func (Callable): Function to thread.
+            *args: Arguments for func.
+        """
+
+        job_thread = Thread(target=func, args=args)
         job_thread.start()
         if func == self.update_realtime:  # pylint: disable=comparison-with-callable
             job_thread.join()
 
     def scheduler(self) -> NoReturn:
         """Schedules jobs."""
-        schedule.every().second.do(self.threader, self.update_realtime)
+        schedule.every(2).minutes.do(self.threader, self.update_realtime, Alert)
+        schedule.every(5).seconds.do(self.threader, self.update_realtime, Vehicle)
+        schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
+        # schedule.every().minute.do(self.threader, self.geojson_exports)
         schedule.every(1.5).hours.at(":00").do(self.threader, self.geojson_exports)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
