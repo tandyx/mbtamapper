@@ -7,7 +7,6 @@ import time
 import logging
 import tempfile
 from datetime import datetime
-from threading import Thread
 
 import pandas as pd
 from geojson import FeatureCollection, dump
@@ -89,34 +88,28 @@ class Feed:
 
         logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
 
-    def import_realtime(self) -> None:
-        """Imports realtime data into the database."""
-        session = self.scoped_session()
+    def import_realtime(self, orm: GTFSBase) -> None:
+        """Imports realtime data into the database.
 
+        Args:
+            orm (GTFSBase): table to import into, must be Alert, Prediction, or Vehicle
+        """
+        session = self.scoped_session()
         dataset_mapper = {
-            Alert: "process_service_alerts",
-            Prediction: "process_trip_updates",
-            Vehicle: "process_vehicle_positions",
+            Alert: ["service_alerts", "process_service_alerts"],
+            Prediction: ["trip_updates", "process_trip_updates"],
+            Vehicle: ["vehicle_positions", "process_vehicle_positions"],
         }
 
-        dataset: tuple[LinkedDataset]
-        threads: list[Thread] = []
-        for dataset in session.execute(select(LinkedDataset)).all():
-            for orm, func in dataset_mapper.items():
-                if not dataset[0].is_dataset(orm):
-                    continue
-                threads.append(
-                    Thread(
-                        target=to_sql,
-                        args=(session, getattr(dataset[0], func)(), orm, True),
-                    )
-                )
+        if orm not in dataset_mapper:
+            logging.error("Invalid ORM: %s", orm)
+            return
 
-                # to_sql(session, getattr(dataset[0], func)(), orm, True)
-        for thread in threads:
-            thread.start()
-            thread.join()
+        dataset = session.execute(
+            select(LinkedDataset).where(getattr(LinkedDataset, dataset_mapper[orm][0]))
+        ).all()
 
+        to_sql(session, getattr(dataset[0][0], dataset_mapper[orm][1])(), orm, True)
         self.scoped_session.remove()
 
     def purge_and_filter(self, date: datetime = None) -> None:
