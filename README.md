@@ -1,6 +1,6 @@
 # MBTA Mapper Project
 
-I built this project using SQLAlchemy. It's a big mess but it works somehow! I just gotta figure out how to deploy it...
+I built this project using SQLAlchemy.
 
 It essentially builds a sqlite database from a GTFS feed, in part from the static feed loaded every day and in part from the realtime feed. It then uses that database to build a map of the MBTA system, with realtime data, exporting it using flask and using leaflet to render the data.
 
