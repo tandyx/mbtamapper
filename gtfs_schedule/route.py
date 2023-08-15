@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, ForeignKey, Integer
 from gtfs_loader.gtfs_base import GTFSBase
 
+from helper_functions import get_current_time
+
 # pylint: disable=line-too-long
 
 
@@ -91,7 +93,7 @@ class Route(GTFSBase):
             f"Fare Class: {self.route_fare_class} </br>"
             """<a style="color:grey;font-size:9pt">"""
             f"Route ID: {self.route_id} </br>"
-            f"Route Type: {self.route_type} </br>"
+            f"Timestamp: {get_current_time().strftime('%m/%d/%Y %I:%M %p')} </br>"
             "</a></body>"
         )
 

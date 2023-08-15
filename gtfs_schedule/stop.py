@@ -214,6 +214,7 @@ class Stop(GTFSBase):
             f"Zones: {', '.join(set(c.zone_id for c in self.child_stops if c.zone_id))}</br>"
             f"<a style='color:grey;font-size:9pt'>"
             f"Address: {self.stop_address}</br>"
-            f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"
+            # f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"
+            f"Timestamp: {get_current_time().strftime('%m/%d/%Y %I:%M %p')}</br>"
             "</a></body>"
         )
