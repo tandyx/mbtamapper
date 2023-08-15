@@ -51,8 +51,13 @@ class FeedLoader:
         Args:
             _orm (Alert | Vehicle | Prediction, optional): ORM to update. Defaults to Prediction.
         """
+        start = time.time()
         self.feed.import_realtime(_orm)
-        logging.info("Updated realtime data for %s.", _orm.__tablename__)
+        logging.info(
+            "Updated realtime data for %s in %s s.",
+            _orm.__tablename__,
+            round(time.time() - start, 4),
+        )
 
     def threader(self, func: Callable, *args) -> None:
         """Threader function.
