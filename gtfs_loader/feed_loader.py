@@ -39,8 +39,6 @@ class FeedLoader:
 
     def geojson_exports(self) -> None:
         """Exports geojsons."""
-        for orm in FeedLoader.REALTIME_BINDINGS:
-            self.feed.import_realtime(orm)
         for key in self.keys:
             try:
                 self.feed.export_geojsons(key, FeedLoader.GEOJSON_PATH)
@@ -53,8 +51,13 @@ class FeedLoader:
         Args:
             _orm (Alert | Vehicle | Prediction, optional): ORM to update. Defaults to Prediction.
         """
+        start = time.time()
         self.feed.import_realtime(_orm)
-        logging.info("Updated realtime data for %s.", _orm.__tablename__)
+        logging.info(
+            "Updated realtime data for %s in %s s.",
+            _orm.__tablename__,
+            round(time.time() - start, 4),
+        )
 
     def threader(self, func: Callable, *args) -> None:
         """Threader function.
@@ -72,10 +75,10 @@ class FeedLoader:
     def scheduler(self) -> NoReturn:
         """Schedules jobs."""
         schedule.every(2).minutes.do(self.threader, self.update_realtime, Alert)
-        schedule.every(5).seconds.do(self.threader, self.update_realtime, Vehicle)
+        schedule.every(12).seconds.do(self.threader, self.update_realtime, Vehicle)
         schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
-        schedule.every(1.5).hours.at(":00").do(self.threader, self.geojson_exports)
+        schedule.every(2.5).hours.at(":00").do(self.threader, self.geojson_exports)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
         )
