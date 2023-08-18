@@ -56,7 +56,7 @@ class FlaskApp:
         try:
             while attempts <= 4:
                 data = sess.execute(self.query.return_vehicles_query(add_routes)).all()
-                if data and any(d.predictions for d in data):
+                if data and any(d[0].predictions for d in data):
                     break
                 attempts += 1
                 time.sleep(1)
