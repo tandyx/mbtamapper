@@ -82,4 +82,4 @@ def feed_loader(import_data: bool = False) -> NoReturn:
 
 if __name__ == "__main__":
     instantiate_logger(logging.getLogger())
-    feed_loader(True)
+    feed_loader()
