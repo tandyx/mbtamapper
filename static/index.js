@@ -77,7 +77,7 @@ window.addEventListener('load', function () {
             var text = L.DomUtil.create('div');
             text.id = "info_text";
             text.innerHTML = `
-        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 4px;text-align: center;justify-content: center;">
+        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 10px;text-align: center;justify-content: center;backdrop-filter: blur(5px)">
             <h1>MBTA Mapper</h1>
             <table style="margin-left: auto;margin-right: auto;width:auto;">
                 <tr>

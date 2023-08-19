@@ -54,7 +54,7 @@ class FlaskApp:
         data: list[tuple[Vehicle]]
         attempts = 0
         try:
-            while attempts <= 4:
+            while attempts <= 10:
                 data = sess.execute(self.query.return_vehicles_query(add_routes)).all()
                 if data and any(d[0].predictions for d in data):
                     break

@@ -35,8 +35,7 @@ window.addEventListener('load', function () {
     var vehiclesRealtime = plotVehicles(`/${ROUTE_TYPE.toLowerCase()}/vehicles`, vehicle_layer).addTo(map);
     var facilitiesRealtime = plotFacilities(`/static/geojsons/${ROUTE_TYPE}/park.json`, parking_lots);
     controlSearch = L.control.search({
-        layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),
-        initial: false,
+        layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),        initial: false,
         propertyName: 'name',
         zoom: 16,
         marker: false,
@@ -62,6 +61,18 @@ window.addEventListener('load', function () {
         event.layer.openPopup();
     });
 
+    // while (true == true) {
+    //     if (predPopupWasOpen == true){
+    //         showPredictionPopup();
+    //     } else if (alertPopupWasOpen == true){
+    //         showAlertPopup();
+    //     } else if (parkingPopupWasOpen == true){
+    //         showParkingPopup();
+    //     } else if (bikePopupWasOpen == true){
+    //         showBikePopup();
+    //     }
+    // }
+
 
     for (realtime of [stopsRealtime, shapesRealtime, facilitiesRealtime]) {
 
@@ -86,23 +97,36 @@ window.addEventListener('load', function () {
 
     vehiclesRealtime.on('update', function (e) {
         Object.keys(e.update,).forEach(function (id) {
+            var layer = this.getLayer(id);
             var feature = e.update[id];
-            var wasOpen = this.getLayer(id).getPopup().isOpen();
+            var wasOpen = layer.getPopup().isOpen();
             if (wasOpen === true) {
-                this.getLayer(id).closePopup();
+                layer.closePopup();
             }
-            this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-            this.getLayer(id).setIcon(L.divIcon({
+            layer.bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
+            layer.setIcon(L.divIcon({
                 html: feature.properties.icon,
                 iconSize: [15, 15],
             }));
             if (wasOpen === true) {
-                this.getLayer(id).openPopup();
+                layer.openPopup();
+                if (predPopupWasOpen == true){
+                    showPredictionPopup();
+                } else if (alertPopupWasOpen == true){
+                    showAlertPopup();
+                } else if (parkingPopupWasOpen == true){
+                    showParkingPopup();
+                } else if (bikePopupWasOpen == true){
+                    showBikePopup();
+                }
+                console.log(predPopupWasOpen, alertPopupWasOpen, parkingPopupWasOpen, bikePopupWasOpen);
             }
 
 
         }.bind(this));
+        
     });
+    // showPredictionPopup();
 
     map.on('zoomend', function () {
         if (map.getZoom() < 16) {
@@ -162,7 +186,7 @@ function plotVehicles(url, layer) {
             interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: true,    
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -270,23 +294,81 @@ function plotFacilities(url, layer) {
 }
 
 
+predPopupWasOpen = false;
+alertPopupWasOpen = false;
+parkingPopupWasOpen = false;
+bikePopupWasOpen = false;
+
+
+
 function showPredictionPopup() {
+    
     var predictionPopup = document.getElementById("predictionPopup");
+    console.log(predictionPopup.classList);
     predictionPopup.classList.toggle("show");
+    console.log(predictionPopup.classList);
+    if (predictionPopup.classList.contains("show")) {
+        predPopupWasOpen = true;
+    } else {
+        predPopupWasOpen = false;
+    }
 }
 function showAlertPopup() {
     var alertPopup = document.getElementById("alertPopup");
     alertPopup.classList.toggle("show");
+    if (alertPopup.classList.contains("show")) {
+        alertPopupWasOpen = true;
+    } else {
+        alertPopupWasOpen = false;
+    }
 }
 function showParkingPopup() {
     var parkingPopup = document.getElementById("parkingPopup");
     parkingPopup.classList.toggle("show");
+    if (parkingPopup.classList.contains("show")) {
+        parkingPopupWasOpen = true;
+    } else {
+        parkingPopupWasOpen = false;
+    }
 }
 
 function showBikePopup() {
     var bikePopup = document.getElementById("bikePopup");
     bikePopup.classList.toggle("show");
+    if (bikePopup.classList.contains("show")) {
+        bikePopupWasOpen = true;
+    } else {
+        bikePopupWasOpen = false;
+    }
 }
+
+function openMiniPopup() {
+    for (popupID of ["predictionPopup", "alertPopup", "parkingPopup", "bikePopup"]) {    
+        switch (popupID) {
+        case "predictionPopup":
+            if (predPopupWasOpen == true){
+                showPredictionPopup();
+                break;
+            }
+        case "alertPopup":
+            if (alertPopupWasOpen == true){
+                showAlertPopup();
+                break;
+            }
+        case "parkingPopup":
+            if (parkingPopupWasOpen == true){
+                showParkingPopup();
+                break;
+            }
+        case "bikePopup":
+            if (bikePopupWasOpen == true){
+                showBikePopup();
+                break;
+            }}
+    }
+}
+
+
 
 function titleCase(str, split = "_") {
     return str.toLowerCase().split(split).map(function (word) {
