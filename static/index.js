@@ -77,8 +77,10 @@ window.addEventListener('load', function () {
             var text = L.DomUtil.create('div');
             text.id = "info_text";
             text.innerHTML = `
-        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 4px;text-align: center;justify-content: center;">
+        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 10px;text-align: center;justify-content: center;backdrop-filter: blur(5px)">
             <h1>MBTA Mapper</h1>
+            <h4>Realtime Tracking of MBTA Vehicles</h4>
+            <h4 style="color:red;">This website will change links in the future. Check for more info.</h4>
             <table style="margin-left: auto;margin-right: auto;width:auto;">
                 <tr>
                     <td style="padding: 15px">
@@ -128,6 +130,9 @@ window.addEventListener('load', function () {
                 </a>
                 <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/600px-LinkedIn_logo_initials.png" width="45">
+                </a>
+                <a href="https://tandy-c.github.io/website/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+                    <img src = "static/aboutme.png" width="45">
                 </a>
             </div>
         </div>

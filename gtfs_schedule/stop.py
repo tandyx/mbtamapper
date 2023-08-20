@@ -139,7 +139,7 @@ class Stop(GTFSBase):
         )
 
         alert = (
-            """<div class = "popup" onclick="showAlertPopup()" >"""
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/alert.png" alt="alert" width=25 height=25 title = "Show Alerts" style="margin:2px;">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
@@ -161,7 +161,7 @@ class Stop(GTFSBase):
         )
 
         schedule = (
-            """<div class = "popup" onclick="showPredictionPopup()">"""
+            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
             """<img src ="static/train_icon.png" alt="schedule" width=25 height=25 title = "Show Departures" style="margin:2px;">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;">"""
             """<table class = "table">"""
@@ -174,7 +174,7 @@ class Stop(GTFSBase):
         )
 
         parking = (
-            """<div class = "popup" onclick="showParkingPopup()">"""
+            """<div class = "popup" onclick="openMiniPopup('parkingPopup')">"""
             """<img src ="static/parking.png" alt="parking" width=25 height=25 title = "Show Parking" style="margin:2px;">"""
             """<span class="popuptext" id="parkingPopup" style="z-index=-1;">"""
             """<table class = "table">"""
@@ -187,7 +187,7 @@ class Stop(GTFSBase):
         )
 
         bikes = (
-            """<div class = "popup" onclick="showBikePopup()">"""
+            """<div class = "popup" onclick="openMiniPopup('bikePopup')">"""
             """<img src ="static/bike.png" alt="bike" width=25 height=25 title = "Show Bike Parking" style="margin:2px;">"""
             """<span class="popuptext" id="bikePopup" style="z-index=-1;">"""
             """<table class = "table">"""

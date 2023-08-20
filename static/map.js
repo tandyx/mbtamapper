@@ -35,8 +35,7 @@ window.addEventListener('load', function () {
     var vehiclesRealtime = plotVehicles(`/${ROUTE_TYPE.toLowerCase()}/vehicles`, vehicle_layer).addTo(map);
     var facilitiesRealtime = plotFacilities(`/static/geojsons/${ROUTE_TYPE}/park.json`, parking_lots);
     controlSearch = L.control.search({
-        layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),
-        initial: false,
+        layer: L.layerGroup([stop_layer, shape_layer, vehicle_layer, parking_lots]),        initial: false,
         propertyName: 'name',
         zoom: 16,
         marker: false,
@@ -86,23 +85,27 @@ window.addEventListener('load', function () {
 
     vehiclesRealtime.on('update', function (e) {
         Object.keys(e.update,).forEach(function (id) {
+            var layer = this.getLayer(id);
             var feature = e.update[id];
-            var wasOpen = this.getLayer(id).getPopup().isOpen();
+            var wasOpen = layer.getPopup().isOpen();
+            layer.unbindPopup();
             if (wasOpen === true) {
-                this.getLayer(id).closePopup();
+                layer.closePopup();
             }
-            this.getLayer(id).bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
-            this.getLayer(id).setIcon(L.divIcon({
+            layer.bindPopup(feature.properties.popupContent, { maxWidth: "auto" });
+            layer.setIcon(L.divIcon({
                 html: feature.properties.icon,
                 iconSize: [15, 15],
             }));
             if (wasOpen === true) {
-                this.getLayer(id).openPopup();
+                layer.openPopup();
             }
 
 
         }.bind(this));
+        
     });
+    // showPredictionPopup();
 
     map.on('zoomend', function () {
         if (map.getZoom() < 16) {
@@ -162,7 +165,7 @@ function plotVehicles(url, layer) {
             interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
             type: 'FeatureCollection',
             container: layer,
-            cache: true,
+            cache: true,    
             removeMissing: true,
             getFeatureId(f) {
                 return f.id;
@@ -269,24 +272,12 @@ function plotFacilities(url, layer) {
     )
 }
 
-
-function showPredictionPopup() {
-    var predictionPopup = document.getElementById("predictionPopup");
-    predictionPopup.classList.toggle("show");
-}
-function showAlertPopup() {
-    var alertPopup = document.getElementById("alertPopup");
-    alertPopup.classList.toggle("show");
-}
-function showParkingPopup() {
-    var parkingPopup = document.getElementById("parkingPopup");
-    parkingPopup.classList.toggle("show");
+function openMiniPopup(popupId) {
+    var miniPopup = document.getElementById(popupId);
+    miniPopup.classList.toggle("show");
 }
 
-function showBikePopup() {
-    var bikePopup = document.getElementById("bikePopup");
-    bikePopup.classList.toggle("show");
-}
+
 
 function titleCase(str, split = "_") {
     return str.toLowerCase().split(split).map(function (word) {

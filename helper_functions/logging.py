@@ -16,7 +16,7 @@ class LoggingFormatter(Formatter):
     # FORMAT = (
     #     "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
     # )
-    FORMAT = "%(asctime)s - %(message)s "
+    FORMAT = "[%(levelname)s] %(message)s "
 
     FORMATS = {
         logging.DEBUG: BLUE + FORMAT + RESET,

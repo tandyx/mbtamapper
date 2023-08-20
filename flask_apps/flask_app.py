@@ -2,6 +2,8 @@
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 import os
+import time
+import logging
 from geojson import FeatureCollection
 from flask import Flask, render_template, jsonify
 from sqlalchemy.exc import OperationalError
@@ -50,10 +52,19 @@ class FlaskApp:
         sess = self.feed.scoped_session()
         add_routes = self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
         data: list[tuple[Vehicle]]
+        attempts = 0
         try:
-            data = sess.execute(self.query.return_vehicles_query(add_routes)).all()
-        except OperationalError:
+            while attempts <= 10:
+                data = sess.execute(self.query.return_vehicles_query(add_routes)).all()
+                if data and any(d[0].predictions for d in data):
+                    break
+                attempts += 1
+                time.sleep(1)
+        except OperationalError as error:
             data = []
+            logging.error("Failed to send data: %s", error)
+        if not data:
+            logging.error("No data returned in %s attemps", attempts)
         return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
 
     # pylint: disable=unused-argument

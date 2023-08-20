@@ -2,8 +2,8 @@ set /A DEV=0
 title MBTA Mapper
 
 
-docker stop mbta_mapper
-docker rm mbta_mapper:latest
+docker rm -vf $(docker ps -aq)
+docker rmi -vf $(docker ps -aq)
 docker build --tag mbta_mapper .
 docker run -d -p 80:80 mbta_mapper
 
