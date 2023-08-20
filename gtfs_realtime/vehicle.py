@@ -140,7 +140,7 @@ class Vehicle(GTFSBase):
             else ""
         )
         alert = (
-            """<div class = "popup" onclick="showAlertPopup()" >"""
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/alert.png" title="Show Alerts" alt="alert" width=25 height=25 style="margin:2px;">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
@@ -153,7 +153,7 @@ class Vehicle(GTFSBase):
         )
 
         prediction = (
-            """<div class = "popup" onclick="showPredictionPopup()">"""
+            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
             """<img src ="static/train_icon.png" alt="prediction" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;width:1850%;">"""
             """<table class = "table">"""

@@ -61,18 +61,6 @@ window.addEventListener('load', function () {
         event.layer.openPopup();
     });
 
-    // while (true == true) {
-    //     if (predPopupWasOpen == true){
-    //         showPredictionPopup();
-    //     } else if (alertPopupWasOpen == true){
-    //         showAlertPopup();
-    //     } else if (parkingPopupWasOpen == true){
-    //         showParkingPopup();
-    //     } else if (bikePopupWasOpen == true){
-    //         showBikePopup();
-    //     }
-    // }
-
 
     for (realtime of [stopsRealtime, shapesRealtime, facilitiesRealtime]) {
 
@@ -100,6 +88,7 @@ window.addEventListener('load', function () {
             var layer = this.getLayer(id);
             var feature = e.update[id];
             var wasOpen = layer.getPopup().isOpen();
+            layer.unbindPopup();
             if (wasOpen === true) {
                 layer.closePopup();
             }
@@ -110,16 +99,6 @@ window.addEventListener('load', function () {
             }));
             if (wasOpen === true) {
                 layer.openPopup();
-                if (predPopupWasOpen == true){
-                    showPredictionPopup();
-                } else if (alertPopupWasOpen == true){
-                    showAlertPopup();
-                } else if (parkingPopupWasOpen == true){
-                    showParkingPopup();
-                } else if (bikePopupWasOpen == true){
-                    showBikePopup();
-                }
-                console.log(predPopupWasOpen, alertPopupWasOpen, parkingPopupWasOpen, bikePopupWasOpen);
             }
 
 
@@ -293,79 +272,9 @@ function plotFacilities(url, layer) {
     )
 }
 
-
-predPopupWasOpen = false;
-alertPopupWasOpen = false;
-parkingPopupWasOpen = false;
-bikePopupWasOpen = false;
-
-
-
-function showPredictionPopup() {
-    
-    var predictionPopup = document.getElementById("predictionPopup");
-    console.log(predictionPopup.classList);
-    predictionPopup.classList.toggle("show");
-    console.log(predictionPopup.classList);
-    if (predictionPopup.classList.contains("show")) {
-        predPopupWasOpen = true;
-    } else {
-        predPopupWasOpen = false;
-    }
-}
-function showAlertPopup() {
-    var alertPopup = document.getElementById("alertPopup");
-    alertPopup.classList.toggle("show");
-    if (alertPopup.classList.contains("show")) {
-        alertPopupWasOpen = true;
-    } else {
-        alertPopupWasOpen = false;
-    }
-}
-function showParkingPopup() {
-    var parkingPopup = document.getElementById("parkingPopup");
-    parkingPopup.classList.toggle("show");
-    if (parkingPopup.classList.contains("show")) {
-        parkingPopupWasOpen = true;
-    } else {
-        parkingPopupWasOpen = false;
-    }
-}
-
-function showBikePopup() {
-    var bikePopup = document.getElementById("bikePopup");
-    bikePopup.classList.toggle("show");
-    if (bikePopup.classList.contains("show")) {
-        bikePopupWasOpen = true;
-    } else {
-        bikePopupWasOpen = false;
-    }
-}
-
-function openMiniPopup() {
-    for (popupID of ["predictionPopup", "alertPopup", "parkingPopup", "bikePopup"]) {    
-        switch (popupID) {
-        case "predictionPopup":
-            if (predPopupWasOpen == true){
-                showPredictionPopup();
-                break;
-            }
-        case "alertPopup":
-            if (alertPopupWasOpen == true){
-                showAlertPopup();
-                break;
-            }
-        case "parkingPopup":
-            if (parkingPopupWasOpen == true){
-                showParkingPopup();
-                break;
-            }
-        case "bikePopup":
-            if (bikePopupWasOpen == true){
-                showBikePopup();
-                break;
-            }}
-    }
+function openMiniPopup(popupId) {
+    var miniPopup = document.getElementById(popupId);
+    miniPopup.classList.toggle("show");
 }
 
 
