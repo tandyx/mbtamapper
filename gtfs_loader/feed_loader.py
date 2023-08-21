@@ -6,9 +6,10 @@ import logging
 from typing import NoReturn, Callable
 from threading import Thread
 import schedule
+from sqlalchemy.exc import OperationalError
 
 from gtfs_realtime import Vehicle, Prediction, Alert
-from sqlalchemy.exc import OperationalError
+from helper_functions import get_current_time
 from .feed import Feed
 
 
@@ -41,7 +42,9 @@ class FeedLoader:
         """Exports geojsons."""
         for key in self.keys:
             try:
-                self.feed.export_geojsons(key, FeedLoader.GEOJSON_PATH)
+                self.feed.export_geojsons(
+                    key, FeedLoader.GEOJSON_PATH, get_current_time()
+                )
             except OperationalError:
                 logging.warning("OperationalError: %s", key)
 
@@ -78,7 +81,7 @@ class FeedLoader:
         schedule.every(12).seconds.do(self.threader, self.update_realtime, Vehicle)
         schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
-        schedule.every(2.5).hours.at(":00").do(self.threader, self.geojson_exports)
+        schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
         )

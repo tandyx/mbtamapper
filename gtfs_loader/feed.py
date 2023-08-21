@@ -180,7 +180,7 @@ class Feed:
             ).all()
 
         features = FeatureCollection(
-            [s[0].as_feature(date or get_current_time(-3.5)) for s in stops_data]
+            [s[0].as_feature(date or get_current_time()) for s in stops_data]
         )
         with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
             dump(features, file)
