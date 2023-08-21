@@ -20,7 +20,9 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     """Create app for a given key
 
     Args:
-        key (str, optional): Key for the app. Defaults to None."""
+        key (str, optional): Key for the app. Defaults to None.
+    Returns:
+        Flask: app for the key."""
     app = Flask(__name__)
     flask_app = FlaskApp(app, FEED, key)
     app = flask_app.app
@@ -35,7 +37,7 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     return app
 
 
-def create_default_app(proxies: int = 100) -> Flask:
+def create_default_app(proxies: int = 10) -> Flask:
     """Creates the default Flask object
 
     Args:
@@ -71,7 +73,11 @@ def create_default_app(proxies: int = 100) -> Flask:
 
 
 def feed_loader(import_data: bool = False) -> NoReturn:
-    """Feed loader."""
+    """Feed loader.
+
+    Args:
+        import_data (bool, optional): Whether to import data. Defaults to False.
+    """
     feadloader = FeedLoader(FEED, os.environ.get("LIST_KEYS").split(","))
     if import_data or not os.path.exists(feadloader.feed.db_path):
         feadloader.nightly_import()

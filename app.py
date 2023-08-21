@@ -5,7 +5,7 @@ from startup import feed_loader, create_default_app
 from helper_functions import instantiate_logger
 
 instantiate_logger(logging.getLogger())
-app = create_default_app(100)
+app = create_default_app()
 
 if __name__ == "__main__":
     threads = [
