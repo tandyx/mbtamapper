@@ -1,17 +1,17 @@
 .leaflet-popup-content-wrapper,
 .leaflet-tooltip {
-  background: rgb(0, 0, 0, 0.9) !important;
+  background: rgb(0, 0, 0, 0.95) !important;
   color: #ffffff !important;
   font-family: "montserrat", "Helvetica", sans-serif !important;
   font-size: 12pt !important;
   text-align: left !important;
-  border: 15px rgb(0, 0, 0, 0.9) !important;
+  border: 15px rgb(0, 0, 0, 0.95) !important;
 }
 
 .leaflet-tooltip-right:before {
   left: 0;
   margin-left: -12px;
-  border-right-color: rgb(0, 0, 0, 0.9);
+  border-right-color: rgb(0, 0, 0, 0.95);
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
 }
@@ -19,14 +19,14 @@
 .leaflet-tooltip-left:before {
   right: 0;
   margin-right: -12px;
-  border-left-color: rgb(0, 0, 0, 0.9);
+  border-left-color: rgb(0, 0, 0, 0.95);
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
 }
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: rgb(0, 0, 0, 0.9) !important;
+  background: rgb(0, 0, 0, 0.95) !important;
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
   color: #ffffff !important;
@@ -43,10 +43,11 @@
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
   color: rgb(255, 255, 255, 0.7) !important;
+  border-radius: 2px !important;
 }
 
 .leaflet-control-layers-expanded {
-  background: rgb(0, 0, 0, 0.9) !important;
+  background: rgb(0, 0, 0, 0.95) !important;
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
   color: #ffffff !important;
@@ -55,7 +56,7 @@
 }
 
 .leaflet-control-layers label {
-  background: rgb(0, 0, 0, 0.9) !important;
+  background: rgb(0, 0, 0, 0.95) !important;
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
   color: #ffffff !important;
