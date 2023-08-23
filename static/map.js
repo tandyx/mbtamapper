@@ -31,6 +31,9 @@ window.addEventListener("load", function () {
       maxZoom: 20,
     }
   );
+  map.attributionControl.removeAttribution(
+    "| © OpenStreetMap contributors © CARTO"
+  );
 
   var stop_layer = L.layerGroup().addTo(map);
   var shape_layer = L.layerGroup().addTo(map);

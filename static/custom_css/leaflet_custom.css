@@ -1,38 +1,40 @@
-.leaflet-popup-content-wrapper,
-.leaflet-tooltip {
+.leaflet-popup-content-wrapper {
   background: rgb(0, 0, 0, 0.95) !important;
+  backdrop-filter: blur(5px) !important;
   color: #ffffff !important;
   font-family: "montserrat", "Helvetica", sans-serif !important;
-  font-size: 12pt !important;
   text-align: left !important;
+}
+
+.leaflet-tooltip {
+  font-family: "montserrat", "Helvetica", sans-serif !important;
+  color: #fff;
+  font-size: 12pt !important;
+  background: rgb(0, 0, 0, 0.95) !important;
   border: 15px rgb(0, 0, 0, 0.95) !important;
 }
 
 .leaflet-tooltip-right:before {
-  left: 0;
-  margin-left: -12px;
-  border-right-color: rgb(0, 0, 0, 0.95);
-  backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
+  left: 0 !important;
+  margin-left: -12px !important;
+  border-right-color: rgb(0, 0, 0, 0.95) !important;
 }
 
 .leaflet-tooltip-left:before {
-  right: 0;
-  margin-right: -12px;
-  border-left-color: rgb(0, 0, 0, 0.95);
-  backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
+  right: 0 !important;
+  margin-right: -12px !important;
+  border-left-color: rgb(0, 0, 0, 0.95) !important;
 }
 
-.leaflet-popup-content-wrapper,
+.leaflet-popup-content {
+  font-size: 11pt !important;
+  width: 1200% !important;
+}
 .leaflet-popup-tip {
   background: rgb(0, 0, 0, 0.95) !important;
-  backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
-  color: #ffffff !important;
-  font-family: "montserrat", "Helvetica", sans-serif !important;
-  font-size: 10pt !important;
-  text-align: left !important;
+  backdrop-filter: initial !important;
+  z-index: -10 !important;
+  position: relative !important;
 }
 
 .leaflet-control-attribution,
@@ -41,15 +43,13 @@
   font-size: 8pt !important;
   background: rgb(0, 0, 0, 0.7) !important;
   backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
   color: rgb(255, 255, 255, 0.7) !important;
-  border-radius: 2px !important;
+  border-top-left-radius: 2px !important;
 }
 
 .leaflet-control-layers-expanded {
   background: rgb(0, 0, 0, 0.95) !important;
   backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
   color: #ffffff !important;
   font-family: "montserrat", "Helvetica", sans-serif !important;
   font-size: 8pt !important;
@@ -58,7 +58,6 @@
 .leaflet-control-layers label {
   background: rgb(0, 0, 0, 0.95) !important;
   backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
   color: #ffffff !important;
   font-family: "montserrat", "Helvetica", sans-serif !important;
   font-size: 8pt !important;
