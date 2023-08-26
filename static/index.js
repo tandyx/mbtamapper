@@ -1,83 +1,97 @@
-const ARRAY = ['SUBWAY', 'RAPID_TRANSIT', 'COMMUTER_RAIL', 'BUS', 'FERRY', 'ALL_ROUTES']
-window.addEventListener('load', function () {
+const ARRAY = [
+  "SUBWAY",
+  "RAPID_TRANSIT",
+  "COMMUTER_RAIL",
+  "BUS",
+  "FERRY",
+  "ALL_ROUTES",
+];
+window.addEventListener("load", function () {
+  L.Map.include({
+    _initControlPos: function () {
+      var corners = (this._controlCorners = {}),
+        l = "leaflet-",
+        container = (this._controlContainer = L.DomUtil.create(
+          "div",
+          l + "control-container",
+          this._container
+        ));
 
-    L.Map.include({
-        _initControlPos: function () {
-            var corners = this._controlCorners = {},
-                l = 'leaflet-',
-                container = this._controlContainer =
-                    L.DomUtil.create('div', l + 'control-container', this._container);
+      function createCorner(vSide, hSide) {
+        var className = l + vSide + " " + l + hSide;
 
-            function createCorner(vSide, hSide) {
-                var className = l + vSide + ' ' + l + hSide;
+        corners[vSide + hSide] = L.DomUtil.create("div", className, container);
+      }
 
-                corners[vSide + hSide] = L.DomUtil.create('div', className, container);
-            }
+      createCorner("top", "left");
+      createCorner("top", "right");
+      createCorner("bottom", "left");
+      createCorner("bottom", "right");
 
-            createCorner('top', 'left');
-            createCorner('top', 'right');
-            createCorner('bottom', 'left');
-            createCorner('bottom', 'right');
+      createCorner("top", "center");
+      createCorner("middle", "center");
+      createCorner("middle", "left");
+      createCorner("middle", "right");
+      createCorner("bottom", "center");
+    },
+  });
 
-            createCorner('top', 'center');
-            createCorner('middle', 'center');
-            createCorner('middle', 'left');
-            createCorner('middle', 'right');
-            createCorner('bottom', 'center');
-        }
-    });
+  var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
+  var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
+  var map = L.map("map", {
+    zoomControl: false,
+    maxZoom: zoom,
+    minZoom: zoom,
+  }).setView([42.3519, -71.0552], zoom);
 
+  map.dragging.disable();
+  map.touchZoom.disable();
+  map.doubleClickZoom.disable();
+  map.scrollWheelZoom.disable();
+  map.boxZoom.disable();
+  map.keyboard.disable();
+  if (map.tap) map.tap.disable();
+  document.getElementById("map").style.cursor = "default";
 
-    var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
-    var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
-    var map = L.map('map', {
-        zoomControl: false,
-        maxZoom: zoom,
-        minZoom: zoom,
-    }).setView([42.3519, -71.0552], zoom);
+  var CartoDB_Positron = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    {
+      // attribution:
+      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
+    }
+  ).addTo(map);
+  var CartoDB_DarkMatter = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    {
+      // attribution:
+      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
+    }
+  );
 
-    map.dragging.disable();
-    map.touchZoom.disable();
-    map.doubleClickZoom.disable();
-    map.scrollWheelZoom.disable();
-    map.boxZoom.disable();
-    map.keyboard.disable();
-    if (map.tap) map.tap.disable();
-    document.getElementById('map').style.cursor = 'default';
+  var shape_layer = L.layerGroup().addTo(map);
+  realtime = plotShapes(route_type, shape_layer).addTo(map);
 
+  map.on("click", function (e) {
+    // console.log(e.originalEvent.target.offsetParent)
+    if (map.hasLayer(CartoDB_Positron)) {
+      map.removeLayer(CartoDB_Positron);
+      map.addLayer(CartoDB_DarkMatter);
+    } else {
+      map.removeLayer(CartoDB_DarkMatter);
+      map.addLayer(CartoDB_Positron);
+    }
+  });
 
-    var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20,
-    }).addTo(map);
-    var CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20,
-    });
-
-    var shape_layer = L.layerGroup().addTo(map);
-    realtime = plotShapes(route_type, shape_layer).addTo(map);
-
-    map.on("click", function (e) {
-        // console.log(e.originalEvent.target.offsetParent)
-        if (map.hasLayer(CartoDB_Positron)) {
-            map.removeLayer(CartoDB_Positron);
-            map.addLayer(CartoDB_DarkMatter);
-        } else {
-            map.removeLayer(CartoDB_DarkMatter);
-            map.addLayer(CartoDB_Positron);
-        }
-    });
-
-    L.Control.textbox = L.Control.extend({
-        onAdd: function (map) {
-
-            var text = L.DomUtil.create('div');
-            text.id = "info_text";
-            text.innerHTML = `
-        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 10px;text-align: center;justify-content: center;backdrop-filter: blur(5px)">
+  L.Control.textbox = L.Control.extend({
+    onAdd: function (map) {
+      var text = L.DomUtil.create("div");
+      text.id = "info_text";
+      text.innerHTML = `
+        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 10px;text-align: center;justify-content: center;">
             <h1>MBTA Mapper</h1>
             <h4>Realtime Tracking of MBTA Vehicles</h4>
             <h4 style="color:red;">This website will change links in the future. Check for more info.</h4>
@@ -136,44 +150,42 @@ window.addEventListener('load', function () {
                 </a>
             </div>
         </div>
-        `
-            return text;
-        },
+        `;
+      return text;
+    },
 
-        onRemove: function (map) {
-            // Nothing to do here
-        }
-    });
+    onRemove: function (map) {
+      // Nothing to do here
+    },
+  });
 
-    L.control.textbox = function (opts) { return new L.Control.textbox(opts); }
-    L.control.textbox({ position: 'topcenter' }).addTo(map);
-
+  L.control.textbox = function (opts) {
+    return new L.Control.textbox(opts);
+  };
+  L.control.textbox({ position: "topcenter" }).addTo(map);
 });
 
 // var zoom = route_type == "commuter_rail" ? 9 : 13;
 
 function plotShapes(key, layer) {
-    let polyLineRender = L.canvas({ padding: 0, tolerance: 0 });
-    return L.realtime(
-        `/static/geojsons/${key}/shapes.json`,
-        {
-            interval: 360000000000000,
-            type: 'FeatureCollection',
-            container: layer,
-            cache: true,
-            removeMissing: true,
-            getFeatureId(f) {
-                return f.id;
-            },
-            onEachFeature(f, l) {
-                l.setStyle({
-                    interactive: false,
-                    color: f.properties.color,
-                    opacity: f.properties.opacity,
-                    weight: 1.3,
-                    renderer: polyLineRender,
-                });
-            },
-        }
-    )
+  let polyLineRender = L.canvas({ padding: 0, tolerance: 0 });
+  return L.realtime(`/static/geojsons/${key}/shapes.json`, {
+    interval: 360000000000000,
+    type: "FeatureCollection",
+    container: layer,
+    cache: true,
+    removeMissing: true,
+    getFeatureId(f) {
+      return f.id;
+    },
+    onEachFeature(f, l) {
+      l.setStyle({
+        interactive: false,
+        color: f.properties.color,
+        opacity: f.properties.opacity,
+        weight: 1.3,
+        renderer: polyLineRender,
+      });
+    },
+  });
 }

@@ -81,10 +81,14 @@ class FeedLoader:
         schedule.every(12).seconds.do(self.threader, self.update_realtime, Vehicle)
         schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
-        schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
+        # schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
+        for times in ["04:00", "08:00", "12:00", "16:00", "20:00"]:
+            schedule.every().day.at(times, tz="America/New_York").do(
+                self.threader, self.geojson_exports
+            )
         schedule.every().day.at("03:30", tz="America/New_York").do(
             self.threader, self.nightly_import
         )
         while True:
             schedule.run_pending()
-            time.sleep(1)  # wait one minute
+            time.sleep(1)
