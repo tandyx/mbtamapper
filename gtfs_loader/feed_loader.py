@@ -75,18 +75,18 @@ class FeedLoader:
         if func == self.update_realtime:  # pylint: disable=comparison-with-callable
             job_thread.join()
 
-    def scheduler(self) -> NoReturn:
+    def scheduler(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs."""
         schedule.every(2).minutes.do(self.threader, self.update_realtime, Alert)
         schedule.every(12).seconds.do(self.threader, self.update_realtime, Vehicle)
         schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
         # schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
-        for times in ["04:00", "08:00", "12:00", "16:00", "20:00"]:
-            schedule.every().day.at(times, tz="America/New_York").do(
+        for times in ["04:00", "12:00", "20:00"]:
+            schedule.every().day.at(times, tz=timezone).do(
                 self.threader, self.geojson_exports
             )
-        schedule.every().day.at("03:30", tz="America/New_York").do(
+        schedule.every().day.at("03:30", tz=timezone).do(
             self.threader, self.nightly_import
         )
         while True:
