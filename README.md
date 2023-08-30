@@ -1,6 +1,6 @@
 # MBTA Mapper Project
 
-## Deployed to [https://mbtamapper.com/]mbtamapper.com or [https://mbtamapper-beta.azurewebsites.net/]https://mbtamapper-beta.azurewebsites.net/
+## Deployed to [https://mbtamapper.com/](mbtamapper.com) or [https://mbtamapper-beta.azurewebsites.net/]([default domain])
 
 I built this project using SQLAlchemy.
 
