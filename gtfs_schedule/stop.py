@@ -134,7 +134,7 @@ class Stop(GTFSBase):
                 if st.trip.calendar.operates_on_date(date)
                 and st.departure_seconds
                 > (get_current_time().timestamp() - get_date().timestamp())
-                and not st.is_destination()
+                # and not st.is_destination()
             )
         )
 
