@@ -48,9 +48,30 @@ class StopTime(GTFSBase):
     def as_html(self) -> str:
         """Returns a StopTime obj as an html row"""
 
+        trip_name = self.trip.trip_short_name or self.trip_id
+
+        flag_stop = (
+            "<div class = 'tooltip'>"
+            f"<span style='color:#c73ca8;'>{trip_name}</span>"
+            "<span class='tooltiptext' style='width: auto;'>Flag stop.</span></div>"
+            if self.trip.route.route_type == "2"
+            and (self.pickup_type == "3" or self.drop_off_type == "3")
+            else ""
+        )
+
+        early_departure = (
+            "<div class = 'tooltip'>"
+            f"<span style='color:#2084d6;'>{trip_name}</span>"
+            "<span class='tooltiptext' style='width: auto;'>Early departure stop.</span></div>"
+            if self.trip.route.route_type == "2"
+            and self.timepoint == "0"
+            and not self.is_destination()
+            else ""
+        )
+
         return (
             f"""<tr> <td style='text-decoration:none;color:#{self.trip.route.route_color};'>{self.trip.route.route_short_name or self.trip.route.route_long_name}</td>"""
-            f"""<td>{self.trip.trip_short_name or self.trip_id}</td>"""
+            f"""<td>{flag_stop or early_departure or trip_name}</td>"""
             f"""<td>{self.destination_label}</td>"""
             f"""<td>{format_time(self.departure_time)}</td>"""
             f"""<td>{self.stop.platform_name}</td></tr>"""
