@@ -120,7 +120,7 @@ window.addEventListener("load", function () {
                     <td style="padding: 15px">
                         <a href="/bus/" style="font-weight:bold;text-decoration:none;color:#FFC72C;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Icon-mode-bus-default.svg/512px-Icon-mode-bus-default.svg.png" width="125"><br><br>
-                            Bus <a style="color:red">(45s updates)</a>
+                            Bus <a style="color:red">(limited to 75 vehicles)</a>
                         </a>
                     </td>
                     <td style="padding: 15px">
@@ -132,7 +132,7 @@ window.addEventListener("load", function () {
                     <td style="padding: 15px">
                         <a href="/all_routes/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
                             <img src="/static/mbta.png" width="125"><br><br>
-                            All Routes <a style="color:red">(45s updates)</a>
+                            All Routes <a style="color:red">(limited to 75 vehicles)</a>
                         </a>
                     </td>
                 </tr>

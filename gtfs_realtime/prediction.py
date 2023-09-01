@@ -91,15 +91,47 @@ class Prediction(GTFSBase):
             delay += 1440
         if delay <= 2:
             return ""
-        if delay > 2:
-            return f"""<a style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</a>"""
+
+        return f"""<a style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</a>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
+
+        stop_name = (
+            self.stop.parent_stop.stop_name
+            if self.stop and self.stop.parent_stop
+            else self.stop.stop_name
+        )
+
+        flag_stop = (
+            "<div class = 'tooltip'>"
+            f"<span style='color:#c73ca8;'>{stop_name}</span>"
+            "<span class='tooltiptext' style='width: auto;'>Flag stop.</span></div>"
+            if self.trip
+            and self.stop_time
+            and self.trip.route.route_type == "2"
+            and (
+                self.stop_time.pickup_type == "3" or self.stop_time.drop_off_type == "3"
+            )
+            else ""
+        )
+
+        early_departure = (
+            "<div class = 'tooltip'>"
+            f"<span style='color:#2084d6;'>{stop_name}</span>"
+            "<span class='tooltiptext' style='width: auto;'>Early departure stop.</span></div>"
+            if self.trip
+            and self.stop_time
+            and self.trip.route.route_type == "2"
+            and self.stop_time.timepoint == "0"
+            and not self.stop_time.is_destination()
+            else ""
+        )
+
         return (
             """<tr>"""
-            f"""<td>{self.stop.parent_stop.stop_name if self.stop and self.stop.parent_stop else self.stop.stop_name}</td>"""
-            f"""<td>{self.stop.platform_name}</td>"""
+            f"""<td>{flag_stop or early_departure or stop_name}</td>"""
+            f"""<td>{self.stop.platform_name or ""}</td>"""
             f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {"—" if self.status_as_html() else ""} {self.status_as_html()}</td>"""
             """</tr>"""
         )

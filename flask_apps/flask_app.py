@@ -51,11 +51,14 @@ class FlaskApp:
         """Returns vehicles as geojson."""
         sess = self.feed.scoped_session()
         add_routes = self.SILVER_LINE_ROUTES if self.key == "RAPID_TRANSIT" else ""
+        vehicles_query = self.query.return_vehicles_query(add_routes)
+        if self.key in ["BUS", "ALL_ROUTES"]:
+            vehicles_query = vehicles_query.limit(75)
         data: list[tuple[Vehicle]]
         attempts = 0
         try:
             while attempts <= 10:
-                data = sess.execute(self.query.return_vehicles_query(add_routes)).all()
+                data = sess.execute(vehicles_query).all()
                 if data and any(d[0].predictions for d in data):
                     break
                 attempts += 1
