@@ -3,7 +3,7 @@
 # pylint: disable=unused-import
 # pylint: disable=wildcard-import
 from datetime import datetime, timedelta
-from sqlalchemy.sql import select, selectable, or_, and_
+from sqlalchemy.sql import select, selectable, or_, and_, not_
 from sqlalchemy.orm import aliased
 from gtfs_schedule import *
 from gtfs_realtime import Vehicle
@@ -47,20 +47,20 @@ class Query:
                         Calendar.start_date
                         <= (date + timedelta(days=7)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
-                        # getattr(Calendar, date.strftime("%A").lower()) == 1,
-                        #     not_(
-                        #         and_(
-                        #             CalendarDate.date == date.strftime("%Y%m%d"),
-                        #             CalendarDate.exception_type == "2",
-                        #             CalendarDate.service_id.isnot(None),
-                        #         )
-                        #     ),
-                        # ),
-                        # and_(
-                        #     CalendarDate.date == date.strftime("%Y%m%d"),
-                        #     CalendarDate.exception_type == "1",
-                        #     CalendarDate.service_id.isnot(None),
-                        #     CalendarAttribute.service_schedule_typicality != "6",
+                        getattr(Calendar, date.strftime("%A").lower()) == 1,
+                        not_(
+                            and_(
+                                CalendarDate.date == date.strftime("%Y%m%d"),
+                                CalendarDate.exception_type == "2",
+                                CalendarDate.service_id.isnot(None),
+                            )
+                        ),
+                    ),
+                    and_(
+                        CalendarDate.date == date.strftime("%Y%m%d"),
+                        CalendarDate.exception_type == "1",
+                        CalendarDate.service_id.isnot(None),
+                        CalendarAttribute.service_schedule_typicality != "6",
                     ),
                 )
             )

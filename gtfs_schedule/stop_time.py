@@ -53,7 +53,7 @@ class StopTime(GTFSBase):
         flag_stop = (
             "<div class = 'tooltip'>"
             f"<span style='color:#c73ca8;'>{trip_name}</span>"
-            "<span class='tooltiptext' style='width: auto;'>Flag stop.</span></div>"
+            "<span class='tooltiptext' style='width:auto;white-space: nowrap;'>Flag stop.</span></div>"
             if self.trip.route.route_type == "2"
             and (self.pickup_type == "3" or self.drop_off_type == "3")
             else ""
@@ -62,7 +62,7 @@ class StopTime(GTFSBase):
         early_departure = (
             "<div class = 'tooltip'>"
             f"<span style='color:#2084d6;'>{trip_name}</span>"
-            "<span class='tooltiptext' style='width: auto;'>Early departure stop.</span></div>"
+            "<span class='tooltiptext' style='width:auto;white-space: nowrap;'>Early departure stop.</span></div>"
             if self.trip.route.route_type == "2"
             and self.timepoint == "0"
             and not self.is_destination()

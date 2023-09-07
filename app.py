@@ -1,4 +1,4 @@
-"""Subway App"""
+"""This file is for testing purposes only. It is not used in production."""
 import logging
 from threading import Thread
 from startup import feed_loader, create_default_app

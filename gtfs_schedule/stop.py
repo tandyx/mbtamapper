@@ -4,7 +4,7 @@ from datetime import datetime
 from shapely.geometry import Point
 from geojson import Feature
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, Float, ForeignKey
 from gtfs_loader.gtfs_base import GTFSBase
 
@@ -69,6 +69,13 @@ class Stop(GTFSBase):
         secondaryjoin="Trip.route_id==Route.route_id",
         overlaps="trips,stop_times,route,stop",
     )
+
+    @reconstructor
+    def init_on_load(self):
+        self.stop_url = (
+            self.stop_url
+            or f"https://www.mbta.com/stops/{self.parent_stop.stop_id if self.parent_station else self.stop_id}"
+        )
 
     def __repr__(self):
         return f"<Stop(stop_id={self.stop_id})>"
@@ -182,7 +189,7 @@ class Stop(GTFSBase):
             """<td>Parking Lot</td><td>Spaces</td><td>Daily Cost</td><td>Payment App</td></tr>"""
             f"""{"".join({p.as_html_row() for p in self.facilities if p.facility_type == "parking-area"})}</tr></table>"""
             """</span></div>"""
-            if [p for p in self.facilities if p.facility_type == "parking-area"]
+            if any(p for p in self.facilities if p.facility_type == "parking-area")
             else ""
         )
 

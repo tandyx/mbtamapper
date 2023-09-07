@@ -1,5 +1,5 @@
 """File to hold the Calendar class and its associated methods."""
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, ForeignKey, Integer
 from gtfs_loader.gtfs_base import GTFSBase
 
@@ -62,6 +62,12 @@ class Route(GTFSBase):
     )
 
     WEIGHT = 0.8
+
+    @reconstructor
+    def init_on_load(self):
+        self.route_url = (
+            self.route_url or f"https://www.mbta.com/schedules/{self.route_id}"
+        )
 
     def __repr__(self) -> str:
         return f"<Route(route_id={self.route_id})>"

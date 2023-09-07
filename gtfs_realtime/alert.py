@@ -60,6 +60,7 @@ class Alert(GTFSBase):
     def init_on_load(self):
         """Loads active_period_end and active_period_start as datetime objects."""
         # pylint: disable=attribute-defined-outside-init
+        self.url = self.url or "https://www.mbta.com/"
         for key, value in self.DATETIME_MAPPER.items():
             if getattr(self, key, None):
                 setattr(self, value, isoparse(getattr(self, key)))
