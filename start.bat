@@ -5,9 +5,10 @@ title MBTA Mapper
 docker rm -vf $(docker ps -aq)
 docker rmi -vf $(docker ps -aq)
 docker build --tag mbta_mapper .
-@REM docker run -d -p 80:80 mbta_mapper
-docker tag mbta_mapper tandyy/mbta_mapper:latest
-docker push tandyy/mbta_mapper:latest
+docker run -d -p 80:80 mbta_mapper
+
+@REM docker tag mbta_mapper tandyy/mbta_mapper:latest
+@REM docker push tandyy/mbta_mapper:latest
 
 
 @REM set HOST=0.0.0.0
