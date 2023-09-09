@@ -51,7 +51,7 @@ class Query:
                         Calendar.start_date
                         <= (date + timedelta(days=7)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
-                        getattr(Calendar, date.strftime("%A").lower()),
+                        # getattr(Calendar, date.strftime("%A").lower()),
                         not_(
                             and_(
                                 CalendarDate.date == date.strftime("%Y%m%d"),
