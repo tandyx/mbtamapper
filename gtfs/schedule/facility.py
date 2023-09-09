@@ -3,7 +3,7 @@ from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, Column, String, Float
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 # pylint: disable=line-too-long
 
@@ -67,7 +67,7 @@ class Facility(GTFSBase):
             f"<td>{self.facility_long_name}</td>"
             f"<td>{self.return_formatted_capacity()}</td>"
             f"{('<td>' + self.return_property('fee-daily', 'Unknown') + '</td>') if parking else ''}"
-            f"{('<td>' + self.return_formatted_payment_app('Unknown') + '</td>') if parking else ''}"
+            f"{('<td>' + self.return_formatted_payment_app('') + '</td>') if parking else ''}"
             "</tr>"
         )
 

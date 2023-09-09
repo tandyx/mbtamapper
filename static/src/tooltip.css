@@ -19,6 +19,8 @@
   font-family: "montserrat", "Helvetica", sans-serif !important;
   width: auto;
   white-space: nowrap;
+  pointer-events: none;
+  border: none;
 }
 
 .tooltip .tooltiptext::after {
@@ -58,6 +60,8 @@
   font-family: "montserrat", "Helvetica", sans-serif !important;
   width: auto;
   white-space: nowrap;
+  pointer-events: none;
+  border: none;
 }
 
 .tooltip-mini_image .tooltiptext-mini_image::after {

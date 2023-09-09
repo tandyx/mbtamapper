@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, Float, ForeignKey
 
 from helper_functions import list_unpack, get_date, get_current_time
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 
 class Stop(GTFSBase):
@@ -149,16 +149,17 @@ class Stop(GTFSBase):
         )
 
         alert = (
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
+            "</span>"
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join({a.as_html() for a in alerts})}</table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if alerts
             else ""
         )
@@ -173,46 +174,49 @@ class Stop(GTFSBase):
         )
 
         schedule = (
+            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Schedule</span>"""
-            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
             """<img src ="static/img/train_icon.png" alt="schedule" class="mini_image">"""
+            "</span>"
             """<span class="popuptext" id="predictionPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
             """<td>Route</td><td>Trip</td><td>Headsign</td><td>Scheduled</td><td>Platform</td></tr>"""
             f"""{stop_time_html}</tr></table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if stop_time_html
             else ""
         )
 
         parking = (
+            """<div class = "popup" onclick="openMiniPopup('parkingPopup')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Parking</span>"""
-            """<div class = "popup" onclick="openMiniPopup('parkingPopup')">"""
             """<img src ="static/img/parking.png" alt="parking" class="mini_image">"""
+            "</span>"
             """<span class="popuptext" id="parkingPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
             """<td>Parking Lot</td><td>Spaces</td><td>Daily Cost</td><td>Payment App</td></tr>"""
             f"""{"".join({p.as_html_row() for p in self.facilities if p.facility_type == "parking-area"})}</tr></table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if any(p for p in self.facilities if p.facility_type == "parking-area")
             else ""
         )
 
         bikes = (
+            """<div class = "popup" onclick="openMiniPopup('bikePopup')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Bike Parking</span>"""
-            """<div class = "popup" onclick="openMiniPopup('bikePopup')">"""
             """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
-            """<span class="popuptext" id="bikePopup">"""
+            "</span>"
+            """<span class="popuptext" id="bikePopup" style="width: 1000%;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
             """<td>Bike Parking</td><td>Spaces</td></tr>"""
             f"""{"".join({p.as_html_row(False) for p in self.facilities if p.facility_type == "bike-storage"})}</tr></table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if [p for p in self.facilities if p.facility_type == "bike-storage"]
             else ""
         )

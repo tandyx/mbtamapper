@@ -3,7 +3,7 @@ from shapely.geometry import Point
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import Integer, ForeignKey, Column, String, Float
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 
 class ShapePoint(GTFSBase):

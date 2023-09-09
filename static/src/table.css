@@ -11,4 +11,12 @@
   table-layout: fixed;
   max-height: 150px;
   font-family: "montserrat", "Helvetica", sans-serif !important;
+  /* width: 1000% */
+}
+
+.table td {
+  margin-right: 5px;
+  /* width: 10px; */
+  /* text-wrap: balance; */
+  overflow-wrap: break-word;
 }

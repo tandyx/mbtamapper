@@ -1,7 +1,7 @@
 """File to hold the FacilityProperty class and its associated methods."""
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, Column, String
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 
 class FacilityProperty(GTFSBase):

@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship, reconstructor
 from shapely.geometry import Point
 from geojson import Feature
 
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 from helper_functions import hex_to_css, return_occupancy_colors
 
 
@@ -135,36 +135,38 @@ class Vehicle(GTFSBase):
         bikes = (
             """<div class = "tooltip-mini_image">"""
             """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
-            """<span class="tooltiptext-mini_image">Bikes allowed.</span></div>"""
+            """<span class="tooltiptext-mini_image" >Bikes allowed.</span></div>"""
             if self.trip and self.trip.bikes_allowed == 1
             else ""
         )
         alert = (
-            """<span class = 'tooltip-mini_image'>"""
-            """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
+            """<span class = 'tooltip-mini_image'>"""
+            """<span class = 'tooltiptext-mini_image' >Show Alerts</span>"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
+            "</span>"
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if self.trip and self.trip.alerts
             else ""
         )
 
         prediction = (
-            """<span class = 'tooltip-mini_image'>"""
-            """<span class = 'tooltiptext-mini_image'>Show Predictions</span>"""
             """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
+            """<span class = 'tooltip-mini_image'>"""
+            """<span class = 'tooltiptext-mini_image' >Show Predictions</span>"""
             """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image">"""
-            """<span class="popuptext" id="predictionPopup" style="z-index=-1;width:1850%;">"""
+            "</span>"
+            """<span class="popuptext" id="predictionPopup" style="width:1850%;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
             """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
             f"""{predicted_html}</table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if predicted_html
             else ""
         )

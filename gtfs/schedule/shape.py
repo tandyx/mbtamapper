@@ -6,7 +6,7 @@ from shapely.geometry import LineString
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship, reconstructor
 
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 
 class Shape(GTFSBase):

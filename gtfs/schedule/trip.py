@@ -1,7 +1,7 @@
 """File to hold the Trip class and its associated methods."""
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 
 class Trip(GTFSBase):

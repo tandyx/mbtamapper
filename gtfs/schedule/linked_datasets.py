@@ -9,7 +9,7 @@ from google.transit.gtfs_realtime_pb2 import FeedMessage
 from protobuf_to_dict import protobuf_to_dict
 from sqlalchemy import Integer, Column, String
 
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 from ..realtime import *
 
 from helper_functions import df_unpack, timestamp_col_to_iso, get_current_time

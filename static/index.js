@@ -91,54 +91,52 @@ window.addEventListener("load", function () {
       var text = L.DomUtil.create("div");
       text.id = "info_text";
       text.innerHTML = `
-        <div class="main">
+        <div class="main" style="align-items: center;">
             <h1>MBTA Mapper</h1>
             <h4>Realtime Tracking of MBTA Vehicles</h4>
             <h4 style="color:red;">New Domain: mbtamapper.com</h4>
-            <hr/>
-            <table style="margin-left: auto;margin-right: auto;width:auto;">
+            <table>
                 <tr>
-                    <td style="padding: 15px">
+                    <td>
                         <a href="/subway/" style="font-weight:bold;color:#7C878E;">
-                            <img src="/static/img/subway.png" width="125" alt = "Subway" title = "View the Subway"><br><br>
+                            <img src="/static/img/subway.png" class="big_img" alt = "Subway" title = "View the Subway"><br><br>
                             Subway
                         </a>
                     </td>
-                    <td style="padding: 15px">
+                    <td>
                         <a href="/rapid_transit/" style="font-weight:bold;color:#ED8B00;">
-                            <img src="/static/img/rapid_transit.png" width="125" alt = "Rapid Transit" title = "View Rapid Transit"><br><br>
+                            <img src="/static/img/rapid_transit.png" class="big_img" alt = "Rapid Transit" title = "View Rapid Transit"><br><br>
                             Rapid Transit
                         </a>
                     </td>
-                    <td style="padding: 15px">
+                    <td>
                         <a href="/commuter_rail/" style="font-weight:bold;color:#80276C;">
-                            <img src="/static/img/commuter_rail.png" width="125" alt = "Commuter Rail" title = "View the Commuter Rail"><br><br>
+                            <img src="/static/img/commuter_rail.png" class="big_img" alt = "Commuter Rail" title = "View the Commuter Rail"><br><br>
                             Commuter Rail
                         </a>
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding: 15px">
+                    <td>
                         <a href="/bus/" style="font-weight:bold;color:#FFC72C;">
-                            <img src="/static/img/bus.png" width="125" alt = "Bus" title = "View Busses"><br><br>
-                            Bus <a style="color:red">(limited to 75 vehicles)</a>
+                            <img src="/static/img/bus.png" class="big_img" alt = "Bus" title = "View Busses"><br><br>
+                            Bus <a style="color:red">(75 vehicles only)</a>
                         </a>
                     </td>
-                    <td style="padding: 15px">
+                    <td>
                         <a href="/ferry/" style="font-weight:bold;color:#006595;">
-                            <img src="/static/img/ferry.png" width="125" alt = "Ferry" title = "View Ferries"><br><br>
+                            <img src="/static/img/ferry.png" class="big_img" alt = "Ferry" title = "View Ferries"><br><br>
                             Ferry <a style="color:red">(no vehicle data)</a>
                         </a>
                     </td>
-                    <td style="padding: 15px">
+                    <td>
                         <a href="/all_routes/" style="font-weight:bold;color:#ffffff;">
-                            <img src="/static/img/mbta.png" width="125" alt = "All Routes" title = "View All Routes"><br><br>
-                            All Routes <a style="color:red">(limited to 75 vehicles)</a>
+                            <img src="/static/img/mbta.png" class="big_img" alt = "All Routes" title = "View All Routes"><br><br>
+                            All Routes <a style="color:red">(75 vehicles only)</a>
                         </a>
                     </td>
                 </tr>
             </table>
-            <hr/>
             <div style="margin-top:25px">
                 This was my personal project. While I used to work for Keolis, I have no further affiliation with the MBTA.<br><br>
                 <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;padding:15px;">

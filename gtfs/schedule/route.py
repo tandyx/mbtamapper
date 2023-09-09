@@ -1,7 +1,7 @@
 """File to hold the Route class and its associated methods."""
 from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, ForeignKey, Integer
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 from helper_functions import get_current_time
 
@@ -80,16 +80,17 @@ class Route(GTFSBase):
             set(a.as_html() for a in self.alerts if not a.stop and not a.trip)
         )
         alert = (
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
+            "</span>"
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{alert_row}</table>"""
-            """</span></div></span>"""
+            """</span></div>"""
             if alert_row
             else ""
         )

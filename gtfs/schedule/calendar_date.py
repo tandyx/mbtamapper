@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, Column, String
-from ..gtfs_base import GTFSBase
+from ..base import GTFSBase
 
 
 class CalendarDate(GTFSBase):
