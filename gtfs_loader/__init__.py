@@ -1,6 +1,6 @@
 """Init file for gtfs_loader package."""
-# pylint: disable=unused-import
+from .connect import on_connect, on_close
 from .feed import Feed
-from .gtfs_base import GTFSBase
 from .query import Query
 from .feed_loader import FeedLoader
+from .flask_app import FlaskApp

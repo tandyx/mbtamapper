@@ -1,15 +1,14 @@
 """Test"""
 import os
 import logging
+from threading import Thread
 from typing import NoReturn
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
-
-from flask_apps.flask_app import FlaskApp
-from gtfs_loader import FeedLoader, Feed
+from gtfs_loader import FlaskApp, FeedLoader, Feed
 from helper_functions import instantiate_logger
 
 load_dotenv()
@@ -83,9 +82,21 @@ def feed_loader(import_data: bool = False) -> NoReturn:
         feadloader.nightly_import()
     if import_data or not os.path.exists(feadloader.GEOJSON_PATH):
         feadloader.geojson_exports()
-    feadloader.scheduler()
+    feadloader.run()
+
+
+def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
+    """Runs the dev server."""
+
+    threads = [
+        Thread(target=feed_loader),
+        Thread(target=app.run, kwargs=kwargs),
+    ]
+    for thread in threads:
+        thread.start()
 
 
 if __name__ == "__main__":
     instantiate_logger(logging.getLogger())
     feed_loader()
+    # run_dev_server(create_default_app, kwargs={"host": "127.0.0.1", "port": 80})

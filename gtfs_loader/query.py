@@ -5,8 +5,7 @@
 from datetime import datetime, timedelta
 from sqlalchemy.sql import select, selectable, or_, and_, not_
 from sqlalchemy.orm import aliased
-from gtfs_schedule import *
-from gtfs_realtime import Vehicle
+from gtfs import *
 
 
 class Query:
@@ -17,6 +16,11 @@ class Query:
     """
 
     def __init__(self, route_types: list[str] = None) -> None:
+        """Initializes Query.
+
+        Args:
+            route_types (list[str], optional): list of route_types to query. Defaults to None.
+        """
         self.route_types = route_types or []
         self.trip_query = self.return_trip_query()
         self.parent_stops_query = self.return_parent_stops()

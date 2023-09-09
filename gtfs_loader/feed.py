@@ -16,10 +16,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import select, delete
 from sqlalchemy import CursorResult
 from helper_functions import get_date, get_current_time, to_sql, download_zip
-from gtfs_schedule import *
-from gtfs_realtime import *
+
+from gtfs import *
 from .query import Query
-from .gtfs_base import GTFSBase
 
 
 class Feed:
@@ -27,12 +26,17 @@ class Feed:
     This class also contains methods to query the database.
 
     Args:
-        url (str): url of GTFS feed (default: MBTA GTFS feed)
+        url (str): url of GTFS feed
     """
 
     temp_dir: str = tempfile.gettempdir()
 
     def __init__(self, url: str) -> None:
+        """Initializes Feed object.
+
+        Args:
+            url (str): url of GTFS feed
+        """
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
@@ -73,7 +77,6 @@ class Feed:
             "stop_times.txt": StopTime,
             "linked_datasets.txt": LinkedDataset,
             "facilities.txt": Facility,
-            "facilities_properties_definitions.txt": FacilityPropertyDefintion,
             "facilities_properties.txt": FacilityProperty,
         }
         # ------------------------------- Dump Data ------------------------------- #

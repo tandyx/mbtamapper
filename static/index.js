@@ -91,26 +91,26 @@ window.addEventListener("load", function () {
       var text = L.DomUtil.create("div");
       text.id = "info_text";
       text.innerHTML = `
-        <div style="font-size:10pt;font-family: 'montserrat','sans-serif';color: #ffffff;background: rgba(0, 0, 0, 0.9);width: auto;overflow: hidden;padding: 14px 16px;border: 1px solid black;border-radius: 10px;text-align: center;justify-content: center;">
+        <div class="main">
             <h1>MBTA Mapper</h1>
             <h4>Realtime Tracking of MBTA Vehicles</h4>
             <h4 style="color:red;">New Domain: mbtamapper.com</h4>
             <table style="margin-left: auto;margin-right: auto;width:auto;">
                 <tr>
                     <td style="padding: 15px">
-                        <a href="/subway/" style="font-weight:bold;text-decoration:none;color:#7C878E;">
+                        <a href="/subway/" style="font-weight:bold;color:#7C878E;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Icon-mode-subway-default.svg/512px-Icon-mode-subway-default.svg.png" width="125"><br><br>
                             Subway
                         </a>
                     </td>
                     <td style="padding: 15px">
-                        <a href="/rapid_transit/" style="font-weight:bold;text-decoration:none;color:#ED8B00;">
+                        <a href="/rapid_transit/" style="font-weight:bold;color:#ED8B00;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Icon-orange-line-default.svg/512px-Icon-orange-line-default.svg.png" width="125"><br><br>
                             Rapid Transit
                         </a>
                     </td>
                     <td style="padding: 15px">
-                        <a href="/commuter_rail/" style="font-weight:bold;text-decoration:none;color:#80276C;">
+                        <a href="/commuter_rail/" style="font-weight:bold;color:#80276C;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Icon-mode-commuter-rail-default.svg/512px-Icon-mode-commuter-rail-default.svg.png" width="125"><br><br>
                             Commuter Rail
                         </a>
@@ -118,20 +118,20 @@ window.addEventListener("load", function () {
                 </tr>
                 <tr>
                     <td style="padding: 15px">
-                        <a href="/bus/" style="font-weight:bold;text-decoration:none;color:#FFC72C;">
+                        <a href="/bus/" style="font-weight:bold;color:#FFC72C;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Icon-mode-bus-default.svg/512px-Icon-mode-bus-default.svg.png" width="125"><br><br>
                             Bus <a style="color:red">(limited to 75 vehicles)</a>
                         </a>
                     </td>
                     <td style="padding: 15px">
-                        <a href="/ferry/" style="font-weight:bold;text-decoration:none;color:#006595;">
+                        <a href="/ferry/" style="font-weight:bold;color:#006595;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Icon-mode-ferry-default.svg/512px-Icon-mode-ferry-default.svg.png" width="125"><br><br>
                             Ferry <a style="color:red">(no vehicle data)</a>
                         </a>
                     </td>
                     <td style="padding: 15px">
-                        <a href="/all_routes/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
-                            <img src="/static/mbta.png" width="125"><br><br>
+                        <a href="/all_routes/" style="font-weight:bold;color:#ffffff;">
+                            <img src="/static/img/mbta.png" width="125"><br><br>
                             All Routes <a style="color:red">(limited to 75 vehicles)</a>
                         </a>
                     </td>
@@ -139,14 +139,14 @@ window.addEventListener("load", function () {
             </table>
             <div style="margin-top:25px">
                 This was my personal project. While I used to work for Keolis, I have no further affiliation with the MBTA.<br><br>
-                <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;text-decoration:none;color:#ffffff;padding:15px;">
+                <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;padding:15px;">
                     <img src="https://icon-library.com/images/github-icon-white/github-icon-white-5.jpg" width="45">
                 </a>
-                <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+                <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/600px-LinkedIn_logo_initials.png" width="45">
                 </a>
-                <a href="https://tandy-c.github.io/website/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
-                    <img src = "static/aboutme.png" width="45">
+                <a href="https://tandy-c.github.io/website/" style="font-weight:bold;">
+                    <img src = "static/img/aboutme.png" width="45">
                 </a>
             </div>
         </div>
