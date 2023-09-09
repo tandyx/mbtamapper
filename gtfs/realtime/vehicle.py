@@ -140,27 +140,31 @@ class Vehicle(GTFSBase):
             else ""
         )
         alert = (
+            """<span class = 'tooltip'>"""
+            """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
-            """<img src ="static/img/alert.png" title="Show Alerts" alt="alert" class="mini_image">"""
+            """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
-            """</span></div>"""
+            """</span></div></span>"""
             if self.trip and self.trip.alerts
             else ""
         )
 
         prediction = (
+            """<span class = 'tooltip'>"""
+            """<span class = 'tooltiptext-mini_image'>Show Predictions</span>"""
             """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
-            """<img src ="static/img/train_icon.png" alt="prediction" title = "Show Predictions" class="mini_image">"""
+            """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;width:1850%;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
             """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
             f"""{predicted_html}</table>"""
-            """</span></div>"""
+            """</span></div></span>"""
             if predicted_html
             else ""
         )

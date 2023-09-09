@@ -6,9 +6,9 @@ from geojson import Feature
 
 from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, Float, ForeignKey
-from ..gtfs_base import GTFSBase
 
 from helper_functions import list_unpack, get_date, get_current_time
+from ..gtfs_base import GTFSBase
 
 
 class Stop(GTFSBase):
@@ -74,6 +74,7 @@ class Stop(GTFSBase):
 
     @reconstructor
     def init_on_load(self):
+        """Init on load"""
         self.stop_url = (
             self.stop_url
             or f"https://www.mbta.com/stops/{self.parent_stop.stop_id if self.parent_station else self.stop_id}"
@@ -148,14 +149,16 @@ class Stop(GTFSBase):
         )
 
         alert = (
+            """<span class = 'tooltip'>"""
+            """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
-            """<img src ="static/img/alert.png" alt="alert" title = "Show Alerts" class="mini_image">"""
+            """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join({a.as_html() for a in alerts})}</table>"""
-            """</span></div>"""
+            """</span></div></span>"""
             if alerts
             else ""
         )
@@ -170,40 +173,46 @@ class Stop(GTFSBase):
         )
 
         schedule = (
+            """<span class = 'tooltip'>"""
+            """<span class = 'tooltiptext-mini_image'>Show Schedule</span>"""
             """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
-            """<img src ="static/img/train_icon.png" alt="schedule" title = "Show Departures" class="mini_image">"""
+            """<img src ="static/img/train_icon.png" alt="schedule" class="mini_image">"""
             """<span class="popuptext" id="predictionPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
             """<td>Route</td><td>Trip</td><td>Headsign</td><td>Scheduled</td><td>Platform</td></tr>"""
             f"""{stop_time_html}</tr></table>"""
-            """</span></div>"""
+            """</span></div></span>"""
             if stop_time_html
             else ""
         )
 
         parking = (
+            """<span class = 'tooltip'>"""
+            """<span class = 'tooltiptext-mini_image'>Show Parking</span>"""
             """<div class = "popup" onclick="openMiniPopup('parkingPopup')">"""
-            """<img src ="static/img/parking.png" alt="parking" title = "Show Parking" class="mini_image">"""
+            """<img src ="static/img/parking.png" alt="parking" class="mini_image">"""
             """<span class="popuptext" id="parkingPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
             """<td>Parking Lot</td><td>Spaces</td><td>Daily Cost</td><td>Payment App</td></tr>"""
             f"""{"".join({p.as_html_row() for p in self.facilities if p.facility_type == "parking-area"})}</tr></table>"""
-            """</span></div>"""
+            """</span></div></span>"""
             if any(p for p in self.facilities if p.facility_type == "parking-area")
             else ""
         )
 
         bikes = (
+            """<span class = 'tooltip'>"""
+            """<span class = 'tooltiptext-mini_image'>Show Bike Parking</span>"""
             """<div class = "popup" onclick="openMiniPopup('bikePopup')">"""
-            """<img src ="static/img/bike.png" alt="bike" title = "Show Bike Parking" class="mini_image">"""
+            """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
             """<span class="popuptext" id="bikePopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{stop_color};font-weight:bold;">"""
             """<td>Bike Parking</td><td>Spaces</td></tr>"""
             f"""{"".join({p.as_html_row(False) for p in self.facilities if p.facility_type == "bike-storage"})}</tr></table>"""
-            """</span></div>"""
+            """</span></div></span>"""
             if [p for p in self.facilities if p.facility_type == "bike-storage"]
             else ""
         )
