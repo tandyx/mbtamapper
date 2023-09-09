@@ -134,14 +134,14 @@ class Vehicle(GTFSBase):
 
         bikes = (
             """<div class = "tooltip">"""
-            """<img src ="static/img/bike.png" alt="bike" width=25 height=25 style="margin:2px;">"""
-            """<span class="tooltiptext">Bikes allowed.</span></div>"""
+            """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
+            """<span class="tooltiptext-mini_image">Bikes allowed.</span></div>"""
             if self.trip and self.trip.bikes_allowed == 1
             else ""
         )
         alert = (
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
-            """<img src ="static/img/alert.png" title="Show Alerts" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<img src ="static/img/alert.png" title="Show Alerts" alt="alert" class="mini_image">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
@@ -154,7 +154,7 @@ class Vehicle(GTFSBase):
 
         prediction = (
             """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
-            """<img src ="static/img/train_icon.png" alt="prediction" width=25 height=25 title = "Show Predictions" style="margin:2px;">"""
+            """<img src ="static/img/train_icon.png" alt="prediction" title = "Show Predictions" class="mini_image">"""
             """<span class="popuptext" id="predictionPopup" style="z-index=-1;width:1850%;">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
@@ -173,7 +173,7 @@ class Vehicle(GTFSBase):
 
         return (
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;">"""
-            f"""{(self.trip.trip_short_name if self.trip else None) or ((self.trip_id[:25] + '...') if len(self.trip_id) > 25 else self.trip_id)}</a></br>"""
+            f"""{(self.trip.trip_short_name if self.trip else None) or ((self.trip_id[:15] + '...') if len(self.trip_id) > 15 else self.trip_id)}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""
             # """<hr/>"""
@@ -182,8 +182,8 @@ class Vehicle(GTFSBase):
             f"{self.return_current_status()}"
             f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
             f"""{occupancy}"""
-            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type == "2" else "Unknown"} mph</br>"""
-            f"""Bearing: {self.bearing}°</br>"""
+            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["1", "2"] else "Unknown"} mph</br>"""
+            # f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Vehicle: {self.vehicle_id}</br>"""
             f"""Route: {f'({self.route.route_short_name}) ' if self.route and self.route.route_type == "3" else ""}{self.route.route_long_name if self.route else self.route_id}</br>"""
@@ -193,8 +193,8 @@ class Vehicle(GTFSBase):
     def as_html_icon(self) -> str:
         """Returns vehicle as html for an icon."""
         return (
-            """<a style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">"""
+            """<span class="vehicle_wrapper">"""
             f"""<img src ="static/img/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
-            """<a style="position:absolute;top:35%;left:45%;transform:translate(-50%,-50%);color:white;font-family:'montserrat','Helvetica',sans-serif;">"""
-            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</a></a>"""
+            """<a class="vehicle_text">"""
+            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</a></span>"""
         )

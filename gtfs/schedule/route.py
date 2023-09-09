@@ -81,7 +81,7 @@ class Route(GTFSBase):
         )
         alert = (
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
-            """<img src ="static/img/alert.png" alt="alert" width=25 height=25 style="margin:2px;">"""
+            """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
             f"""<tr style="background-color:#ff0000;font-weight:bold;">"""

@@ -29,6 +29,27 @@
   justify-content: center;
 }
 
+.mini_image {
+  width: 25px;
+  height: 25px;
+  margin: 2px;
+}
+
+.vehicle_text {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "montserrat", "Helvetica", sans-serif;
+}
+
+.vehicle_wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 a {
   color: #ffffff;
   text-decoration: none;

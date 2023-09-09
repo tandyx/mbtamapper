@@ -90,7 +90,7 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
 
     threads = [
         Thread(target=feed_loader),
-        Thread(target=app.run, kwargs=kwargs),
+        Thread(target=app.run, **kwargs),
     ]
     for thread in threads:
         thread.start()
@@ -98,5 +98,5 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
 
 if __name__ == "__main__":
     instantiate_logger(logging.getLogger())
-    feed_loader()
-    # run_dev_server(create_default_app, kwargs={"host": "127.0.0.1", "port": 80})
+    feed_loader(True)
+    # run_dev_server(create_default_app(), kwargs={"host": "127.0.0.1", "port": 80})
