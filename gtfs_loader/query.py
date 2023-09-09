@@ -52,13 +52,13 @@ class Query:
                         <= (date + timedelta(days=7)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
                         # getattr(Calendar, date.strftime("%A").lower()),
-                        not_(
-                            and_(
-                                CalendarDate.date == date.strftime("%Y%m%d"),
-                                CalendarDate.exception_type == "2",
-                                CalendarDate.service_id.isnot(None),
-                            )
-                        ),
+                        # not_(
+                        #     and_(
+                        #         CalendarDate.date == date.strftime("%Y%m%d"),
+                        #         CalendarDate.exception_type == "2",
+                        #         CalendarDate.service_id.isnot(None),
+                        #     )
+                        # ),
                     ),
                     and_(
                         CalendarDate.date == date.strftime("%Y%m%d"),

@@ -133,14 +133,14 @@ class Vehicle(GTFSBase):
         )
 
         bikes = (
-            """<div class = "tooltip">"""
+            """<div class = "tooltip-mini_image">"""
             """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
             """<span class="tooltiptext-mini_image">Bikes allowed.</span></div>"""
             if self.trip and self.trip.bikes_allowed == 1
             else ""
         )
         alert = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
@@ -155,7 +155,7 @@ class Vehicle(GTFSBase):
         )
 
         prediction = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Predictions</span>"""
             """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
             """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image">"""

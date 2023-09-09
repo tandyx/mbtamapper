@@ -33,7 +33,17 @@
   /* z-index: 10000; */
 }
 
-.tooltip .tooltiptext-mini_image {
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip-mini_image {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.tooltip-mini_image .tooltiptext-mini_image {
   top: 2.5px;
   left: 120%;
   visibility: hidden;
@@ -50,7 +60,7 @@
   white-space: nowrap;
 }
 
-.tooltip .tooltiptext-mini_image::after {
+.tooltip-mini_image .tooltiptext-mini_image::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -61,11 +71,7 @@
   border-color: transparent #f2f2f2 transparent transparent;
 }
 
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-}
-
-.tooltip:hover .tooltiptext-mini_image {
+.tooltip-mini_image:hover .tooltiptext-mini_image {
   visibility: visible;
 }
 

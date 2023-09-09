@@ -94,7 +94,7 @@ class Facility(GTFSBase):
         )
         acessible_spots = int(self.return_property("capacity-accessible", 0))
         wheelchair = (
-            """<div class = "tooltip">"""
+            """<div class = "tooltip-mini_image">"""
             """<img src="static/img/wheelchair.png" alt="accessible" class="mini_image">"""
             f"""<span class="tooltiptext-mini_image">Accessible spots: {acessible_spots}</span></div></br>"""
             if acessible_spots

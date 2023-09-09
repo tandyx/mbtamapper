@@ -149,7 +149,7 @@ class Stop(GTFSBase):
         )
 
         alert = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
@@ -164,7 +164,7 @@ class Stop(GTFSBase):
         )
 
         wheelchair = (
-            """<div class = "tooltip">"""
+            """<div class = "tooltip-mini_image">"""
             """<img src="static/img/wheelchair.png" alt="accessible" class="mini_image">"""
             """<span class="tooltiptext-mini_image">Wheelchair Accessible.</span></div>"""
             if self.wheelchair_boarding == "1"
@@ -173,7 +173,7 @@ class Stop(GTFSBase):
         )
 
         schedule = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Schedule</span>"""
             """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
             """<img src ="static/img/train_icon.png" alt="schedule" class="mini_image">"""
@@ -188,7 +188,7 @@ class Stop(GTFSBase):
         )
 
         parking = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Parking</span>"""
             """<div class = "popup" onclick="openMiniPopup('parkingPopup')">"""
             """<img src ="static/img/parking.png" alt="parking" class="mini_image">"""
@@ -203,7 +203,7 @@ class Stop(GTFSBase):
         )
 
         bikes = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Bike Parking</span>"""
             """<div class = "popup" onclick="openMiniPopup('bikePopup')">"""
             """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""

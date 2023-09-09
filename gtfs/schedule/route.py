@@ -80,7 +80,7 @@ class Route(GTFSBase):
             set(a.as_html() for a in self.alerts if not a.stop and not a.trip)
         )
         alert = (
-            """<span class = 'tooltip'>"""
+            """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
