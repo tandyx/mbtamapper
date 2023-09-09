@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
     <meta name="viewport" charset="UTF-8"
         content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=no" />
-
     <meta name="description" content="A collection of MBTA realtime maps.">
     <meta name="keywords" content="MBTA, Realtime, Map">
     <meta name="author" content="Johan Cho">
@@ -15,57 +13,18 @@
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="">
         </script>
-    <link href = "/static/mbta.favicon" rel = "icon"></link>
-    <script src="/static/custom_js/leaflet-realtime/leaflet-realtime.js"></script>
-    <script src="/static/custom_js/leaflet-realtime/leaflet-realtime.min.js"></script>
-    <link href = "/static/custom_css/popup.css" rel = "stylesheet"></link>
-    <link href = "/static/custom_css/tooltip.css" rel = "stylesheet"></link>
-    <link href = "/static/custom_css/table.css" rel = "stylesheet"></link>
-    <link href = "/static/custom_css/scrollbar.css" rel = "stylesheet"></link>
-    <link href = "/static/custom_css/leaflet_custom.css" rel = "stylesheet"></link>
-    
-
-    <style>
-
-        .leaflet-center {
-            left: 50%;
-            transform: translate(-50%, 0%);
-        }
-        
-        .leaflet-middle {
-            top: 50%;
-            position: absolute;
-            z-index: 1000;
-            pointer-events: none;
-          transform: translate(0%, -50%);
-        
-        }
-        
-        .leaflet-center.leaflet-middle {
-          transform: translate(-50%, -50%);
-        }
-
-        body {
-            padding: 0;
-            margin: 0;
-        }
-
-        html,
-        body,
-        #map {
-            height: 100%;
-            width: 100vw;
-        }
-
-        @font-face {
-            font-family: "montserrat";
-            src: url("https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXo.woff2") format('woff2');
-        }
-    </style>
+    <link href = "/static/img/mbta.favicon" rel = "icon"></link>
+    <script src="/static/npm_packages/leaflet-realtime/leaflet-realtime.js"></script>
+    <script src="/static/npm_packages/leaflet-realtime/leaflet-realtime.min.js"></script>
+    <link href = "/static/src/popup.css" rel = "stylesheet"></link>
+    <link href = "/static/src/tooltip.css" rel = "stylesheet"></link>
+    <link href = "/static/src/scrollbar.css" rel = "stylesheet"></link>
+    <link href = "/static/src/leaflet_custom.css" rel = "stylesheet"></link>
+    <link href = "/static/src/font.css" rel = "stylesheet"></link>
+    <link href = "/static/src/index.css" rel = "stylesheet"></link>
+    <link href = "/static/src/index_table.css" rel = "stylesheet"></link>
     <title>MBTA Mapper</title>
 </head>
-
-
 
 <body>
     <div id="map"></div>

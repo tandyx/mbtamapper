@@ -1,0 +1,78 @@
+.leaflet-center {
+  left: 50%;
+  transform: translate(-50%, 0%);
+}
+
+.leaflet-middle {
+  top: 50%;
+  position: absolute;
+  z-index: 1000;
+  pointer-events: none;
+  transform: translate(0%, -50%);
+}
+
+.leaflet-center.leaflet-middle {
+  transform: translate(-50%, -50%);
+}
+
+.main {
+  font-size: 10pt;
+  font-family: "montserrat", "sans-serif";
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.9);
+  width: auto;
+  overflow: hidden;
+  padding: 14px 16px;
+  border: 1px solid black;
+  border-radius: 10px;
+  text-align: center;
+  justify-content: center;
+}
+
+.mini_image {
+  width: 25px;
+  height: 25px;
+  margin: 2px;
+}
+
+.vehicle_text {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "montserrat", "Helvetica", sans-serif;
+}
+
+.vehicle_wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.big_img {
+  width: 65%;
+}
+
+input {
+  font-family: "montserrat", "Helvetica", sans-serif;
+  background-color: rgb(0, 0, 0, 0.7);
+  color: #ffffff;
+}
+
+a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body,
+#map {
+  height: 100%;
+  width: 100vw;
+}

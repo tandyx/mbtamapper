@@ -46,12 +46,9 @@ def instantiate_logger(
         Formatter (Formatter): custom formatter, defaults to LoggingFormatter
     """
 
-    if not formatter:
-        formatter = LoggingFormatter()
-    if level is None or not isinstance(level, int):
-        level = logging.INFO
-
-    logger.setLevel(level)
+    logger.setLevel(
+        logging.INFO if level is None or not isinstance(level, int) else level
+    )
     handler = StreamHandler()
-    handler.setFormatter(formatter)
+    handler.setFormatter(formatter or LoggingFormatter())
     logger.addHandler(handler)

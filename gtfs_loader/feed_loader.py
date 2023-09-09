@@ -3,17 +3,16 @@
 import os
 import time
 import logging
-from typing import NoReturn, Callable
-from threading import Thread
-import schedule
+from typing import NoReturn
+from schedule import Scheduler
 from sqlalchemy.exc import OperationalError
 
-from gtfs_realtime import Vehicle, Prediction, Alert
-from helper_functions import get_current_time
+from gtfs import Alert, Vehicle, Prediction
+from helper_functions import get_current_time, threader
 from .feed import Feed
 
 
-class FeedLoader:
+class FeedLoader(Scheduler):
     """Loads GTFS data into map
 
     Args:
@@ -25,6 +24,13 @@ class FeedLoader:
     REALTIME_BINDINGS = [Alert, Vehicle, Prediction]
 
     def __init__(self, feed: Feed, keys: list[str] = None) -> None:
+        """Initializes FeedLoader.
+
+        Args:
+            feed (Feed): GTFS feed
+            keys (list[str], optional): List of keys to load. Defaults to None.
+        """
+        super().__init__()
         self.feed = feed
         self.keys = keys or os.environ.get("LIST_KEYS").split(",")
 
@@ -62,33 +68,16 @@ class FeedLoader:
             round(time.time() - start, 4),
         )
 
-    def threader(self, func: Callable, *args) -> None:
-        """Threader function.
-
-        Args:
-            func (Callable): Function to thread.
-            *args: Arguments for func.
-        """
-
-        job_thread = Thread(target=func, args=args)
-        job_thread.start()
-        if func == self.update_realtime:  # pylint: disable=comparison-with-callable
-            job_thread.join()
-
-    def scheduler(self, timezone: str = "America/New_York") -> NoReturn:
+    def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs."""
-        schedule.every(2).minutes.do(self.threader, self.update_realtime, Alert)
-        schedule.every(12).seconds.do(self.threader, self.update_realtime, Vehicle)
-        schedule.every().minute.do(self.threader, self.update_realtime, Prediction)
+        self.every(2).minutes.do(threader, self.update_realtime, True, Alert)
+        self.every(12).seconds.do(threader, self.update_realtime, True, Vehicle)
+        self.every().minute.do(threader, self.update_realtime, True, Prediction)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
         # schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
         for times in ["04:00", "12:00", "20:00"]:
-            schedule.every().day.at(times, tz=timezone).do(
-                self.threader, self.geojson_exports
-            )
-        schedule.every().day.at("03:30", tz=timezone).do(
-            self.threader, self.nightly_import
-        )
+            self.every().day.at(times, tz=timezone).do(threader, self.geojson_exports)
+        self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
         while True:
-            schedule.run_pending()
+            self.run_pending()
             time.sleep(1)

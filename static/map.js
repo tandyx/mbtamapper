@@ -155,40 +155,40 @@ window.addEventListener("load", function () {
 function onLoad(route_type, array = null) {
   if (array == null) {
     array = [
-      { href: "/static/mbta.favicon", rel: "icon" },
+      { href: "/static/img/mbta.favicon", rel: "icon" },
       {
-        href: "/static/custom_js/leaflet-realtime/leaflet-realtime.js",
+        href: "/static/npm_packages/leaflet-realtime/leaflet-realtime.js",
         rel: "script",
       },
       {
-        href: "/static/custom_js/leaflet-realtime/leaflet-realtime.min.js",
+        href: "/static/npm_packages/leaflet-realtime/leaflet-realtime.min.js",
         rel: "script",
       },
       {
-        href: "/static/custom_js/leaflet-fullscreen/Control.FullScreen.css",
+        href: "/static/npm_packages/leaflet-fullscreen/Control.FullScreen.css",
         rel: "stylesheet",
       },
       {
-        href: "/static/custom_js/leaflet-fullscreen/Control.FullScreen.js",
+        href: "/static/npm_packages/leaflet-fullscreen/Control.FullScreen.js",
         rel: "script",
       },
       {
-        href: "/static/custom_js/leaflet-search/leaflet-search.js",
+        href: "/static/npm_packages/leaflet-search/leaflet-search.js",
         rel: "script",
       },
       {
-        href: "/static/custom_js/leaflet-search/leaflet-search.mobile.css",
+        href: "/static/npm_packages/leaflet-search/leaflet-search.mobile.css",
         rel: "stylesheet",
       },
       {
-        href: "/static/custom_js/leaflet-search/leaflet-search.css",
+        href: "/static/npm_packages/leaflet-search/leaflet-search.css",
         rel: "stylesheet",
       },
-      { href: "/static/custom_css/popup.css", rel: "stylesheet" },
-      { href: "/static/custom_css/tooltip.css", rel: "stylesheet" },
-      { href: "/static/custom_css/table.css", rel: "stylesheet" },
-      { href: "/static/custom_css/scrollbar.css", rel: "stylesheet" },
-      { href: "/static/custom_css/leaflet_custom.css", rel: "stylesheet" },
+      { href: "/static/src/popup.css", rel: "stylesheet" },
+      { href: "/static/src/tooltip.css", rel: "stylesheet" },
+      { href: "/static/src/table.css", rel: "stylesheet" },
+      { href: "/static/src/scrollbar.css", rel: "stylesheet" },
+      { href: "/static/src/leaflet_custom.css", rel: "stylesheet" },
     ];
   }
   for (linkdict of array) {
@@ -230,7 +230,7 @@ function plotVehicles(url, layer) {
 
 function plotStops(url, layer) {
   const stopIcon = L.icon({
-    iconUrl: "/static/mbta.png",
+    iconUrl: "/static/img/mbta.png",
     iconSize: [15, 15],
   });
 
@@ -281,7 +281,7 @@ function plotShapes(url, layer) {
 
 function plotFacilities(url, layer) {
   const facilityIcon = L.icon({
-    iconUrl: "/static/parking.png",
+    iconUrl: "/static/img/parking.png",
     iconSize: [15, 15],
   });
 
