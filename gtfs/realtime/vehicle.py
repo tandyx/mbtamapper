@@ -188,7 +188,7 @@ class Vehicle(GTFSBase):
             f"{self.return_current_status()}"
             f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
             f"""{occupancy}"""
-            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["1", "2"] else "Unknown"} mph</br>"""
+            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["0", "2"] else "Unknown"} mph</br>"""
             # f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Vehicle: {self.vehicle_id}</br>"""

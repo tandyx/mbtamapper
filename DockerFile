@@ -20,7 +20,7 @@ COPY . .
 
 RUN apt-get update && apt-get install -y tzdata
 ENV TZ=America/New_York
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
 
 CMD "./start.sh"
 # CMD ["wait"]
