@@ -1,6 +1,7 @@
 .table,
 .table tr,
-.table td {
+.table td,
+.table th {
   border: 1px;
   width: 100%;
   border-collapse: collapse;
@@ -12,13 +13,30 @@
   max-height: 150px;
   font-family: "montserrat", "Helvetica", sans-serif !important;
   /* width: 1000% */
+  position: relative;
 }
 
-.table td {
+.table td,
+.table th {
   margin-right: 5px;
   padding: 10px;
 
   /* width: 10px; */
   /* text-wrap: balance; */
   overflow-wrap: break-word;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+}
+
+.homepage {
+  margin-left: auto;
+  margin-right: auto;
+  width: auto;
+}
+
+.homepage td {
+  padding: 15px;
 }

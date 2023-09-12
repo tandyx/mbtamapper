@@ -140,8 +140,8 @@ class Vehicle(GTFSBase):
             else ""
         )
         alert = (
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')" onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
-            """<span class = 'tooltip-mini_image'>"""
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')">"""
+            """<span class = 'tooltip-mini_image' onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
             """<span class = 'tooltiptext-mini_image' >Show Alerts</span>"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image" id="alertImg" >"""
             "</span>"
@@ -156,8 +156,8 @@ class Vehicle(GTFSBase):
         )
 
         prediction = (
-            """<div class = "popup" onclick="openMiniPopup('predictionPopup')" onmouseover="hoverImage('predictionImg')" onmouseleave="unhoverImage('predictionImg')">"""
-            """<span class = 'tooltip-mini_image'>"""
+            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
+            """<span class = 'tooltip-mini_image' onmouseover="hoverImage('predictionImg')" onmouseleave="unhoverImage('predictionImg')">"""
             """<span class = 'tooltiptext-mini_image' >Show Predictions</span>"""
             """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image" id="predictionImg">"""
             "</span>"

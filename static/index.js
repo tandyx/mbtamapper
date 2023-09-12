@@ -93,10 +93,10 @@ window.addEventListener("load", function () {
       text.innerHTML = `
       <div class="main">
           <h1>MBTA Mapper</h1>
-          <h4 >Realtime Tracking of MBTA Vehicles @ mbtamapper.com</h4>
-          <table style="margin-left: auto;margin-right: auto;width:auto;">
+          <h4 >Realtime Tracking of MBTA Vehicles <a href="https://mbtamapper.com/" style="color:inherit;">@mbtamapper.com</a></h4>
+          <table class="homepage">
               <tr>
-                  <td style = "padding: 15px;">
+                  <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the subway!</span>
                       <a href="/subway/" style="font-weight:bold;color:#7C878E;" onmouseover="hoverImage('subway')" onmouseleave="unhoverImage('subway')">
@@ -104,7 +104,7 @@ window.addEventListener("load", function () {
                           Subway
                       </a></span>
                   </td>
-                  <td style = "padding: 15px;">
+                  <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the subway + silver line!</span>
                       <a href="/rapid_transit/" style="font-weight:bold;color:#ED8B00;" onmouseover="hoverImage('rapid_transit')" onmouseleave="unhoverImage('rapid_transit')">
@@ -112,7 +112,7 @@ window.addEventListener("load", function () {
                           Rapid Transit
                       </a></span>
                   </td>
-                  <td style = "padding: 15px;">
+                  <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the commuter rail!</span>
                       <a href="/commuter_rail/" style="font-weight:bold;color:#80276C;" onmouseover="hoverImage('commuter_rail')" onmouseleave="unhoverImage('commuter_rail')">
@@ -122,7 +122,7 @@ window.addEventListener("load", function () {
                   </td>
               </tr>
               <tr>
-                  <td style = "padding: 15px;">
+                  <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the bus!</span>
                       <a href="/bus/" style="font-weight:bold;color:#FFC72C;" onmouseover="hoverImage('bus')" onmouseleave="unhoverImage('bus')">
@@ -130,7 +130,7 @@ window.addEventListener("load", function () {
                           Bus <span style="color:red">(limited to 75 vehicles)</span>
                       </a></span>
                   </td>
-                  <td style = "padding: 15px;">
+                  <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the ferry!</span>
                       <a href="/ferry/" style="font-weight:bold;color:#006595;" onmouseover="hoverImage('ferry')" onmouseleave="unhoverImage('ferry')">
@@ -138,7 +138,7 @@ window.addEventListener("load", function () {
                           Ferry <span style="color:red">(no vehicle data)</span>
                       </a></span>
                   </td>
-                  <td style = "padding: 15px;" >
+                  <td >
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view all routes!</span>
                       <a href="/all_routes/" style="font-weight:bold;color:#ffffff;" onmouseover="hoverImage('all_routes')" onmouseleave="unhoverImage('all_routes')">
