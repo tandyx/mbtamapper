@@ -83,7 +83,12 @@
 
 .leaflet-container a {
   color: #ffffff;
-  text-decoration: none !important;
+  text-decoration: none;
+}
+
+.leaflet-container a:hover {
+  /* text-decoration: underline dotted rgb(inherit, 0); */
+  text-decoration: underline dotted 1px;
 }
 
 .leaflet-touch .leaflet-bar a {

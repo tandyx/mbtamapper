@@ -93,14 +93,14 @@ class Vehicle(GTFSBase):
 
         if self.stop:
             current_status = (
-                f"""<a style="color:#ffffff">{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In transit to ")} </a>"""
+                f"""<span>{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In transit to ")} </span>"""
                 f"""<a href={self.stop.stop_url} target="_blank">{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
                 f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""}"""
             )
         else:
             current_status = ""
 
-        return f"<a>{current_status}</a>" + ("</br>" if current_status else "")
+        return f"<span>{current_status}</span>" + ("</br>" if current_status else "")
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
@@ -190,10 +190,10 @@ class Vehicle(GTFSBase):
             f"""{occupancy}"""
             f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["0", "2"] else "Unknown"} mph</br>"""
             # f"""Bearing: {self.bearing}°</br>"""
-            f"""<a style="color:grey;font-size:9pt">"""
+            f"""<span style="color:grey;font-size:9pt">"""
             f"""Vehicle: {self.vehicle_id}</br>"""
             f"""Route: {f'({self.route.route_short_name}) ' if self.route and self.route.route_type == "3" else ""}{self.route.route_long_name if self.route else self.route_id}</br>"""
-            f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br>"""
+            f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br></span>"""
         )
 
     def as_html_icon(self) -> str:

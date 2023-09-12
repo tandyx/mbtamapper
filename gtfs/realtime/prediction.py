@@ -92,7 +92,7 @@ class Prediction(GTFSBase):
         if delay <= 2:
             return ""
 
-        return f"""<a style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</a>"""
+        return f"""<span style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</span>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""

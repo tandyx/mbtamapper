@@ -99,7 +99,7 @@ window.addEventListener("load", function () {
                   <td style = "padding: 15px;">
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the subway!</span>
-                      <a href="/subway/" style="font-weight:bold;text-decoration:none;color:#7C878E;" onmouseover="hoverImage('subway')" onmouseleave="unhoverImage('subway')">
+                      <a href="/subway/" style="font-weight:bold;color:#7C878E;" onmouseover="hoverImage('subway')" onmouseleave="unhoverImage('subway')">
                           <img src="/static/img/subway.png" width="125" alt="subway" id="subway"><br><br>
                           Subway
                       </a></span>
@@ -107,7 +107,7 @@ window.addEventListener("load", function () {
                   <td style = "padding: 15px;">
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the subway + silver line!</span>
-                      <a href="/rapid_transit/" style="font-weight:bold;text-decoration:none;color:#ED8B00;" onmouseover="hoverImage('rapid_transit')" onmouseleave="unhoverImage('rapid_transit')">
+                      <a href="/rapid_transit/" style="font-weight:bold;color:#ED8B00;" onmouseover="hoverImage('rapid_transit')" onmouseleave="unhoverImage('rapid_transit')">
                           <img src="/static/img/rapid_transit.png" width="125" alt="rapid_transit" id="rapid_transit"><br><br>
                           Rapid Transit
                       </a></span>
@@ -115,7 +115,7 @@ window.addEventListener("load", function () {
                   <td style = "padding: 15px;">
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the commuter rail!</span>
-                      <a href="/commuter_rail/" style="font-weight:bold;text-decoration:none;color:#80276C;" onmouseover="hoverImage('commuter_rail')" onmouseleave="unhoverImage('commuter_rail')">
+                      <a href="/commuter_rail/" style="font-weight:bold;color:#80276C;" onmouseover="hoverImage('commuter_rail')" onmouseleave="unhoverImage('commuter_rail')">
                           <img src="/static/img/commuter_rail.png" width="125" alt="commuter_rail" id="commuter_rail"><br><br>
                           Commuter Rail
                       </a></span>
@@ -125,7 +125,7 @@ window.addEventListener("load", function () {
                   <td style = "padding: 15px;">
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the bus!</span>
-                      <a href="/bus/" style="font-weight:bold;text-decoration:none;color:#FFC72C;" onmouseover="hoverImage('bus')" onmouseleave="unhoverImage('bus')">
+                      <a href="/bus/" style="font-weight:bold;color:#FFC72C;" onmouseover="hoverImage('bus')" onmouseleave="unhoverImage('bus')">
                           <img src="/static/img/bus.png" width="125" alt="bus" id="bus"><br><br>
                           Bus <span style="color:red">(limited to 75 vehicles)</span>
                       </a></span>
@@ -133,7 +133,7 @@ window.addEventListener("load", function () {
                   <td style = "padding: 15px;">
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the ferry!</span>
-                      <a href="/ferry/" style="font-weight:bold;text-decoration:none;color:#006595;" onmouseover="hoverImage('ferry')" onmouseleave="unhoverImage('ferry')">
+                      <a href="/ferry/" style="font-weight:bold;color:#006595;" onmouseover="hoverImage('ferry')" onmouseleave="unhoverImage('ferry')">
                           <img src="/static/img/ferry.png" width="125"  id="ferry" alt="ferry"><br><br>
                           Ferry <span style="color:red">(no vehicle data)</span>
                       </a></span>
@@ -141,7 +141,7 @@ window.addEventListener("load", function () {
                   <td style = "padding: 15px;" >
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view all routes!</span>
-                      <a href="/all_routes/" style="font-weight:bold;text-decoration:none;color:#ffffff;" onmouseover="hoverImage('all_routes')" onmouseleave="unhoverImage('all_routes')">
+                      <a href="/all_routes/" style="font-weight:bold;color:#ffffff;" onmouseover="hoverImage('all_routes')" onmouseleave="unhoverImage('all_routes')">
                           <img src="/static/img/mbta.png" width="125" alt="all_routes" id="all_routes" ><br><br>
                           All Routes <span style="color:red">(limited to 75 vehicles)</span>
                       </a></span>
@@ -152,27 +152,27 @@ window.addEventListener("load", function () {
               <h4>This was a personal project. While I used to work for Keolis, I have no further affiliation with the MBTA.</h4>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('github')" onmouseleave="unhoverImage('github')">
               <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">View this repository</span>
-              <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+              <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;color:#ffffff;">
                   <img src="/static/img/github.png" class="contact_imgs" alt="github" id="github" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('about_me')" onmouseleave="unhoverImage('about_me')">
               <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">About me!</span>
-              <a href="https://tandy-c.github.io/website/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+              <a href="https://tandy-c.github.io/website/" style="font-weight:bold;color:#ffffff;">
                   <img src = "static/img/johan.png" class="contact_imgs" alt="about_me" id="about_me" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('linkedin')" onmouseleave="unhoverImage('linkedin')">
               <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Linkedin</span>
-              <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+              <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;color:#ffffff;">
                   <img src = "static/img/linkedin.png" class="contact_imgs" alt="linkedin" id="linkedin" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('facebook')" onmouseleave="unhoverImage('facebook')">
               <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Facebook</span>
-              <a href="https://www.facebook.com/johan.cho.927" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+              <a href="https://www.facebook.com/johan.cho.927" style="font-weight:bold;color:#ffffff;">
                   <img src = "static/img/facebook.png" class="contact_imgs" alt="facebook" id="facebook" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('youtube')" onmouseleave="unhoverImage('youtube')">
               <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Youtube (haven't touched it in a bit)</span>
-              <a href="https://www.youtube.com/channel/UCP91LPgRFY03YoIGrmuMH9A" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+              <a href="https://www.youtube.com/channel/UCP91LPgRFY03YoIGrmuMH9A" style="font-weight:bold;color:#ffffff;">
                   <img src = "static/img/youtube.png" class="contact_imgs" alt="youtube" id="youtube" >
               </a></span>
           </div>

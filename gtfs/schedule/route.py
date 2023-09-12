@@ -102,10 +102,10 @@ class Route(GTFSBase):
             f"{alert} {'</br>' if alert else ''}"
             f"Agency: {self.agency.as_html()} </br>"
             f"Fare Class: {self.route_fare_class} </br>"
-            """<a style="color:grey;font-size:9pt">"""
+            """<span style="color:grey;font-size:9pt">"""
             f"Route ID: {self.route_id} </br>"
             f"Timestamp: {get_current_time().strftime('%m/%d/%Y %I:%M %p')} </br>"
-            "</a></body>"
+            "</span></body>"
         )
 
     def as_html_dict(self) -> dict[str]:
