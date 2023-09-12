@@ -97,57 +97,75 @@ window.addEventListener("load", function () {
           <h4 style="color:red;">New Domain: mbtamapper.com</h4>
           <table style="margin-left: auto;margin-right: auto;width:auto;">
               <tr>
-                  <td>
+                  <td style = "padding: 15px;">
+                    <span class = "tooltip">
+                    <span class = "tooltiptext" style="top:25%;">Click to view the subway!</span>
                       <a href="/subway/" style="font-weight:bold;text-decoration:none;color:#7C878E;">
-                          <img src="/static/img/subway.png" width="125"><br><br>
+                          <img src="/static/img/subway.png" width="125" alt="subway" id="subway" onmouseover="hoverImage('subway')" onmouseleave="unhoverImage('subway')"><br><br>
                           Subway
-                      </a>
+                      </a></span>
                   </td>
-                  <td>
+                  <td style = "padding: 15px;">
+                    <span class = "tooltip">
+                    <span class = "tooltiptext" style="top:25%;">Click to view the subway + silver line!</span>
                       <a href="/rapid_transit/" style="font-weight:bold;text-decoration:none;color:#ED8B00;">
-                          <img src="/static/img/rapid_transit.png" width="125"><br><br>
+                          <img src="/static/img/rapid_transit.png" width="125" alt="rapid_transit" id="rapid_transit" onmouseover="hoverImage('rapid_transit')" onmouseleave="unhoverImage('rapid_transit')"><br><br>
                           Rapid Transit
-                      </a>
+                      </a></span>
                   </td>
-                  <td>
+                  <td style = "padding: 15px;">
+                    <span class = "tooltip">
+                    <span class = "tooltiptext" style="top:25%;">Click to view the commuter rail!</span>
                       <a href="/commuter_rail/" style="font-weight:bold;text-decoration:none;color:#80276C;">
-                          <img src="/static/img/commuter_rail.png" width="125"><br><br>
+                          <img src="/static/img/commuter_rail.png" width="125" alt="commuter_rail" id="commuter_rail" onmouseover="hoverImage('commuter_rail')" onmouseleave="unhoverImage('commuter_rail')"><br><br>
                           Commuter Rail
-                      </a>
+                      </a></span>
                   </td>
               </tr>
               <tr>
-                  <td>
+                  <td style = "padding: 15px;">
+                    <span class = "tooltip">
+                    <span class = "tooltiptext" style="top:25%;">Click to view the bus!</span>
                       <a href="/bus/" style="font-weight:bold;text-decoration:none;color:#FFC72C;">
-                          <img src="/static/img/bus.png" width="125"><br><br>
+                          <img src="/static/img/bus.png" width="125" alt="bus" id="bus" onmouseover="hoverImage('bus')" onmouseleave="unhoverImage('bus')"><br><br>
                           Bus <a style="color:red">(limited to 75 vehicles)</a>
-                      </a>
+                      </a></span>
                   </td>
-                  <td>
+                  <td style = "padding: 15px;">
+                    <span class = "tooltip">
+                    <span class = "tooltiptext" style="top:25%;">Click to view the ferry!</span>
                       <a href="/ferry/" style="font-weight:bold;text-decoration:none;color:#006595;">
-                          <img src="/static/img/ferry.png" width="125"><br><br>
+                          <img src="/static/img/ferry.png" width="125" alt"ferry" id="ferry" onmouseover="hoverImage('ferry')" onmouseleave="unhoverImage('ferry')"><br><br>
                           Ferry <a style="color:red">(no vehicle data)</a>
-                      </a>
+                      </a></span>
                   </td>
-                  <td>
-                      <a href="/all_routes/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
-                          <img src="/static/img/mbta.png" width="125"><br><br>
-                          All Routes <a style="color:red">(limited to 75 vehicles)</a>
-                      </a>
+                  <td style = "padding: 15px;" >
+                    <span class = "tooltip">
+                    <span class = "tooltiptext" style="top:25%;">Click to view all routes!</span>
+                      <a href="/all_routes/" style="font-weight:bold;text-decoration:none;color:#ffffff;" onmouseover="hoverImage('all_routes')" onmouseleave="unhoverImage('all_routes')">
+                          <img src="/static/img/mbta.png" width="125" alt="all_routes" id="all_routes" ><br><br>
+                          All Routes <span style="color:red">(limited to 75 vehicles)</span>
+                      </a></span>
                   </td>
               </tr>
           </table>
           <div style="margin-top:25px">
               This was my personal project. While I used to work for Keolis, I have no further affiliation with the MBTA.<br><br>
-              <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;text-decoration:none;color:#ffffff;padding:15px;">
-                  <img src="/static/img/github.jpg" width="45">
-              </a>
-              <a href="https://www.linkedin.com/in/chojohan/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
-                  <img src="/static/img/linkedin.png" width="45">
-              </a>
+              <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('github')" onmouseleave="unhoverImage('github')">
+              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">View this repository</span>
+              <a href="https://github.com/tandy-c/mbta_mapper" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+                  <img src="/static/img/github.png" class="contact_imgs" alt="github" id="github" >
+              </a></span>
+              <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('about_me')" onmouseleave="unhoverImage('about_me')">
+              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">About me!</span>
               <a href="https://tandy-c.github.io/website/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
-                  <img src = "static/aboutme.png" width="45">
-              </a>
+                  <img src = "static/img/johan.png" class="contact_imgs" alt="about_me" id="about_me" >
+              </a></span>
+              <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('linkedin')" onmouseleave="unhoverImage('linkedin')">
+              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Linkedin</span>
+              <a href="https://tandy-c.github.io/website/" style="font-weight:bold;text-decoration:none;color:#ffffff;">
+                  <img src = "static/img/linkedin.png" class="contact_imgs" alt="linkedin" id="linkedin" >
+              </a></span>
           </div>
       </div>
       `;

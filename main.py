@@ -98,5 +98,5 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
 
 if __name__ == "__main__":
     instantiate_logger(logging.getLogger())
-    feed_loader()
-    # run_dev_server(create_default_app(), kwargs={"host": "127.0.0.1", "port": 80})
+    # feed_loader()
+    run_dev_server(create_default_app(), kwargs={"host": "127.0.0.1", "port": 80})

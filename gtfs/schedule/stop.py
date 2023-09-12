@@ -149,10 +149,10 @@ class Stop(GTFSBase):
         )
 
         alert = (
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')" onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
-            """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
+            """<img src ="static/img/alert.png" alt="alert" class="mini_image" id="alertImg">"""
             "</span>"
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
@@ -165,8 +165,8 @@ class Stop(GTFSBase):
         )
 
         wheelchair = (
-            """<div class = "tooltip-mini_image">"""
-            """<img src="static/img/wheelchair.png" alt="accessible" class="mini_image">"""
+            """<div class = "tooltip-mini_image" onmouseover="hoverImage('whImg')" onmouseleave="unhoverImage('whImg')">"""
+            """<img src="static/img/wheelchair.png" alt="accessible" class="mini_image" id="whImg">"""
             """<span class="tooltiptext-mini_image">Wheelchair Accessible.</span></div>"""
             if self.wheelchair_boarding == "1"
             or "1" in [s.wheelchair_boarding for s in self.child_stops]
@@ -174,10 +174,10 @@ class Stop(GTFSBase):
         )
 
         schedule = (
-            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
+            """<div class = "popup" onclick="openMiniPopup('predictionPopup')" onmouseover="hoverImage('predictionImg')" onmouseleave="unhoverImage('predictionImg')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Schedule</span>"""
-            """<img src ="static/img/train_icon.png" alt="schedule" class="mini_image">"""
+            """<img src ="static/img/train_icon.png" alt="schedule" class="mini_image" id="predictionImg" >"""
             "</span>"
             """<span class="popuptext" id="predictionPopup">"""
             """<table class = "table">"""
@@ -190,10 +190,10 @@ class Stop(GTFSBase):
         )
 
         parking = (
-            """<div class = "popup" onclick="openMiniPopup('parkingPopup')">"""
+            """<div class = "popup" onclick="openMiniPopup('parkingPopup')" onmouseover="hoverImage('parkingImg')" onmouseleave="unhoverImage('parkingImg')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Parking</span>"""
-            """<img src ="static/img/parking.png" alt="parking" class="mini_image">"""
+            """<img src ="static/img/parking.png" alt="parking" class="mini_image" id="parkingImg" >"""
             "</span>"
             """<span class="popuptext" id="parkingPopup">"""
             """<table class = "table">"""
@@ -206,10 +206,10 @@ class Stop(GTFSBase):
         )
 
         bikes = (
-            """<div class = "popup" onclick="openMiniPopup('bikePopup')">"""
+            """<div class = "popup" onclick="openMiniPopup('bikePopup')" onmouseover="hoverImage('bikeImg')" onmouseleave="unhoverImage('bikeImg')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image'>Show Bike Parking</span>"""
-            """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
+            """<img src ="static/img/bike.png" alt="bike" class="mini_image" id="bikeImg" >"""
             "</span>"
             """<span class="popuptext" id="bikePopup" style="width: 1000%;">"""
             """<table class = "table">"""
