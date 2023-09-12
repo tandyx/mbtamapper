@@ -28,7 +28,7 @@
   overflow-y: auto;
   transform: none;
   overflow-x: hidden;
-  max-height: 200px;
+  max-height: 750%;
   /* text-rendering: optimizelegibility; */
   /* position: absolute; */
   -webkit-font-smoothing: antialiased;
