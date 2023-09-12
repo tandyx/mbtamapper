@@ -26,7 +26,7 @@
   left: 105%;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 450px;
+  max-height: 750%;
   font-family: "montserrat", "Helvetica", sans-serif !important;
 }
 
@@ -45,27 +45,6 @@
 /* Toggle this class - hide and show the popup */
 .popup .show {
   visibility: visible;
-  -webkit-animation: fadeIn 1s;
-  animation: fadeIn 1s;
-}
-
-/* Add animation (fade in the popup) */
-@-webkit-keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 0.9;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 0.9;
-  }
+  -webkit-animation: fadeIn 500ms;
+  animation: fadeIn 500ms;
 }

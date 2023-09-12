@@ -9,8 +9,8 @@ from sqlalchemy.orm import relationship, reconstructor
 from shapely.geometry import Point
 from geojson import Feature
 
+from helper_functions import hex_to_css, return_occupancy_colors, shorten
 from ..base import GTFSBase
-from helper_functions import hex_to_css, return_occupancy_colors
 
 
 # filter: invert(23%) sepia(76%) saturate(4509%) hue-rotate(353deg) brightness(88%) contrast(92%);
@@ -133,17 +133,17 @@ class Vehicle(GTFSBase):
         )
 
         bikes = (
-            """<div class = "tooltip-mini_image">"""
-            """<img src ="static/img/bike.png" alt="bike" class="mini_image">"""
+            """<div class = "tooltip-mini_image" onmouseover="hoverImage('bikeImg')" onmouseleave="unhoverImage('bikeImg')">"""
+            """<img src ="static/img/bike.png" alt="bike" class="mini_image" id="bikeImg" >"""
             """<span class="tooltiptext-mini_image" >Bikes allowed.</span></div>"""
             if self.trip and self.trip.bikes_allowed == 1
             else ""
         )
         alert = (
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')" >"""
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')" onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image' >Show Alerts</span>"""
-            """<img src ="static/img/alert.png" alt="alert" class="mini_image">"""
+            """<img src ="static/img/alert.png" alt="alert" class="mini_image" id="alertImg" >"""
             "</span>"
             """<span class="popuptext" id="alertPopup">"""
             """<table class = "table">"""
@@ -156,10 +156,10 @@ class Vehicle(GTFSBase):
         )
 
         prediction = (
-            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
+            """<div class = "popup" onclick="openMiniPopup('predictionPopup')" onmouseover="hoverImage('predictionImg')" onmouseleave="unhoverImage('predictionImg')">"""
             """<span class = 'tooltip-mini_image'>"""
             """<span class = 'tooltiptext-mini_image' >Show Predictions</span>"""
-            """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image">"""
+            """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image" id="predictionImg">"""
             "</span>"
             """<span class="popuptext" id="predictionPopup" style="width:1850%;">"""
             """<table class = "table">"""
@@ -179,7 +179,7 @@ class Vehicle(GTFSBase):
 
         return (
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;">"""
-            f"""{(self.trip.trip_short_name if self.trip else None) or ((self.trip_id[:15] + '...') if len(self.trip_id) > 15 else self.trip_id)}</a></br>"""
+            f"""{(self.trip.trip_short_name if self.trip else None) or shorten(self.trip_id)}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""
             # """<hr/>"""
@@ -188,7 +188,7 @@ class Vehicle(GTFSBase):
             f"{self.return_current_status()}"
             f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
             f"""{occupancy}"""
-            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["1", "2"] else "Unknown"} mph</br>"""
+            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["0", "2"] else "Unknown"} mph</br>"""
             # f"""Bearing: {self.bearing}°</br>"""
             f"""<a style="color:grey;font-size:9pt">"""
             f"""Vehicle: {self.vehicle_id}</br>"""

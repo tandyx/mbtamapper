@@ -1,7 +1,7 @@
 .tooltip {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black;
+  /* border-bottom: 1px dotted black; */
 }
 
 .tooltip .tooltiptext {
@@ -37,12 +37,14 @@
 
 .tooltip:hover .tooltiptext {
   visibility: visible;
+  animation: fadeIn 500ms;
+  -webkit-animation: fadeIn 500ms;
 }
 
 .tooltip-mini_image {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black;
+  /* border-bottom: 1px dotted black; */
 }
 
 .tooltip-mini_image .tooltiptext-mini_image {
@@ -77,6 +79,8 @@
 
 .tooltip-mini_image:hover .tooltiptext-mini_image {
   visibility: visible;
+  animation: fadeIn 500ms;
+  -webkit-animation: fadeIn 500ms;
 }
 
 @-webkit-keyframes fadeIn {

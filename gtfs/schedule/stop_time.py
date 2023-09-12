@@ -74,7 +74,7 @@ class StopTime(GTFSBase):
             f"""<td>{flag_stop or early_departure or trip_name}</td>"""
             f"""<td>{self.destination_label}</td>"""
             f"""<td>{format_time(self.departure_time)}</td>"""
-            f"""<td>{self.stop.platform_name}</td></tr>"""
+            f"""<td>{self.stop.platform_name or ""}</td></tr>"""
         )
 
     def is_destination(self) -> bool:
