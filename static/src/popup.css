@@ -24,7 +24,7 @@
   z-index: 10000;
   top: -5px;
   height: auto;
-  left: 105%;
+  left: 100%;
   overflow-y: auto;
   transform: none;
   overflow-x: hidden;
@@ -36,16 +36,17 @@
 }
 
 /* Popup arrow */
-.popup .popuptext::after {
+/* .popup .popuptext::after {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 100%;
+  top: 4%;
+  left: -3%;
   margin-top: -5px;
-  border-width: 5px;
+  border-width: 10px;
   border-style: solid;
-  border-color: rgb(255, 255, 255);
-}
+  border-color: transparent #f2f2f2 transparent transparent;
+  z-index: 10000;
+} */
 
 /* Toggle this class - hide and show the popup */
 .popup .show {
