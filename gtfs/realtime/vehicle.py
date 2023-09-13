@@ -201,6 +201,6 @@ class Vehicle(GTFSBase):
         return (
             """<span class="vehicle_wrapper">"""
             f"""<img src ="static/img/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{hex_to_css(self.route.route_color if self.route else "ffffff")}">"""
-            """<a class="vehicle_text">"""
-            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</a></span>"""
+            """<span class="vehicle_text">"""
+            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</span></span>"""
         )

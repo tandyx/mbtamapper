@@ -41,6 +41,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: "montserrat", "Helvetica", sans-serif;
+  color: #f2f2f2;
 }
 
 .vehicle_wrapper {
@@ -96,5 +97,5 @@ noscript {
   transform: translate(-50%, -50%);
 }
 h4 {
-  color: grey;
+  color: rgb(144, 144, 144);
 }
