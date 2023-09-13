@@ -4,9 +4,8 @@ from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
-from ..base import GTFSBase
-
 from helper_functions import return_delay_colors
+from ..base import GTFSBase
 
 
 class Prediction(GTFSBase):
