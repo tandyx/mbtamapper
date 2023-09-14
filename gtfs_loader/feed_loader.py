@@ -80,25 +80,33 @@ class FeedLoader(Scheduler):
         except OperationalError:
             logging.warning("OperationalError: %s", key)
 
-    def __vehicle_threader(self) -> None:
-        """Vehicle threader function."""
-        logging.info("Starting vehicle threader")
+    def __vehicle_threader(self, key: str) -> None:
+        """Vehicle threader function.
 
-        threads = [
-            Thread(target=self.export_vehicle_geojson, args=(key,)) for key in self.keys
-        ]
+        Args:
+            key (str): key for route types
+        """
+        # logging.info("Starting vehicle threader")
 
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+        # threads = [
+        #     Thread(target=self.export_vehicle_geojson, args=(key,)) for key in self.keys
+        # ]
+
+        # for thread in threads:
+        #     thread.start()
+        # for thread in threads:
+        #     thread.join()
+
+        threader(self.export_vehicle_geojson, True, key)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs."""
         self.every(2).minutes.do(threader, self.update_realtime, True, Alert)
         self.every(12).seconds.do(threader, self.update_realtime, True, Vehicle)
         self.every().minute.do(threader, self.update_realtime, True, Prediction)
-        self.every().second.do(threader, self.__vehicle_threader, True)
+        for key in self.keys:
+            self.every(12).seconds.do(threader, self.__vehicle_threader, False, key)
+        # self.every().second.do(threader, self.__vehicle_threader, True)
 
         # self.every().second.do(threader, self.export_vehicle_geojson, True, key)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
