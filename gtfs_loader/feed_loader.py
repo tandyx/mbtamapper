@@ -104,8 +104,8 @@ class FeedLoader(Scheduler):
         self.every(2).minutes.do(threader, self.update_realtime, True, Alert)
         self.every(12).seconds.do(threader, self.update_realtime, True, Vehicle)
         self.every().minute.do(threader, self.update_realtime, True, Prediction)
-        for key in self.keys:
-            self.every(12).seconds.do(threader, self.__vehicle_threader, False, key)
+        # for key in self.keys:
+        #     self.every(12).seconds.do(threader, self.__vehicle_threader, False, key)
         # self.every().second.do(threader, self.__vehicle_threader, True)
 
         # self.every().second.do(threader, self.export_vehicle_geojson, True, key)

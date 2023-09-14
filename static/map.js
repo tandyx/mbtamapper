@@ -48,8 +48,8 @@ window.addEventListener("load", function () {
     shape_layer
   ).addTo(map);
   var vehiclesRealtime = plotVehicles(
-    // `/${ROUTE_TYPE.toLowerCase()}/vehicles`,
-    `/static/geojsons/${ROUTE_TYPE}/vehicles.json`,
+    `/${ROUTE_TYPE.toLowerCase()}/vehicles`,
+    // `/static/geojsons/${ROUTE_TYPE}/vehicles.json`,
     vehicle_layer
   ).addTo(map);
   var facilitiesRealtime = plotFacilities(

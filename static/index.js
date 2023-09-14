@@ -54,7 +54,7 @@ window.addEventListener("load", function () {
   document.getElementById("map").style.cursor = "default";
 
   var CartoDB_Positron = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
     {
       // attribution:
       //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -63,7 +63,7 @@ window.addEventListener("load", function () {
     }
   ).addTo(map);
   var CartoDB_DarkMatter = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
     {
       // attribution:
       //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -127,7 +127,7 @@ window.addEventListener("load", function () {
                     <span class = "tooltiptext" style="top:25%;">Click to view the bus!</span>
                       <a href="/bus/" style="font-weight:bold;color:#FFC72C;" onmouseover="hoverImage('bus')" onmouseleave="unhoverImage('bus')">
                           <img src="/static/img/bus.png" width="125" alt="bus" id="bus"><br><br>
-                          Bus
+                          Bus <span style="color:red">(limited to 75 vehicles)</span>
                       </a></span>
                   </td>
                   <td>
@@ -141,9 +141,9 @@ window.addEventListener("load", function () {
                   <td >
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view all routes!</span>
-                      <a href="/all_routes/"  onmouseover="hoverImage('all_routes')" onmouseleave="unhoverImage('all_routes')">
+                      <a href="/all_routes/" style="font-weight:bold;color:#ffffff;" onmouseover="hoverImage('all_routes')" onmouseleave="unhoverImage('all_routes')">
                           <img src="/static/img/mbta.png" width="125" alt="all_routes" id="all_routes" ><br><br>
-                          All Routes
+                          All Routes <span style="color:red">(limited to 75 vehicles)</span>
                       </a></span>
                   </td>
               </tr>
