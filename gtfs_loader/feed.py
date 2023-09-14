@@ -14,6 +14,7 @@ from geojson import FeatureCollection, dump
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import select, delete
+from sqlalchemy.exc import OperationalError
 from sqlalchemy import CursorResult
 from helper_functions import get_date, get_current_time, to_sql, download_zip
 
@@ -30,6 +31,7 @@ class Feed:
     """
 
     temp_dir: str = tempfile.gettempdir()
+    SILVER_LINE_ROUTES = "741,742,743,751,749,746"
 
     def __init__(self, url: str) -> None:
         """Initializes Feed object.
@@ -261,6 +263,42 @@ class Feed:
             logging.info("Exported %s", file.name)
 
         self.scoped_session.remove()
+
+    def export_vehicle_geojson(self, key: str, path: str) -> None:
+        """Exports vehicle geojson.
+
+        Args:
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            path (str): path to export files to
+        """
+
+        sess = self.scoped_session()
+        query = Query(os.environ.get(key).split(","))
+        add_routes = Feed.SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else ""
+        vehicles_query = query.return_vehicles_query(add_routes)
+        # if key in ["BUS", "ALL_ROUTES"]:
+        #     vehicles_query = vehicles_query.limit(75)
+        data: list[tuple[Vehicle]]
+        attempts = 0
+        try:
+            while attempts <= 10:
+                data = sess.execute(vehicles_query).all()
+                if data and any(d[0].predictions for d in data) or key == "FERRY":
+                    break
+                attempts += 1
+                time.sleep(1)
+        except OperationalError as error:
+            data = []
+            logging.error("Failed to send data: %s", error)
+        if not data:
+            logging.error("No data returned in %s attemps", attempts)
+        feature_collection = FeatureCollection([v[0].as_feature() for v in data])
+
+        with open(
+            os.path.join(path, key, "vehicles.json"), "w", encoding="utf-8"
+        ) as file:
+            dump(feature_collection, file)
+            logging.info("Exported %s", file.name)
 
     # def get_vehicles(self, query: Query, **kwargs) -> FeatureCollection:
     #     """Returns vehicles as FeatureCollection.

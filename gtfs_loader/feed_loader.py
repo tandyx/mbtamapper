@@ -3,6 +3,7 @@
 import os
 import time
 import logging
+from threading import Thread
 from typing import NoReturn
 from schedule import Scheduler
 from sqlalchemy.exc import OperationalError
@@ -68,11 +69,38 @@ class FeedLoader(Scheduler):
             round(time.time() - start, 4),
         )
 
+    def export_vehicle_geojson(self, key: str) -> None:
+        """Exports vehicle geojson.
+
+        Args:
+            key (str): key for route types
+        """
+        try:
+            self.feed.export_vehicle_geojson(key, FeedLoader.GEOJSON_PATH)
+        except OperationalError:
+            logging.warning("OperationalError: %s", key)
+
+    def __vehicle_threader(self) -> None:
+        """Vehicle threader function."""
+        logging.info("Starting vehicle threader")
+
+        threads = [
+            Thread(target=self.export_vehicle_geojson, args=(key,)) for key in self.keys
+        ]
+
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs."""
         self.every(2).minutes.do(threader, self.update_realtime, True, Alert)
         self.every(12).seconds.do(threader, self.update_realtime, True, Vehicle)
         self.every().minute.do(threader, self.update_realtime, True, Prediction)
+        self.every().second.do(threader, self.__vehicle_threader, True)
+
+        # self.every().second.do(threader, self.export_vehicle_geojson, True, key)
         # schedule.every().minute.do(self.threader, self.geojson_exports)
         # schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
         for times in ["04:00", "12:00", "20:00"]:

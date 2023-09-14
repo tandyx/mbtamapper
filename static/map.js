@@ -48,7 +48,8 @@ window.addEventListener("load", function () {
     shape_layer
   ).addTo(map);
   var vehiclesRealtime = plotVehicles(
-    `/${ROUTE_TYPE.toLowerCase()}/vehicles`,
+    // `/${ROUTE_TYPE.toLowerCase()}/vehicles`,
+    `/static/geojsons/${ROUTE_TYPE}/vehicles.json`,
     vehicle_layer
   ).addTo(map);
   var facilitiesRealtime = plotFacilities(
@@ -189,6 +190,7 @@ function onLoad(route_type, array = null) {
       { href: "/static/src/table.css", rel: "stylesheet" },
       { href: "/static/src/scrollbar.css", rel: "stylesheet" },
       { href: "/static/src/leaflet_custom.css", rel: "stylesheet" },
+      // { href: "/static/src/navbar.css", rel: "stylesheet" },
     ];
   }
   for (linkdict of array) {

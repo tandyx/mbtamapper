@@ -8,7 +8,7 @@ def threader(func: Callable, join: bool = False, *args, **kwargs) -> None:
 
     Args:
         func (Callable): Function to thread.
-        join (bool, optional): Whether to join thread. Defaults to False.
+        join (bool, optional): Whether to join thread. Defaults to True.
         *args: Arguments for func.
         **kwargs: Keyword arguments for func.
     """
