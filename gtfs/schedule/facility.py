@@ -161,7 +161,7 @@ class Facility(GTFSBase):
         """
         accessible_spots = self.return_property("capacity-accessible")
         accessible_spots = (
-            f"<a style='color:{Facility.ACCENT_COLOR};'>({accessible_spots})</a>"
+            f"<span style='color:{Facility.ACCENT_COLOR};'>({accessible_spots})</span>"
             if accessible_spots != ""
             else default
         )
