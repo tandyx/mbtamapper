@@ -134,6 +134,12 @@
 .leaflet-control-search .search-button:hover {
   background: url(\static\npm_packages\images\search-icon.png) none;
 }
+
+.marker-cluster div {
+  font-family: "montserrat", "Helvetica", sans-serif !important;
+  color: #ffffff !important;
+}
+
 /* .leaflet-control-search .search-button,
 .leaflet-control-search .search-button:hover,
 .leaflet-control-search .search-button {

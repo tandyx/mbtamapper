@@ -1,5 +1,12 @@
 const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
 document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
+document
+  .querySelector('meta[name="description"]')
+  .setAttribute(
+    "content",
+    "MBTA Realtime map for the MBTA's " + titleCase(ROUTE_TYPE) + "."
+  );
+// document.meta.description = "MBTA Realtime map for" + titleCase(ROUTE_TYPE) + ".";
 onLoad(ROUTE_TYPE.toLowerCase());
 
 window.addEventListener("load", function () {

@@ -100,6 +100,8 @@ class Prediction(GTFSBase):
             self.stop.parent_stop.stop_name
             if self.stop and self.stop.parent_stop
             else self.stop.stop_name
+            if self.stop
+            else ""
         )
 
         flag_stop = (
@@ -130,7 +132,7 @@ class Prediction(GTFSBase):
         return (
             """<tr>"""
             f"""<td>{flag_stop or early_departure or stop_name}</td>"""
-            f"""<td>{self.stop.platform_name or ""}</td>"""
+            f"""<td>{(self.stop.platform_name  if self.stop else "") or ""}</td>"""
             f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {"—" if self.status_as_html() else ""} {self.status_as_html()}</td>"""
             """</tr>"""
         )
