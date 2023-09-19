@@ -19,3 +19,5 @@ I built them in. leaflet and leaflet-markercluster are referenced from a CDN. Th
 [leaflet-search](https://github.com/stefanocudini/leaflet-search)
 
 [leaflet-fullscreen](https://github.com/brunob/leaflet.fullscreen)
+
+[leaflet-locatecontrol](https://github.com/domoritz/leaflet-locatecontrol)
