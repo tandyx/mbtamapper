@@ -61,7 +61,14 @@ window.addEventListener("load", function () {
     parking_lots
   );
 
-  L.control.locate().addTo(map);
+  var controlLayer = L.layerGroup().setZIndex(500000).addTo(map);
+  L.control
+    .locate({
+      layer: controlLayer,
+      enableHighAccuracy: true,
+      initialZoomLevel: 15,
+    })
+    .addTo(map);
 
   controlSearch = L.control
     .search({
