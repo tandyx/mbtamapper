@@ -6,8 +6,6 @@ document
     "content",
     "MBTA Realtime map for the MBTA's " + titleCase(ROUTE_TYPE) + "."
   );
-// document.meta.description = "MBTA Realtime map for" + titleCase(ROUTE_TYPE) + ".";
-onLoad(ROUTE_TYPE.toLowerCase());
 
 window.addEventListener("load", function () {
   var map = L.map("map", {
@@ -38,7 +36,6 @@ window.addEventListener("load", function () {
       maxZoom: 20,
     }
   );
-
   var stop_layer = L.layerGroup().addTo(map);
   var shape_layer = L.layerGroup().addTo(map);
   var vehicle_layer = L.markerClusterGroup({
@@ -63,6 +60,9 @@ window.addEventListener("load", function () {
     `/static/geojsons/${ROUTE_TYPE}/park.json`,
     parking_lots
   );
+
+  L.control.locate().addTo(map);
+
   controlSearch = L.control
     .search({
       layer: L.layerGroup([
@@ -159,59 +159,6 @@ window.addEventListener("load", function () {
     console.log(map.getZoom());
   });
 });
-
-function onLoad(route_type, array = null) {
-  if (array == null) {
-    array = [
-      { href: "/static/img/mbta.favicon", rel: "icon" },
-      {
-        href: "/static/npm_packages/leaflet-realtime/leaflet-realtime.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-realtime/leaflet-realtime.min.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-fullscreen/Control.FullScreen.css",
-        rel: "stylesheet",
-      },
-      {
-        href: "/static/npm_packages/leaflet-fullscreen/Control.FullScreen.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-search/leaflet-search.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-search/leaflet-search.mobile.css",
-        rel: "stylesheet",
-      },
-      {
-        href: "/static/npm_packages/leaflet-search/leaflet-search.css",
-        rel: "stylesheet",
-      },
-      { href: "/static/src/popup.css", rel: "stylesheet" },
-      { href: "/static/src/tooltip.css", rel: "stylesheet" },
-      { href: "/static/src/table.css", rel: "stylesheet" },
-      { href: "/static/src/scrollbar.css", rel: "stylesheet" },
-      { href: "/static/src/leaflet_custom.css", rel: "stylesheet" },
-      // { href: "/static/src/navbar.css", rel: "stylesheet" },
-    ];
-  }
-  for (linkdict of array) {
-    if (linkdict.rel != "script") {
-      var link = document.createElement("link");
-      link.rel = linkdict.rel;
-      link.href = `/${route_type}` + linkdict.href;
-    } else {
-      var link = document.createElement("script");
-      link.src = `/${route_type}` + linkdict.href;
-    }
-    document.head.appendChild(link);
-  }
-}
 
 function plotVehicles(url, layer) {
   return L.realtime(url, {
