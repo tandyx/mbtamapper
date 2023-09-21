@@ -1,5 +1,6 @@
 const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
 document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
+setFavicon(ROUTE_TYPE.toLowerCase());
 document
   .querySelector('meta[name="description"]')
   .setAttribute(
@@ -62,15 +63,16 @@ window.addEventListener("load", function () {
   );
 
   var controlLayer = L.layerGroup().setZIndex(500000).addTo(map);
-  L.control
+  var controlLocate = L.control
     .locate({
       layer: controlLayer,
       enableHighAccuracy: true,
       initialZoomLevel: 15,
+      metric: false,
     })
     .addTo(map);
 
-  controlSearch = L.control
+  var controlSearch = L.control
     .search({
       layer: L.layerGroup([
         stop_layer,
@@ -86,7 +88,7 @@ window.addEventListener("load", function () {
     })
     .addTo(map);
 
-  L.control
+  var layerControl = L.control
     .layers(
       {
         Dark: CartoDB_DarkMatter,
@@ -279,4 +281,12 @@ function titleCase(str, split = "_") {
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
     .join(" ");
+}
+
+function setFavicon(route_type_lower) {
+  for (link of document.getElementsByTagName("link")) {
+    if (link.rel == "icon") {
+      link.href = `/static/img/${route_type_lower}.ico`;
+    }
+  }
 }

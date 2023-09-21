@@ -159,3 +159,7 @@
   font-family: "montserrat", "Helvetica", sans-serif !important;
   font-size: 8pt !important;
 } */
+.leaflet-control-locate-spinner,
+.leaflet-control-locate-location circle {
+  animation: none !important;
+}
