@@ -159,7 +159,36 @@
   font-family: "montserrat", "Helvetica", sans-serif !important;
   font-size: 8pt !important;
 } */
-.leaflet-control-locate-spinner,
 .leaflet-control-locate-location circle {
-  animation: none !important;
+  animation: leaflet-control-locate-throb 10s ease infinite;
+}
+
+@keyframes leaflet-control-locate-throb {
+  0% {
+    stroke-width: 1;
+  }
+
+  50% {
+    stroke-width: 3;
+    transform: scale(0.05 0.05);
+  }
+
+  100% {
+    stroke-width: 1;
+  }
+}
+
+@-webkit-keyframes leaflet-control-locate-throb {
+  0% {
+    stroke-width: 1;
+  }
+
+  50% {
+    stroke-width: 3;
+    -webkit-transform: scale(0.05 0.05);
+  }
+
+  100% {
+    stroke-width: 1;
+  }
 }
