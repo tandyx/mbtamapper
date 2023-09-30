@@ -71,7 +71,7 @@ class Vehicle(GTFSBase):
     DATETIME_MAPPER = {"updated_at": "updated_at_datetime"}
 
     DIRECTION_MAPPER = {"0": "Outbound", "1": "Inbound"}
-    CURRENT_STATUS_MAPPER = {
+    STATUS_MAPPER = {
         "0": "Incoming at ",
         "1": "Stopped at ",
         "2": "In transit to ",
@@ -93,7 +93,7 @@ class Vehicle(GTFSBase):
 
         if self.stop:
             current_status = (
-                f"""<span>{self.CURRENT_STATUS_MAPPER.get(self.current_status, "In transit to ")} </span>"""
+                f"""<span>{self.STATUS_MAPPER.get(self.current_status, "In transit to ")} </span>"""
                 f"""<a href={self.stop.stop_url} target="_blank">{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
                 f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""}"""
             )
@@ -204,3 +204,52 @@ class Vehicle(GTFSBase):
             """<span class="vehicle_text">"""
             f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</span></span>"""
         )
+
+    def as_dict(self) -> dict[str]:
+        """Returns vehicle as dict."""
+
+        return {
+            "route_url": self.route.route_url
+            if self.route
+            else f"https://mbta.com/{self.route_id}",
+            "route_color": self.route.route_color if self.route else "#ffffff",
+            "trip_label": (self.trip.trip_short_name if self.trip else None)
+            or shorten(self.trip_id),
+            "direction": self.DIRECTION_MAPPER.get(self.direction_id, "Unknown"),
+            "headsign": self.trip.trip_headsign
+            if self.trip
+            else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name
+            if self.predictions
+            else "Unknown",
+            "alerts": set(a.as_dict() for a in (self.trip.alerts if self.trip else [])),
+            "predictions": [p.as_dict() for p in self.predictions],
+            "bikes_allowed": self.trip and self.trip.bikes_allowed == 1,
+            "status": {
+                "status": self.STATUS_MAPPER.get(self.current_status, "In transit to "),
+                "stop_name": self.stop.stop_name,
+                "stop_url": self.stop.stop_url,
+                "platform_name": self.stop.platform_name,
+                "predicted": self.next_stop_prediction.predicted.strftime("%I:%M %p")
+                if self.next_stop_prediction
+                and self.next_stop_prediction.predicted
+                and self.current_status != "1"
+                else "",
+            },
+            "next_stop_prediction": self.next_stop_prediction.as_dict(),
+            "speed": int(self.speed or 0)
+            if self.speed is not None
+            or self.current_status == "1"
+            or self.route.route_type in ["0", "2"]
+            else "Unknown",
+            "icon_data": {
+                "bearing": self.bearing,
+                "color": self.route.filter,
+                "label": self.trip.trip_short_name
+                if self.trip and self.trip.trip_short_name
+                else self.route.route_short_name
+                if self.route
+                and (self.route.route_type == "3" or self.route_id.startswith("Green"))
+                and self.route.route_short_name
+                else "",
+            },
+        }

@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
-from helper_functions import format_time, to_seconds, lazy_convert
+from helper_functions import format_time, to_seconds, lazy_convert, shorten
 from ..base import GTFSBase
 
 
@@ -45,6 +45,20 @@ class StopTime(GTFSBase):
     def __repr__(self) -> str:
         return f"<StopTime(trip_id={self.trip_id}, stop_id={self.stop_id})>"
 
+    def is_flag_stop(self) -> bool:
+        """Returns true if this StopTime is a flag stop"""
+        return self.trip.route.route_type == "2" and (
+            self.pickup_type == "3" or self.drop_off_type == "3"
+        )
+
+    def is_early_departure(self) -> bool:
+        """Returns true if this StopTime is an early departure stop"""
+        return (
+            self.trip.route.route_type == "2"
+            and self.timepoint == "0"
+            and not self.is_destination()
+        )
+
     def as_html(self) -> str:
         """Returns a StopTime obj as an html row"""
 
@@ -54,8 +68,7 @@ class StopTime(GTFSBase):
             "<div class = 'tooltip'>"
             f"<span style='color:#c73ca8;'>{trip_name}</span>"
             "<span class='tooltiptext'>Flag stop.</span></div>"
-            if self.trip.route.route_type == "2"
-            and (self.pickup_type == "3" or self.drop_off_type == "3")
+            if self.is_flag_stop()
             else ""
         )
 
@@ -63,9 +76,7 @@ class StopTime(GTFSBase):
             "<div class = 'tooltip'>"
             f"<span style='color:#2084d6;'>{trip_name}</span>"
             "<span class='tooltiptext'>Early departure stop.</span></div>"
-            if self.trip.route.route_type == "2"
-            and self.timepoint == "0"
-            and not self.is_destination()
+            if self.is_early_departure()
             else ""
         )
 
@@ -82,3 +93,16 @@ class StopTime(GTFSBase):
         return self.stop_sequence == max(
             st.stop_sequence for st in self.trip.stop_times
         )
+
+    def as_dict(self) -> dict[str]:
+        """Returns a StopTime obj as a dict"""
+        return {
+            "destination_label": self.destination_label,
+            "route_name": self.trip.route.route_name,
+            "route_color": self.trip.route.route_color,
+            "flag_stop": self.is_flag_stop(),
+            "early_departure": self.is_early_departure(),
+            "trip_name": self.trip.trip_short_name or self.trip_id,
+            "platform_name": self.stop.platform_name or "",
+            "departure_time": format_time(self.departure_time),
+        }

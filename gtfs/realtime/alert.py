@@ -61,17 +61,31 @@ class Alert(GTFSBase):
         """Loads active_period_end and active_period_start as datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.url = self.url or "https://www.mbta.com/"
-        for key, value in self.DATETIME_MAPPER.items():
-            if getattr(self, key, None):
-                setattr(self, value, isoparse(getattr(self, key)))
+        self.end_datetime = (
+            isoparse(self.active_period_end) if self.active_period_end else None
+        )
+        self.start_datetime = (
+            isoparse(self.active_period_start) if self.active_period_end else None
+        )
+        self.updated_at_datetime = (
+            isoparse(self.timestamp) if self.active_period_end else None
+        )
 
     def __repr__(self):
         return f"<Alert(id={self.alert_id})>"
 
-    def as_html(self):
+    def as_html(self) -> str:
         """Returns alert as html."""
         return (
             f"<tr><td href = '{self.url}' target='_blank'>{str(self.header)}</td>"
             f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
             "</tr>"
         )
+
+    def as_dict(self) -> dict[str]:
+        """Returns alert as dict."""
+        return {
+            "url": self.url,
+            "header": self.header,
+            "updated_at": self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p"),
+        }

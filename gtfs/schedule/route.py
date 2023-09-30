@@ -64,11 +64,28 @@ class Route(GTFSBase):
 
     WEIGHT = 0.8
 
+    HEX_TO_CSS = {
+        "FFC72C": "filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%);",
+        "7C878E": "filter: invert(57%) sepia(2%) saturate(1547%) hue-rotate(160deg) brightness(91%) contrast(103%);",
+        "003DA5": "filter: invert(13%) sepia(61%) saturate(5083%) hue-rotate(215deg) brightness(96%) contrast(101%);",
+        "008EAA": "filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%);",
+        "80276C": "filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%);",
+        "006595": "filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%);",
+        "00843D": "filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%);",
+        "DA291C": "filter: invert(23%) sepia(54%) saturate(7251%) hue-rotate(355deg) brightness(90%) contrast(88%);",
+        "ED8B00": "filter: invert(46%) sepia(89%) saturate(615%) hue-rotate(1deg) brightness(103%) contrast(104%);",
+        "ffffff": "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
+    }
+
     @reconstructor
     def init_on_load(self):
+        """Reconstructs the object on load from the database."""
+        # pylint: disable=attribute-defined-outside-init
         self.route_url = (
             self.route_url or f"https://www.mbta.com/schedules/{self.route_id}"
         )
+        self.route_name = self.route_short_name or self.route_long_name
+        self.filter = Route.HEX_TO_CSS.get(self.route_color, Route.HEX_TO_CSS["ffffff"])
 
     def __repr__(self) -> str:
         return f"<Route(route_id={self.route_id})>"
@@ -95,7 +112,7 @@ class Route(GTFSBase):
         )
 
         return (
-            f"""<a href = {self.route_url} target="_blank"  style="color:#{self.route_color};font-size:28pt;"> {self.route_short_name or self.route_long_name} </a></br>"""
+            f"""<a href = {self.route_url} target="_blank"  style="color:#{self.route_color};font-size:28pt;"> {self.route_name} </a></br>"""
             f"""<body style="color:#ffffff;text-align: left;"> {self.route_desc} - {self.route_long_name} </br>"""
             "—————————————————————————————————</br>"
             f"{alert} {'</br>' if alert else ''}"

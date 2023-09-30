@@ -1,5 +1,6 @@
 """File to hold the Prediction class and its associated methods."""
 # pylint: disable=line-too-long
+from datetime import datetime
 from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer
@@ -67,15 +68,20 @@ class Prediction(GTFSBase):
     def init_on_load(self):
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
-        for key, value in self.DATETIME_MAPPER.items():
-            if getattr(self, key, None):
-                setattr(self, value, isoparse(getattr(self, key)))
-
-        self.predicted = checker(self, "departure_datetime", "arrival_datetime")
+        self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
 
     def __repr__(self):
         return f"<Prediction(id={self.prediction_id})>"
+
+    def __predict(self) -> datetime | None:
+        return (
+            isoparse(self.arrival_time)
+            if self.arrival_time
+            else isoparse(self.departure_time)
+            if self.departure_time
+            else None
+        )
 
     def status_as_html(self) -> str:
         """Returns status as html."""
@@ -137,7 +143,49 @@ class Prediction(GTFSBase):
             """</tr>"""
         )
 
+    def __color(self, delay: int) -> str:
+        """Returns a color based on the delay.
 
-def checker(_obj, attr1: str, attr2: str):
-    """Checks if attribute is set."""
-    return getattr(_obj, attr1, None) or getattr(_obj, attr2, None)
+        Args:
+            delay (int): delay in minutes
+        Returns:
+            str: color
+        """
+
+        delay_dict = {
+            "#ffffff": delay < 5,  # white
+            "#ffff00": 5 <= delay < 10,
+            "#ff8000": 10 <= delay < 15,
+            "#ff0000": delay >= 15,
+        }
+
+        for color, condition in delay_dict.items():
+            if condition:
+                return color
+
+    def as_dict(self) -> dict[str]:
+        """Returns prediction as dict."""
+
+        delay = int(
+            (self.predicted - self.stop_time.departure_datetime).total_seconds() / 60
+            if (self.predicted and self.stop_time.departure_datetime)
+            else 0
+        )
+
+        delay += 1440 if delay < -1400 else 0
+
+        return {
+            "stop_name": self.stop.stop_name if self.stop else "",
+            "platform_name": self.stop.platform_name if self.stop else "",
+            "predicted": self.predicted.strftime("%I:%M %p") if self.predicted else "",
+            "delay": delay,
+            "color": self.__color(delay),
+        }
+
+        # if self.trip
+        #     and self.stop_time
+        #     and self.trip.route.route_type == "2"
+        #     and (
+        #         self.stop_time.pickup_type == "3" or self.stop_time.drop_off_type == "3"
+        #     )
+        #     else ""
