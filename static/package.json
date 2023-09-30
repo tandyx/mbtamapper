@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "leaflet-fullscreen": "^1.0.2",
+    "leaflet-realtime": "^2.2.0",
+    "leaflet-search": "^4.0.0"
+  }
+}

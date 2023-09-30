@@ -1,68 +1,75 @@
-const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
-document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
-setFavicon(ROUTE_TYPE.toLowerCase());
-document
-  .querySelector('meta[name="description"]')
-  .setAttribute(
-    "content",
-    "MBTA Realtime map for the MBTA's " + titleCase(ROUTE_TYPE) + "."
-  );
-
 window.addEventListener("load", function () {
+  ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
+  document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
+  setFavicon(ROUTE_TYPE.toLowerCase());
+  document
+    .querySelector('meta[name="description"]')
+    .setAttribute(
+      "content",
+      "MBTA Realtime map for the MBTA's " + titleCase(ROUTE_TYPE) + "."
+    );
+
+  var map = createMap(ROUTE_TYPE);
+});
+
+function createMap(route_type) {
   var map = L.map("map", {
     minZoom: 9,
     maxZoom: 20,
+    // zoomSnap: 0,
+    // // zoomDelta: 0.1,
+    // // wheelPxPerZoomLevel: 1000,
+    // wheelDebounceTime: 5,
     maxBounds: L.latLngBounds(L.latLng(40, -74), L.latLng(44, -69)),
     fullscreenControl: true,
     fullscreenControlOptions: {
       position: "topleft",
     },
-  }).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13);
+  }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
   var CartoDB_Positron = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
     {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: "abcd",
       maxZoom: 20,
     }
   ).addTo(map);
+
   var CartoDB_DarkMatter = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
     {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: "abcd",
       maxZoom: 20,
     }
   );
+
   var stop_layer = L.layerGroup().addTo(map);
   var shape_layer = L.layerGroup().addTo(map);
   var vehicle_layer = L.markerClusterGroup({
-    disableClusteringAtZoom: ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 12,
+    disableClusteringAtZoom: route_type == "COMMUTER_RAIL" ? 10 : 12,
   }).addTo(map);
   var parking_lots = L.layerGroup();
 
   var stopsRealtime = plotStops(
-    `/static/geojsons/${ROUTE_TYPE}/stops.json`,
+    `/static/geojsons/${route_type}/stops.json`,
     stop_layer
   ).addTo(map);
   var shapesRealtime = plotShapes(
-    `/static/geojsons/${ROUTE_TYPE}/shapes.json`,
+    `/static/geojsons/${route_type}/shapes.json`,
     shape_layer
   ).addTo(map);
   var vehiclesRealtime = plotVehicles(
-    `/${ROUTE_TYPE.toLowerCase()}/vehicles`,
+    `/${route_type.toLowerCase()}/vehicles`,
     // `/static/geojsons/${ROUTE_TYPE}/vehicles.json`,
     vehicle_layer
   ).addTo(map);
   var facilitiesRealtime = plotFacilities(
-    `/static/geojsons/${ROUTE_TYPE}/park.json`,
+    `/static/geojsons/${route_type}/park.json`,
     parking_lots
   );
 
-  var controlLayer = L.layerGroup().setZIndex(500000).addTo(map);
+  var controlLayer = L.layerGroup().setZIndex(50000000).addTo(map);
+
   var controlLocate = L.control
     .locate({
       layer: controlLayer,
@@ -167,7 +174,9 @@ window.addEventListener("load", function () {
     }
     console.log(map.getZoom());
   });
-});
+
+  return map;
+}
 
 function plotVehicles(url, layer) {
   return L.realtime(url, {
@@ -266,11 +275,6 @@ function plotFacilities(url, layer) {
       l.setZIndexOffset(-150);
     },
   });
-}
-
-function openMiniPopup(popupId) {
-  var miniPopup = document.getElementById(popupId);
-  miniPopup.classList.toggle("show");
 }
 
 function titleCase(str, split = "_") {

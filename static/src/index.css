@@ -86,6 +86,7 @@ body,
 #map {
   height: 100%;
   width: 100vw;
+  scroll-behavior: smooth;
 }
 noscript {
   color: red;

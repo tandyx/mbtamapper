@@ -67,3 +67,4 @@ geojsons/
 static/secrets.json
 static/secrets.html
 venv/
+/static/node_modules
