@@ -1,32 +1,43 @@
-const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
-document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
-onLoad(ROUTE_TYPE.toLowerCase());
-
 window.addEventListener("load", function () {
+  ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
+  document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
+  setFavicon(ROUTE_TYPE.toLowerCase());
+  document
+    .querySelector('meta[name="description"]')
+    .setAttribute(
+      "content",
+      "MBTA Realtime map for the MBTA's " + titleCase(ROUTE_TYPE) + "."
+    );
+
+  var map = createMap(ROUTE_TYPE);
+});
+
+function createMap(route_type) {
   var map = L.map("map", {
     minZoom: 9,
     maxZoom: 20,
+    // zoomSnap: 0,
+    // // zoomDelta: 0.1,
+    // // wheelPxPerZoomLevel: 1000,
+    // wheelDebounceTime: 5,
     maxBounds: L.latLngBounds(L.latLng(40, -74), L.latLng(44, -69)),
     fullscreenControl: true,
     fullscreenControlOptions: {
       position: "topleft",
     },
-  }).setView([42.3519, -71.0552], ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 13);
+  }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
   var CartoDB_Positron = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
     {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: "abcd",
       maxZoom: 20,
     }
   ).addTo(map);
+
   var CartoDB_DarkMatter = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
     {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: "abcd",
       maxZoom: 20,
     }
@@ -35,27 +46,40 @@ window.addEventListener("load", function () {
   var stop_layer = L.layerGroup().addTo(map);
   var shape_layer = L.layerGroup().addTo(map);
   var vehicle_layer = L.markerClusterGroup({
-    disableClusteringAtZoom: ROUTE_TYPE == "COMMUTER_RAIL" ? 10 : 12,
+    disableClusteringAtZoom: route_type == "COMMUTER_RAIL" ? 10 : 12,
   }).addTo(map);
   var parking_lots = L.layerGroup();
 
   var stopsRealtime = plotStops(
-    `/static/geojsons/${ROUTE_TYPE}/stops.json`,
+    `/static/geojsons/${route_type}/stops.json`,
     stop_layer
   ).addTo(map);
   var shapesRealtime = plotShapes(
-    `/static/geojsons/${ROUTE_TYPE}/shapes.json`,
+    `/static/geojsons/${route_type}/shapes.json`,
     shape_layer
   ).addTo(map);
   var vehiclesRealtime = plotVehicles(
-    `/${ROUTE_TYPE.toLowerCase()}/vehicles`,
+    `/${route_type.toLowerCase()}/vehicles`,
+    // `/static/geojsons/${ROUTE_TYPE}/vehicles.json`,
     vehicle_layer
   ).addTo(map);
   var facilitiesRealtime = plotFacilities(
-    `/static/geojsons/${ROUTE_TYPE}/park.json`,
+    `/static/geojsons/${route_type}/park.json`,
     parking_lots
   );
-  controlSearch = L.control
+
+  var controlLayer = L.layerGroup().setZIndex(50000000).addTo(map);
+
+  var controlLocate = L.control
+    .locate({
+      layer: controlLayer,
+      enableHighAccuracy: true,
+      initialZoomLevel: 15,
+      metric: false,
+    })
+    .addTo(map);
+
+  var controlSearch = L.control
     .search({
       layer: L.layerGroup([
         stop_layer,
@@ -71,7 +95,7 @@ window.addEventListener("load", function () {
     })
     .addTo(map);
 
-  L.control
+  var layerControl = L.control
     .layers(
       {
         Dark: CartoDB_DarkMatter,
@@ -150,58 +174,8 @@ window.addEventListener("load", function () {
     }
     console.log(map.getZoom());
   });
-});
 
-function onLoad(route_type, array = null) {
-  if (array == null) {
-    array = [
-      { href: "/static/img/mbta.favicon", rel: "icon" },
-      {
-        href: "/static/npm_packages/leaflet-realtime/leaflet-realtime.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-realtime/leaflet-realtime.min.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-fullscreen/Control.FullScreen.css",
-        rel: "stylesheet",
-      },
-      {
-        href: "/static/npm_packages/leaflet-fullscreen/Control.FullScreen.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-search/leaflet-search.js",
-        rel: "script",
-      },
-      {
-        href: "/static/npm_packages/leaflet-search/leaflet-search.mobile.css",
-        rel: "stylesheet",
-      },
-      {
-        href: "/static/npm_packages/leaflet-search/leaflet-search.css",
-        rel: "stylesheet",
-      },
-      { href: "/static/src/popup.css", rel: "stylesheet" },
-      { href: "/static/src/tooltip.css", rel: "stylesheet" },
-      { href: "/static/src/table.css", rel: "stylesheet" },
-      { href: "/static/src/scrollbar.css", rel: "stylesheet" },
-      { href: "/static/src/leaflet_custom.css", rel: "stylesheet" },
-    ];
-  }
-  for (linkdict of array) {
-    if (linkdict.rel != "script") {
-      var link = document.createElement("link");
-      link.rel = linkdict.rel;
-      link.href = `/${route_type}` + linkdict.href;
-    } else {
-      var link = document.createElement("script");
-      link.src = `/${route_type}` + linkdict.href;
-    }
-    document.head.appendChild(link);
-  }
+  return map;
 }
 
 function plotVehicles(url, layer) {
@@ -303,11 +277,6 @@ function plotFacilities(url, layer) {
   });
 }
 
-function openMiniPopup(popupId) {
-  var miniPopup = document.getElementById(popupId);
-  miniPopup.classList.toggle("show");
-}
-
 function titleCase(str, split = "_") {
   return str
     .toLowerCase()
@@ -316,4 +285,12 @@ function titleCase(str, split = "_") {
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
     .join(" ");
+}
+
+function setFavicon(route_type_lower) {
+  for (link of document.getElementsByTagName("link")) {
+    if (link.rel == "icon") {
+      link.href = `/static/img/${route_type_lower}.ico`;
+    }
+  }
 }

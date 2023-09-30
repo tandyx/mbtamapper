@@ -13,3 +13,7 @@ function unhoverImage(image_id, interval = 250) {
     image.style.transform = "scale(1)";
   };
 }
+function openMiniPopup(popupId) {
+  var miniPopup = document.getElementById(popupId);
+  miniPopup.classList.toggle("show");
+}

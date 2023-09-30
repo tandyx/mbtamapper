@@ -111,10 +111,10 @@ class Facility(GTFSBase):
             f"{('Payment App: ' + payment_app_html) if payment_app_html else ''}"
             f"{daily_rate_html}"
             f"{monthly_rate_html}"
-            f"<a style='color:grey;font-size:9pt'>"
+            f"<span style='color:grey;font-size:9pt'>"
             f"{contact_html}"
-            f"<a style='color:grey;font-size:9pt'>Overnight Parking: {self.return_property('overnight-allowed', 'Unknown')}</a></br>"
-            "</a></body>"
+            f"Overnight Parking: {self.return_property('overnight-allowed', 'Unknown')}</br>"
+            "</span></body>"
         )
 
     def return_property(self, property_id: str, default: str = "") -> str:
@@ -161,7 +161,7 @@ class Facility(GTFSBase):
         """
         accessible_spots = self.return_property("capacity-accessible")
         accessible_spots = (
-            f"<a style='color:{Facility.ACCENT_COLOR};'>({accessible_spots})</a>"
+            f"<span style='color:{Facility.ACCENT_COLOR};'>({accessible_spots})</span>"
             if accessible_spots != ""
             else default
         )

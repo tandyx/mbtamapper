@@ -1,9 +1,8 @@
 """File to hold the Route class and its associated methods."""
 from sqlalchemy.orm import relationship, reconstructor
 from sqlalchemy import Column, String, ForeignKey, Integer
-from ..base import GTFSBase
-
 from helper_functions import get_current_time
+from ..base import GTFSBase
 
 # pylint: disable=line-too-long
 
@@ -80,8 +79,8 @@ class Route(GTFSBase):
             set(a.as_html() for a in self.alerts if not a.stop and not a.trip)
         )
         alert = (
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')" onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
-            """<span class = 'tooltip-mini_image'>"""
+            """<div class = "popup" onclick="openMiniPopup('alertPopup')">"""
+            """<span class = 'tooltip-mini_image' onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
             """<span class = 'tooltiptext-mini_image'>Show Alerts</span>"""
             """<img src ="static/img/alert.png" alt="alert" class="mini_image" id="alertImg">"""
             "</span>"
@@ -102,10 +101,10 @@ class Route(GTFSBase):
             f"{alert} {'</br>' if alert else ''}"
             f"Agency: {self.agency.as_html()} </br>"
             f"Fare Class: {self.route_fare_class} </br>"
-            """<a style="color:grey;font-size:9pt">"""
+            """<span style="color:grey;font-size:9pt">"""
             f"Route ID: {self.route_id} </br>"
             f"Timestamp: {get_current_time().strftime('%m/%d/%Y %I:%M %p')} </br>"
-            "</a></body>"
+            "</span></body>"
         )
 
     def as_html_dict(self) -> dict[str]:

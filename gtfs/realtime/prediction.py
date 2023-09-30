@@ -4,9 +4,8 @@ from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
-from ..base import GTFSBase
-
 from helper_functions import return_delay_colors
+from ..base import GTFSBase
 
 
 class Prediction(GTFSBase):
@@ -92,7 +91,7 @@ class Prediction(GTFSBase):
         if delay <= 2:
             return ""
 
-        return f"""<a style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</a>"""
+        return f"""<span style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</span>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
@@ -101,6 +100,8 @@ class Prediction(GTFSBase):
             self.stop.parent_stop.stop_name
             if self.stop and self.stop.parent_stop
             else self.stop.stop_name
+            if self.stop
+            else ""
         )
 
         flag_stop = (
@@ -131,7 +132,7 @@ class Prediction(GTFSBase):
         return (
             """<tr>"""
             f"""<td>{flag_stop or early_departure or stop_name}</td>"""
-            f"""<td>{self.stop.platform_name or ""}</td>"""
+            f"""<td>{(self.stop.platform_name  if self.stop else "") or ""}</td>"""
             f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {"—" if self.status_as_html() else ""} {self.status_as_html()}</td>"""
             """</tr>"""
         )

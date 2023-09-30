@@ -20,3 +20,4 @@ I built them in. leaflet and leaflet-markercluster are referenced from a CDN. Th
 
 [leaflet-fullscreen](https://github.com/brunob/leaflet.fullscreen)
 
+[leaflet-locatecontrol](https://github.com/domoritz/leaflet-locatecontrol)

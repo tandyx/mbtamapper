@@ -83,7 +83,12 @@
 
 .leaflet-container a {
   color: #ffffff;
-  text-decoration: none !important;
+  text-decoration: none;
+}
+
+.leaflet-container a:hover {
+  /* text-decoration: underline dotted rgb(inherit, 0); */
+  text-decoration: underline dotted 1px;
 }
 
 .leaflet-touch .leaflet-bar a {
@@ -129,6 +134,12 @@
 .leaflet-control-search .search-button:hover {
   background: url(\static\npm_packages\images\search-icon.png) none;
 }
+
+.marker-cluster div {
+  font-family: "montserrat", "Helvetica", sans-serif !important;
+  color: #ffffff !important;
+}
+
 /* .leaflet-control-search .search-button,
 .leaflet-control-search .search-button:hover,
 .leaflet-control-search .search-button {
@@ -148,3 +159,36 @@
   font-family: "montserrat", "Helvetica", sans-serif !important;
   font-size: 8pt !important;
 } */
+.leaflet-control-locate-location circle {
+  animation: leaflet-control-locate-throb 10s ease infinite;
+}
+
+@keyframes leaflet-control-locate-throb {
+  0% {
+    stroke-width: 1;
+  }
+
+  50% {
+    stroke-width: 3;
+    transform: scale(0.05 0.05);
+  }
+
+  100% {
+    stroke-width: 1;
+  }
+}
+
+@-webkit-keyframes leaflet-control-locate-throb {
+  0% {
+    stroke-width: 1;
+  }
+
+  50% {
+    stroke-width: 3;
+    -webkit-transform: scale(0.05 0.05);
+  }
+
+  100% {
+    stroke-width: 1;
+  }
+}

@@ -9,7 +9,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from gtfs_loader import FlaskApp, FeedLoader, Feed
-from helper_functions import instantiate_logger
 
 load_dotenv()
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
@@ -97,6 +96,6 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
 
 
 if __name__ == "__main__":
-    instantiate_logger(logging.getLogger())
-    feed_loader()
-    # run_dev_server(create_default_app(), kwargs={"host": "127.0.0.1", "port": 80})
+    logging.getLogger().setLevel(logging.DEBUG)
+    # feed_loader(True)
+    run_dev_server(create_default_app(), kwargs={"host": "127.0.0.1", "port": 80})
