@@ -24,5 +24,4 @@ class Agency(GTFSBase):
 
     def as_html(self) -> str:
         """Return the agency as HTML"""
-
         return f"""<a href = {self.agency_url} target="_blank"> {self.agency_name}</a> ({self.agency_phone})"""

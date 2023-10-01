@@ -234,7 +234,7 @@ class Stop(GTFSBase):
             f"{alert} {schedule} {bikes} {parking} {wheelchair} {'</br>' if any([alert, schedule, wheelchair, bikes, parking]) else ''}"
             f"Routes: {route_colors}</a></br>"
             f"Zones: {', '.join(set(c.zone_id for c in self.child_stops if c.zone_id))}</br>"
-            f"<span style='color:grey;font-size:9pt'>"
+            f"<span class='popup_footer'>"
             f"Address: {self.stop_address}</br>"
             # f"Platforms: {', '.join(s.platform_name.strip('Commuter Rail - ') for s in self.child_stops if s.platform_code)}</br>"
             f"Timestamp: {get_current_time().strftime('%m/%d/%Y %I:%M %p')}</br>"

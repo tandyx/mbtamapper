@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long
 from sqlalchemy import Integer, ForeignKey, Column, String
 from sqlalchemy.orm import relationship, reconstructor
-from helper_functions import format_time, to_seconds, lazy_convert, shorten
+from helper_functions import format_time, to_seconds, lazy_convert
 from ..base import GTFSBase
 
 
@@ -93,16 +93,3 @@ class StopTime(GTFSBase):
         return self.stop_sequence == max(
             st.stop_sequence for st in self.trip.stop_times
         )
-
-    def as_dict(self) -> dict[str]:
-        """Returns a StopTime obj as a dict"""
-        return {
-            "destination_label": self.destination_label,
-            "route_name": self.trip.route.route_name,
-            "route_color": self.trip.route.route_color,
-            "flag_stop": self.is_flag_stop(),
-            "early_departure": self.is_early_departure(),
-            "trip_name": self.trip.trip_short_name or self.trip_id,
-            "platform_name": self.stop.platform_name or "",
-            "departure_time": format_time(self.departure_time),
-        }

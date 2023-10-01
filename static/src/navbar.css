@@ -6,37 +6,41 @@
       rgba(255, 255, 255, 0.95) 100%
     ); */
   font-family: "montserrat", "Helvetica", sans-serif;
-  background-color: rgb(0, 0, 0, 0.9);
-  position: absolute;
-  height: 10%;
+  background-color: rgb(26, 26, 26);
+  position: relative;
+  height: 50px;
   top: 0px;
   z-index: 100000;
   width: 100%;
   display: block;
   border-bottom: rgba(207, 43, 40, 0.95) 2px solid;
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  /* visibility: hidden; */
 }
+/* 
+.navbar .show {
+  visibility: visible;
+} */
 
 .navbar a {
   float: left;
   display: block;
   color: #f2f2f2;
   text-align: center;
-  padding: 14px 16px;
+  padding: 14px 16px 40px 16px;
   text-decoration: none;
   font-size: 17px;
   z-index: 100;
 }
-
+/* 
 .navbar a:hover {
   background: rgba(207, 43, 40, 0.95);
-
   color: black;
   z-index: 100;
-  animation: fadeIn 250ms;
   -webkit-animation: fadeIn 250ms;
-}
+  animation: fadeIn 250ms;
+} */
 /* .navbar:hover{
     border-bottom: ;
   } */

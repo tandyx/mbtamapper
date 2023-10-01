@@ -80,14 +80,33 @@ body {
   width: 45px;
   border-radius: 50%;
 }
-
+/* 
 html,
 body,
 #map {
   height: 100%;
   width: 100vw;
+} */
+
+/* body {
+  padding-top: 50px;
+  margin: 0;
+} */
+
+html,
+body,
+#map {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
   scroll-behavior: smooth;
 }
+
+#map {
+  position: absolute;
+  z-index: 0;
+}
+
 noscript {
   color: red;
   font-size: 2em;
@@ -99,4 +118,17 @@ noscript {
 }
 h4 {
   color: rgb(85, 85, 85);
+}
+
+.flag_stop {
+  color: #c73ca8;
+}
+
+.early_departure {
+  color: #2084d6;
+}
+
+.popup_footer {
+  color: grey;
+  font-size: 9pt;
 }

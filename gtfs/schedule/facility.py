@@ -167,6 +167,3 @@ class Facility(GTFSBase):
         )
 
         return self.return_property("capacity", "Unknown") + " " + accessible_spots
-
-    def as_dict(self) -> dict[str]:
-        """Returns the facility as a dictionary."""

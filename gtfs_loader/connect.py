@@ -1,7 +1,7 @@
 """Database connection and session management"""
 import logging
 import sqlite3
-from sqlalchemy import event
+from sqlalchemy import event, pool
 from sqlalchemy.engine import Engine
 
 
@@ -10,7 +10,9 @@ logging.getLogger().setLevel(logging.INFO)
 
 # pylint: disable=unused-argument
 @event.listens_for(Engine, "connect")
-def on_connect(dbapi_connection, connection_record) -> None:
+def on_connect(
+    dbapi_connection: sqlite3.Connection, connection_record: pool.ConnectionPoolEntry
+) -> None:
     """Sets sqlite pragma for each connection
 
     Args:
@@ -29,7 +31,9 @@ def on_connect(dbapi_connection, connection_record) -> None:
 
 
 @event.listens_for(Engine, "close")
-def on_close(dbapi_connection, connection_record) -> None:
+def on_close(
+    dbapi_connection: sqlite3.Connection, connection_record: pool.ConnectionPoolEntry
+) -> None:
     """Sets sqlite pragma on close
 
     Args:

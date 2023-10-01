@@ -11,7 +11,7 @@ window.addEventListener("load", function () {
   map = createMap(ARRAY);
 });
 
-function createMap() {
+function createMap(array) {
   L.Map.include({
     _initControlPos: function () {
       var corners = (this._controlCorners = {}),
@@ -41,7 +41,7 @@ function createMap() {
     },
   });
 
-  var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
+  var route_type = array[Math.floor(Math.random() * array.length)];
   var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
   var map = L.map("map", {
     zoomControl: false,

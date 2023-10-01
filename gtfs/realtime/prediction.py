@@ -5,7 +5,6 @@ from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
-from helper_functions import return_delay_colors
 from ..base import GTFSBase
 
 
@@ -65,13 +64,13 @@ class Prediction(GTFSBase):
     }
 
     @reconstructor
-    def init_on_load(self):
+    def init_on_load(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Prediction(id={self.prediction_id})>"
 
     def __predict(self) -> datetime | None:
@@ -97,7 +96,7 @@ class Prediction(GTFSBase):
         if delay <= 2:
             return ""
 
-        return f"""<span style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</span>"""
+        return f"""<span style="color:{self.__color(delay)};">{f"{str(delay)} minutes late"}</span>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
@@ -112,7 +111,7 @@ class Prediction(GTFSBase):
 
         flag_stop = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#c73ca8;'>{stop_name}</span>"
+            f"<span class='flag_stop'>{stop_name}</span>"
             "<span class='tooltiptext'>Flag stop.</span></div>"
             if self.trip
             and self.stop_time
@@ -162,30 +161,3 @@ class Prediction(GTFSBase):
         for color, condition in delay_dict.items():
             if condition:
                 return color
-
-    def as_dict(self) -> dict[str]:
-        """Returns prediction as dict."""
-
-        delay = int(
-            (self.predicted - self.stop_time.departure_datetime).total_seconds() / 60
-            if (self.predicted and self.stop_time.departure_datetime)
-            else 0
-        )
-
-        delay += 1440 if delay < -1400 else 0
-
-        return {
-            "stop_name": self.stop.stop_name if self.stop else "",
-            "platform_name": self.stop.platform_name if self.stop else "",
-            "predicted": self.predicted.strftime("%I:%M %p") if self.predicted else "",
-            "delay": delay,
-            "color": self.__color(delay),
-        }
-
-        # if self.trip
-        #     and self.stop_time
-        #     and self.trip.route.route_type == "2"
-        #     and (
-        #         self.stop_time.pickup_type == "3" or self.stop_time.drop_off_type == "3"
-        #     )
-        #     else ""

@@ -9,6 +9,18 @@ window.addEventListener("load", function () {
       "MBTA Realtime map for the MBTA's " + titleCase(ROUTE_TYPE) + "."
     );
 
+  var mobile = window.mobileCheck();
+  setNavbar("navbar", ROUTE_TYPE, mobile);
+
+  // if (this.window.mobileCheck()) {
+  //   var body = document.getElementsByTagName("body")[0];
+  //   body.style.overflow = "hidden";
+  //   body.style.padding = "0";
+  //   console.log("Mobile");
+  // } else {
+  //   console.log("Desktop");
+  // }
+
   var map = createMap(ROUTE_TYPE);
 });
 
@@ -204,7 +216,7 @@ function plotVehicles(url, layer) {
 
 function plotStops(url, layer) {
   const stopIcon = L.icon({
-    iconUrl: "/static/img/mbta.png",
+    iconUrl: "static/img/mbta.png",
     iconSize: [15, 15],
   });
 
@@ -255,7 +267,7 @@ function plotShapes(url, layer) {
 
 function plotFacilities(url, layer) {
   const facilityIcon = L.icon({
-    iconUrl: "/static/img/parking.png",
+    iconUrl: "static/img/parking.png",
     iconSize: [15, 15],
   });
 
@@ -275,22 +287,4 @@ function plotFacilities(url, layer) {
       l.setZIndexOffset(-150);
     },
   });
-}
-
-function titleCase(str, split = "_") {
-  return str
-    .toLowerCase()
-    .split(split)
-    .map(function (word) {
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(" ");
-}
-
-function setFavicon(route_type_lower) {
-  for (link of document.getElementsByTagName("link")) {
-    if (link.rel == "icon") {
-      link.href = `/static/img/${route_type_lower}.ico`;
-    }
-  }
 }

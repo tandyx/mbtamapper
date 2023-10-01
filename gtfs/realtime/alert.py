@@ -65,13 +65,11 @@ class Alert(GTFSBase):
             isoparse(self.active_period_end) if self.active_period_end else None
         )
         self.start_datetime = (
-            isoparse(self.active_period_start) if self.active_period_end else None
+            isoparse(self.active_period_start) if self.active_period_start else None
         )
-        self.updated_at_datetime = (
-            isoparse(self.timestamp) if self.active_period_end else None
-        )
+        self.updated_at_datetime = isoparse(self.timestamp)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Alert(id={self.alert_id})>"
 
     def as_html(self) -> str:
@@ -81,11 +79,3 @@ class Alert(GTFSBase):
             f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
             "</tr>"
         )
-
-    def as_dict(self) -> dict[str]:
-        """Returns alert as dict."""
-        return {
-            "url": self.url,
-            "header": self.header,
-            "updated_at": self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p"),
-        }

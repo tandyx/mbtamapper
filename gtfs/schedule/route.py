@@ -86,6 +86,17 @@ class Route(GTFSBase):
         )
         self.route_name = self.route_short_name or self.route_long_name
         self.filter = Route.HEX_TO_CSS.get(self.route_color, Route.HEX_TO_CSS["ffffff"])
+        self.opacity_dict = {
+            "Community Bus": 0.35,
+            "Local Bus": 0.5,
+            "Express Bus": 0.75,
+            "Commuter Bus": 0.75,
+            "Rail Replacement Bus": 0.75,
+            "Key Bus": 0.9 if self.line_id == "sl_rapid_transit" else 0.75,
+            "Rapid Transit": 0.9,
+            "Commuter Rail": 0.9,
+            "Ferry": 0.9,
+        }
 
     def __repr__(self) -> str:
         return f"<Route(route_id={self.route_id})>"
@@ -118,7 +129,7 @@ class Route(GTFSBase):
             f"{alert} {'</br>' if alert else ''}"
             f"Agency: {self.agency.as_html()} </br>"
             f"Fare Class: {self.route_fare_class} </br>"
-            """<span style="color:grey;font-size:9pt">"""
+            """<span style="popup_footer">"""
             f"Route ID: {self.route_id} </br>"
             f"Timestamp: {get_current_time().strftime('%m/%d/%Y %I:%M %p')} </br>"
             "</span></body>"
@@ -127,22 +138,10 @@ class Route(GTFSBase):
     def as_html_dict(self) -> dict[str]:
         """Return HTML + other data in a dictionary"""
 
-        opacity_dict = {
-            "Community Bus": 0.35,
-            "Local Bus": 0.5,
-            "Express Bus": 0.75,
-            "Commuter Bus": 0.75,
-            "Rail Replacement Bus": 0.75,
-            "Key Bus": 0.9 if self.line_id == "sl_rapid_transit" else 0.75,
-            "Rapid Transit": 0.9,
-            "Commuter Rail": 0.9,
-            "Ferry": 0.9,
-        }
-
         return {
             "name": self.route_short_name or self.route_long_name,
             "color": "#" + self.route_color,
-            "opacity": opacity_dict.get(self.route_desc, 0.5),
+            "opacity": self.opacity_dict.get(self.route_desc, 0.5),
             "weight": Route.WEIGHT,
             "popupContent": self.as_html_popup(),
             "is_added": self.network_id == "rail_replacement_bus",
