@@ -47,10 +47,14 @@ ROUTE_COLOR_DICT = {
 
 function setNavbar(navbarId, route_type, mobile = false) {
   var navbar = document.getElementById(navbarId);
-  navbar.classList.toggle("show");
   var route_type = route_type.toLowerCase();
-
   var accent_color = ROUTE_COLOR_DICT[route_type];
+
+  if (inIframe()) {
+    navbar.style.display = "none";
+    return;
+  }
+
   navbar.style.borderBottom = `3px solid ${accent_color}`;
 
   console.log(navbar.children);
@@ -129,3 +133,11 @@ window.mobileCheck = function () {
   })(navigator.userAgent || navigator.vendor || window.opera);
   return check;
 };
+
+function inIframe() {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+}
