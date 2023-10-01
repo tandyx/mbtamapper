@@ -21,7 +21,5 @@ class CalendarDate(GTFSBase):
 
     calendar = relationship("Calendar", back_populates="calendar_dates")
 
-    # __table_args__ = UniqueConstraint("service_id", "date", name="calendar_date")
-
     def __repr__(self) -> str:
         return f"<CalendarDate(service_id={self.service_id})>"

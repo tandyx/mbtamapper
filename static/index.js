@@ -1,12 +1,17 @@
-const ARRAY = [
-  "SUBWAY",
-  "RAPID_TRANSIT",
-  "COMMUTER_RAIL",
-  "BUS",
-  "FERRY",
-  "ALL_ROUTES",
-];
 window.addEventListener("load", function () {
+  const ARRAY = [
+    "SUBWAY",
+    "RAPID_TRANSIT",
+    "COMMUTER_RAIL",
+    "BUS",
+    "FERRY",
+    "ALL_ROUTES",
+  ];
+
+  map = createMap(ARRAY);
+});
+
+function createMap(array) {
   L.Map.include({
     _initControlPos: function () {
       var corners = (this._controlCorners = {}),
@@ -36,7 +41,7 @@ window.addEventListener("load", function () {
     },
   });
 
-  var route_type = ARRAY[Math.floor(Math.random() * ARRAY.length)];
+  var route_type = array[Math.floor(Math.random() * array.length)];
   var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
   var map = L.map("map", {
     zoomControl: false,
@@ -190,7 +195,9 @@ window.addEventListener("load", function () {
     return new L.Control.textbox(opts);
   };
   L.control.textbox({ position: "topcenter" }).addTo(map);
-});
+
+  return map;
+}
 
 // var zoom = route_type == "commuter_rail" ? 9 : 13;
 

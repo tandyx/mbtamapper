@@ -99,16 +99,24 @@
     />
     <script src="{{ url_for('static', filename='functions.js') }}"></script>
 
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='src/navbar.css') }}"
+    />
+    <!-- <script src="{{ url_for('static', filename='vehicle.js') }}"></script> -->
+
     <title>MBTA System Map</title>
   </head>
 
   <body>
-    <!--<div class="navbar">
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-        <a href="#contact">Contact</a>
-        <a href="#" class="right">Johan Cho</a>
-    </div> -->
+    <div class="navbar" id="navbar">
+      <a href="../subway" id="subway">Subway</a>
+      <a href="../rapid_transit" id="rapid_transit">Rapid Transit</a>
+      <a href="../commuter_rail" id="commuter_rail">Commuter Rail</a>
+      <a href="../bus" id="bus">Bus</a>
+      <a href="../ferry" id="ferry">Ferry</a>
+      <a href="../" id="home" class="right">Home</a>
+    </div>
     <div id="map"></div>
     <noscript>This page requires Javascript to be enabled.</noscript>
     <script src="{{ url_for('static', filename='map.js') }}"></script>

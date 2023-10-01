@@ -1,10 +1,10 @@
 """File to hold the Prediction class and its associated methods."""
 # pylint: disable=line-too-long
+from datetime import datetime
 from dateutil.parser import isoparse
 
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship, reconstructor
-from helper_functions import return_delay_colors
 from ..base import GTFSBase
 
 
@@ -64,18 +64,23 @@ class Prediction(GTFSBase):
     }
 
     @reconstructor
-    def init_on_load(self):
+    def init_on_load(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
-        for key, value in self.DATETIME_MAPPER.items():
-            if getattr(self, key, None):
-                setattr(self, value, isoparse(getattr(self, key)))
-
-        self.predicted = checker(self, "departure_datetime", "arrival_datetime")
+        self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Prediction(id={self.prediction_id})>"
+
+    def __predict(self) -> datetime | None:
+        return (
+            isoparse(self.arrival_time)
+            if self.arrival_time
+            else isoparse(self.departure_time)
+            if self.departure_time
+            else None
+        )
 
     def status_as_html(self) -> str:
         """Returns status as html."""
@@ -91,7 +96,7 @@ class Prediction(GTFSBase):
         if delay <= 2:
             return ""
 
-        return f"""<span style="color:{return_delay_colors(delay)};">{f"{str(delay)} minutes late"}</span>"""
+        return f"""<span style="color:{self.__color(delay)};">{f"{str(delay)} minutes late"}</span>"""
 
     def as_html(self) -> str:
         """Returns prediction as html."""
@@ -106,7 +111,7 @@ class Prediction(GTFSBase):
 
         flag_stop = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#c73ca8;'>{stop_name}</span>"
+            f"<span class='flag_stop'>{stop_name}</span>"
             "<span class='tooltiptext'>Flag stop.</span></div>"
             if self.trip
             and self.stop_time
@@ -137,7 +142,22 @@ class Prediction(GTFSBase):
             """</tr>"""
         )
 
+    def __color(self, delay: int) -> str:
+        """Returns a color based on the delay.
 
-def checker(_obj, attr1: str, attr2: str):
-    """Checks if attribute is set."""
-    return getattr(_obj, attr1, None) or getattr(_obj, attr2, None)
+        Args:
+            delay (int): delay in minutes
+        Returns:
+            str: color
+        """
+
+        delay_dict = {
+            "#ffffff": delay < 5,  # white
+            "#ffff00": 5 <= delay < 10,
+            "#ff8000": 10 <= delay < 15,
+            "#ff0000": delay >= 15,
+        }
+
+        for color, condition in delay_dict.items():
+            if condition:
+                return color

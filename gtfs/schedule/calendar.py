@@ -1,9 +1,9 @@
 """File to hold the Calendar class and its associated methods."""
 from datetime import datetime
-import pytz
 
-from sqlalchemy import Integer, Column, String
-from sqlalchemy.orm import relationship, reconstructor
+import pytz
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import reconstructor, relationship
 
 from ..base import GTFSBase
 

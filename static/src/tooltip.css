@@ -37,8 +37,8 @@
 
 .tooltip:hover .tooltiptext {
   visibility: visible;
-  animation: fadeIn 500ms;
   -webkit-animation: fadeIn 500ms;
+  animation: fadeIn 500ms;
 }
 
 .tooltip-mini_image {
@@ -79,8 +79,8 @@
 
 .tooltip-mini_image:hover .tooltiptext-mini_image {
   visibility: visible;
-  animation: fadeIn 500ms;
   -webkit-animation: fadeIn 500ms;
+  animation: fadeIn 500ms;
 }
 
 @-webkit-keyframes fadeIn {

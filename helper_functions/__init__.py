@@ -1,8 +1,8 @@
-"""Init file."""
-# pylint: disable=unused-import
-from .shorten_str import shorten
+"""Init file for the helper function module.
 
-from .color_mapping import return_delay_colors, hex_to_css, return_occupancy_colors
+This module contains functions that are used in multiple places in the
+GTFS package. They are kept here to avoid code duplication."""
+from .shorten_str import shorten
 from .df_unpack import df_unpack, list_unpack
 from .gtfs_helper_time_functions import *
 from .download_zip import download_zip
