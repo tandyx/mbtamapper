@@ -132,3 +132,25 @@ h4 {
   color: grey;
   font-size: 9pt;
 }
+
+.facility_header {
+  font-size: 28pt !important;
+  text-align: left !important;
+  color: #00acff !important;
+}
+
+.facility_accent {
+  color: #00acff !important;
+}
+
+.facility_contact {
+  font-size: 9pt !important;
+  text-align: left !important;
+  color: #00acff !important;
+}
+
+.footer_html {
+  font-size: 9pt !important;
+  text-align: left !important;
+  color: grey !important;
+}

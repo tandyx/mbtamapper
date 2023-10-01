@@ -97,7 +97,7 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    # feed_loader(True)
-    run_dev_server(create_default_app(), kwargs={"port": 80})
+    feed_loader(True)
+    # run_dev_server(create_default_app(), kwargs={"port": 80})
     # app = create_app("COMMUTER_RAIL")
     # app.run()

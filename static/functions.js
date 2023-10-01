@@ -57,6 +57,8 @@ function setNavbar(navbarId, route_type, mobile = false) {
   for (child of navbar.childNodes) {
     if (child.nodeName == "#text") continue;
 
+    var childAccentColor = ROUTE_COLOR_DICT[child.id] || accent_color;
+
     console.log(child.id);
     if (mobile && child.id != route_type && child.id != "home") {
       navbar.removeChild(child);
@@ -92,9 +94,9 @@ function setNavbar(navbarId, route_type, mobile = false) {
     child.addEventListener(
       "mouseenter",
       function (event) {
-        event.target.animate({ background: accent_color }, 125).onfinish =
+        event.target.animate({ background: childAccentColor }, 125).onfinish =
           function () {
-            event.target.style.background = accent_color;
+            event.target.style.background = childAccentColor;
           };
       },
       false

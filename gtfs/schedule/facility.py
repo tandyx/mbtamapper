@@ -79,16 +79,16 @@ class Facility(GTFSBase):
         monthly_rate = self.return_property("fee-monthly")
         payment_app_html = self.return_formatted_payment_app()
         header_html = (
-            f"<a href = '{contact_url}' target='_blank' style='font-size:28pt;color:{Facility.ACCENT_COLOR};'>{self.facility_long_name}</a></br>"
+            f"<a href = '{contact_url}' target='_blank' class = 'facility_header';'>{self.facility_long_name}</a></br>"
             if contact_url
-            else f"<a style='font-size:28pt;text-align: left;color:{Facility.ACCENT_COLOR};'>{self.facility_long_name}</a></br>"
+            else f"<a class = 'facility_header'>{self.facility_long_name}</a></br>"
         )
 
         daily_rate_html = f"Daily Rate: {daily_rate}</br>" if daily_rate else ""
         monthly_rate_html = f"Monthly Rate: {monthly_rate}</br>" if monthly_rate else ""
 
         contact_html = (
-            f"Contact: <a href = '{contact_url}' target='_blank' style=color:{Facility.ACCENT_COLOR};font-size:9pt;'>{self.return_property('contact', 'Unknown')}</a><a style='color:grey;font-size:9pt'> ({self.return_property('contact-phone')})</a></br>"
+            f"Contact: <a href = '{contact_url}' target='_blank' class = 'facility_contact'>{self.return_property('contact', 'Unknown')}</a><span class='popup_footer'> ({self.return_property('contact-phone')})</span></br>"
             if contact_url
             else ""
         )
@@ -103,7 +103,7 @@ class Facility(GTFSBase):
 
         return (
             f"{header_html}"
-            f"<body style='color:#ffffff;text-align: left;'>"
+            f"<body>"
             f"{owner if owner not in ['City/Town', 'Unknown', 'Private'] else self.return_property('operator', owner)}</br>"
             f"—————————————————————————————————</br>"
             f"{wheelchair}"
@@ -111,7 +111,7 @@ class Facility(GTFSBase):
             f"{('Payment App: ' + payment_app_html) if payment_app_html else ''}"
             f"{daily_rate_html}"
             f"{monthly_rate_html}"
-            f"<span style='color:grey;font-size:9pt'>"
+            f"<span class='popup_footer'>"
             f"{contact_html}"
             f"Overnight Parking: {self.return_property('overnight-allowed', 'Unknown')}</br>"
             "</span></body>"
@@ -146,7 +146,7 @@ class Facility(GTFSBase):
         payment_app_url = self.return_property("payment-app-url")
         payment_app_id = self.return_property("payment-app-id")
         return (
-            f"<a href = {payment_app_url} target='_blank' style='color:{Facility.ACCENT_COLOR};'>{self.return_property('payment-app', 'Unknown') }</a>{(f' - {payment_app_id}') if payment_app_id else ''}</br>"
+            f"<a href = {payment_app_url} target='_blank' class='facility_accent';'>{self.return_property('payment-app', 'Unknown') }</a>{(f' - {payment_app_id}') if payment_app_id else ''}</br>"
             if payment_app_url
             else default
         )
@@ -161,7 +161,7 @@ class Facility(GTFSBase):
         """
         accessible_spots = self.return_property("capacity-accessible")
         accessible_spots = (
-            f"<span style='color:{Facility.ACCENT_COLOR};'>({accessible_spots})</span>"
+            f"<span class='facility_accent'>({accessible_spots})</span>"
             if accessible_spots != ""
             else default
         )

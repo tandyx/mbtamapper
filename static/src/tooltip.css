@@ -102,3 +102,8 @@
     opacity: 0.9;
   }
 }
+
+.tooltiptext-mini_image .contacts {
+  left: 90%;
+  top: 20%;
+}

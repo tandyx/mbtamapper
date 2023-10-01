@@ -156,27 +156,27 @@ function createMap(array) {
           <div style="margin-top:-10px">
               <h4>This was a personal project. While I used to work for Keolis, I have no further affiliation with the MBTA.</h4>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('github')" onmouseleave="unhoverImage('github')">
-              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">View this repository</span>
+              <span class = "tooltiptext-mini_image contacts">View this repository</span>
               <a href="https://github.com/tandy-c/mbta_mapper" >
                   <img src="/static/img/github.png" class="contact_imgs" alt="github" id="github" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('about_me')" onmouseleave="unhoverImage('about_me')">
-              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">About me!</span>
+              <span class = "tooltiptext-mini_image contacts">About me!</span>
               <a href="https://tandy-c.github.io/website/" >
                   <img src = "static/img/johan.png" class="contact_imgs" alt="about_me" id="about_me" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('linkedin')" onmouseleave="unhoverImage('linkedin')">
-              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Linkedin</span>
+              <span class = "tooltiptext-mini_image contacts">My Linkedin</span>
               <a href="https://www.linkedin.com/in/chojohan/" >
                   <img src = "static/img/linkedin.png" class="contact_imgs" alt="linkedin" id="linkedin" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('facebook')" onmouseleave="unhoverImage('facebook')">
-              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Facebook</span>
+              <span class = "tooltiptext-mini_image contacts">My Facebook</span>
               <a href="https://www.facebook.com/johan.cho.927" >
                   <img src = "static/img/facebook.png" class="contact_imgs" alt="facebook" id="facebook" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('youtube')" onmouseleave="unhoverImage('youtube')">
-              <span class = "tooltiptext-mini_image" style="left: 90%; top: 20%;">My Youtube (haven't touched it in a bit)</span>
+              <span class = "tooltiptext-mini_image contacts">My Youtube (haven't touched it in a bit)</span>
               <a href="https://www.youtube.com/channel/UCP91LPgRFY03YoIGrmuMH9A" >
                   <img src = "static/img/youtube.png" class="contact_imgs" alt="youtube" id="youtube" >
               </a></span>
