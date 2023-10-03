@@ -1,10 +1,12 @@
 """Helper function to dump dataframe to sql."""
-import time
 import logging
-from sqlalchemy import delete
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError, IllegalStateChangeError
+import time
+
 import pandas as pd
+from sqlalchemy import delete
+from sqlalchemy.exc import IllegalStateChangeError, IntegrityError
+from sqlalchemy.orm import Session
+
 from gtfs import GTFSBase
 
 # pylint: disable=broad-except

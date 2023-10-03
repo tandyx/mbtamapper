@@ -85,12 +85,14 @@ def feed_loader(import_data: bool = False) -> NoReturn:
 
 
 def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
-    """Runs the dev server."""
+    """Runs the dev server.
 
-    threads = [
-        Thread(target=feed_loader),
-        Thread(target=app.run, **kwargs),
-    ]
+    Args:
+        app (Flask, optional): Flask app. Defaults to None.
+        kwargs: Keyword arguments for app.run.
+    """
+
+    threads = [Thread(target=feed_loader), Thread(target=app.run, **kwargs)]
     for thread in threads:
         thread.start()
 

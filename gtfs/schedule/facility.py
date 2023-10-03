@@ -40,11 +40,19 @@ class Facility(GTFSBase):
         return f"<Facilities(facility_id={self.facility_id})>"
 
     def as_point(self) -> Point:
-        """Returns a shapely Point object of the facility"""
+        """Returns a shapely Point object of the facility
+
+        Returns:
+            Point: shapely Point object of the facility
+        """
         return Point(self.facility_lon, self.facility_lat)
 
     def as_feature(self) -> Feature:
-        """Returns facility object as a feature."""
+        """Returns facility object as a feature.
+
+        Returns:
+            Feature: facility as a feature.
+        """
 
         point = self.as_point()
         if point == self.stop.as_point():
@@ -60,7 +68,13 @@ class Facility(GTFSBase):
         )
 
     def as_html_row(self, parking: bool = True) -> str:
-        """Returns facility object as a html string."""
+        """Returns facility object as a html string.
+
+        Args:
+            parking (bool, optional): Whether to return parking facilities. Defaults to True.
+        Returns:
+            str: facility as a html string.
+        """
 
         return (
             "<tr>"
@@ -72,7 +86,11 @@ class Facility(GTFSBase):
         )
 
     def as_html_popup(self) -> str:
-        """Returns facility object as a html string."""
+        """Returns facility object as a html string.
+
+        Returns:
+            str: facility as a html string.
+        """
         contact_url = self.return_property("contact-url")
         owner = self.return_property("owner", "Unknown")
         daily_rate = self.return_property("fee-daily")

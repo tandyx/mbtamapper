@@ -84,11 +84,19 @@ class LinkedDataset(GTFSBase):
         return f"<LinkedDataset(url={self.url})>"
 
     def is_dataset(self, _orm: GTFSBase) -> bool:
-        """Returns True if the object is a dataset."""
+        """Returns True if the object is a dataset. Returns False if the object is not a dataset.
+
+        Returns:
+            bool: True if the object is a dataset. False if the object is not a dataset.
+        """
         return bool(getattr(self, LinkedDataset.DATASET_MAPPER.get(_orm), 0))
 
     def _load_dataframe(self) -> pd.DataFrame:
-        """Returns realtime data from the linked dataset."""
+        """Returns realtime data from the linked dataset.
+
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset.
+        """
         feed = FeedMessage()
         response = rq.get(self.url, timeout=10)
         if not response.ok:
@@ -103,7 +111,10 @@ class LinkedDataset(GTFSBase):
 
         Args:
             dataframe: The dataframe to post process.
-            rename_dict: The dictionary to rename the columns."""
+            rename_dict: The dictionary to rename the columns.
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset.
+        """
 
         dataframe = (
             dataframe.reset_index(drop=True)
@@ -118,7 +129,11 @@ class LinkedDataset(GTFSBase):
         return dataframe
 
     def process_trip_updates(self) -> pd.DataFrame:
-        """Returns realtime data from the linked dataset."""
+        """Returns realtime data from the linked dataset.
+
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset.
+        """
         dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(
@@ -143,7 +158,11 @@ class LinkedDataset(GTFSBase):
         return self._post_process(dataframe, PREDICTION_RENAME_DICT)
 
     def process_vehicle_positions(self) -> pd.DataFrame:
-        """Returns realtime data from the linked dataset."""
+        """Returns realtime data from the linked dataset.
+
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset.
+        """
 
         dataframe = self._load_dataframe()
         dataframe["vehicle_position_speed"] = (
@@ -158,7 +177,11 @@ class LinkedDataset(GTFSBase):
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
     def process_service_alerts(self) -> pd.DataFrame:
-        """Returns realtime data from the linked dataset."""
+        """Returns realtime data from the linked dataset.
+
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset.
+        """
         dataframe = df_unpack(
             self._load_dataframe(),
             [
