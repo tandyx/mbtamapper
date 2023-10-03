@@ -32,7 +32,10 @@ class Query:
         """Returns a query for active calendars on a date.
 
         Args:
-            date (datetime): date to query"""
+            date (datetime): date to query
+        Returns:
+            A query for active calendars on a date.
+        """
 
         return (
             select(Calendar)
@@ -71,7 +74,10 @@ class Query:
         )
 
     def return_trip_query(self) -> selectable.Select:
-        """Returns a query for trips."""
+        """Returns a query for trips.
+
+        Returns:
+            A query for trips."""
         return (
             select(Trip)
             .distinct()
@@ -108,7 +114,10 @@ class Query:
         )
 
     def return_shapes_query(self) -> selectable.Select:
-        """Returns a query for shapes."""
+        """Returns a query for shapes.
+
+        Returns:
+            A query for shapes."""
         return (
             select(Shape)
             .distinct()
@@ -117,7 +126,10 @@ class Query:
         )
 
     def return_routes_query(self) -> selectable.Select:
-        """Returns a query for routes."""
+        """Returns a query for routes.
+
+        Returns:
+            A query for routes."""
 
         return (
             select(Route)
@@ -130,6 +142,8 @@ class Query:
 
         Args:
             add_routes (str): comma-separated string of route_ids to add to the query
+        Returns:
+            A query for vehicles.
         """
 
         return (
@@ -152,6 +166,8 @@ class Query:
 
         Args:
             types (list[str]): list of facility types, default: ["parking-area", "bike-storage"]
+        Returns:
+            A query for parking facilities.
         """
         return (
             select(Facility)
