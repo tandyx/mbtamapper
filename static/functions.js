@@ -31,7 +31,7 @@ function titleCase(str, split = "_") {
 function setFavicon(route_type_lower) {
   for (link of document.getElementsByTagName("link")) {
     if (link.rel == "icon") {
-      link.href = `{{ url_for('static', filename='img/${route_type_lower}.ico') }}}`;
+      link.href = `static/img/${route_type_lower}.ico`;
     }
   }
 }
