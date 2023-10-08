@@ -1,3 +1,4 @@
+"""Helper function to download a zip file from a url and extract it to a path."""
 import io
 import logging
 import zipfile
