@@ -48,14 +48,3 @@ class Shape(GTFSBase):
         )
 
         return feature
-
-    def as_feature_2(self) -> Feature:
-        """Returns shape object as a feature."""
-
-        feature = Feature(
-            id=self.shape_id,
-            geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_dict(),
-        )
-
-        return feature

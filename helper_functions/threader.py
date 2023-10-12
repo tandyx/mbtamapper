@@ -3,7 +3,7 @@ from threading import Thread
 from typing import Callable
 
 
-def threader(func: Callable, join: bool = False, *args, **kwargs) -> None:
+def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:
     """Threader function.
 
     Args:

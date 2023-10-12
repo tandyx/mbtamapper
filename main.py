@@ -1,17 +1,24 @@
 """Test"""
 import os
+import time
 import logging
 from threading import Thread
 from typing import NoReturn
 from dotenv import load_dotenv
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
+from geojson import FeatureCollection
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from sqlalchemy.exc import OperationalError
 
-from gtfs_loader import FlaskApp, FeedLoader, Feed
+
+from gtfs_loader import FeedLoader, Feed, Query
 
 load_dotenv()
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
+SILVER_LINE_ROUTES = ["741", "742", "743", "751", "749", "746"]
+
+# pylint: disable=unused-argument
 
 
 def create_app(key: str, proxies: int = 10) -> Flask:
@@ -19,11 +26,46 @@ def create_app(key: str, proxies: int = 10) -> Flask:
 
     Args:
         key (str, optional): Key for the app. Defaults to None.
+        proxies (int, optional): Number of proxies to allow on connection, default 10.
     Returns:
         Flask: app for the key."""
     app = Flask(__name__)
-    flask_app = FlaskApp(app, FEED, key)
-    app = flask_app.app
+    # flask_app = FlaskApp(app, FEED, key)
+    # app = flask_app.app
+
+    query = Query(os.environ.get(key).split(","))
+
+    @app.route("/")
+    def render_map():
+        return render_template("map.html")
+
+    @app.route("/vehicles")
+    def get_vehicles():
+        sess = FEED.scoped_session()
+        add_routes = SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else ""
+        vehicles_query = query.return_vehicles_query(add_routes)
+        if key in ["BUS", "ALL_ROUTES"]:
+            vehicles_query = vehicles_query.limit(75)
+        attempts = 0
+        try:
+            while attempts <= 10:
+                data = sess.execute(vehicles_query).all()
+                if data and any(d[0].predictions for d in data):
+                    break
+                attempts += 1
+                time.sleep(1)
+        except OperationalError as error:
+            data = []
+            logging.error("Failed to send data: %s", error)
+        if not data:
+            logging.error("No data returned in %s attemps", attempts)
+        return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
+
+    @app.teardown_appcontext
+    def shutdown_session(self, exception=None) -> None:
+        """Tears down database session."""
+        FEED.scoped_session.remove()
+
     if proxies:
         app.wsgi_app = ProxyFix(
             app.wsgi_app,
@@ -98,8 +140,8 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
 
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-    feed_loader()
+    logging.getLogger().setLevel(logging.INFO)
+    feed_loader(True)
     # run_dev_server(create_default_app(), kwargs={"port": 80})
     # app = create_app("COMMUTER_RAIL")
     # app.run()

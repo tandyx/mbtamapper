@@ -113,12 +113,7 @@ class Prediction(GTFSBase):
             "<div class = 'tooltip'>"
             f"<span class='flag_stop'>{stop_name}</span>"
             "<span class='tooltiptext'>Flag stop.</span></div>"
-            if self.trip
-            and self.stop_time
-            and self.trip.route.route_type == "2"
-            and (
-                self.stop_time.pickup_type == "3" or self.stop_time.drop_off_type == "3"
-            )
+            if self.stop_time and self.stop_time.is_flag_stop()
             else ""
         )
 
@@ -126,11 +121,7 @@ class Prediction(GTFSBase):
             "<div class = 'tooltip'>"
             f"<span style='color:#2084d6;'>{stop_name}</span>"
             "<span class='tooltiptext'>Early departure stop.</span></div>"
-            if self.trip
-            and self.stop_time
-            and self.trip.route.route_type == "2"
-            and self.stop_time.timepoint == "0"
-            and not self.stop_time.is_destination()
+            if self.stop_time and self.stop_time.is_early_departure()
             else ""
         )
 

@@ -40,12 +40,18 @@ def to_sql(
 
     try:
         res = data.to_sql(
-            orm.__tablename__, session.connection().engine, None, "append", False
+            name=orm.__tablename__,
+            con=session.connection().engine,
+            if_exists="append",
+            index=False,
         )
     except IntegrityError:
         try:
             res = data.iloc[1:].to_sql(
-                orm.__tablename__, session.connection().engine, None, "append", False
+                name=orm.__tablename__,
+                con=session.connection().engine,
+                if_exists="append",
+                index=False,
             )
         except Exception as error:
             logging.error("Failed to insert %s: %s", orm.__tablename__, error)

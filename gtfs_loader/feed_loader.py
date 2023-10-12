@@ -3,7 +3,8 @@
 import os
 import time
 import logging
-from threading import Thread
+
+# from threading import Thread
 from typing import NoReturn
 from schedule import Scheduler
 from sqlalchemy.exc import OperationalError
@@ -80,24 +81,25 @@ class FeedLoader(Scheduler):
         except OperationalError:
             logging.warning("OperationalError: %s", key)
 
-    def __vehicle_threader(self, key: str) -> None:
-        """Vehicle threader function.
+        # # pylint: disable=unused-private-member
+        # def __vehicle_threader(self, key: str) -> None:
+        #     """Vehicle threader function.
 
-        Args:
-            key (str): key for route types
-        """
+        #     Args:
+        #         key (str): key for route types
+        #     """
         # logging.info("Starting vehicle threader")
 
-        # threads = [
-        #     Thread(target=self.export_vehicle_geojson, args=(key,)) for key in self.keys
-        # ]
+        ## threads = [
+        ##     Thread(target=self.export_vehicle_geojson, args=(key,)) for key in self.keys
+        ## ]
 
-        # for thread in threads:
-        #     thread.start()
-        # for thread in threads:
-        #     thread.join()
+        ## for thread in threads:
+        ##     thread.start()
+        ## for thread in threads:
+        ##     thread.join()
 
-        threader(self.export_vehicle_geojson, True, key)
+        # threader(self.export_vehicle_geojson, key, join=True)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
@@ -105,9 +107,9 @@ class FeedLoader(Scheduler):
         Args:
             timezone (str, optional): Timezone. Defaults to "America/New_York".
         """
-        self.every(2).minutes.do(threader, self.update_realtime, True, Alert)
-        self.every(12).seconds.do(threader, self.update_realtime, True, Vehicle)
-        self.every().minute.do(threader, self.update_realtime, True, Prediction)
+        self.every(2).minutes.do(threader, self.update_realtime, Alert, join=True)
+        self.every(12).seconds.do(threader, self.update_realtime, Vehicle, join=True)
+        self.every().minute.do(threader, self.update_realtime, Prediction, join=True)
         # for key in self.keys:
         #     self.every(12).seconds.do(threader, self.__vehicle_threader, False, key)
         # self.every().second.do(threader, self.__vehicle_threader, True)
