@@ -42,14 +42,17 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     @app.route("/vehicles")
     def get_vehicles():
         sess = FEED.scoped_session()
-        add_routes = SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else ""
-        vehicles_query = query.return_vehicles_query(add_routes)
-        if key in ["BUS", "ALL_ROUTES"]:
-            vehicles_query = vehicles_query.limit(75)
+        vehicles_query = query.return_vehicles_query(
+            add_routes=SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else []
+        )
         attempts = 0
         try:
             while attempts <= 10:
-                data = sess.execute(vehicles_query).all()
+                data = sess.execute(
+                    vehicles_query
+                    if key not in ["BUS", "ALL_ROUTES"]
+                    else vehicles_query.limit(75)
+                ).all()
                 if data and any(d[0].predictions for d in data):
                     break
                 attempts += 1
@@ -134,14 +137,13 @@ def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
         kwargs: Keyword arguments for app.run.
     """
 
-    threads = [Thread(target=feed_loader), Thread(target=app.run, **kwargs)]
-    for thread in threads:
+    for thread in [Thread(target=feed_loader), Thread(target=app.run, **kwargs)]:
         thread.start()
 
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader(True)
+    feed_loader()
     # run_dev_server(create_default_app(), kwargs={"port": 80})
     # app = create_app("COMMUTER_RAIL")
     # app.run()

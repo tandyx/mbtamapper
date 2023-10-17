@@ -137,11 +137,11 @@ class Query:
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
         )
 
-    def return_vehicles_query(self, add_routes: str) -> selectable.Select:
+    def return_vehicles_query(self, add_routes: list[str]) -> selectable.Select:
         """Returns a query for vehicles.
 
         Args:
-            add_routes (str): comma-separated string of route_ids to add to the query
+            add_routes (list[str]): list of routes to add to query
         Returns:
             A query for vehicles.
         """
@@ -156,7 +156,7 @@ class Query:
                         select(self.return_routes_query().columns.route_id)
                     ),
                     Vehicle.trip_id.in_(select(self.trip_query.columns.trip_id)),
-                    Vehicle.route_id.in_(add_routes.split(",")),
+                    Vehicle.route_id.in_(add_routes),
                 )
             )
         )
