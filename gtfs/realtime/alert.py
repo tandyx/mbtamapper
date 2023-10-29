@@ -57,7 +57,7 @@ class Alert(GTFSBase):
     }
 
     @reconstructor
-    def init_on_load(self):
+    def _init_on_load_(self):
         """Loads active_period_end and active_period_start as datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.url = self.url or "https://www.mbta.com/"

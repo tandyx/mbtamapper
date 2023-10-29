@@ -7,7 +7,6 @@ flask
 sqlalchemy
 geojson
 schedule
-python-dotenv
 gtfs-realtime-bindings
 protobuf3-to-dict
 waitress

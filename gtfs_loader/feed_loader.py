@@ -25,16 +25,16 @@ class FeedLoader(Scheduler):
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
     REALTIME_BINDINGS = [Alert, Vehicle, Prediction]
 
-    def __init__(self, feed: Feed, keys: list[str] = None) -> None:
+    def __init__(self, feed: Feed, keys_dict: dict[str, list[str]]) -> None:
         """Initializes FeedLoader.
 
         Args:
             feed (Feed): GTFS feed
-            keys (list[str], optional): List of keys to load. Defaults to None.
+            keys (list[str]): List of keys to load.
         """
         super().__init__()
         self.feed = feed
-        self.keys = keys or os.environ.get("LIST_KEYS").split(",")
+        self.keys_dict = keys_dict
 
     def __repr__(self) -> str:
         return f"<FeedLoader(feed={self.feed})>"
@@ -44,14 +44,14 @@ class FeedLoader(Scheduler):
         self.feed.import_gtfs()
         for orm in FeedLoader.REALTIME_BINDINGS:
             self.feed.import_realtime(orm)
-        self.feed.purge_and_filter()
+        self.feed.purge_and_filter(self.keys_dict["ALL_ROUTES"])
 
     def geojson_exports(self) -> None:
         """Exports geojsons."""
-        for key in self.keys:
+        for key, routes in self.keys_dict.items():
             try:
                 self.feed.export_geojsons(
-                    key, FeedLoader.GEOJSON_PATH, get_current_time()
+                    key, routes, FeedLoader.GEOJSON_PATH, get_current_time()
                 )
             except OperationalError:
                 logging.warning("OperationalError: %s", key)

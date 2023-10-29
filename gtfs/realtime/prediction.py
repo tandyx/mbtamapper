@@ -64,7 +64,7 @@ class Prediction(GTFSBase):
     }
 
     @reconstructor
-    def init_on_load(self) -> None:
+    def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.predicted = self.__predict()

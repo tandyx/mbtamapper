@@ -73,7 +73,7 @@ class Stop(GTFSBase):
     )
 
     @reconstructor
-    def init_on_load(self):
+    def _init_on_load_(self):
         """Init on load"""
         self.stop_url = (
             self.stop_url

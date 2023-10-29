@@ -4,15 +4,6 @@ FROM python:3.12.0-bookworm
 
 RUN apt-get update && apt-get install -y nodejs npm
 
-# RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - apt-get install -y nodejs
-
-ENV SUBWAY=0,1
-ENV RAPID_TRANSIT=0,1,4
-ENV COMMUTER_RAIL=2
-ENV BUS=3
-ENV FERRY=4
-ENV ALL_ROUTES=0,1,2,3,4
-ENV LIST_KEYS=SUBWAY,RAPID_TRANSIT,COMMUTER_RAIL,BUS,FERRY,ALL_ROUTES
 ENV PYTHONPATH=/helper_functions:/gtfs_schedule:/gtfs_realtime:/gtfs_loader:
 
 WORKDIR /app

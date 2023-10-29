@@ -117,14 +117,16 @@ class Feed:
         to_sql(session, getattr(dataset[0][0], dataset_mapper[orm][1])(), orm, True)
         self.scoped_session.remove()
 
-    def purge_and_filter(self, date: datetime = None) -> None:
+    def purge_and_filter(self, route_types: list[str], date: datetime = None) -> None:
         """Purges and filters the database.
 
         Args:
-            date (datetime): date to filter on, defaults to today"""
+            route_types (list[str]): route types to filter on, defaults to all
+            date (datetime): date to filter on, defaults to today
+        """
 
         date = date or get_date()
-        query_obj = Query(os.environ.get("ALL_ROUTES").split(","))
+        query_obj = Query(route_types)
 
         cal_stmt = delete(Calendar).where(
             Calendar.service_id.not_in(
@@ -145,16 +147,19 @@ class Feed:
             self.session.commit()  # seperate commits to avoid giant journal file
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
 
-    def export_geojsons(self, key: str, file_path: str, date: datetime = None) -> None:
+    def export_geojsons(
+        self, key: str, route_types: list[str], file_path: str, date: datetime = None
+    ) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            route_types (list[str]): route types to export
             file_path (str): path to export files to
             date (datetime): date to export (default: today)
         """
 
-        query_obj = Query(os.environ.get(key).split(","))
+        query_obj = Query(route_types)
         file_subpath = os.path.join(file_path, key)
         for path in [file_path, file_subpath]:
             if not os.path.exists(path):
@@ -264,18 +269,18 @@ class Feed:
 
         self.scoped_session.remove()
 
-    def export_vehicle_geojson(self, key: str, path: str) -> None:
+    def export_vehicle_geojson(self, key: str, query_obj: Query, path: str) -> None:
         """Exports vehicle geojson.
 
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            query_obj (Query): Query object
             path (str): path to export files to
         """
 
         sess = self.scoped_session()
-        query = Query(os.environ.get(key).split(","))
         add_routes = Feed.SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else ""
-        vehicles_query = query.return_vehicles_query(add_routes)
+        vehicles_query = query_obj.return_vehicles_query(add_routes)
         # if key in ["BUS", "ALL_ROUTES"]:
         #     vehicles_query = vehicles_query.limit(75)
         data: list[tuple[Vehicle]]

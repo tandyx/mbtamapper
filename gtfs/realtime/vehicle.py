@@ -19,7 +19,7 @@ class Vehicle(GTFSBase):
     vehicle_id = Column(String)
     trip_id = Column(String)
     route_id = Column(String)
-    direction_id = Column(String)
+    direction_id = Column(Integer)
     latitude = Column(Float)
     longitude = Column(Float)
     bearing = Column(Float)
@@ -67,7 +67,7 @@ class Vehicle(GTFSBase):
 
     DATETIME_MAPPER = {"updated_at": "updated_at_datetime"}
 
-    DIRECTION_MAPPER = {"0": "Outbound", "1": "Inbound"}
+    DIRECTION_MAPPER = {0: "Outbound", 1: "Inbound"}
     STATUS_MAPPER = {
         "0": "Incoming at ",
         "1": "Stopped at ",
@@ -75,7 +75,7 @@ class Vehicle(GTFSBase):
     }
 
     @reconstructor
-    def init_on_load(self) -> None:
+    def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
         self.updated_at_datetime = isoparse(self.timestamp)
