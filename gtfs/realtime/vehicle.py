@@ -19,7 +19,7 @@ class Vehicle(GTFSBase):
     vehicle_id = Column(String)
     trip_id = Column(String)
     route_id = Column(String)
-    direction_id = Column(Integer)
+    direction_id = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
     bearing = Column(Float)
@@ -67,7 +67,16 @@ class Vehicle(GTFSBase):
 
     DATETIME_MAPPER = {"updated_at": "updated_at_datetime"}
 
-    DIRECTION_MAPPER = {0: "Outbound", 1: "Inbound"}
+    DIRECTION_MAPPER = {
+        "0": "Outbound",
+        "1": "Inbound",
+        "1.0": "Inbound",
+        "0.0": "Outbound",
+        1: "Inbound",
+        0: "Outbound",
+        1.0: "Inbound",
+        0.0: "Outbound",
+    }
     STATUS_MAPPER = {
         "0": "Incoming at ",
         "1": "Stopped at ",
