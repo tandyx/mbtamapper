@@ -42,7 +42,6 @@ python main.py`
 - [Waitress](https://docs.pylonsproject.org/projects/waitress/en/stable/)
 - [Werkzeug](https://pypi.org/project/Werkzeug/)
 - [GTFS-Realtime Bindings](https://pypi.org/project/gtfs-realtime-bindings/)
-- [Python-dotenv](https://pypi.org/project/python-dotenv/)
 - [schedule](https://pypi.org/project/schedule/)
 - [json_api_doc](https://pypi.org/project/json_api_doc/)
 

@@ -4,7 +4,6 @@ import time
 import logging
 from threading import Thread
 from typing import NoReturn
-from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
 from geojson import FeatureCollection
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -14,9 +13,16 @@ from sqlalchemy.exc import OperationalError
 
 from gtfs_loader import FeedLoader, Feed, Query
 
-load_dotenv()
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
 SILVER_LINE_ROUTES = ["741", "742", "743", "751", "749", "746"]
+KEY_DICT = {
+    "SUBWAY": ["0", "1"],
+    "RAPID_TRANSIT": ["0", "1", "4"],
+    "COMMUTER_RAIL": ["2"],
+    "BUS": ["3"],
+    "FERRY": ["4"],
+    "ALL_ROUTES": ["0", "1", "2", "3", "4"],
+}
 
 # pylint: disable=unused-argument
 
@@ -33,7 +39,7 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     # flask_app = FlaskApp(app, FEED, key)
     # app = flask_app.app
 
-    query = Query(os.environ.get(key).split(","))
+    query = Query(KEY_DICT[key])
 
     @app.route("/")
     def render_map():
@@ -56,7 +62,7 @@ def create_app(key: str, proxies: int = 10) -> Flask:
                 if data and any(d[0].predictions for d in data):
                     break
                 attempts += 1
-                time.sleep(1)
+                time.sleep(0.5)
         except OperationalError as error:
             data = []
             logging.error("Failed to send data: %s", error)
@@ -106,10 +112,7 @@ def create_default_app(proxies: int = 10) -> Flask:
         )
     app.wsgi_app = DispatcherMiddleware(
         app.wsgi_app,
-        {
-            f"/{key.lower()}": create_app(key).wsgi_app
-            for key in os.environ.get("LIST_KEYS").split(",")
-        },
+        {f"/{key.lower()}": create_app(key).wsgi_app for key in KEY_DICT},
     )
 
     return app
@@ -121,7 +124,7 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     Args:
         import_data (bool, optional): Whether to import data. Defaults to False.
     """
-    feadloader = FeedLoader(FEED, os.environ.get("LIST_KEYS").split(","))
+    feadloader = FeedLoader(FEED, KEY_DICT)
     if import_data or not os.path.exists(feadloader.feed.db_path):
         feadloader.nightly_import()
     if import_data or not os.path.exists(feadloader.GEOJSON_PATH):
@@ -129,7 +132,7 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     feadloader.run()
 
 
-def run_dev_server(app: Flask = None, **kwargs) -> NoReturn:
+def run_dev_server(app: Flask = None, **kwargs) -> None:
     """Runs the dev server.
 
     Args:
@@ -145,5 +148,5 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     feed_loader()
     # run_dev_server(create_default_app(), kwargs={"port": 80})
-    # app = create_app("COMMUTER_RAIL")
+    # app = create_default_app()
     # app.run()

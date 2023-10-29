@@ -34,7 +34,7 @@ class StopTime(GTFSBase):
     trip = relationship("Trip", back_populates="stop_times")
 
     @reconstructor
-    def init_on_load(self):
+    def _init_on_load_(self):
         """Reconstructs the object on load from the database.
         executes after the object is loaded from the database and in init"""
         # pylint: disable=attribute-defined-outside-init

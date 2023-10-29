@@ -78,7 +78,7 @@ class Route(GTFSBase):
     }
 
     @reconstructor
-    def init_on_load(self):
+    def _init_on_load_(self):
         """Reconstructs the object on load from the database."""
         # pylint: disable=attribute-defined-outside-init
         self.route_url = (

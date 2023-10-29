@@ -22,7 +22,7 @@ class Shape(GTFSBase):
     )
 
     @reconstructor
-    def init_on_load(self) -> None:
+    def _init_on_load_(self) -> None:
         """Load the shape points into a list of ShapePoint objects."""
         # pylint: disable=attribute-defined-outside-init
 

@@ -33,7 +33,7 @@ class Calendar(GTFSBase):
     trips = relationship("Trip", back_populates="calendar", passive_deletes=True)
 
     @reconstructor
-    def init_on_load(self) -> None:
+    def _init_on_load_(self) -> None:
         """Initialize the calendar object on load"""
         # pylint: disable=attribute-defined-outside-init
 
