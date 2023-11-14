@@ -1,5 +1,5 @@
 window.addEventListener("load", function () {
-  ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
+  const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
   document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
   setFavicon(ROUTE_TYPE.toLowerCase());
   document

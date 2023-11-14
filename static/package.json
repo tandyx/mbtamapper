@@ -1,7 +1,14 @@
 {
   "dependencies": {
+    "leaflet": "^1.9.4",
     "leaflet-fullscreen": "^1.0.2",
     "leaflet-realtime": "^2.2.0",
-    "leaflet-search": "^4.0.0"
+    "leaflet-search": "^4.0.0",
+    "leaflet.locatecontrol": "^0.79.0",
+    "leaflet.markercluster": "^1.5.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.53.0",
+    "eslint-config-google": "^0.14.0"
   }
 }

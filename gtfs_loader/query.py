@@ -3,8 +3,9 @@
 # pylint: disable=unused-import
 # pylint: disable=wildcard-import
 from datetime import datetime, timedelta
-from sqlalchemy.sql import select, selectable, or_, and_, not_
+from sqlalchemy.sql import select, or_, and_, not_, delete, Select, Delete
 from sqlalchemy.orm import aliased
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from gtfs import *
 
 
@@ -15,27 +16,78 @@ class Query:
         route_types (list[str]): list of route_types to query
     """
 
-    def __init__(self, route_types: list[str] = None) -> None:
-        """Initializes Query.
+    @staticmethod
+    def select(orm: DeclarativeMeta) -> Select[DeclarativeMeta]:
+        """Returns a generic select query for a table.
 
         Args:
-            route_types (list[str], optional): list of route_types to query. Defaults to None.
+            orm (DeclarativeMeta): table to query
+        Returns:
+            A generic select query for a table.
         """
-        self.route_types = route_types or []
-        self.trip_query = self.return_trip_query()
-        self.parent_stops_query = self.return_parent_stops()
+        return select(orm)
 
-    def __repr__(self) -> str:
-        return f"<Query(route_types={self.route_types})>"
+    @staticmethod
+    def delete(orm: DeclarativeMeta) -> Delete[DeclarativeMeta]:
+        """Returns a generic delete query for a table.
 
-    def return_active_calendar_query(self, date: datetime) -> selectable.Select:
+        Args:
+            orm (DeclarativeMeta): table to query
+        Returns:
+            A generic delete query for a table.
+        """
+        return delete(orm)
+
+    @staticmethod
+    def get_active_calendars(
+        date: datetime, specific: bool = False, days_ahead: int = 7
+    ) -> Select:
         """Returns a query for active calendars on a date.
 
         Args:
             date (datetime): date to query
+            specific (bool, optional): whether to query for specific date. Defaults to False (query for week)
+            days_ahead (int, optional): number of days ahead to query. Defaults to 7.
         Returns:
             A query for active calendars on a date.
         """
+        if specific:
+            return (
+                select(Calendar)
+                .join(
+                    CalendarAttribute,
+                    Calendar.service_id == CalendarAttribute.service_id,
+                )
+                .join(
+                    CalendarDate,
+                    Calendar.service_id == CalendarDate.service_id,
+                    isouter=True,
+                )
+                .where(
+                    or_(
+                        and_(
+                            CalendarAttribute.service_schedule_typicality != "6",
+                            Calendar.start_date
+                            <= (date + timedelta(days=7)).strftime("%Y%m%d"),
+                            Calendar.end_date >= date.strftime("%Y%m%d"),
+                            getattr(Calendar, date.strftime("%A").lower()),
+                            not_(
+                                and_(
+                                    CalendarDate.date == date.strftime("%Y%m%d"),
+                                    CalendarDate.exception_type == "2",
+                                    CalendarDate.service_id.isnot(None),
+                                )
+                            ),
+                        ),
+                        and_(
+                            CalendarDate.date == date.strftime("%Y%m%d"),
+                            CalendarDate.exception_type == "1",
+                            CalendarDate.service_id.isnot(None),
+                            CalendarAttribute.service_schedule_typicality != "6",
+                        ),
+                    )
+                )
+            )
 
         return (
             select(Calendar)
@@ -52,16 +104,8 @@ class Query:
                     and_(
                         CalendarAttribute.service_schedule_typicality != "6",
                         Calendar.start_date
-                        <= (date + timedelta(days=7)).strftime("%Y%m%d"),
+                        <= (date + timedelta(days=days_ahead)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
-                        # getattr(Calendar, date.strftime("%A").lower()),
-                        # not_(
-                        #     and_(
-                        #         CalendarDate.date == date.strftime("%Y%m%d"),
-                        #         CalendarDate.exception_type == "2",
-                        #         CalendarDate.service_id.isnot(None),
-                        #     )
-                        # ),
                     ),
                     and_(
                         CalendarDate.date == date.strftime("%Y%m%d"),
@@ -73,7 +117,88 @@ class Query:
             )
         )
 
-    def return_trip_query(self) -> selectable.Select:
+    @staticmethod
+    def delete_calendars(*args, **kwargs) -> Delete[DeclarativeMeta]:
+        """Returns a query to delete calendars.
+
+        Args:
+            *args: args for get_active_calendars
+            **kwargs: kwargs for get_active_calendars
+        Returns:
+            A query to delete calendars.
+        """
+
+        return delete(Calendar).where(
+            Calendar.service_id.notin_(
+                select(
+                    __class__.get_active_calendars(*args, **kwargs).columns.service_id
+                )
+            )
+        )
+
+    @staticmethod
+    def delete_facilities(exclude: list[str] = None) -> Delete[DeclarativeMeta]:
+        """Returns a query to delete facilities.
+
+        Args:
+            exclude (list[str], optional): list of facility types to exclude. Defaults to ["parking-area", "bike-storage"].
+        Returns:
+            A query to delete facilities.
+        """
+
+        return delete(Facility).where(
+            Facility.facility_id.not_in(
+                select(Facility.facility_id).where(
+                    Facility.facility_type.in_(
+                        exclude or ("parking-area", "bike-storage")
+                    ),
+                    Facility.stop_id.isnot(None),
+                )
+            )
+        )
+
+    @staticmethod
+    def get_shapes_from_route(routes: list[str] = None) -> Select[DeclarativeMeta]:
+        """Returns a query for shapes.
+
+        Args:
+            routes (list[str], optional): list of routes to query. Defaults to None.
+        Returns:
+            A query for shapes.
+        """
+        base_query = (
+            select(Shape)
+            .join(Trip, Shape.shape_id == Trip.shape_id)
+            .join(Route, Trip.route_id == Route.route_id)
+        )
+        if not routes:
+            return base_query
+        return base_query.where(Route.route_id.in_(routes))
+
+    @staticmethod
+    def get_ferry_parking() -> Select[DeclarativeMeta]:
+        """Returns a query for ferry parking."""
+        return (
+            select(Facility)
+            .join(Stop, Facility.stop_id == Stop.stop_id)
+            .where(Stop.vehicle_type == "4")
+            .where(Facility.facility_type == "parking-area")
+        )
+
+    def __init__(self, route_types: list[str] = None) -> None:
+        """Initializes Query.
+
+        Args:
+            route_types (list[str], optional): list of route_types to query. Defaults to None.
+        """
+        self.route_types = route_types or []
+        self.trip_query = self.__get_trips()
+        self.parent_stops_query = self.__get_parent_stops()
+
+    def __repr__(self) -> str:
+        return f"<Query(route_types={self.route_types})>"
+
+    def __get_trips(self) -> Select[DeclarativeMeta]:
         """Returns a query for trips.
 
         Returns:
@@ -96,7 +221,7 @@ class Query:
             )
         )
 
-    def return_parent_stops(self) -> selectable.Select:
+    def __get_parent_stops(self) -> Select[DeclarativeMeta]:
         """Returns a query for parent stops.
 
         Returns:
@@ -113,7 +238,7 @@ class Query:
             .where(StopTime.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
 
-    def return_shapes_query(self) -> selectable.Select:
+    def get_shapes(self) -> Select[DeclarativeMeta]:
         """Returns a query for shapes.
 
         Returns:
@@ -125,7 +250,7 @@ class Query:
             .where(Trip.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
 
-    def return_routes_query(self) -> selectable.Select:
+    def return_routes_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for routes.
 
         Returns:
@@ -137,7 +262,7 @@ class Query:
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
         )
 
-    def return_vehicles_query(self, add_routes: list[str]) -> selectable.Select:
+    def get_vehicles(self, add_routes: list[str]) -> Select[DeclarativeMeta]:
         """Returns a query for vehicles.
 
         Args:
@@ -161,11 +286,11 @@ class Query:
             )
         )
 
-    def return_facilities_query(self, types: list[str] = None) -> selectable.Select:
+    def get_facilities(self, types: list[str] = None) -> Select[DeclarativeMeta]:
         """Returns a query for parking facilities.
 
         Args:
-            types (list[str]): list of facility types, default: ["parking-area", "bike-storage"]
+            types (list[str]): list of facility types, default: ("parking-area", "bike-storage")
         Returns:
             A query for parking facilities.
         """
@@ -174,6 +299,6 @@ class Query:
             .distinct()
             .where(
                 Facility.stop_id.in_(select(self.parent_stops_query.columns.stop_id)),
-                Facility.facility_type.in_(types or ["parking-area", "bike-storage"]),
+                Facility.facility_type.in_(types or ("parking-area", "bike-storage")),
             )
         )

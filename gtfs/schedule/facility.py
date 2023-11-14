@@ -12,6 +12,7 @@ class Facility(GTFSBase):
     """Facilities"""
 
     __tablename__ = "facilities"
+    __filename__ = "facilities.txt"
 
     facility_id = Column(String, primary_key=True)
     facility_code = Column(String)

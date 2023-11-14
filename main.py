@@ -16,18 +16,18 @@ from gtfs_loader import FeedLoader, Feed, Query
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
 SILVER_LINE_ROUTES = ["741", "742", "743", "751", "749", "746"]
 KEY_DICT = {
-    "SUBWAY": ["0", "1"],
-    "RAPID_TRANSIT": ["0", "1", "4"],
-    "COMMUTER_RAIL": ["2"],
-    "BUS": ["3"],
-    "FERRY": ["4"],
-    "ALL_ROUTES": ["0", "1", "2", "3", "4"],
+    "SUBWAY": ("0", "1"),
+    "RAPID_TRANSIT": ("0", "1", "4"),
+    "COMMUTER_RAIL": ("2",),
+    "BUS": ("3",),
+    "FERRY": ("4",),
+    "ALL_ROUTES": ("0", "1", "2", "3", "4"),
 }
 
 # pylint: disable=unused-argument
 
 
-def create_app(key: str, proxies: int = 10) -> Flask:
+def create_app(key: str, proxies: int = 1) -> Flask:
     """Create app for a given key
 
     Args:
@@ -48,7 +48,7 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     @app.route("/vehicles")
     def get_vehicles():
         sess = FEED.scoped_session()
-        vehicles_query = query.return_vehicles_query(
+        vehicles_query = query.get_vehicles(
             add_routes=SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else []
         )
         attempts = 0
@@ -86,7 +86,7 @@ def create_app(key: str, proxies: int = 10) -> Flask:
     return app
 
 
-def create_default_app(proxies: int = 10) -> Flask:
+def create_default_app(proxies: int = 1) -> Flask:
     """Creates the default Flask object
 
     Args:
@@ -140,7 +140,7 @@ def run_dev_server(app: Flask = None, **kwargs) -> None:
         kwargs: Keyword arguments for app.run.
     """
 
-    for thread in [Thread(target=feed_loader), Thread(target=app.run, **kwargs)]:
+    for thread in (Thread(target=feed_loader), Thread(target=app.run, **kwargs)):
         thread.start()
 
 

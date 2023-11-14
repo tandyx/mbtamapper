@@ -15,6 +15,7 @@ class Stop(GTFSBase):
     """Stop"""
 
     __tablename__ = "stops"
+    __filename__ = "stops.txt"
 
     stop_id = Column(String, primary_key=True)
     stop_code = Column(String)
@@ -131,7 +132,7 @@ class Stop(GTFSBase):
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
         alerts = self.alerts or list_unpack(
-            ((a for a in s.alerts if not a.trip) for s in self.child_stops), "list"
+            ((a for a in s.alerts if not a.trip) for s in self.child_stops)
         )
         stop_time_html = "".join(
             (
@@ -142,6 +143,7 @@ class Stop(GTFSBase):
                     key=lambda x: x.departure_seconds,
                 )
                 if st.trip.calendar.operates_on_date(date)
+                and st.trip.route.route_type in ("2", "4")
                 and st.departure_seconds
                 > (get_current_time().timestamp() - get_date().timestamp())
                 # and not st.is_destination()
@@ -160,7 +162,7 @@ class Stop(GTFSBase):
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join({a.as_html() for a in alerts})}</table>"""
             """</span></div>"""
-            if alerts
+            if list(alerts)
             else ""
         )
 

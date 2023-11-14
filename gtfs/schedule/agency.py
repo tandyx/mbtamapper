@@ -9,6 +9,7 @@ class Agency(GTFSBase):
     """Agency"""
 
     __tablename__ = "agencies"
+    __filename__ = "agency.txt"
 
     agency_id = Column(String, primary_key=True)
     agency_name = Column(String)

@@ -1,6 +1,7 @@
 """File to hold the LinkedDataset class and its associated methods."""
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
+# pylint: disable=no-name-in-module
 import time
 import logging
 import requests as rq
@@ -67,6 +68,7 @@ class LinkedDataset(GTFSBase):
     """LinkedDataset"""
 
     __tablename__ = "linked_datasets"
+    __filename__ = "linked_datasets.txt"
 
     url = Column(String, primary_key=True)
     trip_updates = Column(Integer)
@@ -97,14 +99,14 @@ class LinkedDataset(GTFSBase):
         Returns:
             pd.DataFrame: Realtime data from the linked dataset.
         """
-        feed = FeedMessage()
+        feed_entity = FeedMessage()
         response = rq.get(self.url, timeout=10)
         if not response.ok:
             logging.error("Error retrieving data from %s", self.url)
             return pd.DataFrame()
         logging.info("Retrieved data from %s", self.url)
-        feed.ParseFromString(response.content)
-        return pd.json_normalize(protobuf_to_dict(feed)["entity"], sep="_")
+        feed_entity.ParseFromString(response.content)
+        return pd.json_normalize(protobuf_to_dict(feed_entity)["entity"], sep="_")
 
     def _post_process(self, dataframe: pd.DataFrame, rename_dict: dict) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.

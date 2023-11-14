@@ -10,6 +10,7 @@ class ShapePoint(GTFSBase):
     """Shape"""
 
     __tablename__ = "shape_points"
+    __filename__ = "shapes.txt"
 
     shape_id = Column(
         String,

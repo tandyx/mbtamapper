@@ -18,10 +18,14 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
 
 # Install leaflet plugins
 # RUN rmdir -p ./static/node_modules
-RUN mkdir -p ./static/node_modules
-RUN npm install --prefix ./static leaflet-fullscreen
-RUN npm install --prefix ./static leaflet-realtime
-RUN npm install --prefix ./static leaflet-search
+# RUN mkdir -p ./static/node_modules
+
+# RUN npm install --prefix ./static leaflet
+# RUN npm install --prefix ./static leaflet-fullscreen
+# RUN npm install --prefix ./static leaflet-realtime
+# RUN npm install --prefix ./static leaflet-search
+# RUN npm install --prefix ./static leaflet.locatecontrol
+# RUN npm install --prefix ./static leaflet.markercluster
 
 CMD "./start.sh"
 # CMD ["wait"]

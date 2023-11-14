@@ -15,35 +15,28 @@
 
     <link
       rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-      integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
-      crossorigin=""
+      href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
     />
-    <script
-      src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-      integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
-      crossorigin=""
-    ></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
     <link
       rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
+      href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css') }}"
     />
     <link
       rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
+      href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css') }}"
     />
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/src/MarkerClusterGroup.js"></script>
-    <script src="/static/functions.js" type="text/javascript"></script>
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
+
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
+      href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css') }}"
     />
-    <script
-      src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js"
-      charset="utf-8"
-    ></script>
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js') }}"></script>
 
     <link
       rel="icon"
@@ -103,7 +96,6 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='src/navbar.css') }}"
     />
-    <!-- <script src="{{ url_for('static', filename='vehicle.js') }}"></script> -->
 
     <title>MBTA System Map</title>
   </head>
