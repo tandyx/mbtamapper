@@ -8,6 +8,7 @@ class MultiRouteTrip(GTFSBase):
     """Multi Route Trip"""
 
     __tablename__ = "multi_route_trips"
+    __filename__ = "multi_route_trips.txt"
 
     added_route_id = Column(
         String,

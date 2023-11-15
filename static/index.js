@@ -8,7 +8,7 @@ window.addEventListener("load", function () {
     "ALL_ROUTES",
   ];
 
-  map = createMap(ARRAY);
+  var map = createMap(ARRAY);
 });
 
 function createMap(array) {
@@ -23,6 +23,7 @@ function createMap(array) {
         ));
 
       function createCorner(vSide, hSide) {
+        // creates a control container with corners at the map edges
         var className = l + vSide + " " + l + hSide;
 
         corners[vSide + hSide] = L.DomUtil.create("div", className, container);

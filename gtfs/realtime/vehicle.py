@@ -10,7 +10,6 @@ from helper_functions import shorten
 from ..base import GTFSBase
 
 
-# filter: invert(23%) sepia(76%) saturate(4509%) hue-rotate(353deg) brightness(88%) contrast(92%);
 class Vehicle(GTFSBase):
     """Vehicle"""
 
@@ -72,11 +71,8 @@ class Vehicle(GTFSBase):
         "1": "Inbound",
         "1.0": "Inbound",
         "0.0": "Outbound",
-        1: "Inbound",
-        0: "Outbound",
-        1.0: "Inbound",
-        0.0: "Outbound",
     }
+
     STATUS_MAPPER = {
         "0": "Incoming at ",
         "1": "Stopped at ",
@@ -99,7 +95,7 @@ class Vehicle(GTFSBase):
 
         if self.stop:
             current_status = (
-                f"""<span>{self.STATUS_MAPPER.get(self.current_status, "In transit to ")} </span>"""
+                f"""<span>{Vehicle.STATUS_MAPPER.get(self.current_status, "In transit to ")} </span>"""
                 f"""<a href={self.stop.stop_url} target="_blank">{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
                 f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""}"""
             )
@@ -204,7 +200,7 @@ class Vehicle(GTFSBase):
             f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or shorten(self.trip_id)}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
-            f"""{self.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""
+            f"""{Vehicle.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""
             # """<hr/>"""
             """—————————————————————————————————</br>"""
             f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""

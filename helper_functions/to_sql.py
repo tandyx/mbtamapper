@@ -16,7 +16,9 @@ def to_sql(
     session: Session,
     data: pd.DataFrame,
     orm: GTFSBase,
+    *args,
     purge: bool = False,
+    **kwargs,
 ) -> None:
     """Helper function to dump dataframe to sql.
 
@@ -44,6 +46,8 @@ def to_sql(
             con=session.connection().engine,
             if_exists="append",
             index=False,
+            *args,
+            **kwargs,
         )
     except IntegrityError:
         try:
@@ -52,6 +56,8 @@ def to_sql(
                 con=session.connection().engine,
                 if_exists="append",
                 index=False,
+                *args,
+                **kwargs,
             )
         except Exception as error:
             logging.error("Failed to insert %s: %s", orm.__tablename__, error)

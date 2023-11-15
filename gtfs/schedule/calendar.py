@@ -12,6 +12,7 @@ class Calendar(GTFSBase):
     """Calendar"""
 
     __tablename__ = "calendars"
+    __filename__ = "calendar.txt"
 
     service_id = Column(String, primary_key=True)
     monday = Column(Integer)

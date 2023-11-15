@@ -11,6 +11,7 @@ class Route(GTFSBase):
     """Route"""
 
     __tablename__ = "routes"
+    __filename__ = "routes.txt"
 
     route_id = Column(String, primary_key=True)
     agency_id = Column(

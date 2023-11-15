@@ -8,6 +8,7 @@ class FacilityProperty(GTFSBase):
     """Facilities Properties"""
 
     __tablename__ = "facilities_properties"
+    __filename__ = "facilities_properties.txt"
 
     facility_id = Column(
         String,

@@ -68,3 +68,7 @@ static/secrets.json
 static/secrets.html
 venv/
 /static/node_modules
+/.vscode
+.vscode
+*.dockerignore
+/.dockerignore

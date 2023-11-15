@@ -9,6 +9,7 @@ class CalendarDate(GTFSBase):
     """Calendar Dates"""
 
     __tablename__ = "calendar_dates"
+    __filename__ = "calendar_dates.txt"
 
     service_id = Column(
         String,

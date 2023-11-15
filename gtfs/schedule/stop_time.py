@@ -10,6 +10,7 @@ class StopTime(GTFSBase):
     """Stop Times"""
 
     __tablename__ = "stop_times"
+    __filename__ = "stop_times.txt"
 
     trip_id = Column(
         String,

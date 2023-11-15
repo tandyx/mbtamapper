@@ -8,6 +8,7 @@ class CalendarAttribute(GTFSBase):
     """Calendar Attributes"""
 
     __tablename__ = "calendar_attributes"
+    __filename__ = "calendar_attributes.txt"
 
     service_id = Column(
         String,

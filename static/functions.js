@@ -36,7 +36,7 @@ function setFavicon(route_type_lower) {
   }
 }
 
-ROUTE_COLOR_DICT = {
+const ROUTE_COLOR_DICT = {
   subway: "#7C878E",
   rapid_transit: "#DA291C",
   commuter_rail: "#80276C",

@@ -8,6 +8,7 @@ class Trip(GTFSBase):
     """Trip"""
 
     __tablename__ = "trips"
+    __filename__ = "trips.txt"
 
     route_id = Column(
         String, ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
