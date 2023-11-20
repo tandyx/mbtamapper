@@ -1,17 +1,22 @@
 window.addEventListener("load", function () {
-  const ARRAY = [
+  createMap(
+    "map",
     "SUBWAY",
     "RAPID_TRANSIT",
     "COMMUTER_RAIL",
     "BUS",
     "FERRY",
-    "ALL_ROUTES",
-  ];
-
-  var map = createMap(ARRAY);
+    "ALL_ROUTES"
+  );
 });
 
-function createMap(array) {
+function createMap(id, ...routes) {
+  /** map factory function for index.html
+   * @param {string} id - id of div to create map in
+   * @param {routes} routes - route type routes
+   * @returns {L.map} map
+   */
+
   L.Map.include({
     _initControlPos: function () {
       var corners = (this._controlCorners = {}),
@@ -23,28 +28,26 @@ function createMap(array) {
         ));
 
       function createCorner(vSide, hSide) {
-        // creates a control container with corners at the map edges
-        var className = l + vSide + " " + l + hSide;
-
+        /** creates a control container with corners at the map edges
+         * @param {string} vSide - vertical side: 'top' or 'bottom'
+         * @param {string} hSide - horizontal side: 'left' or 'right'
+         * @returns {void}
+         */
+        const className = l + vSide + " " + l + hSide;
         corners[vSide + hSide] = L.DomUtil.create("div", className, container);
       }
 
-      createCorner("top", "left");
-      createCorner("top", "right");
-      createCorner("bottom", "left");
-      createCorner("bottom", "right");
-
-      createCorner("top", "center");
-      createCorner("middle", "center");
-      createCorner("middle", "left");
-      createCorner("middle", "right");
-      createCorner("bottom", "center");
+      for (const vpos of ["top", "middle", "bottom"]) {
+        for (const hpos of ["left", "center", "right"]) {
+          createCorner(vpos, hpos);
+        }
+      }
     },
   });
 
-  var route_type = array[Math.floor(Math.random() * array.length)];
-  var zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
-  var map = L.map("map", {
+  const route_type = routes[Math.floor(Math.random() * routes.length)];
+  const zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
+  const map = L.map(id, {
     zoomControl: false,
     maxZoom: zoom,
     minZoom: zoom,
@@ -59,7 +62,7 @@ function createMap(array) {
   if (map.tap) map.tap.disable();
   document.getElementById("map").style.cursor = "default";
 
-  var CartoDB_Positron = L.tileLayer(
+  const positron = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
     {
       // attribution:
@@ -68,7 +71,7 @@ function createMap(array) {
       maxZoom: 20,
     }
   ).addTo(map);
-  var CartoDB_DarkMatter = L.tileLayer(
+  const darkMatter = L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
     {
       // attribution:
@@ -77,23 +80,22 @@ function createMap(array) {
       maxZoom: 20,
     }
   );
+  const shape_layer = L.layerGroup().addTo(map);
+  plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer, false);
 
-  var shape_layer = L.layerGroup().addTo(map);
-  realtime = plotShapes(route_type, shape_layer).addTo(map);
-
-  map.on("click", function (e) {
+  map.on("click", function () {
     // console.log(e.originalEvent.target.offsetParent)
-    if (map.hasLayer(CartoDB_Positron)) {
-      map.removeLayer(CartoDB_Positron);
-      map.addLayer(CartoDB_DarkMatter);
+    if (map.hasLayer(positron)) {
+      map.removeLayer(positron);
+      map.addLayer(darkMatter);
     } else {
-      map.removeLayer(CartoDB_DarkMatter);
-      map.addLayer(CartoDB_Positron);
+      map.removeLayer(darkMatter);
+      map.addLayer(positron);
     }
   });
 
   L.Control.textbox = L.Control.extend({
-    onAdd: function (map) {
+    onAdd: function () {
       var text = L.DomUtil.create("div");
       text.id = "info_text";
       text.innerHTML = `
@@ -164,31 +166,27 @@ function createMap(array) {
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('about_me')" onmouseleave="unhoverImage('about_me')">
               <span class = "tooltiptext-mini_image contacts">About me!</span>
               <a href="https://tandy-c.github.io/website/" >
-                  <img src = "static/img/johan.png" class="contact_imgs" alt="about_me" id="about_me" >
+                  <img src = "/static/img/johan.png" class="contact_imgs" alt="about_me" id="about_me" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('linkedin')" onmouseleave="unhoverImage('linkedin')">
               <span class = "tooltiptext-mini_image contacts">My Linkedin</span>
               <a href="https://www.linkedin.com/in/chojohan/" >
-                  <img src = "static/img/linkedin.png" class="contact_imgs" alt="linkedin" id="linkedin" >
+                  <img src = "/static/img/linkedin.png" class="contact_imgs" alt="linkedin" id="linkedin" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('facebook')" onmouseleave="unhoverImage('facebook')">
               <span class = "tooltiptext-mini_image contacts">My Facebook</span>
               <a href="https://www.facebook.com/johan.cho.927" >
-                  <img src = "static/img/facebook.png" class="contact_imgs" alt="facebook" id="facebook" >
+                  <img src = "/static/img/facebook.png" class="contact_imgs" alt="facebook" id="facebook" >
               </a></span>
               <span class = "tooltip-mini_image" style="padding:5px;" onmouseover="hoverImage('youtube')" onmouseleave="unhoverImage('youtube')">
               <span class = "tooltiptext-mini_image contacts">My Youtube (haven't touched it in a bit)</span>
               <a href="https://www.youtube.com/channel/UCP91LPgRFY03YoIGrmuMH9A" >
-                  <img src = "static/img/youtube.png" class="contact_imgs" alt="youtube" id="youtube" >
+                  <img src = "/static/img/youtube.png" class="contact_imgs" alt="youtube" id="youtube" >
               </a></span>
           </div>
       </div>
       `;
       return text;
-    },
-
-    onRemove: function (map) {
-      // Nothing to do here
     },
   });
 
@@ -198,29 +196,4 @@ function createMap(array) {
   L.control.textbox({ position: "topcenter" }).addTo(map);
 
   return map;
-}
-
-// var zoom = route_type == "commuter_rail" ? 9 : 13;
-
-function plotShapes(key, layer) {
-  let polyLineRender = L.canvas({ padding: 0, tolerance: 0 });
-  return L.realtime(`/static/geojsons/${key}/shapes.json`, {
-    interval: 360000000000000,
-    type: "FeatureCollection",
-    container: layer,
-    cache: true,
-    removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
-    onEachFeature(f, l) {
-      l.setStyle({
-        interactive: false,
-        color: f.properties.color,
-        opacity: f.properties.opacity,
-        weight: 1.3,
-        renderer: polyLineRender,
-      });
-    },
-  });
 }
