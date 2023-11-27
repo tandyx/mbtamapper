@@ -10,8 +10,10 @@
 name: Publish Docker image
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
 
 jobs:
   push_to_registry:
@@ -39,5 +41,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: tandyy/mbta_mapper:latest
           labels: ${{ steps.meta.outputs.labels }}
