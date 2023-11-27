@@ -41,5 +41,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: "latest"
+          tags: tandyy/mbta_mapper:latest
           labels: ${{ steps.meta.outputs.labels }}
