@@ -1,7 +1,7 @@
 """File to hold the Agency class and its associated methods."""
-
-from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+
 from ..base import GTFSBase
 
 

@@ -1,16 +1,17 @@
 """FeedLoader class."""
-
-import os
-import time
 import logging
-
-# from threading import Thread
+import os
+import queue
+import threading
+import time
 from typing import NoReturn
+
 from schedule import Scheduler
 from sqlalchemy.exc import OperationalError
 
-from gtfs import Alert, Vehicle, Prediction
-from helper_functions import get_current_time, threader, get_date
+from gtfs import Alert, Prediction, Vehicle
+from helper_functions import get_current_time, get_date, timeit
+
 from .feed import Feed
 
 
@@ -56,50 +57,15 @@ class FeedLoader(Scheduler):
             except OperationalError:
                 logging.warning("OperationalError: %s", key)
 
-    def update_realtime(self, _orm: Alert | Vehicle | Prediction = Prediction) -> None:
+    @timeit
+    def update_realtime(self, orm: Alert | Vehicle | Prediction) -> None:
         """Updates realtime data.
 
         Args:
-            _orm (Alert | Vehicle | Prediction, optional): ORM to update. Defaults to Prediction.
+            _orm (Alert | Vehicle | Prediction): ORM to update.
         """
-        start = time.time()
-        self.feed.import_realtime(_orm)
-        logging.info(
-            "Updated realtime data for %s in %s s.",
-            _orm.__tablename__,
-            round(time.time() - start, 4),
-        )
-
-    # def export_vehicle_geojson(self, key: str) -> None:
-    #     """Exports vehicle geojson.
-
-    #     Args:
-    #         key (str): key for route types
-    #     """
-    #     try:
-    #         self.feed.export_vehicle_geojson(key, FeedLoader.GEOJSON_PATH)
-    #     except OperationalError:
-    #         logging.warning("OperationalError: %s", key)
-
-    # # pylint: disable=unused-private-member
-    # def __vehicle_threader(self, key: str) -> None:
-    #     """Vehicle threader function.
-
-    #     Args:
-    #         key (str): key for route types
-    #     """
-    # logging.info("Starting vehicle threader")
-
-    ## threads = [
-    ##     Thread(target=self.export_vehicle_geojson, args=(key,)) for key in self.keys
-    ## ]
-
-    ## for thread in threads:
-    ##     thread.start()
-    ## for thread in threads:
-    ##     thread.join()
-
-    # threader(self.export_vehicle_geojson, key, join=True)
+        self.feed.import_realtime(orm)
+        logging.info("Updated realtime data for %s.", orm.__tablename__)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
@@ -107,20 +73,29 @@ class FeedLoader(Scheduler):
         Args:
             timezone (str, optional): Timezone. Defaults to "America/New_York".
         """
-        self.every(2).minutes.do(threader, self.update_realtime, Alert, join=True)
-        self.every(12).seconds.do(threader, self.update_realtime, Vehicle, join=True)
-        self.every().minute.do(threader, self.update_realtime, Prediction, join=True)
-        # for key in self.keys:
-        #     self.every(12).seconds.do(threader, self.__vehicle_threader, False, key)
-        # self.every().second.do(threader, self.__vehicle_threader, True)
+        logging.info("Starting scheduler")
 
-        # self.every().second.do(threader, self.export_vehicle_geojson, True, key)
-        # schedule.every().minute.do(self.threader, self.geojson_exports)
-        # schedule.every(4).hours.at(":00").do(self.threader, self.geojson_exports)
-        self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
-        # for times in ["04:00", "12:00", "20:00"]:
-        #     self.every().day.at(times, tz=timezone).do(threader, self.geojson_exports)
-        self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
+        def worker_main():
+            """Worker main function."""
+            while True:
+                job_func = jobqueue.get()
+                if isinstance(job_func, tuple):
+                    job_func[0](*job_func[1:])
+                else:
+                    job_func()
+                jobqueue.task_done()
+
+        jobqueue = queue.Queue()
+
+        self.every(2).minutes.do(jobqueue.put, (self.update_realtime, Alert))
+        self.every(12).seconds.do(jobqueue.put, (self.update_realtime, Vehicle))
+        self.every().minute.do(jobqueue.put, (self.update_realtime, Prediction))
+        self.every().day.at("04:00", tz=timezone).do(jobqueue.put, self.geojson_exports)
+        self.every().day.at("03:30", tz=timezone).do(jobqueue.put, self.nightly_import)
+
+        worker_thread = threading.Thread(target=worker_main)
+        worker_thread.start()
+
         while True:
             self.run_pending()
             time.sleep(1)

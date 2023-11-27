@@ -1,12 +1,8 @@
 # MBTA Realtime Mapping @ <https://mbtamapper.com/>
 
-## Deployed to [mbtamapper.com](https://mbtamapper.com/) or [default domain](https://mbtamapper-beta.azurewebsites.net/)
-
 I built this project using SQLAlchemy.
 
 It essentially builds a sqlite database from a GTFS feed, in part from the static feed loaded every day and in part from the realtime feed. It then uses that database to build a map of the MBTA system, with realtime data, exporting it using flask and using leaflet to render the data.
-
-I use it to commute and get around Boston. I hope you find it useful too.
 
 It's currently deployed to Azure, but I'm looking to move it to Digital Ocean after I run outta money.
 
@@ -20,15 +16,19 @@ It's currently deployed to Azure, but I'm looking to move it to Digital Ocean af
 
 ### To install JavaScript dependencies
 
-`makedir -p ./static/node_modules
-npm install --prefix ./static`
+```SHELL
+makedir -p ./static/node_modules
+npm install --prefix ./static
+```
 
 ### To run the app
 
-`python3 -m venv venv
+```SHELL
+python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade -r requirements.txt
-python main.py`
+python main.py --import_data=True
+```
 
 ## Python Dependencies
 
@@ -47,14 +47,9 @@ python main.py`
 
 ## Javscript Libraries
 
-### CDNS
-
 - [leaflet](https://leafletjs.com/)
 - [leaflet-markercluster](https://github.com/Leaflet/Leaflet.markercluster)
 - [leaflet-locatecontrol](https://github.com/domoritz/leaflet-locatecontrol)
-
-### Local
-
 - [leaflet-realtime](https://github.com/perliedman/leaflet-realtime)
 - [leaflet-search](https://github.com/stefanocudini/leaflet-search)
 - [leaflet-fullscreen](https://github.com/brunob/leaflet.fullscreen)

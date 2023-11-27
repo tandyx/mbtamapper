@@ -79,6 +79,8 @@ class Vehicle(GTFSBase):
         "2": "In transit to ",
     }
 
+    REALTIME_NAME = "vehicle_positions"
+
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
@@ -117,9 +119,11 @@ class Vehicle(GTFSBase):
             properties={
                 "popupContent": self.as_html_popup(),
                 "icon": self.as_html_icon(),
-                "name": self.trip.trip_short_name or self.trip_id
-                if self.trip
-                else self.trip_id,
+                "name": shorten(
+                    self.trip.trip_short_name or self.trip_id
+                    if self.trip
+                    else self.trip_id
+                ),
             },
         )
 

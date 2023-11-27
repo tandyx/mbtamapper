@@ -262,11 +262,11 @@ class Query:
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
         )
 
-    def get_vehicles(self, add_routes: list[str]) -> Select[DeclarativeMeta]:
+    def get_vehicles(self, add_routes: list[str] = None) -> Select[DeclarativeMeta]:
         """Returns a query for vehicles.
 
         Args:
-            add_routes (list[str]): list of routes to add to query
+            add_routes (list[str], optional): list of routes to add to query for vehicles. Defaults to None.
         Returns:
             A query for vehicles.
         """
@@ -281,7 +281,7 @@ class Query:
                         select(self.return_routes_query().columns.route_id)
                     ),
                     Vehicle.trip_id.in_(select(self.trip_query.columns.trip_id)),
-                    Vehicle.route_id.in_(add_routes),
+                    Vehicle.route_id.in_(add_routes or []),
                 )
             )
         )

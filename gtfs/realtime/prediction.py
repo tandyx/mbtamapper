@@ -1,10 +1,11 @@
 """File to hold the Prediction class and its associated methods."""
 # pylint: disable=line-too-long
 from datetime import datetime
-from dateutil.parser import isoparse
 
-from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import relationship, reconstructor
+from dateutil.parser import isoparse
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import reconstructor, relationship
+
 from ..base import GTFSBase
 
 
@@ -62,6 +63,8 @@ class Prediction(GTFSBase):
         "arrival_time": "arrival_datetime",
         "departure_time": "departure_datetime",
     }
+
+    REALTIME_NAME = "trip_updates"
 
     @reconstructor
     def _init_on_load_(self) -> None:

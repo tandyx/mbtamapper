@@ -1,10 +1,10 @@
 """Helper functions for time conversions for gtfs loader"""
 from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
 import pytz
 from dateutil.parser import parse
-
-import pandas as pd
-import numpy as np
 
 
 def to_seconds(time: str) -> int:
