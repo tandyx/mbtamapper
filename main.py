@@ -1,21 +1,19 @@
-"""Test"""
-import os
-import time
+"""Main file for the project. Run this to start the server."""
+import argparse
 import logging
+import os
 from threading import Thread
-from typing import NoReturn
-from flask import Flask, render_template, jsonify
-from geojson import FeatureCollection
-from werkzeug.middleware.proxy_fix import ProxyFix
+from typing import Any, NoReturn
+
+from flask import Flask, jsonify, render_template
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from sqlalchemy.exc import OperationalError
+from werkzeug.middleware.proxy_fix import ProxyFix
 
+from gtfs_loader import Feed, FeedLoader
 
-from gtfs_loader import FeedLoader, Feed, Query
-
+PARSER = argparse.ArgumentParser()
 FEED = Feed("https://cdn.mbta.com/MBTA_GTFS.zip")
-SILVER_LINE_ROUTES = ["741", "742", "743", "751", "749", "746"]
-KEY_DICT = {
+KEY_DICT: dict[str, tuple[str]] = {
     "SUBWAY": ("0", "1"),
     "RAPID_TRANSIT": ("0", "1", "4"),
     "COMMUTER_RAIL": ("2",),
@@ -24,10 +22,21 @@ KEY_DICT = {
     "ALL_ROUTES": ("0", "1", "2", "3", "4"),
 }
 
+
 # pylint: disable=unused-argument
+def add_arg(arg: str, *args, **kwargs) -> Any:
+    """Add arguments to the argument parser.
+
+    Args:
+        arg (str): The name of the argument to add.
+    """
+    PARSER.add_argument(f"--{arg}", *args, **kwargs)
+    arg_result = getattr(PARSER.parse_args(), arg)
+    logging.info("Argument %s set to %s", arg, arg_result)
+    return arg_result
 
 
-def create_app(key: str, proxies: int = 1) -> Flask:
+def create_app(key: str, proxies: int = 5) -> Flask:
     """Create app for a given key
 
     Args:
@@ -36,39 +45,17 @@ def create_app(key: str, proxies: int = 1) -> Flask:
     Returns:
         Flask: app for the key."""
     app = Flask(__name__)
-    # flask_app = FlaskApp(app, FEED, key)
-    # app = flask_app.app
-
-    query = Query(KEY_DICT[key])
 
     @app.route("/")
-    def render_map():
+    def render_map() -> str:
+        """Returns map.html."""
         return render_template("map.html")
 
     @app.route("/vehicles")
-    def get_vehicles():
-        sess = FEED.scoped_session()
-        vehicles_query = query.get_vehicles(
-            add_routes=SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else []
-        )
-        attempts = 0
-        try:
-            while attempts <= 10:
-                data = sess.execute(
-                    vehicles_query
-                    if key not in ["BUS", "ALL_ROUTES"]
-                    else vehicles_query.limit(75)
-                ).all()
-                if data and any(d[0].predictions for d in data):
-                    break
-                attempts += 1
-                time.sleep(0.5)
-        except OperationalError as error:
-            data = []
-            logging.error("Failed to send data: %s", error)
-        if not data:
-            logging.error("No data returned in %s attemps", attempts)
-        return jsonify(FeatureCollection([v[0].as_feature() for v in data]))
+    def get_vehicles() -> str:
+        """Returns vehicles as geojson."""
+
+        return jsonify(FEED.get_vehicles(key, KEY_DICT[key]))
 
     @app.teardown_appcontext
     def shutdown_session(self, exception=None) -> None:
@@ -86,7 +73,7 @@ def create_app(key: str, proxies: int = 1) -> Flask:
     return app
 
 
-def create_default_app(proxies: int = 1) -> Flask:
+def create_default_app(proxies: int = 5) -> Flask:
     """Creates the default Flask object
 
     Args:
@@ -132,21 +119,29 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     feadloader.run()
 
 
-def run_dev_server(app: Flask = None, **kwargs) -> None:
-    """Runs the dev server.
+def run_dev_server(app: Flask, *args, **kwargs) -> None:
+    """Runs the dev server. Doesn't work with 3.12
 
     Args:
-        app (Flask, optional): Flask app. Defaults to None.
+        app (Flask): Flask app.
         kwargs: Keyword arguments for app.run.
     """
 
-    for thread in (Thread(target=feed_loader), Thread(target=app.run, **kwargs)):
+    for thread in (
+        Thread(target=feed_loader),
+        Thread(target=app.run, *args, kwargs=kwargs),
+    ):
         thread.start()
+        thread.join()
 
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader()
-    # run_dev_server(create_default_app(), kwargs={"port": 80})
-    # app = create_default_app()
-    # app.run()
+    feed_loader(
+        import_data=add_arg(
+            "import_data",
+            help="Whether to import data and create geojsons. Defaults to False.",
+            action=argparse.BooleanOptionalAction,
+            default=False,
+        )
+    )

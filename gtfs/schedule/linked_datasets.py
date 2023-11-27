@@ -2,18 +2,19 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=no-name-in-module
-import time
 import logging
-import requests as rq
+import time
+
 import pandas as pd
+import requests as rq
 from google.transit.gtfs_realtime_pb2 import FeedMessage
 from protobuf_to_dict import protobuf_to_dict
-from sqlalchemy import Integer, Column, String
+from sqlalchemy import Column, Integer, String
 
-from helper_functions import df_unpack, timestamp_col_to_iso, get_current_time
+from helper_functions import df_unpack, get_current_time, timestamp_col_to_iso
+
 from ..base import GTFSBase
 from ..realtime import *
-
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",

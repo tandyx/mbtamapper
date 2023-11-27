@@ -1,5 +1,6 @@
 """Unpacks a column of a dataframe that contains a list of dictionaries."""
-from typing import Iterable, Any
+from typing import Any, Iterable
+
 import pandas as pd
 
 

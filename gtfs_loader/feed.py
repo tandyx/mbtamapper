@@ -2,21 +2,22 @@
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
-import os
-import time
+# pylint: disable=unused-argument
 import logging
+import os
+import sqlite3
 import tempfile
+import time
 from datetime import datetime
 
 import pandas as pd
 from geojson import FeatureCollection, dump
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import CursorResult
-from helper_functions import get_current_time, to_sql, download_zip
+from sqlalchemy import CursorResult, Engine, create_engine, event, exc, pool
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from gtfs import *
+from helper_functions import *
+
 from .query import Query
 
 
@@ -29,6 +30,8 @@ class Feed:
     """
 
     TEMP_DIR: str = tempfile.gettempdir()
+    SILVER_LINE_ROUTES = ("741", "742", "743", "751", "749", "746")
+
     # note that the order of these tables matters; avoids foreign key errors
     INSERTION_TUPLE = (
         Agency,
@@ -46,7 +49,47 @@ class Feed:
         FacilityProperty,
     )
 
-    # SILVER_LINE_ROUTES = "741,742,743,751,749,746"
+    @staticmethod
+    @event.listens_for(Engine, "connect")
+    def _on_connect(
+        dbapi_connection: sqlite3.Connection,
+        connection_record: pool.ConnectionPoolEntry,
+    ) -> None:
+        """Sets sqlite pragma for each connection
+
+        Args:
+            dbapi_connection (sqlite3.Connection): connection to sqlite database
+            connection_record (ConnectionRecord, optional): connection record
+        """
+
+        if isinstance(dbapi_connection, sqlite3.Connection):
+            cursor = dbapi_connection.cursor()
+            for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
+                try:
+                    cursor.execute(f"PRAGMA {pragma}")
+                except sqlite3.OperationalError:
+                    logging.warning("PRAGMA %s failed", pragma)
+            cursor.close()
+
+    @staticmethod
+    @event.listens_for(Engine, "close")
+    def _on_close(
+        dbapi_connection: sqlite3.Connection,
+        connection_record: pool.ConnectionPoolEntry,
+    ) -> None:
+        """Sets sqlite pragma on close
+
+        Args:
+            dbapi_connection (sqlite3.Connection): connection to sqlite database
+            connection_record (ConnectionRecord, optional): connection record
+        """
+        if isinstance(dbapi_connection, sqlite3.Connection):
+            cursor = dbapi_connection.cursor()
+            try:
+                cursor.execute("PRAGMA optimize")
+            except sqlite3.OperationalError:
+                logging.warning("PRAGMA optimize failed")
+            cursor.close()
 
     def __init__(self, url: str) -> None:
         """Initializes Feed object.
@@ -58,7 +101,7 @@ class Feed:
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(__class__.TEMP_DIR, self.gtfs_name)
-        self.db_path = os.path.join(__class__.TEMP_DIR, f"{self.gtfs_name}.db")
+        self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
         self.session = self.sessionmkr()
@@ -67,6 +110,7 @@ class Feed:
     def __repr__(self) -> str:
         return f"<Feed(url={self.url})>"
 
+    @timeit
     def import_gtfs(self, *args, purge: bool = True, **kwargs) -> None:
         """Dumps GTFS data into a SQLite database.
 
@@ -76,7 +120,6 @@ class Feed:
             **kwargs: keyword args for import_gtfs
         """
         # ------------------------------- Create Tables ------------------------------- #
-        start = time.time()
         download_zip(self.url, self.zip_path)
         if purge:
             GTFSBase.metadata.drop_all(self.engine)
@@ -91,8 +134,9 @@ class Feed:
                         to_sql(self.session, chunk["shape_id"].drop_duplicates(), Shape)
                     to_sql(self.session, chunk, orm)
 
-        logging.info("Loaded %s in %f s", self.gtfs_name, time.time() - start)
+        logging.info("Loaded %s", self.gtfs_name)
 
+    @removes_session
     def import_realtime(self, orm: GTFSBase) -> None:
         """Imports realtime data into the database.
 
@@ -100,27 +144,18 @@ class Feed:
             orm (GTFSBase): table to import into, must be Alert, Prediction, or Vehicle
         """
         session = self.scoped_session()
-        dataset_mapper = {
-            Alert: ["service_alerts", "process_service_alerts"],
-            Prediction: ["trip_updates", "process_trip_updates"],
-            Vehicle: ["vehicle_positions", "process_vehicle_positions"],
-        }
-
-        if orm not in dataset_mapper:
-            logging.error("Invalid ORM: %s", orm)
-            return
-
         dataset = session.execute(
-            Query.select(LinkedDataset).where(
-                getattr(LinkedDataset, dataset_mapper[orm][0])
-            )
-        ).all()
+            Query.select(LinkedDataset).where(getattr(LinkedDataset, orm.REALTIME_NAME))
+        ).first()
 
         to_sql(
-            session, getattr(dataset[0][0], dataset_mapper[orm][1])(), orm, purge=True
+            session,
+            getattr(dataset[0], "process_" + orm.REALTIME_NAME)(),
+            orm,
+            purge=True,
         )
-        self.scoped_session.remove()
 
+    @timeit
     def purge_and_filter(self, date: datetime) -> None:
         """Purges and filters the database.
 
@@ -154,6 +189,7 @@ class Feed:
         self.export_shapes(key, file_subpath, query_obj)
         self.export_stops(key, file_subpath, query_obj, date)
 
+    @removes_session
     def export_stops(
         self, key: str, file_path: str, query_obj: Query, date: datetime
     ) -> None:
@@ -180,8 +216,7 @@ class Feed:
             dump(features, file)
             logging.info("Exported %s", file.name)
 
-        self.scoped_session.remove()
-
+    @removes_session
     def export_shapes(self, key: str, file_path: str, query_obj: Query) -> None:
         """Generates geojsons for shapes.
 
@@ -196,10 +231,8 @@ class Feed:
 
         if key == "RAPID_TRANSIT":
             shape_data += session.execute(
-                Query.get_shapes_from_route(
-                    ("line-SLWashington", "line-SLWaterfront")
-                ).where(
-                    Route.route_type != "2",
+                Query.get_shapes_from_route(self.SILVER_LINE_ROUTES).where(
+                    Route.route_type != "2"
                 )
             ).all()
 
@@ -215,8 +248,7 @@ class Feed:
             dump(features, file)
             logging.info("Exported %s", file.name)
 
-        self.scoped_session.remove()
-
+    @removes_session
     def export_parking_lots(self, key: str, file_path: str, query_obj: Query) -> None:
         """Generates geojsons for facilities.
 
@@ -242,56 +274,34 @@ class Feed:
             dump(features, file)
             logging.info("Exported %s", file.name)
 
-        self.scoped_session.remove()
+    @removes_session
+    def get_vehicles(
+        self, key: str, route_types: tuple[str], max_tries: int = 5
+    ) -> FeatureCollection:
+        """Returns vehicles as FeatureCollection.
 
-    # def export_vehicle_geojson(self, key: str, query_obj: Query, path: str) -> None:
-    #     """Exports vehicle geojson.
-
-    #     Args:
-    #         key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-    #         query_obj (Query): Query object
-    #         path (str): path to export files to
-    #     """
-
-    #     sess = self.scoped_session()
-    #     add_routes = Feed.SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else ""
-    #     vehicles_query = query_obj.get_vehicles(add_routes)
-    #     # if key in ["BUS", "ALL_ROUTES"]:
-    #     #     vehicles_query = vehicles_query.limit(75)
-    #     data: list[tuple[Vehicle]]
-    #     attempts = 0
-    #     try:
-    #         while attempts <= 10:
-    #             data = sess.execute(vehicles_query).all()
-    #             if data and any(d[0].predictions for d in data) or key == "FERRY":
-    #                 break
-    #             attempts += 1
-    #             time.sleep(1)
-    #     except OperationalError as error:
-    #         data = []
-    #         logging.error("Failed to send data: %s", error)
-    #     if not data:
-    #         logging.error("No data returned in %s attemps", attempts)
-    #     feature_collection = FeatureCollection([v[0].as_feature() for v in data])
-
-    #     with open(
-    #         os.path.join(path, key, "vehicles.json"), "w", encoding="utf-8"
-    #     ) as file:
-    #         dump(feature_collection, file)
-    #         logging.info("Exported %s", file.name)
-
-    # def get_vehicles(self, query: Query, **kwargs) -> FeatureCollection:
-    #     """Returns vehicles as FeatureCollection.
-
-    #     Args:
-    #         query (Query): Query object
-    #         **kwargs: keyword arguments for Query object
-    #     """
-    #     session = self.scoped_session()
-    #     data: list[tuple[Vehicle]]
-    #     try:
-    #         data = session.execute(query.get_vehicles(**kwargs)).all()
-    #     except OperationalError:
-    #         data = []
-    #     self.scoped_session.remove()
-    #     return FeatureCollection([v[0].as_feature() for v in data])
+        Args:
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            route_types (tuple[str]): route types to export
+            max_tries (int): maximum number of tries to get data (default: 5)
+        Returns:
+            FeatureCollection: vehicles as FeatureCollection
+        """
+        sess = self.scoped_session()
+        vehicles_query = Query(route_types).get_vehicles(
+            self.SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else []
+        )
+        if key in ("BUS", "ALL_ROUTES"):
+            vehicles_query = vehicles_query.limit(75)
+        try:
+            for attempt in range(max_tries + 1):
+                data = sess.execute(vehicles_query).all()
+                if data and any(d[0].predictions for d in data):
+                    break
+                time.sleep(0.5)
+        except exc.OperationalError as error:
+            data = []
+            logging.error("Failed to get vehicle data: %s", error)
+        if not data:
+            logging.error("No data returned in %s attemps", attempt)
+        return FeatureCollection([v[0].as_feature() for v in data])

@@ -56,6 +56,8 @@ class Alert(GTFSBase):
         "timestamp": "updated_at_datetime",
     }
 
+    REALTIME_NAME = "service_alerts"
+
     @reconstructor
     def _init_on_load_(self):
         """Loads active_period_end and active_period_start as datetime objects."""

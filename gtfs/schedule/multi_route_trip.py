@@ -1,6 +1,7 @@
 """File to hold the MultiRouteTrip class and its associated methods."""
+from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import relationship
-from sqlalchemy import ForeignKey, Column, String
+
 from ..base import GTFSBase
 
 

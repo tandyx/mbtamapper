@@ -1,8 +1,10 @@
 """File to hold the StopTime class and its associated methods."""
 # pylint: disable=line-too-long
-from sqlalchemy import Integer, ForeignKey, Column, String
-from sqlalchemy.orm import relationship, reconstructor
-from helper_functions import format_time, to_seconds, lazy_convert
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import reconstructor, relationship
+
+from helper_functions import format_time, lazy_convert, to_seconds
+
 from ..base import GTFSBase
 
 
