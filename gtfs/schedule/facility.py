@@ -1,8 +1,9 @@
 """File to hold the Facility class and its associated methods."""
 from geojson import Feature
 from shapely.geometry import Point
+from sqlalchemy import Column, Float, ForeignKey, String
 from sqlalchemy.orm import relationship
-from sqlalchemy import ForeignKey, Column, String, Float
+
 from ..base import GTFSBase
 
 # pylint: disable=line-too-long

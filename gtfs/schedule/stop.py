@@ -1,13 +1,14 @@
 """File to hold the Stop class and its associated methods."""
 # pylint: disable=line-too-long
 from datetime import datetime
-from shapely.geometry import Point
+
 from geojson import Feature
+from shapely.geometry import Point
+from sqlalchemy import Column, Float, ForeignKey, String
+from sqlalchemy.orm import reconstructor, relationship
 
-from sqlalchemy.orm import relationship, reconstructor
-from sqlalchemy import Column, String, Float, ForeignKey
+from helper_functions import get_current_time, get_date, list_unpack
 
-from helper_functions import list_unpack, get_date, get_current_time
 from ..base import GTFSBase
 
 
@@ -131,8 +132,8 @@ class Stop(GTFSBase):
             date: The date to return the popup for."""
         routes = self.routes or self.return_routes()
         stop_color = self.return_route_color(routes)
-        alerts = self.alerts or list_unpack(
-            ((a for a in s.alerts if not a.trip) for s in self.child_stops)
+        alerts = self.alerts or list(
+            list_unpack(((a for a in s.alerts if not a.trip) for s in self.child_stops))
         )
         stop_time_html = "".join(
             (
@@ -162,7 +163,7 @@ class Stop(GTFSBase):
             """<td>Alert</td><td>Updated</td></tr>"""
             f"""{"".join({a.as_html() for a in alerts})}</table>"""
             """</span></div>"""
-            if list(alerts)
+            if alerts
             else ""
         )
 

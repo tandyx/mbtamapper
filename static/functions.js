@@ -33,7 +33,7 @@ function hoverImage(image_id, interval = 250) {
    * @returns {void}
    */
 
-  let image = document.getElementById(image_id);
+  const image = document.getElementById(image_id);
   image.animate({ transform: "scale(1.07)" }, interval).onfinish = function () {
     image.style.transform = "scale(1.07)";
   };
@@ -45,7 +45,7 @@ function unhoverImage(image_id, interval = 250) {
    * @param {number} interval - time in ms to scale image
    * @returns {void}
    */
-  let image = document.getElementById(image_id);
+  const image = document.getElementById(image_id);
   image.animate({ transform: "scale(1)" }, interval).onfinish = function () {
     image.style.transform = "scale(1)";
   };
@@ -55,7 +55,7 @@ function openMiniPopup(popupId) {
    * @param {string} popupId - id of popup to open
    * @returns {void}
    */
-  let miniPopup = document.getElementById(popupId);
+  const miniPopup = document.getElementById(popupId);
   miniPopup.classList.toggle("show");
 }
 
@@ -358,4 +358,31 @@ function updateLayer(id, feature) {
   });
 
   if (wasOpen) layer.openPopup();
+}
+
+function getBaseLayerDict() {
+  const positron = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+    {
+      // attribution:
+      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
+    }
+  );
+
+  const darkMatter = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+    {
+      // attribution:
+      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
+    }
+  );
+
+  return {
+    Light: positron,
+    Dark: darkMatter,
+  };
 }

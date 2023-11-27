@@ -29,50 +29,35 @@ function createMap(id, route_type) {
     },
   }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
-  const positron = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    {
-      subdomains: "abcd",
-      maxZoom: 20,
-    }
-  ).addTo(map);
+  const baseLayers = getBaseLayerDict();
+  baseLayers["Light"].addTo(map);
 
-  const darkMatter = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    {
-      subdomains: "abcd",
-      maxZoom: 20,
-    }
-  );
+  let stop_layer = L.layerGroup().addTo(map);
+  stop_layer.name = "Stops";
 
-  const stop_layer = L.layerGroup().addTo(map);
-  const shape_layer = L.layerGroup().addTo(map);
-  const vehicle_layer = L.markerClusterGroup({
+  let shape_layer = L.layerGroup().addTo(map);
+  shape_layer.name = "Shapes";
+
+  let vehicle_layer = L.markerClusterGroup({
     disableClusteringAtZoom: route_type == "COMMUTER_RAIL" ? 10 : 12,
   }).addTo(map);
-  const parking_lots = L.layerGroup();
+  vehicle_layer.name = "Vehicles";
+
+  let parking_lots = L.layerGroup();
+  parking_lots.name = "Parking Lots";
 
   plotStops(`/static/geojsons/${route_type}/stops.json`, stop_layer);
   plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer);
   plotVehicles(`/${route_type.toLowerCase()}/vehicles`, vehicle_layer);
   plotFacilities(`/static/geojsons/${route_type}/park.json`, parking_lots);
 
-  createControlLayers(stop_layer, shape_layer, vehicle_layer, parking_lots)
-    .concat(
-      L.control.layers(
-        {
-          Dark: darkMatter,
-          Light: positron,
-        },
-        {
-          Vehicles: vehicle_layer,
-          Stops: stop_layer,
-          Shapes: shape_layer,
-          "Parking Lots": parking_lots,
-        }
-      )
-    )
-    .forEach((control) => control.addTo(map));
+  createControlLayers(
+    baseLayers,
+    stop_layer,
+    shape_layer,
+    vehicle_layer,
+    parking_lots
+  ).forEach((control) => control.addTo(map));
 
   map.on("zoomend", function () {
     if (map.getZoom() < 16) map.removeLayer(parking_lots);
@@ -84,7 +69,7 @@ function createMap(id, route_type) {
   return map;
 }
 
-function createControlLayers(...layers) {
+function createControlLayers(tile_layers, ...layers) {
   /** create control layers
    * @param {L.tileLayer[]} tile_layers - tile layers to add to layer control
    * @param {L.layerGroup} layers - layers to be controlled
@@ -112,5 +97,10 @@ function createControlLayers(...layers) {
     event.layer.openPopup();
   });
 
-  return [locateControl, controlSearch];
+  const layerControl = L.control.layers(
+    tile_layers,
+    Object.fromEntries(layers.map((layer) => [layer.name, layer]))
+  );
+
+  return [locateControl, controlSearch, layerControl];
 }

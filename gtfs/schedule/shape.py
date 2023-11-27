@@ -1,10 +1,8 @@
 """File to hold the Shape class and its associated methods."""
-
 from geojson import Feature
 from shapely.geometry import LineString
-
 from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship, reconstructor
+from sqlalchemy.orm import reconstructor, relationship
 
 from ..base import GTFSBase
 

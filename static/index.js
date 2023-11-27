@@ -62,35 +62,19 @@ function createMap(id, ...routes) {
   if (map.tap) map.tap.disable();
   document.getElementById("map").style.cursor = "default";
 
-  const positron = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-    {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }
-  ).addTo(map);
-  const darkMatter = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-    {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }
-  );
+  const baseLayers = getBaseLayerDict();
+  baseLayers["Light"].addTo(map);
+
   const shape_layer = L.layerGroup().addTo(map);
   plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer, false);
 
   map.on("click", function () {
-    // console.log(e.originalEvent.target.offsetParent)
-    if (map.hasLayer(positron)) {
-      map.removeLayer(positron);
-      map.addLayer(darkMatter);
+    if (map.hasLayer(baseLayers["Light"])) {
+      map.removeLayer(baseLayers["Light"]);
+      map.addLayer(baseLayers["Dark"]);
     } else {
-      map.removeLayer(darkMatter);
-      map.addLayer(positron);
+      map.removeLayer(baseLayers["Dark"]);
+      map.addLayer(baseLayers["Light"]);
     }
   });
 
@@ -107,7 +91,7 @@ function createMap(id, ...routes) {
                   <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the subway!</span>
-                      <a href="/subway/" style="font-weight:bold;color:#7C878E;" onmouseover="hoverImage('subway')" onmouseleave="unhoverImage('subway')">
+                      <a href="/subway/" style="font-weight:bold;color:#00843d;" onmouseover="hoverImage('subway')" onmouseleave="unhoverImage('subway')">
                           <img src="/static/img/subway.png" width="125" alt="subway" id="subway"><br><br>
                           Subway
                       </a></span>

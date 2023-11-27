@@ -1,7 +1,9 @@
 """File to hold the Route class and its associated methods."""
-from sqlalchemy.orm import relationship, reconstructor
-from sqlalchemy import Column, String, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import reconstructor, relationship
+
 from helper_functions import get_current_time
+
 from ..base import GTFSBase
 
 # pylint: disable=line-too-long

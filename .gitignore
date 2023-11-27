@@ -72,3 +72,4 @@ venv/
 .vscode
 *.dockerignore
 /.dockerignore
+/static/package-lock.json

@@ -1,7 +1,8 @@
 """Holds the base class for all GTFS elements"""
-from typing import Iterable, Any
-from sqlalchemy.orm import DeclarativeBase
+from typing import Any, Iterable
+
 from sqlalchemy.inspection import inspect
+from sqlalchemy.orm import DeclarativeBase
 
 
 class GTFSBase(DeclarativeBase):
@@ -10,10 +11,13 @@ class GTFSBase(DeclarativeBase):
     Attributes:
         __tablename__ (str): name of the table
         __table_args__ (dict[str, Any]): table arguments
+        REALTIME_NAME (str): name of the realtime table, if applicable
     """
 
     __filename__: str
-    __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
+    # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
+
+    REALTIME_NAME: str = None
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}({''.join(key + '=' + str(getattr(self, key, None)) for key in self.__get_primary())})>"
