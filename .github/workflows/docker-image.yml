@@ -14,6 +14,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - run: docker build -f --tag mbta_mapper .
+    - run: docker build --tag mbta_mapper .
     - run: docker tag mbta_mapper tandyy/mbta_mapper:latest
     - run: docker push tandyy/mbta_mapper:latest
