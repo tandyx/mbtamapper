@@ -14,4 +14,4 @@ RUN apt-get install -y tzdata
 ENV TZ=America/New_York
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
 
-CMD "./start.sh"
+ENTRYPOINT ["sh", "./start.sh"]
