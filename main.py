@@ -122,7 +122,6 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    FEED_LOADER.get_vehicles_feature("SUBWAY", ("0", "1"))
     feed_loader()
 
     # app = create_default_app()
