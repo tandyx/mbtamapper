@@ -5,7 +5,7 @@ import pytz
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Calendar(GTFSBase):
@@ -45,9 +45,6 @@ class Calendar(GTFSBase):
         self.end_datetime = pytz.timezone("America/New_York").localize(
             datetime.strptime(self.end_date, "%Y%m%d")
         )
-
-    def __repr__(self) -> str:
-        return f"<Calendar(service_id={self.service_id})>"
 
     def operates_on_date(self, date: datetime) -> bool:
         """Returns true if the calendar operates on the date

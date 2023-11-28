@@ -2,7 +2,7 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Agency(GTFSBase):
@@ -20,12 +20,12 @@ class Agency(GTFSBase):
 
     routes = relationship("Route", back_populates="agency", passive_deletes=True)
 
-    def __repr__(self) -> str:
-        return f"<Agency(agency_id={self.agency_id})>"
-
     def as_html(self) -> str:
         """Return the agency as HTML
 
         Returns:
             str: agency as HTML"""
-        return f"""<a href = {self.agency_url} target="_blank"> {self.agency_name}</a> ({self.agency_phone})"""
+        return (
+            f"<a href = {self.agency_url} target='_blank'>"
+            f"{self.agency_name}</a> ({self.agency_phone})"
+        )

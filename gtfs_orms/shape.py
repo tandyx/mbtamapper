@@ -4,7 +4,7 @@ from shapely.geometry import LineString
 from sqlalchemy import Column, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Shape(GTFSBase):
@@ -27,9 +27,6 @@ class Shape(GTFSBase):
         self.sorted_points = sorted(
             self.shape_points, key=lambda x: x.shape_pt_sequence
         )
-
-    def __repr__(self) -> str:
-        return f"<Shape(shape_id={self.shape_id})>"
 
     def as_linestring(self) -> LineString:
         """Return a shapely LineString object of the shape"""

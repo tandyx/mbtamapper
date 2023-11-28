@@ -2,10 +2,10 @@
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
-class MultiRouteTrip(GTFSBase):
+class MultiRouteTrip(GTFSBase):  # pylint: disable=too-few-public-methods
     """Multi Route Trip"""
 
     __tablename__ = "multi_route_trips"
@@ -23,6 +23,3 @@ class MultiRouteTrip(GTFSBase):
     )
     trip = relationship("Trip", back_populates="multi_route_trips")
     route = relationship("Route", back_populates="multi_route_trips")
-
-    def __repr__(self) -> str:
-        return f"<MultiRouteTrip(added_route_id={self.added_route_id}, trip_id={self.trip_id})>"

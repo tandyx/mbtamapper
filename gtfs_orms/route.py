@@ -4,7 +4,7 @@ from sqlalchemy.orm import reconstructor, relationship
 
 from helper_functions import get_current_time
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 # pylint: disable=line-too-long
 
@@ -101,9 +101,6 @@ class Route(GTFSBase):
             "Ferry": 0.9,
         }
 
-    def __repr__(self) -> str:
-        return f"<Route(route_id={self.route_id})>"
-
     def as_html_popup(self) -> str:
         """Return a proper HTML popup representation of the route object"""
         alert_row = "".join(
@@ -126,7 +123,7 @@ class Route(GTFSBase):
         )
 
         return (
-            f"""<a href = {self.route_url} target="_blank"  style="color:#{self.route_color};font-size:28pt;"> {self.route_name} </a></br>"""
+            f"""<a href = {self.route_url} target="_blank" class='popup_header' rel='noopener' style="color:#{self.route_color};"> {self.route_name} </a></br>"""
             f"""<body style="color:#ffffff;text-align: left;"> {self.route_desc} - {self.route_long_name} </br>"""
             "—————————————————————————————————</br>"
             f"{alert} {'</br>' if alert else ''}"

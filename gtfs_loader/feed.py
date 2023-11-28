@@ -3,25 +3,28 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=unused-argument
+import io
 import logging
 import os
 import sqlite3
 import tempfile
 import time
 from datetime import datetime
+from zipfile import ZipFile
 
 import pandas as pd
+import requests as req
 from geojson import FeatureCollection, dump
 from sqlalchemy import CursorResult, Engine, create_engine, event, exc, pool
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from gtfs import *
+from gtfs_orms import *
 from helper_functions import *
 
 from .query import Query
 
 
-class Feed:
+class Feed(Query):
     """Loads GTFS data into a route_type specific SQLite database.
     This class also contains methods to query the database.
 
@@ -29,7 +32,6 @@ class Feed:
         url (str): url of GTFS feed
     """
 
-    TEMP_DIR: str = tempfile.gettempdir()
     SILVER_LINE_ROUTES = ("741", "742", "743", "751", "749", "746")
 
     # note that the order of these tables matters; avoids foreign key errors
@@ -97,10 +99,11 @@ class Feed:
         Args:
             url (str): url of GTFS feed
         """
+        super().__init__()
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
-        self.zip_path = os.path.join(__class__.TEMP_DIR, self.gtfs_name)
+        self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
@@ -108,7 +111,22 @@ class Feed:
         self.scoped_session = scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
-        return f"<Feed(url={self.url})>"
+        return f"<{self.__class__.__name__}(url={self.url})>"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    @timeit
+    def _download_gtfs(self) -> None:
+        """Downloads the GTFS feed zip file into a temporary directory."""
+        source = req.get(self.url, timeout=10)
+        if not source.ok:
+            raise req.exceptions.HTTPError(
+                f"Failed to download {self.url}: {source.status_code}"
+            )
+        with ZipFile(io.BytesIO(source.content)) as zipfile_bytes:
+            zipfile_bytes.extractall(self.zip_path)
+        logging.info("Downloaded zip from %s to %s", self.url, self.zip_path)
 
     @timeit
     def import_gtfs(self, *args, purge: bool = True, **kwargs) -> None:
@@ -120,7 +138,7 @@ class Feed:
             **kwargs: keyword args for import_gtfs
         """
         # ------------------------------- Create Tables ------------------------------- #
-        download_zip(self.url, self.zip_path)
+        self._download_gtfs()
         if purge:
             GTFSBase.metadata.drop_all(self.engine)
             GTFSBase.metadata.create_all(self.engine)
@@ -145,7 +163,7 @@ class Feed:
         """
         session = self.scoped_session()
         dataset = session.execute(
-            Query.select(LinkedDataset).where(getattr(LinkedDataset, orm.REALTIME_NAME))
+            self.select(LinkedDataset).where(getattr(LinkedDataset, orm.REALTIME_NAME))
         ).first()
 
         to_sql(
@@ -163,11 +181,12 @@ class Feed:
             date (datetime): date to filter on
         """
 
-        for stmt in (Query.delete_calendars(date), Query.delete_facilities()):
+        for stmt in (self.delete_calendars(date), self.delete_facilities()):
             res: CursorResult = self.session.execute(stmt)
             self.session.commit()  # seperate commits to avoid giant journal file
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
 
+    @timeit
     def export_geojsons(
         self, key: str, route_types: list[str], file_path: str, date: datetime = None
     ) -> None:
@@ -208,7 +227,7 @@ class Feed:
             stops_data += session.execute(Query(("3",)).parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops_data += session.execute(
-                Query.select(Stop).where(Stop.vehicle_type == "4")
+                self.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
 
         features = FeatureCollection([s[0].as_feature(date) for s in stops_data])
@@ -231,7 +250,7 @@ class Feed:
 
         if key == "RAPID_TRANSIT":
             shape_data += session.execute(
-                Query.get_shapes_from_route(self.SILVER_LINE_ROUTES).where(
+                self.get_shapes_from_route(self.SILVER_LINE_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
@@ -268,14 +287,14 @@ class Feed:
             ).all()
 
         if "4" in query_obj.route_types:
-            facilities += session.execute(Query.get_ferry_parking()).all()
+            facilities += session.execute(self.get_ferry_parking()).all()
         features = FeatureCollection([f[0].as_feature() for f in facilities])
         with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
             dump(features, file)
             logging.info("Exported %s", file.name)
 
     @removes_session
-    def get_vehicles(
+    def get_vehicles_feature(
         self, key: str, route_types: tuple[str], max_tries: int = 5
     ) -> FeatureCollection:
         """Returns vehicles as FeatureCollection.
@@ -287,15 +306,15 @@ class Feed:
         Returns:
             FeatureCollection: vehicles as FeatureCollection
         """
-        sess = self.scoped_session()
+        session = self.scoped_session()
         vehicles_query = Query(route_types).get_vehicles(
             self.SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(75)
         try:
-            for attempt in range(max_tries + 1):
-                data = sess.execute(vehicles_query).all()
+            for attempt in range(max_tries):
+                data = session.execute(vehicles_query).all()
                 if data and any(d[0].predictions for d in data):
                     break
                 time.sleep(0.5)
@@ -303,5 +322,5 @@ class Feed:
             data = []
             logging.error("Failed to get vehicle data: %s", error)
         if not data:
-            logging.error("No data returned in %s attemps", attempt)
+            logging.error("No data returned in %s attemps", attempt + 1)
         return FeatureCollection([v[0].as_feature() for v in data])

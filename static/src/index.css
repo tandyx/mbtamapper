@@ -1,20 +1,3 @@
-.leaflet-center {
-  left: 50%;
-  transform: translate(-50%, 0%);
-}
-
-.leaflet-middle {
-  top: 50%;
-  position: absolute;
-  z-index: 1000;
-  pointer-events: none;
-  transform: translate(0%, -50%);
-}
-
-.leaflet-center.leaflet-middle {
-  transform: translate(-50%, -50%);
-}
-
 .main {
   font-size: 10pt;
   font-family: "montserrat", "sans-serif";
@@ -121,11 +104,11 @@ h4 {
 }
 
 .flag_stop {
-  color: #c73ca8;
+  color: #c73ca8 !important;
 }
 
 .early_departure {
-  color: #2084d6;
+  color: #2084d6 !important;
 }
 
 .popup_footer {
@@ -134,8 +117,6 @@ h4 {
 }
 
 .facility_header {
-  font-size: 28pt !important;
-  text-align: left !important;
   color: #00acff !important;
 }
 
@@ -161,4 +142,10 @@ h1 {
 
 .subheader {
   margin-top: -20px;
+}
+
+.popup_header {
+  font-size: 28pt !important;
+  text-align: left !important;
+  margin-left: -2px !important;
 }

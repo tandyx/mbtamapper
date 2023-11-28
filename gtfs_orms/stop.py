@@ -7,9 +7,9 @@ from shapely.geometry import Point
 from sqlalchemy import Column, Float, ForeignKey, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from helper_functions import get_current_time, get_date, list_unpack
+from helper_functions import get_current_time, list_unpack
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Stop(GTFSBase):
@@ -82,9 +82,6 @@ class Stop(GTFSBase):
             or f"https://www.mbta.com/stops/{self.parent_stop.stop_id if self.parent_station else self.stop_id}"
         )
 
-    def __repr__(self):
-        return f"<Stop(stop_id={self.stop_id})>"
-
     def as_point(self) -> Point:
         """Returns a shapely Point object of the stop"""
         return Point(self.stop_lon, self.stop_lat)
@@ -143,11 +140,7 @@ class Stop(GTFSBase):
                     or list_unpack(s.stop_times for s in self.child_stops),
                     key=lambda x: x.departure_seconds,
                 )
-                if st.trip.calendar.operates_on_date(date)
-                and st.trip.route.route_type in ("2", "4")
-                and st.departure_seconds
-                > (get_current_time().timestamp() - get_date().timestamp())
-                # and not st.is_destination()
+                if st.is_active(date)
             )
         )
 
@@ -230,7 +223,7 @@ class Stop(GTFSBase):
         )
 
         return (
-            f"<a href = '{self.stop_url}' target='_blank' style='color:#{stop_color};font-size:28pt;'>{self.stop_name}</a></br>"
+            f"<a href = '{self.stop_url}' target='_blank' class='popup_header' rel='noopener' style='color:#{stop_color}'>{self.stop_name}</a></br>"
             f"<body style='color:#ffffff;text-align: left;'>"
             f"{self.stop_desc or next((s.stop_desc for s in self.child_stops), self.stop_desc)}</br>"
             f"—————————————————————————————————</br>"

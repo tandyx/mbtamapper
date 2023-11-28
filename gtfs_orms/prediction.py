@@ -6,7 +6,7 @@ from dateutil.parser import isoparse
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Prediction(GTFSBase):
@@ -73,9 +73,6 @@ class Prediction(GTFSBase):
         self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
 
-    def __repr__(self) -> str:
-        return f"<Prediction(id={self.prediction_id})>"
-
     def __predict(self) -> datetime | None:
         return (
             isoparse(self.arrival_time)
@@ -122,7 +119,7 @@ class Prediction(GTFSBase):
 
         early_departure = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#2084d6;'>{stop_name}</span>"
+            f"<span class='early_departure'>{stop_name}</span>"
             "<span class='tooltiptext'>Early departure stop.</span></div>"
             if self.stop_time and self.stop_time.is_early_departure()
             else ""
@@ -155,3 +152,4 @@ class Prediction(GTFSBase):
         for color, condition in delay_dict.items():
             if condition:
                 return color
+        return "#ffffff"

@@ -9,49 +9,50 @@ from typing import NoReturn
 from schedule import Scheduler
 from sqlalchemy.exc import OperationalError
 
-from gtfs import Alert, Prediction, Vehicle
+from gtfs_orms import Alert, Prediction, Vehicle
 from helper_functions import get_current_time, get_date, timeit
 
 from .feed import Feed
 
 
-class FeedLoader(Scheduler):
+class FeedLoader(Scheduler, Feed):
     """Loads GTFS data into map
 
     Args:
-        feed (Feed): GTFS feed
+        url (str): URL of GTFS feed
         keys (list[str], optional): List of keys to load. Defaults to None.
     """
 
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
     REALTIME_BINDINGS = (Alert, Vehicle, Prediction)
 
-    def __init__(self, feed: Feed, keys_dict: dict[str, list[str]]) -> None:
+    def __init__(self, url: str, keys_dict: dict[str, list[str]]) -> None:
         """Initializes FeedLoader.
 
         Args:
-            feed (Feed): GTFS feed
+            url (str): URL of GTFS feed.
             keys (list[str]): List of keys to load.
         """
-        super().__init__()
-        self.feed = feed
+        Scheduler.__init__(self)
+        Feed.__init__(self, url)
+        self.url = url
         self.keys_dict = keys_dict
 
     def __repr__(self) -> str:
-        return f"<FeedLoader(feed={self.feed})>"
+        return f"<{self.__class__.__name__}({self.url})>"
 
     def nightly_import(self) -> None:
         """Runs the nightly import."""
-        self.feed.import_gtfs(chunksize=100000, dtype=object)
+        self.import_gtfs(chunksize=100000, dtype=object)
         for orm in FeedLoader.REALTIME_BINDINGS:
-            self.feed.import_realtime(orm)
-        self.feed.purge_and_filter(date=get_date())
+            self.import_realtime(orm)
+        self.purge_and_filter(date=get_date())
 
     def geojson_exports(self) -> None:
         """Exports geojsons."""
         for key, routes in self.keys_dict.items():
             try:
-                self.feed.export_geojsons(
+                self.export_geojsons(
                     key, routes, FeedLoader.GEOJSON_PATH, get_current_time()
                 )
             except OperationalError:
@@ -64,7 +65,7 @@ class FeedLoader(Scheduler):
         Args:
             _orm (Alert | Vehicle | Prediction): ORM to update.
         """
-        self.feed.import_realtime(orm)
+        self.import_realtime(orm)
         logging.info("Updated realtime data for %s.", orm.__tablename__)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:

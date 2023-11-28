@@ -1,16 +1,28 @@
 """Module to hold decorators."""
 import logging
 import time
+import traceback
 
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import scoped_session
 
 
 def removes_session(func):
-    """Decorator to remove a scroped session from a Feed object after function call."""
+    """Decorator to remove a scroped session from a Feed object after function call.
+    This decorator also removes the session from the object if an exception is raised.
+
+    Args:
+        func (function): Function to wrap.
+    """
 
     def wrapper(*args, **kwargs):
         """Wrapper for decorator."""
-        res = func(*args, **kwargs)
+        try:
+            res = func(*args, **kwargs)
+        except (OperationalError, IntegrityError) as err:
+            logging.error("OperationalError: %s", err)
+            logging.error(traceback.format_exc())
+            res = None
         for arg in args:
             for attr in dir(arg):
                 if isinstance(getattr(arg, attr), scoped_session):

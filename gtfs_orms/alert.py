@@ -1,11 +1,10 @@
 """File to hold the Alert class and its associated methods."""
 # pylint: disable=line-too-long
 from dateutil.parser import isoparse
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import reconstructor, relationship
 
-from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import relationship, reconstructor
-
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Alert(GTFSBase):
@@ -70,9 +69,6 @@ class Alert(GTFSBase):
             isoparse(self.active_period_start) if self.active_period_start else None
         )
         self.updated_at_datetime = isoparse(self.timestamp)
-
-    def __repr__(self) -> str:
-        return f"<Alert(id={self.alert_id})>"
 
     def as_html(self) -> str:
         """Returns alert as html."""

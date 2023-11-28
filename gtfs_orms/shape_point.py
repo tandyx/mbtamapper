@@ -3,7 +3,7 @@ from shapely.geometry import Point
 from sqlalchemy import Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class ShapePoint(GTFSBase):
@@ -23,9 +23,6 @@ class ShapePoint(GTFSBase):
     shape_dist_traveled = Column(Float)
 
     shape = relationship("Shape", back_populates="shape_points")
-
-    def __repr__(self) -> str:
-        return f"<ShapePoint(shape_id={self.shape_id})>"
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the shape point"""

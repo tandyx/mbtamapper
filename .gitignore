@@ -72,4 +72,4 @@ venv/
 .vscode
 *.dockerignore
 /.dockerignore
-/static/package-lock.json
+/static/.eslintrc.yml

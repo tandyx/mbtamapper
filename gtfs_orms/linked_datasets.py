@@ -1,6 +1,4 @@
 """File to hold the LinkedDataset class and its associated methods."""
-# pylint: disable=unused-wildcard-import
-# pylint: disable=wildcard-import
 # pylint: disable=no-name-in-module
 import logging
 import time
@@ -13,8 +11,10 @@ from sqlalchemy import Column, Integer, String
 
 from helper_functions import df_unpack, get_current_time, timestamp_col_to_iso
 
-from ..base import GTFSBase
-from ..realtime import *
+from .alert import Alert
+from .gtfs_base import GTFSBase
+from .prediction import Prediction
+from .vehicle import Vehicle
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -83,9 +83,6 @@ class LinkedDataset(GTFSBase):
         Alert: "service_alerts",
     }
 
-    def __repr__(self) -> str:
-        return f"<LinkedDataset(url={self.url})>"
-
     def is_dataset(self, _orm: GTFSBase) -> bool:
         """Returns True if the object is a dataset. Returns False if the object is not a dataset.
 
@@ -140,7 +137,7 @@ class LinkedDataset(GTFSBase):
         dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(
-                lambda x: x.get("trip_id") if x == x else None
+                lambda x: x.get("trip_id") if not pd.isna(x) else None
             )
             if "alert_informed_entity_trip" in dataframe.columns
             else None
@@ -197,7 +194,7 @@ class LinkedDataset(GTFSBase):
         )
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(
-                lambda x: x.get("trip_id") if x == x else None
+                lambda x: x.get("trip_id") if not pd.isna(x) else None
             )
             if "alert_informed_entity_trip" in dataframe.columns
             else None

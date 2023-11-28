@@ -1,11 +1,15 @@
 """File to hold the StopTime class and its associated methods."""
 # pylint: disable=line-too-long
+# pylint: disable=wildcard-import
+# pylint: disable=unused-wildcard-import
+from datetime import datetime
+
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from helper_functions import format_time, lazy_convert, to_seconds
+from helper_functions import *
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class StopTime(GTFSBase):
@@ -45,9 +49,6 @@ class StopTime(GTFSBase):
         self.departure_seconds = to_seconds(self.departure_time)
         self.departure_datetime = lazy_convert(self.departure_time)
 
-    def __repr__(self) -> str:
-        return f"<StopTime(trip_id={self.trip_id}, stop_id={self.stop_id})>"
-
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop"""
         return self.trip.route.route_type == "2" and (
@@ -62,6 +63,19 @@ class StopTime(GTFSBase):
             and not self.is_destination()
         )
 
+    def is_active(self, date: datetime) -> bool:
+        """Returns true if this StopTime is active on the given date and time"""
+
+        return self.trip.calendar.operates_on_date(date) and self.departure_seconds > (
+            get_current_time().timestamp() - get_date().timestamp()
+        )
+
+    def is_destination(self) -> bool:
+        """Returns true if this StopTime is the last stop in the trip"""
+        return self.stop_sequence == max(
+            st.stop_sequence for st in self.trip.stop_times
+        )
+
     def as_html(self) -> str:
         """Returns a StopTime obj as an html row"""
 
@@ -69,7 +83,7 @@ class StopTime(GTFSBase):
 
         flag_stop = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#c73ca8;'>{trip_name}</span>"
+            f"<span class='flag_stop'>{trip_name}</span>"
             "<span class='tooltiptext'>Flag stop.</span></div>"
             if self.is_flag_stop()
             else ""
@@ -77,7 +91,7 @@ class StopTime(GTFSBase):
 
         early_departure = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#2084d6;'>{trip_name}</span>"
+            f"<span class='early_departure'>{trip_name}</span>"
             "<span class='tooltiptext'>Early departure stop.</span></div>"
             if self.is_early_departure()
             else ""
@@ -89,10 +103,4 @@ class StopTime(GTFSBase):
             f"""<td>{self.destination_label}</td>"""
             f"""<td>{format_time(self.departure_time)}</td>"""
             f"""<td>{self.stop.platform_name or ""}</td></tr>"""
-        )
-
-    def is_destination(self) -> bool:
-        """Returns true if this StopTime is the last stop in the trip"""
-        return self.stop_sequence == max(
-            st.stop_sequence for st in self.trip.stop_times
         )

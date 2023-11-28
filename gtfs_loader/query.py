@@ -2,11 +2,14 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=unused-import
 # pylint: disable=wildcard-import
+# pylint: disable=line-too-long
 from datetime import datetime, timedelta
-from sqlalchemy.sql import select, or_, and_, not_, delete, Select, Delete
-from sqlalchemy.orm import aliased
+
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from gtfs import *
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql import Delete, Select, and_, delete, not_, or_, select
+
+from gtfs_orms import *
 
 
 class Query:
@@ -196,7 +199,10 @@ class Query:
         self.parent_stops_query = self.__get_parent_stops()
 
     def __repr__(self) -> str:
-        return f"<Query(route_types={self.route_types})>"
+        return f"<{self.__class__.__name__}(route_types={self.route_types})>"
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     def __get_trips(self) -> Select[DeclarativeMeta]:
         """Returns a query for trips.

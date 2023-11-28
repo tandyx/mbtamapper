@@ -6,8 +6,10 @@ from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import Column, Float, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
+
 from helper_functions import shorten
-from ..base import GTFSBase
+
+from .gtfs_base import GTFSBase
 
 
 class Vehicle(GTFSBase):
@@ -89,9 +91,6 @@ class Vehicle(GTFSBase):
         self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
 
-    def __repr__(self) -> str:
-        return f"<Vehicle(id={self.vehicle_id})>"
-
     def return_current_status(self) -> str:
         """Returns current status of vehicle."""
 
@@ -143,6 +142,7 @@ class Vehicle(GTFSBase):
         for color, condition in occupancy_dict.items():
             if condition:
                 return color
+        return "#ffffff"
 
     def as_html_popup(self) -> str:
         """Returns vehicle as html for a popup."""
@@ -150,7 +150,7 @@ class Vehicle(GTFSBase):
         predicted_html = "".join(p.as_html() for p in self.predictions if p.predicted)
 
         occupancy = (
-            f"""Occupancy: <a style="color:{self.__get_occupancy_color()}">{int(self.occupancy_percentage)}%</a></br>"""
+            f"""Occupancy: <span style="color:{self.__get_occupancy_color()}">{int(self.occupancy_percentage)}%</span></br>"""
             if self.occupancy_status
             else ""
         )
@@ -201,7 +201,7 @@ class Vehicle(GTFSBase):
         )
 
         return (
-            f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  style="color:#{self.route.route_color if self.route else ""};font-size:28pt;">"""
+            f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  class = 'popup_header' style="color:#{self.route.route_color if self.route else ""};">"""
             f"""{(self.trip.trip_short_name if self.trip else None) or shorten(self.trip_id)}</a></br>"""
             """<body style="color:#ffffff;text-align: left;">"""
             f"""{Vehicle.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""

@@ -1,8 +1,10 @@
 """Holds the base class for all GTFS elements"""
-from typing import Any, Iterable
+from typing import Any, Generator
 
-from sqlalchemy.inspection import inspect
+from sqlalchemy import Column
 from sqlalchemy.orm import DeclarativeBase
+
+# pylint: disable=line-too-long
 
 
 class GTFSBase(DeclarativeBase):
@@ -20,19 +22,19 @@ class GTFSBase(DeclarativeBase):
     REALTIME_NAME: str = None
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({''.join(key + '=' + str(getattr(self, key, None)) for key in self.__get_primary())})>"
+        return f"<{self.__class__.__name__}({''.join(key.name + '=' + str(getattr(self, key.name, None)) for key in self._get_primary_keys())})>"
 
     def __str__(self) -> str:
-        return self.as_dict().__str__()
+        return str(self.as_dict())
 
-    def __get_primary(self) -> Iterable[str]:
+    def _get_primary_keys(self) -> Generator[Column, None, None]:
         """Returns the primary keys of the table.
 
         Returns:
-            Iterable[str]: primary keys of the table
+            Generator[Column, None, None]: primary keys of the table
         """
 
-        return (key.name for key in inspect(__class__).primary_key)
+        return (c for c in self.__table__.columns if c.primary_key)
 
     def as_dict(
         self, exclude: list[str] = None, include: list[str] = None
