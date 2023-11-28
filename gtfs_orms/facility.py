@@ -4,7 +4,7 @@ from shapely.geometry import Point
 from sqlalchemy import Column, Float, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 # pylint: disable=line-too-long
 
@@ -37,9 +37,6 @@ class Facility(GTFSBase):
     stop = relationship("Stop", back_populates="facilities")
 
     ACCENT_COLOR = "#007ebb"
-
-    def __repr__(self) -> str:
-        return f"<Facilities(facility_id={self.facility_id})>"
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the facility
@@ -99,7 +96,7 @@ class Facility(GTFSBase):
         monthly_rate = self.return_property("fee-monthly")
         payment_app_html = self.return_formatted_payment_app()
         header_html = (
-            f"<a href = '{contact_url}' target='_blank' class = 'facility_header';'>{self.facility_long_name}</a></br>"
+            f"<a href = '{contact_url}' target='_blank' rel='noopener' class = 'facility_header popup_header'>{self.facility_long_name}</a></br>"
             if contact_url
             else f"<a class = 'facility_header'>{self.facility_long_name}</a></br>"
         )
@@ -124,7 +121,7 @@ class Facility(GTFSBase):
         return (
             f"{header_html}"
             f"<body>"
-            f"{owner if owner not in ['City/Town', 'Unknown', 'Private'] else self.return_property('operator', owner)}</br>"
+            f"{owner if owner not in ('City/Town', 'Unknown', 'Private') else self.return_property('operator', owner)}</br>"
             f"—————————————————————————————————</br>"
             f"{wheelchair}"
             f"Capacity: {self.return_property('capacity', 'Unknown')} </br>"

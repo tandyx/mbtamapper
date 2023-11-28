@@ -2,7 +2,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Trip(GTFSBase):
@@ -66,9 +66,6 @@ class Trip(GTFSBase):
     )
 
     DIRECTION_ID_MAPPER = {"0": "Outbound", "1": "Inbound"}
-
-    def __repr__(self) -> str:
-        return f"<Trip(trip_id={self.trip_id})>"
 
     def as_label(self) -> str:
         """Returns trip as label"""

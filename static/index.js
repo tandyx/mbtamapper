@@ -99,9 +99,9 @@ function createMap(id, ...routes) {
                   <td>
                     <span class = "tooltip">
                     <span class = "tooltiptext" style="top:25%;">Click to view the subway + silver line!</span>
-                      <a href="/rapid_transit/" style="font-weight:bold;color:#ED8B00;" onmouseover="hoverImage('rapid_transit')" onmouseleave="unhoverImage('rapid_transit')">
+                      <a href="/rapid_transit/" style="font-weight:bold;color:#DA291C;" onmouseover="hoverImage('rapid_transit')" onmouseleave="unhoverImage('rapid_transit')">
                           <img src="/static/img/rapid_transit.png" width="125" alt="rapid_transit" id="rapid_transit"><br><br>
-                          Rapid Transit
+                          "Rapid" Transit
                       </a></span>
                   </td>
                   <td>

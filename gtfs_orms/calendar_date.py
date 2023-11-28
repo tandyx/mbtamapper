@@ -2,7 +2,7 @@
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class CalendarDate(GTFSBase):
@@ -21,6 +21,3 @@ class CalendarDate(GTFSBase):
     holiday_name = Column(String)
 
     calendar = relationship("Calendar", back_populates="calendar_dates")
-
-    def __repr__(self) -> str:
-        return f"<CalendarDate(service_id={self.service_id})>"

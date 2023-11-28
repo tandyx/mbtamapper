@@ -6,7 +6,7 @@ from dateutil.parser import isoparse
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from ..base import GTFSBase
+from .gtfs_base import GTFSBase
 
 
 class Prediction(GTFSBase):
@@ -72,9 +72,6 @@ class Prediction(GTFSBase):
         # pylint: disable=attribute-defined-outside-init
         self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
-
-    def __repr__(self) -> str:
-        return f"<Prediction(id={self.prediction_id})>"
 
     def __predict(self) -> datetime | None:
         return (

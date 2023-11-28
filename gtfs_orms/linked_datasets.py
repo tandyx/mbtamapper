@@ -13,8 +13,10 @@ from sqlalchemy import Column, Integer, String
 
 from helper_functions import df_unpack, get_current_time, timestamp_col_to_iso
 
-from ..base import GTFSBase
-from ..realtime import *
+from .alert import Alert
+from .gtfs_base import GTFSBase
+from .prediction import Prediction
+from .vehicle import Vehicle
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -82,9 +84,6 @@ class LinkedDataset(GTFSBase):
         Vehicle: "vehicle_positions",
         Alert: "service_alerts",
     }
-
-    def __repr__(self) -> str:
-        return f"<LinkedDataset(url={self.url})>"
 
     def is_dataset(self, _orm: GTFSBase) -> bool:
         """Returns True if the object is a dataset. Returns False if the object is not a dataset.

@@ -7,7 +7,7 @@ from sqlalchemy import delete
 from sqlalchemy.exc import IllegalStateChangeError, IntegrityError
 from sqlalchemy.orm import Session
 
-from gtfs import GTFSBase
+from gtfs_orms.gtfs_base import GTFSBase
 
 # pylint: disable=broad-except
 

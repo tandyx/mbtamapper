@@ -24,10 +24,8 @@ npm install --prefix ./static
 ### To run the app
 
 ```SHELL
-python3 -m venv venv
-source venv/bin/activate
 pip install --upgrade -r requirements.txt
-python main.py --import_data=True
+python main.py
 ```
 
 ## Python Dependencies
