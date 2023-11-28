@@ -109,7 +109,7 @@ function setNavbar(navbarId, route_type, mobile = false) {
 
     const childAccentColor = ROUTE_COLOR_DICT[child.id] || accent_color;
 
-    if (mobile && child.id != route_type && child.id != "home") {
+    if (mobile && child.id != route_type.toLowerCase() && child.id != "home") {
       navbar.removeChild(child);
     }
 
