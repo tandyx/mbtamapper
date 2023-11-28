@@ -27,6 +27,7 @@ jobs:
         cache: 'npm'
         cache-dependency-path: './static/package-lock.json'
     - run: npm install
+    - run: yarn
     - run: npm install eslint
     - run: eslint . --ext .js,.jsx,.ts,.tsx
     - run: npm ci

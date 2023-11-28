@@ -16,6 +16,7 @@ jobs:
         uses: rutajdash/prettier-cli-action@v1.0.0
         with:
           config_path: ./.prettierrc.yml
+          file_pattern: "**/*.{js,jsx,ts,tsx,css,scss,html}"
 
       # This step only runs if prettier finds errors causing the previous step to fail
       # This steps lists the files where errors were found
