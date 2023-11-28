@@ -154,3 +154,11 @@ h4 {
   text-align: left !important;
   color: grey !important;
 }
+
+h1 {
+  font-size: 42pt;
+}
+
+.subheader {
+  margin-top: -20px;
+}

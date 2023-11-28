@@ -85,7 +85,7 @@ function createMap(id, ...routes) {
       text.innerHTML = `
       <div class="main">
           <h1>MBTA Mapper</h1>
-          <h4 >Realtime Tracking of MBTA Vehicles <a href="https://mbtamapper.com/" style="color:inherit;">@mbtamapper.com</a></h4>
+          <h4 class='subheader'>Realtime Tracking of MBTA Vehicles <a href="#" style="color:inherit;">@mbtamapper.com</a></h4>
           <table class="homepage">
               <tr>
                   <td>
