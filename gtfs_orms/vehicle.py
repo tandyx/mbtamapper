@@ -6,6 +6,7 @@ from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import Column, Float, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
+
 from helper_functions import shorten
 
 from .gtfs_base import GTFSBase
@@ -141,6 +142,7 @@ class Vehicle(GTFSBase):
         for color, condition in occupancy_dict.items():
             if condition:
                 return color
+        return "#ffffff"
 
     def as_html_popup(self) -> str:
         """Returns vehicle as html for a popup."""

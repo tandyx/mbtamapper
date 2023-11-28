@@ -1,17 +1,13 @@
 """File to hold the StopTime class and its associated methods."""
 # pylint: disable=line-too-long
+# pylint: disable=wildcard-import
+# pylint: disable=unused-wildcard-import
 from datetime import datetime
 
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
 
-from helper_functions import (
-    format_time,
-    lazy_convert,
-    to_seconds,
-    get_current_time,
-    get_date,
-)
+from helper_functions import *
 
 from .gtfs_base import GTFSBase
 
@@ -87,7 +83,7 @@ class StopTime(GTFSBase):
 
         flag_stop = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#c73ca8;'>{trip_name}</span>"
+            f"<span class='flag_stop'>{trip_name}</span>"
             "<span class='tooltiptext'>Flag stop.</span></div>"
             if self.is_flag_stop()
             else ""
@@ -95,7 +91,7 @@ class StopTime(GTFSBase):
 
         early_departure = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#2084d6;'>{trip_name}</span>"
+            f"<span class='early_departure'>{trip_name}</span>"
             "<span class='tooltiptext'>Early departure stop.</span></div>"
             if self.is_early_departure()
             else ""

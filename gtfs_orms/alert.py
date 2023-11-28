@@ -1,9 +1,8 @@
 """File to hold the Alert class and its associated methods."""
 # pylint: disable=line-too-long
 from dateutil.parser import isoparse
-
-from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import relationship, reconstructor
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 

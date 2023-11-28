@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from .gtfs_base import GTFSBase
 
 
-class CalendarAttribute(GTFSBase):
+class CalendarAttribute(GTFSBase):  # pylint: disable=too-few-public-methods
     """Calendar Attributes"""
 
     __tablename__ = "calendar_attributes"

@@ -2,10 +2,13 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=unused-import
 # pylint: disable=wildcard-import
+# pylint: disable=line-too-long
 from datetime import datetime, timedelta
-from sqlalchemy.sql import select, or_, and_, not_, delete, Select, Delete
-from sqlalchemy.orm import aliased
+
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql import Delete, Select, and_, delete, not_, or_, select
+
 from gtfs_orms import *
 
 

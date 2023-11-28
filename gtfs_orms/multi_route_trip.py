@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from .gtfs_base import GTFSBase
 
 
-class MultiRouteTrip(GTFSBase):
+class MultiRouteTrip(GTFSBase):  # pylint: disable=too-few-public-methods
     """Multi Route Trip"""
 
     __tablename__ = "multi_route_trips"

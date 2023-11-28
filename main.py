@@ -10,7 +10,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader
 
-
 KEY_DICT: dict[str, tuple[str]] = {
     "SUBWAY": ("0", "1"),
     "RAPID_TRANSIT": ("0", "1", "4"),

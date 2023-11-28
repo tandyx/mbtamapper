@@ -119,7 +119,7 @@ class Prediction(GTFSBase):
 
         early_departure = (
             "<div class = 'tooltip'>"
-            f"<span style='color:#2084d6;'>{stop_name}</span>"
+            f"<span class='early_departure'>{stop_name}</span>"
             "<span class='tooltiptext'>Early departure stop.</span></div>"
             if self.stop_time and self.stop_time.is_early_departure()
             else ""
@@ -152,3 +152,4 @@ class Prediction(GTFSBase):
         for color, condition in delay_dict.items():
             if condition:
                 return color
+        return "#ffffff"

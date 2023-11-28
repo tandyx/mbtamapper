@@ -51,6 +51,7 @@ def format_time(time_str: str) -> str:
         return f"{return_format_hour(int_hour, 12)}:{minute} PM"
     if int_hour >= 24:
         return f"{return_format_hour(int_hour, 24)}:{minute} AM"
+    return ""
 
 
 def return_format_hour(hour: int, offset: int = 12) -> str:
@@ -127,7 +128,7 @@ def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
             x.get("time") if isinstance(x, dict) else x,
             tz=pytz.timezone("America/New_York"),
         ).isoformat()
-        if x == x
+        if not pd.isna(x)
         else None
     )
 

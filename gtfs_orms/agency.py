@@ -25,4 +25,7 @@ class Agency(GTFSBase):
 
         Returns:
             str: agency as HTML"""
-        return f"""<a href = {self.agency_url} target="_blank"> {self.agency_name}</a> ({self.agency_phone})"""
+        return (
+            f"<a href = {self.agency_url} target='_blank'>"
+            f"{self.agency_name}</a> ({self.agency_phone})"
+        )

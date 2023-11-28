@@ -104,11 +104,11 @@ h4 {
 }
 
 .flag_stop {
-  color: #c73ca8;
+  color: #c73ca8 !important;
 }
 
 .early_departure {
-  color: #2084d6;
+  color: #2084d6 !important;
 }
 
 .popup_footer {

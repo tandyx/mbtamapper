@@ -1,6 +1,4 @@
 """File to hold the LinkedDataset class and its associated methods."""
-# pylint: disable=unused-wildcard-import
-# pylint: disable=wildcard-import
 # pylint: disable=no-name-in-module
 import logging
 import time
@@ -139,7 +137,7 @@ class LinkedDataset(GTFSBase):
         dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(
-                lambda x: x.get("trip_id") if x == x else None
+                lambda x: x.get("trip_id") if not pd.isna(x) else None
             )
             if "alert_informed_entity_trip" in dataframe.columns
             else None
@@ -196,7 +194,7 @@ class LinkedDataset(GTFSBase):
         )
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(
-                lambda x: x.get("trip_id") if x == x else None
+                lambda x: x.get("trip_id") if not pd.isna(x) else None
             )
             if "alert_informed_entity_trip" in dataframe.columns
             else None
