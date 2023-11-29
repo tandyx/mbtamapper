@@ -29,7 +29,9 @@ function createMap(id, route_type) {
     },
   }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
-  const baseLayers = getBaseLayerDict();
+  const baseLayers = getBaseLayerDict(...Array(2), {
+    Alt: "Stadia.AlidadeSmoothDark",
+  });
   baseLayers["Light"].addTo(map);
 
   let stop_layer = L.layerGroup().addTo(map);

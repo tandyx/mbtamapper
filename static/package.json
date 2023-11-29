@@ -2,6 +2,7 @@
   "dependencies": {
     "leaflet": "^1.9.4",
     "leaflet-fullscreen": "^1.0.2",
+    "leaflet-providers": "^2.0.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
     "leaflet.locatecontrol": "^0.79.0",

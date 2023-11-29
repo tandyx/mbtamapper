@@ -62,7 +62,10 @@ function createMap(id, ...routes) {
   if (map.tap) map.tap.disable();
   document.getElementById("map").style.cursor = "default";
 
-  const baseLayers = getBaseLayerDict();
+  const baseLayers = getBaseLayerDict(
+    "CartoDB.PositronNoLabels",
+    "CartoDB.DarkMatterNoLabels"
+  );
   baseLayers["Light"].addTo(map);
 
   const shape_layer = L.layerGroup().addTo(map);

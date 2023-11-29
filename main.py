@@ -41,11 +41,12 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         """Returns vehicles as geojson."""
         return jsonify(FEED_LOADER.get_vehicles_feature(key, KEY_DICT[key]))
 
-    # pylint: disable=unused-argument
     @_app.teardown_appcontext
-    def shutdown_session(self, exception=None) -> None:
+    def shutdown_session(exception=None) -> None:
         """Tears down database session."""
         FEED_LOADER.scoped_session.remove()
+        if exception:
+            logging.error(exception)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -123,6 +124,3 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     feed_loader()
-
-    # app = create_default_app()
-    # app.run(debug=True, port=80)

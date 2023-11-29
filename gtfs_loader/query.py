@@ -1,13 +1,11 @@
 """Defines a class to hold and generate queries."""
 # pylint: disable=unused-wildcard-import
-# pylint: disable=unused-import
 # pylint: disable=wildcard-import
-# pylint: disable=line-too-long
 from datetime import datetime, timedelta
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql import Delete, Select, and_, delete, not_, or_, select
+from sqlalchemy.sql import *
 
 from gtfs_orms import *
 
@@ -20,15 +18,16 @@ class Query:
     """
 
     @staticmethod
-    def select(orm: DeclarativeMeta) -> Select[DeclarativeMeta]:
-        """Returns a generic select query for a table.
+    def select(*orms: DeclarativeMeta, **kwargs) -> Select[DeclarativeMeta]:
+        """Returns a generic select query for tables.
 
         Args:
-            orm (DeclarativeMeta): table to query
+            *orms: tables to query
+            **kwargs: kwargs for select
         Returns:
-            A generic select query for a table.
+            A generic select query for tables.
         """
-        return select(orm)
+        return select(*orms, **kwargs)
 
     @staticmethod
     def delete(orm: DeclarativeMeta) -> Delete[DeclarativeMeta]:
@@ -42,6 +41,17 @@ class Query:
         return delete(orm)
 
     @staticmethod
+    def update(orm: DeclarativeMeta) -> Update[DeclarativeMeta]:
+        """Returns a generic update query for a table.
+
+        Args:
+            orm (DeclarativeMeta): table to quer
+        Returns:
+            A generic update query for a table.
+        """
+        return update(orm)
+
+    @staticmethod
     def get_active_calendars(
         date: datetime, specific: bool = False, days_ahead: int = 7
     ) -> Select:
@@ -49,7 +59,8 @@ class Query:
 
         Args:
             date (datetime): date to query
-            specific (bool, optional): whether to query for specific date. Defaults to False (query for week)
+            specific (bool, optional): whether to query for specific date. \
+                Defaults to False (query for week)
             days_ahead (int, optional): number of days ahead to query. Defaults to 7.
         Returns:
             A query for active calendars on a date.
@@ -144,7 +155,8 @@ class Query:
         """Returns a query to delete facilities.
 
         Args:
-            exclude (list[str], optional): list of facility types to exclude. Defaults to ["parking-area", "bike-storage"].
+            exclude (list[str], optional): list of facility types to exclude.\
+                Defaults to ["parking-area", "bike-storage"].
         Returns:
             A query to delete facilities.
         """
@@ -272,7 +284,8 @@ class Query:
         """Returns a query for vehicles.
 
         Args:
-            add_routes (list[str], optional): list of routes to add to query for vehicles. Defaults to None.
+            add_routes (list[str], optional): list of routes to add to query for vehicles. \
+                Defaults to None.
         Returns:
             A query for vehicles.
         """
@@ -296,7 +309,8 @@ class Query:
         """Returns a query for parking facilities.
 
         Args:
-            types (list[str]): list of facility types, default: ("parking-area", "bike-storage")
+            types (list[str]): list of facility types, \
+                default: ("parking-area", "bike-storage")
         Returns:
             A query for parking facilities.
         """

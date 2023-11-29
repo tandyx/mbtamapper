@@ -16,14 +16,14 @@ It's currently deployed to Azure, but I'm looking to move it to Digital Ocean af
 
 ### To install JavaScript dependencies
 
-```SHELL
+```shell
 makedir -p ./static/node_modules
 npm install --prefix ./static
 ```
 
 ### To run the app
 
-```SHELL
+```shell
 pip install --upgrade -r requirements.txt
 python main.py
 ```

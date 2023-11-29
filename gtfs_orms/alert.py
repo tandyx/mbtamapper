@@ -1,5 +1,4 @@
 """File to hold the Alert class and its associated methods."""
-# pylint: disable=line-too-long
 from dateutil.parser import isoparse
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import reconstructor, relationship
@@ -11,6 +10,7 @@ class Alert(GTFSBase):
     """Alerts"""
 
     __tablename__ = "alerts"
+    __realtime_name__ = "service_alerts"
 
     alert_id = Column(String)
     cause = Column(String)
@@ -55,8 +55,6 @@ class Alert(GTFSBase):
         "timestamp": "updated_at_datetime",
     }
 
-    REALTIME_NAME = "service_alerts"
-
     @reconstructor
     def _init_on_load_(self):
         """Loads active_period_end and active_period_start as datetime objects."""
@@ -74,6 +72,6 @@ class Alert(GTFSBase):
         """Returns alert as html."""
         return (
             f"<tr><td href = '{self.url}' target='_blank'>{str(self.header)}</td>"
-            f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"  # pylint: disable=no-member
+            f"<td>{self.updated_at_datetime.strftime('%m/%d/%Y %I:%M %p')}</td>"
             "</tr>"
         )
