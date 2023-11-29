@@ -35,7 +35,7 @@ class Feed(Query):
     SILVER_LINE_ROUTES = ("741", "742", "743", "751", "749", "746")
 
     # note that the order of these tables matters; avoids foreign key errors
-    INSERTION_TUPLE = (
+    __schedule_orms__ = (
         Agency,
         Calendar,
         CalendarDate,
@@ -50,6 +50,8 @@ class Feed(Query):
         Facility,
         FacilityProperty,
     )
+
+    __realtime_orms__ = (Alert, Vehicle, Prediction)
 
     @staticmethod
     @event.listens_for(Engine, "connect")
@@ -133,9 +135,9 @@ class Feed(Query):
         """Dumps GTFS data into a SQLite database.
 
         Args:
-            *args: args for import_gtfs
+            *args: args to pass to pd.read_csv
             purge (bool): whether to purge the database before loading (default: False)
-            **kwargs: keyword args for import_gtfs
+            **kwargs: keyword args for pd.read_csv
         """
         # ------------------------------- Create Tables ------------------------------- #
         self._download_gtfs()
@@ -143,7 +145,7 @@ class Feed(Query):
             GTFSBase.metadata.drop_all(self.engine)
             GTFSBase.metadata.create_all(self.engine)
         # ------------------------------- Dump Data ------------------------------- #
-        for orm in __class__.INSERTION_TUPLE:
+        for orm in __class__.__schedule_orms__:
             with pd.read_csv(
                 os.path.join(self.zip_path, orm.__filename__), *args, **kwargs
             ) as read:
@@ -154,21 +156,28 @@ class Feed(Query):
 
         logging.info("Loaded %s", self.gtfs_name)
 
+    @timeit
     @removes_session
-    def import_realtime(self, orm: GTFSBase) -> None:
+    def import_realtime(self, orm: Alert | Vehicle | Prediction) -> None:
         """Imports realtime data into the database.
 
         Args:
-            orm (GTFSBase): table to import into, must be Alert, Prediction, or Vehicle
+            orm (Alert | Vehicle | Prediction): ORM to update.
         """
+
+        if orm not in __class__.__realtime_orms__:
+            raise ValueError(f"{orm} is not a realtime ORM")
+
         session = self.scoped_session()
         dataset = session.execute(
-            self.select(LinkedDataset).where(getattr(LinkedDataset, orm.REALTIME_NAME))
+            self.select(LinkedDataset).where(
+                getattr(LinkedDataset, orm.__realtime_name__)
+            )
         ).first()
 
         to_sql(
             session,
-            getattr(dataset[0], "process_" + orm.REALTIME_NAME)(),
+            getattr(dataset[0], "process_" + orm.__realtime_name__)(),
             orm,
             purge=True,
         )
@@ -188,7 +197,7 @@ class Feed(Query):
 
     @timeit
     def export_geojsons(
-        self, key: str, route_types: list[str], file_path: str, date: datetime = None
+        self, key: str, route_types: tuple[str], file_path: str, date: datetime = None
     ) -> None:
         """Generates geojsons for stops and shapes.
 
@@ -224,7 +233,7 @@ class Feed(Query):
 
         stops_data = session.execute(query_obj.parent_stops_query).all()
         if key == "RAPID_TRANSIT":
-            stops_data += session.execute(Query(("3",)).parent_stops_query).all()
+            stops_data += session.execute(Query(["3"]).parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops_data += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
@@ -280,12 +289,10 @@ class Feed(Query):
         session = self.scoped_session()
 
         facilities = session.execute(query_obj.get_facilities(["parking-area"])).all()
-
         if key == "RAPID_TRANSIT":
             facilities += session.execute(
                 Query(["3"]).get_facilities(["parking-area"])
             ).all()
-
         if "4" in query_obj.route_types:
             facilities += session.execute(self.get_ferry_parking()).all()
         features = FeatureCollection([f[0].as_feature() for f in facilities])

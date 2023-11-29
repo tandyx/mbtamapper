@@ -24,7 +24,6 @@ class FeedLoader(Scheduler, Feed):
     """
 
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
-    REALTIME_BINDINGS = (Alert, Vehicle, Prediction)
 
     def __init__(self, url: str, keys_dict: dict[str, list[str]]) -> None:
         """Initializes FeedLoader.
@@ -38,35 +37,24 @@ class FeedLoader(Scheduler, Feed):
         self.url = url
         self.keys_dict = keys_dict
 
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self.url})>"
-
+    @timeit
     def nightly_import(self) -> None:
         """Runs the nightly import."""
         self.import_gtfs(chunksize=100000, dtype=object)
-        for orm in FeedLoader.REALTIME_BINDINGS:
+        for orm in self.__class__.__realtime_orms__:
             self.import_realtime(orm)
         self.purge_and_filter(date=get_date())
 
+    @timeit
     def geojson_exports(self) -> None:
         """Exports geojsons."""
         for key, routes in self.keys_dict.items():
             try:
                 self.export_geojsons(
-                    key, routes, FeedLoader.GEOJSON_PATH, get_current_time()
+                    key, routes, __class__.GEOJSON_PATH, get_current_time()
                 )
             except OperationalError:
                 logging.warning("OperationalError: %s", key)
-
-    @timeit
-    def update_realtime(self, orm: Alert | Vehicle | Prediction) -> None:
-        """Updates realtime data.
-
-        Args:
-            _orm (Alert | Vehicle | Prediction): ORM to update.
-        """
-        self.import_realtime(orm)
-        logging.info("Updated realtime data for %s.", orm.__tablename__)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
@@ -88,9 +76,9 @@ class FeedLoader(Scheduler, Feed):
 
         jobqueue = queue.Queue()
 
-        self.every(2).minutes.do(jobqueue.put, (self.update_realtime, Alert))
-        self.every(12).seconds.do(jobqueue.put, (self.update_realtime, Vehicle))
-        self.every().minute.do(jobqueue.put, (self.update_realtime, Prediction))
+        self.every(2).minutes.do(jobqueue.put, (self.import_realtime, Alert))
+        self.every(12).seconds.do(jobqueue.put, (self.import_realtime, Vehicle))
+        self.every().minute.do(jobqueue.put, (self.import_realtime, Prediction))
         self.every().day.at("04:00", tz=timezone).do(jobqueue.put, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(jobqueue.put, self.nightly_import)
 

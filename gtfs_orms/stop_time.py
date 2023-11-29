@@ -1,5 +1,4 @@
 """File to hold the StopTime class and its associated methods."""
-# pylint: disable=line-too-long
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 from datetime import datetime
@@ -98,7 +97,8 @@ class StopTime(GTFSBase):
         )
 
         return (
-            f"""<tr> <td style='color:#{self.trip.route.route_color};'>{self.trip.route.route_short_name or self.trip.route.route_long_name}</td>"""
+            f"""<tr> <td style='color:#{self.trip.route.route_color};'>"""
+            f"""{self.trip.route.route_short_name or self.trip.route.route_long_name}</td>"""
             f"""<td>{flag_stop or early_departure or trip_name}</td>"""
             f"""<td>{self.destination_label}</td>"""
             f"""<td>{format_time(self.departure_time)}</td>"""

@@ -16,6 +16,7 @@ class Vehicle(GTFSBase):
     """Vehicle"""
 
     __tablename__ = "vehicles"
+    __realtime_name__ = "vehicle_positions"
 
     vehicle_id = Column(String)
     trip_id = Column(String)
@@ -81,8 +82,6 @@ class Vehicle(GTFSBase):
         "2": "In transit to ",
     }
 
-    REALTIME_NAME = "vehicle_positions"
-
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
@@ -90,6 +89,7 @@ class Vehicle(GTFSBase):
         self.updated_at_datetime = isoparse(self.timestamp)
         self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
+        self.speed = self.speed if not self.speed else self.speed * 2.23694
 
     def return_current_status(self) -> str:
         """Returns current status of vehicle."""

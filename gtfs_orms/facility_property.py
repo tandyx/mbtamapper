@@ -23,9 +23,8 @@ class FacilityProperty(GTFSBase):  # pylint: disable=too-few-public-methods
 
     facility = relationship("Facility", back_populates="facility_properties")
 
-    # pylint: disable=unused-argument
     @override
-    def as_dict(self, exclude: list = None, include: list = None):
+    def as_dict(self):
         """Return the facility property as a dictionary
 
         Returns:

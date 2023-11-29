@@ -95,7 +95,7 @@ class Route(GTFSBase):
             "Express Bus": 0.75,
             "Commuter Bus": 0.75,
             "Rail Replacement Bus": 0.75,
-            "Key Bus": 0.9 if self.line_id == "sl_rapid_transit" else 0.75,
+            "Key Bus": 0.9,
             "Rapid Transit": 0.9,
             "Commuter Rail": 0.9,
             "Ferry": 0.9,

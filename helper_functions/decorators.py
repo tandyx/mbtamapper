@@ -16,7 +16,7 @@ def removes_session(func):
     """
 
     def wrapper(*args, **kwargs):
-        """Wrapper for decorator."""
+        """Wrapper for decorator. Removes session from Feed object after function call."""
         try:
             res = func(*args, **kwargs)
         except (OperationalError, IntegrityError) as err:

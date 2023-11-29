@@ -125,7 +125,7 @@ def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
 
     return dataframe[col].apply(
         lambda x: datetime.fromtimestamp(
-            x.get("time") if isinstance(x, dict) else x,
+            int(x.get("time")) if isinstance(x, dict) else int(x),
             tz=pytz.timezone("America/New_York"),
         ).isoformat()
         if not pd.isna(x)

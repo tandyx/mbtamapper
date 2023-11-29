@@ -13,6 +13,7 @@ class Prediction(GTFSBase):
     """Prediction"""
 
     __tablename__ = "predictions"
+    __realtime_name__ = "trip_updates"
 
     prediction_id = Column(String)
     arrival_time = Column(String)
@@ -63,8 +64,6 @@ class Prediction(GTFSBase):
         "arrival_time": "arrival_datetime",
         "departure_time": "departure_datetime",
     }
-
-    REALTIME_NAME = "trip_updates"
 
     @reconstructor
     def _init_on_load_(self) -> None:

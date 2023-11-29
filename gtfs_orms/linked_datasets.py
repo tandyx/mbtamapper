@@ -1,20 +1,19 @@
 """File to hold the LinkedDataset class and its associated methods."""
 # pylint: disable=no-name-in-module
+# pylint: disable=wildcard-import
+# pylint: disable=unused-wildcard-import
 import logging
 import time
 
 import pandas as pd
 import requests as rq
+from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
-from protobuf_to_dict import protobuf_to_dict
 from sqlalchemy import Column, Integer, String
 
-from helper_functions import df_unpack, get_current_time, timestamp_col_to_iso
+from helper_functions import *
 
-from .alert import Alert
 from .gtfs_base import GTFSBase
-from .prediction import Prediction
-from .vehicle import Vehicle
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -77,20 +76,6 @@ class LinkedDataset(GTFSBase):
     service_alerts = Column(Integer)
     authentication_type = Column(String)
 
-    DATASET_MAPPER = {
-        Prediction: "trip_updates",
-        Vehicle: "vehicle_positions",
-        Alert: "service_alerts",
-    }
-
-    def is_dataset(self, _orm: GTFSBase) -> bool:
-        """Returns True if the object is a dataset. Returns False if the object is not a dataset.
-
-        Returns:
-            bool: True if the object is a dataset. False if the object is not a dataset.
-        """
-        return bool(getattr(self, LinkedDataset.DATASET_MAPPER.get(_orm), 0))
-
     def _load_dataframe(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
@@ -104,7 +89,10 @@ class LinkedDataset(GTFSBase):
             return pd.DataFrame()
         logging.info("Retrieved data from %s", self.url)
         feed_entity.ParseFromString(response.content)
-        return pd.json_normalize(protobuf_to_dict(feed_entity)["entity"], sep="_")
+        return pd.json_normalize(
+            MessageToDict(feed_entity, preserving_proto_field_name=True)["entity"],
+            sep="_",
+        )
 
     def _post_process(self, dataframe: pd.DataFrame, rename_dict: dict) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
@@ -135,18 +123,10 @@ class LinkedDataset(GTFSBase):
             pd.DataFrame: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
-        dataframe["alert_informed_entity_trip"] = (
-            dataframe["alert_informed_entity_trip"].apply(
-                lambda x: x.get("trip_id") if not pd.isna(x) else None
-            )
-            if "alert_informed_entity_trip" in dataframe.columns
-            else None
-        )
-
-        for col in [
+        for col in (
             "trip_update_stop_time_update_departure",
             "trip_update_stop_time_update_arrival",
-        ]:
+        ):
             dataframe[col] = timestamp_col_to_iso(dataframe, col)
 
         dataframe["trip_update_stop_time_update_stop_sequence"] = (
@@ -165,15 +145,13 @@ class LinkedDataset(GTFSBase):
         """
 
         dataframe = self._load_dataframe()
-        dataframe["vehicle_position_speed"] = (
-            dataframe["vehicle_position_speed"] * 2.23694
-            if "vehicle_position_speed" in dataframe.columns
-            else None
-        )
-        dataframe = dataframe[dataframe["vehicle_timestamp"] > time.time() - 300]
+        dataframe = dataframe[
+            dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
+        ]
         dataframe["vehicle_timestamp"] = timestamp_col_to_iso(
             dataframe, "vehicle_timestamp"
         )
+
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
     def process_service_alerts(self) -> pd.DataFrame:
@@ -201,7 +179,7 @@ class LinkedDataset(GTFSBase):
         )
         dataframe["timestamp"] = get_current_time().isoformat()
 
-        for col in ["alert_active_period_start", "alert_active_period_end"]:
+        for col in ("alert_active_period_start", "alert_active_period_end"):
             dataframe[col] = timestamp_col_to_iso(dataframe, col)
 
         return self._post_process(dataframe, ALERT_RENAME_DICT)

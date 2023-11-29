@@ -8,6 +8,6 @@ sqlalchemy
 geojson
 schedule
 gtfs-realtime-bindings
-protobuf3-to-dict
 waitress
 werkzeug
+protobuf
