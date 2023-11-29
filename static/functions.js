@@ -360,29 +360,47 @@ function updateLayer(id, feature) {
   if (wasOpen) layer.openPopup();
 }
 
-function getBaseLayerDict() {
-  const positron = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }
-  );
+function getBaseLayerDict(
+  lightId = "CartoDB.Positron",
+  darkId = "CartoDB.DarkMatter",
+  additionalLayers = {}
+) {
+  /** Get base layer dictionary
+   * @summary Get base layer dictionary
+   * @param {string} lightId - id of light layer
+   * @param {string} darkId - id of dark layer
+   * @param {object} additionalLayers - additional layers to add to dictionary
+   * @returns {object} - base layer dictionary
+   */
 
-  const darkMatter = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    {
-      // attribution:
-      //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }
-  );
-
-  return {
-    Light: positron,
-    Dark: darkMatter,
+  const baseLayers = {
+    Light: L.tileLayer.provider(lightId),
+    Dark: L.tileLayer.provider(darkId),
   };
+
+  for (const [key, value] of Object.entries(additionalLayers)) {
+    baseLayers[key] = L.tileLayer.provider(value);
+  }
+
+  return baseLayers;
 }
+
+// const positron = L.tileLayer(
+//   "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+//   {
+//     // attribution:
+//     //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+//     subdomains: "abcd",
+//     maxZoom: 20,
+//   }
+// );
+
+// const darkMatter = L.tileLayer(
+//   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+//   {
+//     // attribution:
+//     //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+//     subdomains: "abcd",
+//     maxZoom: 20,
+//   }
+// );

@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql import and_, delete, not_, or_, select, update
-from sqlalchemy.sql.dml import Delete, Select, Update
+from sqlalchemy.sql import *
 
 from gtfs_orms import *
 

@@ -14,9 +14,8 @@ class GTFSBase(orm.DeclarativeBase):
     """
 
     __filename__: str
+    __realtime_name__: str
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
-
-    __realtime_name__: str = None
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}({''.join(key.name + '=' + str(getattr(self, key.name, None)) for key in self._get_primary_keys())})>"  # pylint: disable=line-too-long
