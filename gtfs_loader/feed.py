@@ -192,8 +192,8 @@ class Feed(Query):
 
         for stmt in (self.delete_calendars(date), self.delete_facilities()):
             res: CursorResult = self.session.execute(stmt)
-            self.session.commit()  # seperate commits to avoid giant journal file
-            logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
+            logging.info("Del %s rows from %s in sess", res.rowcount, stmt.table.name)
+        self.session.commit()
 
     @timeit
     def export_geojsons(

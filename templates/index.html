@@ -1,25 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
     <meta
       name="viewport"
-      charset="UTF-8"
       content="width=device-width, initial-scale=0.7, maximum-scale=1.0, user-scalable=no"
     />
-    <meta name="description" content="A collection of MBTA realtime maps." />
+    <title>MBTA Mapper</title>
+
+    <meta name="description" content="MBTA realtime maps." />
     <meta name="keywords" content="MBTA, Realtime, Map" />
     <meta name="author" content="Johan Cho" />
 
+    <meta property="og:title" content="MBTA Mapper" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mbtamapper.com/" />
+    <meta property="og:image" content="/static/img/all_routes.png" />
+    <meta property="og:description" content="MBTA realtime maps." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@tandywastaken" />
+    <meta name="twitter:creator" content="@tandywastaken" />
+    <meta name="twitter:title" content="MBTA Mapper" />
+    <meta name="twitter:description" content="MBTA realtime maps." />
+    <meta name="twitter:image" content="/static/img/all_routes.png" />
+
+    <!-- icons -->
+    <link rel="icon" href="/static/img/all_routes.ico" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/static/img/all_routes.png"
+    />
+    <link
+      rel="shortcut_icon"
+      sizes="180x180"
+      href="/static/img/all_routes.png"
+    />
+
+    <!-- Leaflet -->
     <link
       rel="stylesheet"
       href="/static/node_modules/leaflet/dist/leaflet.css"
     />
     <script src="/static/node_modules/leaflet/dist/leaflet.js"></script>
-    <link rel="icon" href="/static/img/all_routes.ico" />
     <script src="/static/node_modules/leaflet-realtime/dist/leaflet-realtime.js"></script>
     <script src="/static/node_modules/leaflet-realtime/dist/leaflet-realtime.min.js"></script>
     <script src="/static/node_modules/leaflet-providers/leaflet-providers.js"></script>
-
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/src/popup.css" />
     <link rel="stylesheet" href="/static/src/tooltip.css" />
     <link rel="stylesheet" href="/static/src/scrollbar.css" />
@@ -28,13 +56,9 @@
     <link rel="stylesheet" href="/static/src/index.css" />
     <link rel="stylesheet" href="/static/src/animation.css" />
     <link rel="stylesheet" href="/static/src/table.css" />
-    <script
-      src="/static/functions.js"
-      type="text/javascript"
-      async
-      defer
-    ></script>
-    <title>MBTA Mapper</title>
+
+    <!-- Custom JS -->
+    <script src="/static/functions.js" type="text/javascript" async></script>
   </head>
   <body>
     <div id="map"></div>
