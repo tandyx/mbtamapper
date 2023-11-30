@@ -7,7 +7,6 @@ import time
 from typing import NoReturn
 
 from schedule import Scheduler
-from sqlalchemy.exc import OperationalError
 
 from gtfs_orms import Alert, Prediction, Vehicle
 from helper_functions import get_current_time, get_date, timeit
@@ -49,12 +48,9 @@ class FeedLoader(Scheduler, Feed):
     def geojson_exports(self) -> None:
         """Exports geojsons."""
         for key, routes in self.keys_dict.items():
-            try:
-                self.export_geojsons(
-                    key, routes, __class__.GEOJSON_PATH, get_current_time()
-                )
-            except OperationalError:
-                logging.warning("OperationalError: %s", key)
+            self.export_geojsons(
+                key, routes, __class__.GEOJSON_PATH, get_current_time()
+            )
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.

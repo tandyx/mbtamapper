@@ -80,10 +80,11 @@ function setFavicon(route_type) {
    * @returns {void}
    */
   for (let link of document.getElementsByTagName("link")) {
-    if (
-      link.rel in ["icon", "shortcut icon", "apple-touch-icon", "mask-icon"]
-    ) {
-      link.href = `${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.ico`;
+    if (link.rel in ["shortcut_icon", "apple-touch-icon", "mask-icon"]) {
+      link.href = `${window.href}/static/img/${route_type.toLowerCase()}.ico`;
+    }
+    if (link.rel == "icon") {
+      link.href = `${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.png`;
     }
   }
 }
@@ -152,7 +153,7 @@ function setImages(route_type) {
   })) {
     document.querySelector(`meta[${value}="${key}"]`).setAttribute(
       "content",
-      `/${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.png`
+      `/${window.href}/static/img/${route_type.toLowerCase()}.png`
       // `{{ url_for('static', filename='img/${route_type.toLowerCase()}.png') }}`
     );
   }
