@@ -10,8 +10,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader
 
-from gtfs_orms import LinkedDataset
-
 KEY_DICT: dict[str, tuple[str]] = {
     "SUBWAY": ("0", "1"),
     "RAPID_TRANSIT": ("0", "1", "4"),
