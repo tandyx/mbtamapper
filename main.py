@@ -42,7 +42,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         return jsonify(FEED_LOADER.get_vehicles_feature(key, KEY_DICT[key]))
 
     @_app.teardown_appcontext
-    def shutdown_session(exception=None) -> None:
+    def shutdown_session(exception: Exception = None) -> None:
         """Tears down database session."""
         FEED_LOADER.scoped_session.remove()
         if exception:
@@ -123,6 +123,6 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader()
+    feed_loader(True)
     # app = create_default_app()
     # app.run(debug=True, port=80)
