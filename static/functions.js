@@ -80,9 +80,81 @@ function setFavicon(route_type) {
    * @returns {void}
    */
   for (let link of document.getElementsByTagName("link")) {
-    if (link.rel == "icon") {
-      link.href = `static/img/${route_type.toLowerCase()}.ico`;
+    if (
+      link.rel in ["icon", "shortcut icon", "apple-touch-icon", "mask-icon"]
+    ) {
+      link.href = `${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.ico`;
     }
+  }
+}
+
+function setDescriptions(route_type) {
+  /** Set descriptions to route type
+   * @param {string} route_type - route type to set descriptions to
+   * @returns {void}
+   */
+
+  for (const [key, value] of Object.entries({
+    description: "name",
+    "og:description": "property",
+    "twitter:description": "name",
+  })) {
+    document
+      .querySelector(`meta[${value}="${key}"]`)
+      .setAttribute(
+        "content",
+        "MBTA Realtime map for the MBTA's " + titleCase(route_type) + "."
+      );
+  }
+}
+
+function setUrls() {
+  /** Set urls to route type
+   * @returns {void}
+   */
+
+  for (const [key, value] of Object.entries({
+    "og:url": "property",
+    "twitter:url": "name",
+  })) {
+    document
+      .querySelector(`meta[${value}="${key}"]`)
+      .setAttribute("content", window.location.href);
+  }
+}
+
+function setTitles(route_type) {
+  /** Set titles to title string
+   * @param {string} titleString - title string to set titles to
+   * @returns {void}
+   */
+  document.title = "MBTA " + titleCase(route_type) + " Realtime Map";
+
+  for (const [key, value] of Object.entries({
+    "og:title": "property",
+    "twitter:title": "name",
+  })) {
+    document
+      .querySelector(`meta[${value}="${key}"]`)
+      .setAttribute("content", document.title);
+  }
+}
+
+function setImages(route_type) {
+  /** Set images to route type
+   * @param {string} route_type - route type to set images to
+   * @returns {void}
+   */
+
+  for (const [key, value] of Object.entries({
+    "og:image": "property",
+    "twitter:image": "name",
+  })) {
+    document.querySelector(`meta[${value}="${key}"]`).setAttribute(
+      "content",
+      `/${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.png`
+      // `{{ url_for('static', filename='img/${route_type.toLowerCase()}.png') }}`
+    );
   }
 }
 

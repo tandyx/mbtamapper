@@ -1,18 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
     <meta
       name="viewport"
-      charset="UTF-8"
       content="width=device-width, initial-scale=0.9, maximum-scale=1.0, user-scalable=no"
     />
-    <meta
-      name="description"
-      content="MBTA Realtime map for a specific route."
-    />
+    <meta name="description" content="MBTA's realtime map of a route." />
     <meta name="keywords" content="MBTA, Realtime, Map" />
     <meta name="author" content="Johan Cho" />
+    <title>MBTA System Map</title>
 
+    <meta property="og:title" content="MBTA System Map" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mbtamapper.com/" />
+    <meta
+      property="og:image"
+      content="{{ url_for('static', filename='img/all_routes.png') }}"
+    />
+    <meta property="og:description" content="MBTA realtime map of a route." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@tandywastaken" />
+    <meta name="twitter:creator" content="@tandywastaken" />
+    <meta name="twitter:title" content="MBTA System Map" />
+    <meta name="twitter:description" content="MBTA realtime map of a route." />
+    <meta
+      name="twitter:image"
+      content="{{ url_for('static', filename='img/all_routes.png') }}"
+    />
+    <meta name="twitter:url" content="https://mbtamapper.com/" />
+
+    <!-- icons -->
+
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/all_routes.ico') }}"
+    />
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ url_for('static', filename='img/all_routes.png') }}"
+    />
+
+    <link
+      rel="shortcut_icon"
+      sizes="180x180"
+      href="{{ url_for('static', filename='img/all_routes.png') }}"
+    />
+
+    <!-- Leaflet -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
@@ -26,24 +64,15 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css') }}"
     />
-
     <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js') }}"></script>
-
     <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
-
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css') }}"
     />
-
     <script src="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js') }}"></script>
 
-    <link
-      rel="icon"
-      href="{{ url_for('static', filename='img/all_routes.ico') }}"
-    />
     <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
-
     <script src="{{ url_for('static', filename='node_modules/leaflet-fullscreen/dist/Leaflet.fullscreen.min.js') }}"></script>
     <link
       rel="stylesheet"
@@ -58,9 +87,9 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='node_modules/leaflet-search/dist/leaflet-search.min.css') }}"
     />
-
     <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
 
+    <!-- Custom CSS -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='src/popup.css') }}"
@@ -93,14 +122,13 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='src/font.css') }}"
     />
-    <script src="{{ url_for('static', filename='functions.js') }}"></script>
-
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='src/navbar.css') }}"
     />
 
-    <title>MBTA System Map</title>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='functions.js') }}"></script>
   </head>
 
   <body>
