@@ -89,6 +89,9 @@ class LinkedDataset(GTFSBase):
             return pd.DataFrame()
         logging.info("Retrieved data from %s", self.url)
         feed_entity.ParseFromString(response.content)
+        if not hasattr(feed_entity, "entity"):
+            logging.error("No entity in feed")
+            return pd.DataFrame()
         return pd.json_normalize(
             MessageToDict(feed_entity, preserving_proto_field_name=True)["entity"],
             sep="_",
