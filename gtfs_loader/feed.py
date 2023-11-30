@@ -154,7 +154,16 @@ class Feed(Query):
                         to_sql(self.session, chunk["shape_id"].drop_duplicates(), Shape)
                     to_sql(self.session, chunk, orm)
 
+        self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
+
+    def remove_zip(self) -> None:
+        """Removes the GTFS zip file."""
+        if not os.path.exists(self.zip_path):
+            logging.warning("%s does not exist", self.zip_path)
+            return
+        os.remove(self.zip_path)
+        logging.info("Removed %s", self.zip_path)
 
     @timeit
     @removes_session
