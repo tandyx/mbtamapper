@@ -1,5 +1,4 @@
 """Feed Object for GTFS Loader"""
-# pylint: disable=too-many-instance-attributes
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=unused-argument
@@ -25,9 +24,13 @@ from helper_functions import *
 from .query import Query
 
 
-class Feed(Query):
-    """Loads GTFS data into a route_type specific SQLite database.
-    This class also contains methods to query the database.
+class Feed(Query):  # pylint: disable=too-many-instance-attributes
+    """Loads GTFS data into a route_type specific SQLite database. \
+        This class also contains methods to query the database. \
+        inherits from Query class, which contains methods to query the database.\
+       
+    This class is thread-safe.
+        
 
     Args:
         url (str): url of GTFS feed
@@ -60,7 +63,8 @@ class Feed(Query):
         dbapi_connection: sqlite3.Connection,
         connection_record: pool.ConnectionPoolEntry,
     ) -> None:
-        """Sets sqlite pragma for each connection
+        """Sets sqlite pragma for each connection,\
+            automitcally called when a connection is created.
 
         Args:
             dbapi_connection (sqlite3.Connection): connection to sqlite database
@@ -82,7 +86,7 @@ class Feed(Query):
         dbapi_connection: sqlite3.Connection,
         connection_record: pool.ConnectionPoolEntry,
     ) -> None:
-        """Sets sqlite pragma on close
+        """Sets sqlite pragma on close automatically.
 
         Args:
             dbapi_connection (sqlite3.Connection): connection to sqlite database
@@ -97,7 +101,8 @@ class Feed(Query):
             cursor.close()
 
     def __init__(self, url: str) -> None:
-        """Initializes Feed object.
+        """Initializes Feed object with url.\
+            Parses url to get GTFS name and create db path.\\
 
         Args:
             url (str): url of GTFS feed

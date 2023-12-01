@@ -1,19 +1,19 @@
 window.addEventListener("load", function () {
-  createMap(
-    "map",
+  const ROUTE_ARRAY = [
     "SUBWAY",
     "RAPID_TRANSIT",
     "COMMUTER_RAIL",
     "BUS",
     "FERRY",
-    "ALL_ROUTES"
-  );
+    "ALL_ROUTES",
+  ];
+  createMap("map", ROUTE_ARRAY[Math.floor(Math.random() * ROUTE_ARRAY.length)]);
 });
 
-function createMap(id, ...routes) {
+function createMap(id, route_type) {
   /** map factory function for index.html
    * @param {string} id - id of div to create map in
-   * @param {routes} routes - route type routes
+   * @param {string} route_type - route type routes
    * @returns {L.map} map
    */
 
@@ -45,7 +45,6 @@ function createMap(id, ...routes) {
     },
   });
 
-  const route_type = routes[Math.floor(Math.random() * routes.length)];
   const zoom = route_type == "COMMUTER_RAIL" ? 11 : 13;
   const map = L.map(id, {
     zoomControl: false,
@@ -71,7 +70,7 @@ function createMap(id, ...routes) {
   const shape_layer = L.layerGroup().addTo(map);
   plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer, false);
 
-  map.on("click", function () {
+  shape_layer.on("click", function () {
     if (map.hasLayer(baseLayers["Light"])) {
       map.removeLayer(baseLayers["Light"]);
       map.addLayer(baseLayers["Dark"]);

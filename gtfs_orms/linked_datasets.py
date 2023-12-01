@@ -89,13 +89,11 @@ class LinkedDataset(GTFSBase):
             return pd.DataFrame()
         logging.info("Retrieved data from %s", self.url)
         feed_entity.ParseFromString(response.content)
-        if not hasattr(feed_entity, "entity"):
-            logging.error("No entity in feed")
+        realtime_dict = MessageToDict(feed_entity, preserving_proto_field_name=True)
+        if "entity" not in realtime_dict:
+            logging.error("No data found in %s", self.url)
             return pd.DataFrame()
-        return pd.json_normalize(
-            MessageToDict(feed_entity, preserving_proto_field_name=True)["entity"],
-            sep="_",
-        )
+        return pd.json_normalize(realtime_dict["entity"], sep="_")
 
     def _post_process(self, dataframe: pd.DataFrame, rename_dict: dict) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
