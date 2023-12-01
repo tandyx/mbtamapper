@@ -123,6 +123,4 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader(True)
-    # app = create_default_app()
-    # app.run(debug=True, port=80)
+    feed_loader()

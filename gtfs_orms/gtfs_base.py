@@ -1,5 +1,5 @@
 """Holds the base class for all GTFS elements"""
-from typing import Any, Generator
+from typing import Any, Generator, Self
 
 from sqlalchemy import Column, orm
 
@@ -23,6 +23,36 @@ class GTFSBase(orm.DeclarativeBase):
     def __str__(self) -> str:
         return str(self.as_dict())
 
+    def __eq__(self, other: Self) -> bool:
+        """Implements equality operator.
+
+        Returns:
+            bool: whether the objects are equal
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        return all(
+            getattr(self, key.name) == getattr(other, key.name)
+            for key in self._get_primary_keys()
+        )
+
+    def __lt__(self, other: Self) -> bool:
+        """Implements less than operator.
+
+        Returns:
+            bool: whether the object is less than the other
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        return all(
+            getattr(self, key.name) < getattr(other, key.name)
+            for key in self._get_primary_keys()
+        )
+
     def _get_primary_keys(self) -> Generator[Column, None, None]:
         """Returns the primary keys of the table.
 
@@ -32,8 +62,10 @@ class GTFSBase(orm.DeclarativeBase):
 
         return (c for c in self.__table__.columns if c.primary_key)
 
-    def as_dict(self) -> dict[str, Any]:
-        """Returns a dict representation of the object.
+    def _as_dict(self) -> dict[str, Any]:
+        """Returns a dict representation of the object.\
+            Internal method, do not override, and can be used within \
+            overriden as_dict method.
 
         Returns:
             dict[str, Any]: dict representation of the object
@@ -42,3 +74,20 @@ class GTFSBase(orm.DeclarativeBase):
         if "_sa_instance_state" in class_dict:
             del class_dict["_sa_instance_state"]
         return class_dict
+
+    def is_valid(self) -> bool:
+        """Returns whether the object is valid.
+
+        Returns:
+            bool: whether the object is valid
+        """
+        return all(getattr(self, key.name, None) for key in self._get_primary_keys())
+
+    def as_dict(self) -> dict[str, Any]:
+        """Returns a dict representation of the object, front-facing.\
+        Override this method to change the dict representation.
+
+        Returns:
+            dict[str, Any]: dict representation of the object
+        """
+        return self._as_dict()

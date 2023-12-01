@@ -1,14 +1,11 @@
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
-  // document.title = "MBTA " + titleCase(ROUTE_TYPE) + " Realtime Map";
   setFavicon(ROUTE_TYPE);
   setImages(ROUTE_TYPE);
   setDescriptions(ROUTE_TYPE);
   setTitles(ROUTE_TYPE);
   setUrls();
-
   setNavbar("navbar", ROUTE_TYPE, window.mobileCheck());
-
   createMap("map", ROUTE_TYPE);
 });
 
