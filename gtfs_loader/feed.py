@@ -110,9 +110,9 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         super().__init__()
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
-        self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
+        self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0].lower()
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
-        self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
+        self.db_path = os.path.join(tempfile.gettempdir(), f"{self.gtfs_name}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
         self.session = self.sessionmkr()
