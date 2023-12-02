@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import pytz
-from dateutil.parser import parse, isoparse
+from dateutil.parser import isoparse, parse
 
 
 def to_seconds(time: str) -> int:
