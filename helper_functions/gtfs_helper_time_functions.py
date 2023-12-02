@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import pytz
-from dateutil.parser import parse
+from dateutil.parser import isoparse, parse
 
 
 def to_seconds(time: str) -> int:
@@ -146,3 +146,18 @@ def format_timedelta(delta: timedelta) -> str:
     if hours >= 0:
         return f"+{str(hours).zfill(2)}:{str(minutes).zfill(2)}"
     return f"-{str(hours*-1).zfill(2)}:{str(minutes).zfill(2)}"
+
+
+def is_valid_iso(iso_str: str) -> bool:
+    """Checks if a string is a valid iso string
+
+    Args:
+        iso_str (str): A string
+    Returns:
+        bool: Whether the string is a valid iso string"""
+
+    try:
+        isoparse(iso_str)
+        return True
+    except ValueError:
+        return False
