@@ -98,7 +98,7 @@ class StopTime(GTFSBase):
 
         return (
             f"""<tr> <td style='color:#{self.trip.route.route_color};'>"""
-            f"""{self.trip.route.route_short_name or self.trip.route.route_long_name}</td>"""
+            f"""{shorten(self.trip.route.route_short_name or self.trip.route.route_long_name)}</td>"""  # pylint: disable=line-too-long
             f"""<td>{flag_stop or early_departure or trip_name}</td>"""
             f"""<td>{self.destination_label}</td>"""
             f"""<td>{format_time(self.departure_time)}</td>"""
