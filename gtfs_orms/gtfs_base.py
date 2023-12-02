@@ -54,6 +54,16 @@ class GTFSBase(orm.DeclarativeBase):
             for key in self._get_primary_keys()
         )
 
+    def __hash__(self) -> int:
+        """Implements hash operator."""
+
+        return hash(tuple(getattr(self, key.name) for key in self._get_primary_keys()))
+
+    def __bool__(self) -> bool:
+        """Implements bool operator."""
+
+        return all(getattr(self, key.name, None) for key in self._get_primary_keys())
+
     def _get_primary_keys(self) -> Generator[Column, None, None]:
         """Returns the primary keys of the table.
 
@@ -82,7 +92,10 @@ class GTFSBase(orm.DeclarativeBase):
         Returns:
             bool: whether the object is valid
         """
-        return all(getattr(self, key.name, None) for key in self._get_primary_keys())
+        return all(
+            getattr(self, key.name, None) is not None
+            for key in self._get_primary_keys()
+        )
 
     def as_dict(self) -> dict[str, Any]:
         """Returns a dict representation of the object, front-facing.\
