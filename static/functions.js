@@ -74,17 +74,18 @@ function titleCase(str, split = "_") {
     .join(" ");
 }
 
-function setFavicon(route_type) {
+function setFavicon(base_url, route_type) {
   /** Set favicon to route type
+   * @param {string} base_url - base url to set favicon to
    * @param {string} route_type - route type to set favicon to
    * @returns {void}
    */
   for (let link of document.getElementsByTagName("link")) {
     if (link.rel in ["shortcut_icon", "apple-touch-icon", "mask-icon"]) {
-      link.href = `${window.href}/static/img/${route_type.toLowerCase()}.png`;
+      link.href = `${base_url}/static/img/${route_type.toLowerCase()}.png`;
     }
     if (link.rel == "icon") {
-      link.href = `${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.ico`;
+      link.href = `/${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.ico`;
     }
   }
 }
@@ -141,8 +142,9 @@ function setTitles(route_type) {
   }
 }
 
-function setImages(route_type) {
+function setImages(base_url, route_type) {
   /** Set images to route type
+   * @param {string} base_url - base url to set images to
    * @param {string} route_type - route type to set images to
    * @returns {void}
    */
@@ -153,7 +155,7 @@ function setImages(route_type) {
   })) {
     document.querySelector(`meta[${value}="${key}"]`).setAttribute(
       "content",
-      `/${window.href}/static/img/${route_type.toLowerCase()}.png`
+      `/${base_url}/static/img/${route_type.toLowerCase()}.png`
       // `{{ url_for('static', filename='img/${route_type.toLowerCase()}.png') }}`
     );
   }
