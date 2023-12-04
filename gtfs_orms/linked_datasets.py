@@ -148,6 +148,8 @@ class LinkedDataset(GTFSBase):
         dataframe = self._load_dataframe()
         dataframe = dataframe[
             dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
+            if "vehicle_timestamp" in dataframe.columns
+            else True
         ]
         dataframe["vehicle_timestamp"] = timestamp_col_to_iso(
             dataframe, "vehicle_timestamp"

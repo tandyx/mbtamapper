@@ -1,7 +1,10 @@
 """Holds the base class for all GTFS elements"""
+from datetime import datetime
 from typing import Any, Generator, Self
 
 from sqlalchemy import Column, orm
+
+from helper_functions.string_ops import is_json_searializable
 
 
 class GTFSBase(orm.DeclarativeBase):
@@ -62,7 +65,7 @@ class GTFSBase(orm.DeclarativeBase):
     def __bool__(self) -> bool:
         """Implements bool operator."""
 
-        return all(getattr(self, key.name, None) for key in self._get_primary_keys())
+        return self.is_valid()
 
     def _get_primary_keys(self) -> Generator[Column, None, None]:
         """Returns the primary keys of the table.
@@ -83,7 +86,7 @@ class GTFSBase(orm.DeclarativeBase):
         """
         class_dict = self.__dict__
         if "_sa_instance_state" in class_dict:
-            del class_dict["_sa_instance_state"]
+            class_dict.pop("_sa_instance_state")
         return class_dict
 
     def is_valid(self) -> bool:
@@ -96,6 +99,23 @@ class GTFSBase(orm.DeclarativeBase):
             getattr(self, key.name, None) is not None
             for key in self._get_primary_keys()
         )
+
+    def as_json(self, dt_format: str = None) -> dict[str, Any]:
+        """Returns a json searizable representation of \
+            the object as opposed to Base.as_dict()
+            
+        Args:
+            dt_format (str, optional): datetime format to use. Defaults to None.
+        Returns:
+            dict[str, Any]: json searizable representation of the object"""
+
+        return {
+            key: (value.strftime(dt_format) if dt_format else value.isoformat())
+            if isinstance(value, datetime)
+            else value
+            for key, value in self._as_dict().items()
+            if is_json_searializable(value)
+        }
 
     def as_dict(self) -> dict[str, Any]:
         """Returns a dict representation of the object, front-facing.\

@@ -5,9 +5,7 @@ import time
 import pandas as pd
 from sqlalchemy import delete
 from sqlalchemy.exc import IllegalStateChangeError, IntegrityError
-from sqlalchemy.orm import Session
-
-from gtfs_orms.gtfs_base import GTFSBase
+from sqlalchemy.orm import DeclarativeBase, Session
 
 # pylint: disable=broad-except
 
@@ -15,7 +13,7 @@ from gtfs_orms.gtfs_base import GTFSBase
 def to_sql(
     session: Session,
     data: pd.DataFrame,
-    orm: GTFSBase,
+    orm: DeclarativeBase,
     *args,
     purge: bool = False,
     **kwargs,

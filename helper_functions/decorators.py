@@ -4,7 +4,7 @@ import time
 import traceback
 from typing import Any, Callable
 
-from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.exc import DatabaseError, IntegrityError, OperationalError
 from sqlalchemy.orm import scoped_session
 
 
@@ -20,7 +20,7 @@ def removes_session(func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrapper for decorator. Removes session from Feed object after function call."""
         try:
             res = func(*args, **kwargs)
-        except (OperationalError, IntegrityError) as err:
+        except (OperationalError, IntegrityError, DatabaseError) as err:
             logging.error("OperationalError: %s", err)
             logging.error(traceback.format_exc())
             res = None
