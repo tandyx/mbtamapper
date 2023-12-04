@@ -36,7 +36,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         url (str): url of GTFS feed
     """
 
-    SILVER_LINE_ROUTES = ("741", "742", "743", "751", "749", "746")
+    SL_ROUTES = ("741", "742", "743", "751", "749", "746")
 
     # note that the order of these tables matters; avoids foreign key errors
     __schedule_orms__ = (
@@ -274,7 +274,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         if key == "RAPID_TRANSIT":
             shape_data += session.execute(
-                self.get_shapes_from_route(self.SILVER_LINE_ROUTES).where(
+                self.get_shapes_from_route(self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
@@ -317,7 +317,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @removes_session
     def get_vehicles_feature(
-        self, key: str, route_types: tuple[str], max_tries: int = 5
+        self, key: str, route_types: tuple[str], max_tries: int = 10
     ) -> FeatureCollection:
         """Returns vehicles as FeatureCollection.
 
@@ -330,19 +330,19 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """
         session = self.scoped_session()
         vehicles_query = Query(route_types).get_vehicles(
-            self.SILVER_LINE_ROUTES if key == "RAPID_TRANSIT" else []
+            self.SL_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(75)
-        try:
-            for attempt in range(max_tries):
+        for attempt in range(max_tries):
+            try:
                 data = session.execute(vehicles_query).all()
-                if data and any(d[0].predictions for d in data):
-                    break
-                time.sleep(0.5)
-        except exc.OperationalError as error:
-            data = []
-            logging.error("Failed to get vehicle data: %s", error)
+            except (exc.OperationalError, exc.DatabaseError) as error:
+                data = []
+                logging.error("Failed to get vehicle data: %s", error)
+            if any(d[0].predictions for d in data):
+                break
+            time.sleep(0.5)
         if not data:
             logging.error("No data returned in %s attemps", attempt + 1)
         return FeatureCollection([v[0].as_feature() for v in data])

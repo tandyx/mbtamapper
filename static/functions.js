@@ -81,10 +81,10 @@ function setFavicon(route_type) {
    */
   for (let link of document.getElementsByTagName("link")) {
     if (link.rel in ["shortcut_icon", "apple-touch-icon", "mask-icon"]) {
-      link.href = `${window.href}/static/img/${route_type.toLowerCase()}.ico`;
+      link.href = `${window.href}/static/img/${route_type.toLowerCase()}.png`;
     }
     if (link.rel == "icon") {
-      link.href = `${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.png`;
+      link.href = `${route_type.toLowerCase()}/static/img/${route_type.toLowerCase()}.ico`;
     }
   }
 }
