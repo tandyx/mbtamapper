@@ -1,7 +1,7 @@
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
-  setFavicon(ROUTE_TYPE);
-  setImages(ROUTE_TYPE);
+  setFavicon(window.location.href, ROUTE_TYPE);
+  setImages(window.location.href, ROUTE_TYPE);
   setDescriptions(ROUTE_TYPE);
   setTitles(ROUTE_TYPE);
   setUrls();
@@ -23,6 +23,7 @@ function createMap(id, route_type) {
     fullscreenControlOptions: {
       position: "topleft",
     },
+    attributionControl: true,
   }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
   const baseLayers = getBaseLayerDict(...Array(2), {
