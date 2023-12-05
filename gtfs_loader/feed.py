@@ -10,6 +10,7 @@ import sqlite3
 import tempfile
 import time
 from datetime import datetime
+from typing import Type
 from zipfile import ZipFile
 
 import pandas as pd
@@ -110,7 +111,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         super().__init__()
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
-        self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0].lower()
+        self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
         self.db_path = os.path.join(tempfile.gettempdir(), f"{self.gtfs_name}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
@@ -159,7 +160,6 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                     if orm.__filename__ == "shapes.txt":
                         to_sql(self.session, chunk["shape_id"].drop_duplicates(), Shape)
                     to_sql(self.session, chunk, orm)
-
         self._remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
 
@@ -173,23 +173,17 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: Alert | Vehicle | Prediction) -> None:
+    @handles_keyerror
+    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction]) -> None:
         """Imports realtime data into the database.
 
         Args:
-            orm (Alert | Vehicle | Prediction): ORM to update.
+            orm (Type[Alert | Vehicle | Prediction]): realtime ORM type.
         """
-
         if orm not in __class__.__realtime_orms__:
             raise ValueError(f"{orm} is not a realtime ORM")
-
         session = self.scoped_session()
-        dataset = session.execute(
-            self.select(LinkedDataset).where(
-                getattr(LinkedDataset, orm.__realtime_name__)
-            )
-        ).first()
-
+        dataset = session.execute(self.get_linkeddataset(orm.__realtime_name__)).first()
         to_sql(
             session,
             getattr(dataset[0], "process_" + orm.__realtime_name__)(),
@@ -207,7 +201,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         for stmt in (self.delete_calendars(date), self.delete_facilities()):
             res: CursorResult = self.session.execute(stmt)
-            logging.info("Del %s rows from %s in sess", res.rowcount, stmt.table.name)
+            logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
         self.session.commit()
 
     @timeit
@@ -346,3 +340,29 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         if not data:
             logging.error("No data returned in %s attemps", attempt + 1)
         return FeatureCollection([v[0].as_feature() for v in data])
+
+    # @removes_session
+    # def get_features_by_param(
+    #     self,
+    #     orm: Type[GTFSBase],
+    #     param: str,
+    #     param_value: Any,
+    #     __as: Literal["dict"] | Literal["json"] | Literal["feature"] = "dict",
+    # ) -> FeatureCollection | list | dict:
+    #     """Returns features by param.
+
+    #     Args:
+    #         orm (Type[GTFSBase]): ORM type
+    #         param (str): param to filter on
+    #         param_value (Any): param value to filter on
+    #         __as (Literal["dict"] | Literal["json"]): whether to return as dict or json
+    #     Returns:
+    #         FeatureCollection: features
+    #     """
+    #     session = self.scoped_session()
+    #     features = FeatureCollection(
+    #         [(session.execute(self.query_item_by_attr(orm, param, param_value)).all())]
+    #     )
+    #     if __as == "json":
+    #         return features
+    #     return features.__geo_interface__

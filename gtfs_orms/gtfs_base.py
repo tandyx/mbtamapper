@@ -19,6 +19,7 @@ class GTFSBase(orm.DeclarativeBase):
 
     __filename__: str
     __realtime_name__: str
+    __realtime_name__: str
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
     def __repr__(self) -> str:
@@ -63,9 +64,13 @@ class GTFSBase(orm.DeclarativeBase):
         return hash(tuple(getattr(self, key.name) for key in self._get_primary_keys()))
 
     def __bool__(self) -> bool:
-        """Implements bool operator."""
+        """Implements bool operator. \
+            Also represents whether the object is valid to be added to the database."""
 
-        return self.is_valid()
+        return all(
+            getattr(self, key.name, None) is not None
+            for key in self._get_primary_keys()
+        )
 
     def _get_primary_keys(self) -> Generator[Column, None, None]:
         """Returns the primary keys of the table.
@@ -84,21 +89,8 @@ class GTFSBase(orm.DeclarativeBase):
         Returns:
             dict[str, Any]: dict representation of the object
         """
-        class_dict = self.__dict__
-        if "_sa_instance_state" in class_dict:
-            class_dict.pop("_sa_instance_state")
-        return class_dict
 
-    def is_valid(self) -> bool:
-        """Returns whether the object is valid.
-
-        Returns:
-            bool: whether the object is valid
-        """
-        return all(
-            getattr(self, key.name, None) is not None
-            for key in self._get_primary_keys()
-        )
+        return {k: v for k, v in self.__dict__.items() if k != "_sa_instance_state"}
 
     def as_json(self, dt_format: str = None) -> dict[str, Any]:
         """Returns a json searizable representation of \
@@ -117,10 +109,18 @@ class GTFSBase(orm.DeclarativeBase):
             if is_json_searializable(value)
         }
 
-    def as_dict(self) -> dict[str, Any]:
+    # pylint: disable=unused-argument
+    def as_dict(self, *args, **kwargs) -> dict[str, Any]:
         """Returns a dict representation of the object, front-facing.\
         Override this method to change the dict representation.
-
+        
+        Within the base class, this method is an alias for _as_dict.
+        
+        Args:
+            *args: unused, but can be used in overriden methods to \
+                pass in additional arguments
+            **kwargs: unused, but can be used in overriden methods to \
+                pass in additional arguments
         Returns:
             dict[str, Any]: dict representation of the object
         """
