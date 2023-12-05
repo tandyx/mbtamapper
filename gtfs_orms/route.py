@@ -80,6 +80,18 @@ class Route(GTFSBase):
         "ffffff": "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
     }
 
+    OPACITY_DICT = {
+        "Community Bus": 0.35,
+        "Local Bus": 0.5,
+        "Express Bus": 0.75,
+        "Commuter Bus": 0.75,
+        "Rail Replacement Bus": 0.75,
+        "Key Bus": 0.9,
+        "Rapid Transit": 0.9,
+        "Commuter Rail": 0.9,
+        "Ferry": 0.9,
+    }
+
     @reconstructor
     def _init_on_load_(self):
         """Reconstructs the object on load from the database."""
@@ -89,17 +101,6 @@ class Route(GTFSBase):
         )
         self.route_name = self.route_short_name or self.route_long_name
         self.filter = Route.HEX_TO_CSS.get(self.route_color, Route.HEX_TO_CSS["ffffff"])
-        self.opacity_dict = {
-            "Community Bus": 0.35,
-            "Local Bus": 0.5,
-            "Express Bus": 0.75,
-            "Commuter Bus": 0.75,
-            "Rail Replacement Bus": 0.75,
-            "Key Bus": 0.9,
-            "Rapid Transit": 0.9,
-            "Commuter Rail": 0.9,
-            "Ferry": 0.9,
-        }
 
     def as_html_popup(self) -> str:
         """Return a proper HTML popup representation of the route object"""
@@ -141,7 +142,7 @@ class Route(GTFSBase):
         return {
             "name": self.route_short_name or self.route_long_name,
             "color": "#" + self.route_color,
-            "opacity": self.opacity_dict.get(self.route_desc, 0.5),
+            "opacity": self.OPACITY_DICT.get(self.route_desc, 0.5),
             "weight": Route.WEIGHT,
             "popupContent": self.as_html_popup(),
             "is_added": self.network_id == "rail_replacement_bus",

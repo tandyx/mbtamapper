@@ -38,12 +38,21 @@ def create_app(key: str, proxies: int = 5) -> Flask:
 
     @_app.route("/vehicles")
     def get_vehicles() -> str:
-        """Returns vehicles as geojson."""
+        """Returns vehicles as geojson in the context of the route type AND \
+            flask, exported to /vehicles as an api.
+            
+        Returns:
+            str: geojson of vehicles.
+        """
         return jsonify(FEED_LOADER.get_vehicles_feature(key, KEY_DICT[key]))
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
-        """Tears down database session."""
+        """Tears down database session.
+
+        Args:
+            exception (Exception, optional): Exception to log. Defaults to None.
+        """
         FEED_LOADER.scoped_session.remove()
         if exception:
             logging.error(exception)
@@ -126,3 +135,8 @@ if __name__ == "__main__":
     feed_loader()
     # app = create_default_app()
     # app.run()
+    # from gtfs_orms import LinkedDataset
+
+    # x = LinkedDataset(url="https://cdn.mbta.com/realtime/Alerts.pb")
+
+    # x.process_service_alerts()

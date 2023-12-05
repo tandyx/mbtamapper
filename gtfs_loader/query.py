@@ -2,6 +2,7 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 from datetime import datetime, timedelta
+from typing import Any, Type
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import aliased
@@ -192,13 +193,40 @@ class Query:
 
     @staticmethod
     def get_ferry_parking() -> Select[DeclarativeMeta]:
-        """Returns a query for ferry parking."""
+        """Returns a query for ferry parking.
+
+        Returns:
+            A query for ferry parking.
+        """
         return (
             select(Facility)
             .join(Stop, Facility.stop_id == Stop.stop_id)
             .where(Stop.vehicle_type == "4")
             .where(Facility.facility_type == "parking-area")
         )
+
+    @staticmethod
+    def get_linkeddataset(realtime_name: str) -> Select[DeclarativeMeta]:
+        """Returns a query for linked dataset.
+
+        Args:
+            realtime_name (str): realtime name
+        Returns:
+            A query for linked dataset."""
+        return select(LinkedDataset).where(getattr(LinkedDataset, realtime_name))
+
+    @staticmethod
+    def query_item_by_attr(
+        orm: Type[DeclarativeMeta], param: str, param_value: Any
+    ) -> Select[DeclarativeMeta]:
+        """Returns a query for an item by id.
+
+        Args:
+            orm (Type[DeclarativeMeta]): table to query
+        Returns:
+            A query for an item by id.
+        """
+        return select(orm).where(getattr(orm, param) == param_value)
 
     def __init__(self, route_types: list[str] = None) -> None:
         """Initializes Query.

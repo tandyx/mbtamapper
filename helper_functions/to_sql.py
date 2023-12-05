@@ -1,6 +1,7 @@
 """Helper function to dump dataframe to sql."""
 import logging
 import time
+from typing import Type
 
 import pandas as pd
 from sqlalchemy import delete
@@ -13,7 +14,7 @@ from sqlalchemy.orm import DeclarativeBase, Session
 def to_sql(
     session: Session,
     data: pd.DataFrame,
-    orm: DeclarativeBase,
+    orm: Type[DeclarativeBase],
     *args,
     purge: bool = False,
     **kwargs,

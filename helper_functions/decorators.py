@@ -14,6 +14,8 @@ def removes_session(func: Callable[..., Any]) -> Callable[..., Any]:
 
     Args:
         func (function): Function to wrap.
+    Returns:
+        function: Wrapped function.
     """
 
     def _removes_session(*args, **kwargs) -> Any:
@@ -35,7 +37,14 @@ def removes_session(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def timeit(func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
-    """Decorator to time a function and log it."""
+    """Decorator to time a function and log it.
+
+    Args:
+        func (function): Function to wrap.
+        round_to (int, optional): Number of decimal places to round to. Defaults to 3.
+    Returns:
+        function: Wrapped function.
+    """
 
     def _timeit(*args, **kwargs) -> Any:
         """Wrapper for decorator."""
@@ -49,6 +58,27 @@ def timeit(func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
         return res
 
     return _timeit
+
+
+def handles_keyerror(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator to handle keyerrors.
+
+    Args:
+        func (function): Function to wrap.
+    Returns:
+        function: Wrapped function."""
+
+    def _handles_keyerror(*args, **kwargs) -> Any:
+        """Wrapper for decorator."""
+        try:
+            res = func(*args, **kwargs)
+        except KeyError as err:
+            logging.error("KeyError: %s", err)
+            logging.error(traceback.format_exc())
+            res = None
+        return res
+
+    return _handles_keyerror
 
 
 # def commits_session(func):

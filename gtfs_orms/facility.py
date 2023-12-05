@@ -36,8 +36,6 @@ class Facility(GTFSBase):
 
     stop = relationship("Stop", back_populates="facilities")
 
-    ACCENT_COLOR = "#007ebb"
-
     def as_point(self) -> Point:
         """Returns a shapely Point object of the facility
 
