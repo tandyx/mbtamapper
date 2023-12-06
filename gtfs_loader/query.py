@@ -53,7 +53,7 @@ class Query:
         return update(orm)
 
     @staticmethod
-    def get_active_calendars(
+    def get_active_calendars_query(
         date: datetime, specific: bool = False, days_ahead: int = 7
     ) -> Select:
         """Returns a query for active calendars on a date.
@@ -133,12 +133,12 @@ class Query:
         )
 
     @staticmethod
-    def delete_calendars(*args, **kwargs) -> Delete[DeclarativeMeta]:
+    def delete_calendars_query(*args, **kwargs) -> Delete[DeclarativeMeta]:
         """Returns a query to delete calendars.
 
         Args:
-            *args: args for get_active_calendars
-            **kwargs: kwargs for get_active_calendars
+            *args: args for get_active_calendars_query
+            **kwargs: kwargs for get_active_calendars_query
         Returns:
             A query to delete calendars.
         """
@@ -146,13 +146,15 @@ class Query:
         return delete(Calendar).where(
             Calendar.service_id.notin_(
                 select(
-                    __class__.get_active_calendars(*args, **kwargs).columns.service_id
+                    __class__.get_active_calendars_query(
+                        *args, **kwargs
+                    ).columns.service_id
                 )
             )
         )
 
     @staticmethod
-    def delete_facilities(exclude: list[str] = None) -> Delete[DeclarativeMeta]:
+    def delete_facilities_query(exclude: list[str] = None) -> Delete[DeclarativeMeta]:
         """Returns a query to delete facilities.
 
         Args:
@@ -174,7 +176,9 @@ class Query:
         )
 
     @staticmethod
-    def get_shapes_from_route(routes: list[str] = None) -> Select[DeclarativeMeta]:
+    def get_shapes_from_route_query(
+        routes: list[str] = None,
+    ) -> Select[DeclarativeMeta]:
         """Returns a query for shapes.
 
         Args:
@@ -192,7 +196,7 @@ class Query:
         return base_query.where(Route.route_id.in_(routes))
 
     @staticmethod
-    def get_ferry_parking() -> Select[DeclarativeMeta]:
+    def get_ferry_parking_query() -> Select[DeclarativeMeta]:
         """Returns a query for ferry parking.
 
         Returns:
@@ -206,7 +210,7 @@ class Query:
         )
 
     @staticmethod
-    def get_linkeddataset(realtime_name: str) -> Select[DeclarativeMeta]:
+    def get_dataset_query(realtime_name: str) -> Select[DeclarativeMeta]:
         """Returns a query for linked dataset.
 
         Args:
@@ -216,7 +220,7 @@ class Query:
         return select(LinkedDataset).where(getattr(LinkedDataset, realtime_name))
 
     @staticmethod
-    def query_item_by_attr(
+    def get_item_by_attr_query(
         orm: Type[DeclarativeMeta], param: str, param_value: Any
     ) -> Select[DeclarativeMeta]:
         """Returns a query for an item by id.
@@ -235,8 +239,8 @@ class Query:
             route_types (list[str], optional): list of route_types to query. Defaults to None.
         """
         self.route_types = route_types or []
-        self.trip_query = self.__get_trips()
-        self.parent_stops_query = self.__get_parent_stops()
+        self.trip_query = self.__get_trips_query()
+        self.parent_stops_query = self.__get_parent_stops_query()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(route_types={self.route_types})>"
@@ -244,7 +248,7 @@ class Query:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def __get_trips(self) -> Select[DeclarativeMeta]:
+    def __get_trips_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for trips.
 
         Returns:
@@ -267,7 +271,7 @@ class Query:
             )
         )
 
-    def __get_parent_stops(self) -> Select[DeclarativeMeta]:
+    def __get_parent_stops_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for parent stops.
 
         Returns:
@@ -284,7 +288,7 @@ class Query:
             .where(StopTime.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
 
-    def get_shapes(self) -> Select[DeclarativeMeta]:
+    def get_shapes_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for shapes.
 
         Returns:
@@ -296,7 +300,7 @@ class Query:
             .where(Trip.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
 
-    def return_routes_query(self) -> Select[DeclarativeMeta]:
+    def get_routes_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for routes.
 
         Returns:
@@ -308,7 +312,9 @@ class Query:
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
         )
 
-    def get_vehicles(self, add_routes: list[str] = None) -> Select[DeclarativeMeta]:
+    def get_vehicles_query(
+        self, add_routes: list[str] = None
+    ) -> Select[DeclarativeMeta]:
         """Returns a query for vehicles.
 
         Args:
@@ -325,7 +331,7 @@ class Query:
             .where(
                 or_(
                     Vehicle.route_id.in_(
-                        select(self.return_routes_query().columns.route_id)
+                        select(self.get_routes_query().columns.route_id)
                     ),
                     Vehicle.trip_id.in_(select(self.trip_query.columns.trip_id)),
                     Vehicle.route_id.in_(add_routes or []),
@@ -333,7 +339,7 @@ class Query:
             )
         )
 
-    def get_facilities(self, types: list[str] = None) -> Select[DeclarativeMeta]:
+    def get_facilities_query(self, types: list[str] = None) -> Select[DeclarativeMeta]:
         """Returns a query for parking facilities.
 
         Args:
