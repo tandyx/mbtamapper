@@ -137,6 +137,14 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             zipfile_bytes.extractall(self.zip_path)
         logging.info("Downloaded zip from %s to %s", self.url, self.zip_path)
 
+    def _remove_zip(self) -> None:
+        """Removes the GTFS zip file."""
+        if not os.path.exists(self.zip_path):
+            logging.warning("%s does not exist", self.zip_path)
+            return
+        shutil.rmtree(self.zip_path)
+        logging.info("Removed %s", self.zip_path)
+
     @timeit
     def import_gtfs(self, *args, purge: bool = True, **kwargs) -> None:
         """Dumps GTFS data into a SQLite database.
@@ -163,17 +171,8 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         self._remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
 
-    def _remove_zip(self) -> None:
-        """Removes the GTFS zip file."""
-        if not os.path.exists(self.zip_path):
-            logging.warning("%s does not exist", self.zip_path)
-            return
-        shutil.rmtree(self.zip_path)
-        logging.info("Removed %s", self.zip_path)
-
     @timeit
     @removes_session
-    @handles_keyerror
     def import_realtime(self, orm: Type[Alert | Vehicle | Prediction]) -> None:
         """Imports realtime data into the database.
 
@@ -183,13 +182,12 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         if orm not in __class__.__realtime_orms__:
             raise ValueError(f"{orm} is not a realtime ORM")
         session = self.scoped_session()
-        dataset = session.execute(self.get_linkeddataset(orm.__realtime_name__)).first()
-        to_sql(
-            session,
-            getattr(dataset[0], "process_" + orm.__realtime_name__)(),
-            orm,
-            purge=True,
-        )
+
+        dataset: list[LinkedDataset] = session.execute(
+            self.get_dataset_query(orm.__realtime_name__)
+        ).first()
+
+        to_sql(session, dataset[0].as_dataframe(), orm, purge=True)
 
     @timeit
     def purge_and_filter(self, date: datetime) -> None:
@@ -199,7 +197,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             date (datetime): date to filter on
         """
 
-        for stmt in (self.delete_calendars(date), self.delete_facilities()):
+        for stmt in (self.delete_calendars_query(date), self.delete_facilities_query()):
             res: CursorResult = self.session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
         self.session.commit()
@@ -264,20 +262,17 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """
         session = self.scoped_session()
 
-        shape_data = session.execute(query_obj.get_shapes()).all()
+        shape_data = session.execute(query_obj.get_shapes_query()).all()
 
         if key == "RAPID_TRANSIT":
             shape_data += session.execute(
-                self.get_shapes_from_route(self.SL_ROUTES).where(
+                self.get_shapes_from_route_query(self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
 
         features = FeatureCollection(
-            [
-                s[0].as_feature()
-                for s in sorted(shape_data, key=lambda x: x[0].shape_id, reverse=True)
-            ]
+            [s[0].as_feature() for s in sorted(shape_data, reverse=True)]
         )
         with open(
             os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"
@@ -297,13 +292,15 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         session = self.scoped_session()
 
-        facilities = session.execute(query_obj.get_facilities(["parking-area"])).all()
+        facilities = session.execute(
+            query_obj.get_facilities_query(["parking-area"])
+        ).all()
         if key == "RAPID_TRANSIT":
             facilities += session.execute(
-                Query(["3"]).get_facilities(["parking-area"])
+                Query(["3"]).get_facilities_query(["parking-area"])
             ).all()
         if "4" in query_obj.route_types:
-            facilities += session.execute(self.get_ferry_parking()).all()
+            facilities += session.execute(self.get_ferry_parking_query()).all()
         features = FeatureCollection([f[0].as_feature() for f in facilities])
         with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
             dump(features, file)
@@ -323,18 +320,19 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             FeatureCollection: vehicles as FeatureCollection
         """
         session = self.scoped_session()
-        vehicles_query = Query(route_types).get_vehicles(
+        vehicles_query = Query(route_types).get_vehicles_query(
             self.SL_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(75)
+        data: list[tuple[Vehicle]]
         for attempt in range(max_tries):
             try:
                 data = session.execute(vehicles_query).all()
             except (exc.OperationalError, exc.DatabaseError) as error:
                 data = []
                 logging.error("Failed to get vehicle data: %s", error)
-            if any(d[0].predictions for d in data):
+            if any(v[0].predictions for v in data):
                 break
             time.sleep(0.5)
         if not data:
@@ -346,8 +344,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     #     self,
     #     orm: Type[GTFSBase],
     #     param: str,
-    #     param_value: Any,
-    #     __as: Literal["dict"] | Literal["json"] | Literal["feature"] = "dict",
+    #     param_value,
     # ) -> FeatureCollection | list | dict:
     #     """Returns features by param.
 
@@ -360,9 +357,6 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     #         FeatureCollection: features
     #     """
     #     session = self.scoped_session()
-    #     features = FeatureCollection(
-    #         [(session.execute(self.query_item_by_attr(orm, param, param_value)).all())]
-    #     )
-    #     if __as == "json":
-    #         return features
-    #     return features.__geo_interface__
+    #     data = session.execute(
+    #         self.get_item_by_attr_query(orm, param, param_value)
+    #     ).all()

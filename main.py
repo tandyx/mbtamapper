@@ -16,7 +16,7 @@ KEY_DICT: dict[str, tuple[str]] = {
     "COMMUTER_RAIL": ("2",),
     "BUS": ("3",),
     "FERRY": ("4",),
-    "ALL_ROUTES": ("0", "1", "2", "3", "4"),
+    "ALL_ROUTES": ("0", "1", "2", "4"),
 }
 FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
 

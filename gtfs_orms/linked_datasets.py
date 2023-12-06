@@ -76,6 +76,22 @@ class LinkedDataset(GTFSBase):
     service_alerts = Column(Integer)
     authentication_type = Column(String)
 
+    def as_dataframe(self) -> pd.DataFrame:
+        """Returns realtime data from the linked dataset\
+            as a dataframe.
+            
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset.
+        """
+
+        if self.trip_updates:
+            return self._process_trip_updates()
+        if self.vehicle_positions:
+            return self._process_vehicle_positions()
+        if self.service_alerts:
+            return self._process_service_alerts()
+        return pd.DataFrame()
+
     def _load_dataframe(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
@@ -121,7 +137,7 @@ class LinkedDataset(GTFSBase):
 
         return dataframe
 
-    def process_trip_updates(self) -> pd.DataFrame:
+    def _process_trip_updates(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
         Returns:
@@ -139,10 +155,9 @@ class LinkedDataset(GTFSBase):
             .fillna(0)
             .astype(int)
         )
-
         return self._post_process(dataframe, PREDICTION_RENAME_DICT)
 
-    def process_vehicle_positions(self) -> pd.DataFrame:
+    def _process_vehicle_positions(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
         Returns:
@@ -161,7 +176,7 @@ class LinkedDataset(GTFSBase):
 
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
-    def process_service_alerts(self) -> pd.DataFrame:
+    def _process_service_alerts(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
         Returns:
