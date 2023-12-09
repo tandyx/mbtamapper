@@ -4,9 +4,7 @@ import time
 import traceback
 from typing import Any, Callable
 
-from sqlalchemy.exc import DatabaseError, IntegrityError, OperationalError
 from sqlalchemy.orm import scoped_session
-from urllib3.exceptions import ConnectTimeoutError, ReadTimeoutError
 
 
 def removes_session(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -23,17 +21,10 @@ def removes_session(func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrapper for decorator. Removes session from Feed object after function call."""
         try:
             res = func(*args, **kwargs)
-        except (
-            OperationalError,
-            IntegrityError,
-            DatabaseError,
-            KeyError,
-            TimeoutError,
-            ReadTimeoutError,
-            ConnectTimeoutError,
-        ) as err:
-            logging.error("OperationalError: %s", err)
-            logging.error(traceback.format_exc())
+        except Exception as err:  # pylint: disable=broad-except
+            logging.error(
+                "Error in %s: %s %s", func.__name__, err, traceback.format_exc()
+            )
             res = None
         for arg in args:
             for attr_name in dir(arg):
@@ -67,3 +58,15 @@ def timeit(func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
         return res
 
     return _timeit
+
+
+class classproperty(property):  # pylint: disable=invalid-name
+    """Decorator to create a class property.
+
+    Args:
+        property (property): property to wrap.
+    Returns:
+        property: Wrapped property."""
+
+    def __get__(self, owner_self: object, owner_cls: object):
+        return self.fget(owner_cls)

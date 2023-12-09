@@ -1,10 +1,11 @@
 """Holds the base class for all GTFS elements"""
-from datetime import datetime
-from typing import Any, Generator, Self
+from typing import Any, Self, Type
 
-from sqlalchemy import Column, orm
+from sqlalchemy import orm
 
-from helper_functions.string_ops import is_json_searializable
+from helper_functions import classproperty, is_json_searializable
+
+# pylint: disable=unused-argument
 
 
 class GTFSBase(orm.DeclarativeBase):
@@ -22,8 +23,21 @@ class GTFSBase(orm.DeclarativeBase):
     __realtime_name__: str
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
+    # primary_keys: list[str] = [key for key in __class__.__table__.columns if key.primary_key]
+    # pylint: disable=no-self-argument
+    @classproperty
+    def primary_keys(cls: Type[Self]) -> list[str]:
+        """Returns a list of string columns as the primary keys for the class as a property.
+
+        Args:
+            cls (Type[Self]): class to get primary keys from
+        Returns:
+            list[Column]: list of primary keys
+        """
+        return [key.name for key in cls.__table__.columns if key.primary_key]
+
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({''.join(key.name + '=' + str(getattr(self, key.name, None)) for key in self._get_primary_keys())})>"  # pylint: disable=line-too-long
+        return f"<{self.__class__.__name__}({', '.join(key + '=' + str(getattr(self, key, None)) for key in self.primary_keys)})>"  # pylint: disable=line-too-long
 
     def __str__(self) -> str:
         return str(self.as_dict())
@@ -39,8 +53,7 @@ class GTFSBase(orm.DeclarativeBase):
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
         return all(
-            getattr(self, key.name) == getattr(other, key.name)
-            for key in self._get_primary_keys()
+            getattr(self, key) == getattr(other, key) for key in self.primary_keys
         )
 
     def __lt__(self, other: Self) -> bool:
@@ -54,67 +67,42 @@ class GTFSBase(orm.DeclarativeBase):
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
         return all(
-            getattr(self, key.name) < getattr(other, key.name)
-            for key in self._get_primary_keys()
+            getattr(self, key) < getattr(other, key) for key in self.primary_keys
         )
 
     def __hash__(self) -> int:
         """Implements hash operator."""
 
-        return hash(tuple(getattr(self, key.name) for key in self._get_primary_keys()))
+        return hash(tuple(getattr(self, key) for key in self.primary_keys))
 
     def __bool__(self) -> bool:
-        """Implements bool operator. \
+        """Implements bool operator. \\
             Also represents whether the object is valid to be added to the database."""
 
-        return all(
-            getattr(self, key.name, None) is not None
-            for key in self._get_primary_keys()
-        )
+        return all(getattr(self, key, None) is not None for key in self.primary_keys)
 
-    def _get_primary_keys(self) -> Generator[Column, None, None]:
-        """Returns the primary keys of the table.
-
-        Returns:
-            Generator[Column, None, None]: primary keys of the table
-        """
-
-        return (c for c in self.__table__.columns if c.primary_key)
-
-    def _as_dict(self) -> dict[str, Any]:
-        """Returns a dict representation of the object.\
-            Internal method, do not override, and can be used within \
-            overriden as_dict method.
-
-        Returns:
-            dict[str, Any]: dict representation of the object
-        """
-
-        return {k: v for k, v in self.__dict__.items() if k != "_sa_instance_state"}
-
-    def as_json(self, dt_format: str = None) -> dict[str, Any]:
+    def as_json(self, *args, **kwargs) -> dict[str, Any]:
         """Returns a json searizable representation of \
-            the object as opposed to Base.as_dict()
+            the object as opposed to Base.as_dict() which returns a dict.
             
         Args:
-            dt_format (str, optional): datetime format to use. Defaults to None.
+            *args: unused, but can be used in overriden methods to \
+                pass in additional arguments
+            **kwargs: unused, but can be used in overriden methods to \
+                pass in additional arguments
         Returns:
-            dict[str, Any]: json searizable representation of the object"""
+            dict[str, Any]: json searizable representation of the object
+        """
 
         return {
-            key: (value.strftime(dt_format) if dt_format else value.isoformat())
-            if isinstance(value, datetime)
-            else value
-            for key, value in self._as_dict().items()
-            if is_json_searializable(value)
+            k: v
+            for k, v in self.__dict__.items()
+            if k != "_sa_instance_state" and is_json_searializable(v)
         }
 
-    # pylint: disable=unused-argument
     def as_dict(self, *args, **kwargs) -> dict[str, Any]:
         """Returns a dict representation of the object, front-facing.\
         Override this method to change the dict representation.
-        
-        Within the base class, this method is an alias for _as_dict.
         
         Args:
             *args: unused, but can be used in overriden methods to \
@@ -124,4 +112,8 @@ class GTFSBase(orm.DeclarativeBase):
         Returns:
             dict[str, Any]: dict representation of the object
         """
-        return self._as_dict()
+
+        new_dict = self.__dict__.copy()
+        if "_sa_instance_state" in new_dict:
+            del new_dict["_sa_instance_state"]
+        return new_dict

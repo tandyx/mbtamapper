@@ -28,7 +28,7 @@ from .query import Query
 class Feed(Query):  # pylint: disable=too-many-instance-attributes
     """Loads GTFS data into a route_type specific SQLite database. \
         This class also contains methods to query the database. \
-        inherits from Query class, which contains methods to query the database.\
+        inherits from Query class, which contains queries.\\
        
     This class is thread-safe.
         
