@@ -206,6 +206,7 @@ function setNavbar(navbarId, route_type) {
       if (child.id == route_type.toLowerCase()) {
         child.href = "#";
         child.style.color = accent_color;
+        child.style.fontWeight = "bold";
 
         child.addEventListener(
           "mouseenter",
