@@ -17,10 +17,11 @@ import pandas as pd
 import requests as req
 from geojson import FeatureCollection, dump
 from sqlalchemy import CursorResult, Engine, create_engine, event, exc, pool
+from sqlalchemy.exc import IllegalStateChangeError, IntegrityError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from gtfs_orms import *
-from helper_functions import *
+from helper_functions import get_current_time, removes_session, timeit
 
 from .query import Query
 
@@ -28,8 +29,8 @@ from .query import Query
 class Feed(Query):  # pylint: disable=too-many-instance-attributes
     """Loads GTFS data into a route_type specific SQLite database. \
         This class also contains methods to query the database. \
-        inherits from Query class, which contains methods to query the database.\
-       
+        inherits from Query class, which contains queries. \
+    \n
     This class is thread-safe.
         
 
@@ -166,8 +167,8 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             ) as read:
                 for chunk in read:
                     if orm.__filename__ == "shapes.txt":
-                        to_sql(self.session, chunk["shape_id"].drop_duplicates(), Shape)
-                    to_sql(self.session, chunk, orm)
+                        self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
+                    self.to_sql(chunk, orm)
         self._remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
 
@@ -187,7 +188,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             self.get_dataset_query(orm.__realtime_name__)
         ).first()
 
-        to_sql(session, dataset[0].as_dataframe(), orm, purge=True)
+        self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
 
     @timeit
     def purge_and_filter(self, date: datetime) -> None:
@@ -262,7 +263,9 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """
         session = self.scoped_session()
 
-        shape_data = session.execute(query_obj.get_shapes_query()).all()
+        shape_data: list[tuple[Shape]] = session.execute(
+            query_obj.get_shapes_query()
+        ).all()
 
         if key == "RAPID_TRANSIT":
             shape_data += session.execute(
@@ -339,24 +342,39 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             logging.error("No data returned in %s attemps", attempt + 1)
         return FeatureCollection([v[0].as_feature() for v in data])
 
-    # @removes_session
-    # def get_features_by_param(
-    #     self,
-    #     orm: Type[GTFSBase],
-    #     param: str,
-    #     param_value,
-    # ) -> FeatureCollection | list | dict:
-    #     """Returns features by param.
+    @removes_session
+    def to_sql(
+        self, data: pd.DataFrame, orm: Type[GTFSBase], purge: bool = False, **kwargs
+    ) -> int:
+        """Helper function to dump dataframe to sql.
 
-    #     Args:
-    #         orm (Type[GTFSBase]): ORM type
-    #         param (str): param to filter on
-    #         param_value (Any): param value to filter on
-    #         __as (Literal["dict"] | Literal["json"]): whether to return as dict or json
-    #     Returns:
-    #         FeatureCollection: features
-    #     """
-    #     session = self.scoped_session()
-    #     data = session.execute(
-    #         self.get_item_by_attr_query(orm, param, param_value)
-    #     ).all()
+        Args:
+            data (pd.DataFrame): dataframe to dump
+            orm (any): table to dump to
+            purge (bool, optional): whether to purge table before dumping. Defaults to False.
+            **kwargs: keyword args to pass to pd.to_sql
+        """
+
+        session = self.scoped_session()
+
+        if purge:
+            while True:
+                try:
+                    session.execute(self.delete(orm))
+                    session.commit()
+                    break
+                except IllegalStateChangeError:
+                    time.sleep(1)
+
+        try:
+            res = data.to_sql(
+                name=orm.__tablename__,
+                con=self.engine,
+                if_exists="append",
+                index=False,
+                **kwargs,
+            )
+        except IntegrityError:
+            res = self.to_sql(data.iloc[1:], orm, **kwargs)
+        logging.info("Added %s rows to %s", res, orm.__tablename__)
+        return res

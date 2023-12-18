@@ -7,10 +7,10 @@ const ROUTE_COLOR_DICT = {
   all_routes: "#7C878E",
 };
 
+/** Check if user is on mobile
+ * @returns {boolean} - whether or not user is on mobile
+ */
 window.mobileCheck = function () {
-  /** Check if user is on mobile
-   * @returns {boolean} - whether or not user is on mobile
-   */
   let check = false;
   (function (a) {
     if (
@@ -26,45 +26,45 @@ window.mobileCheck = function () {
   return check;
 };
 
+/** Scale image up by 7% on hover
+ * @param {string} image_id - id of image to scale
+ * @param {number} interval - time in ms to scale image
+ * @returns {void}
+ */
 function hoverImage(image_id, interval = 250) {
-  /** Scale image up by 7% on hover
-   * @param {string} image_id - id of image to scale
-   * @param {number} interval - time in ms to scale image
-   * @returns {void}
-   */
-
   const image = document.getElementById(image_id);
   image.animate({ transform: "scale(1.07)" }, interval).onfinish = function () {
     image.style.transform = "scale(1.07)";
   };
 }
 
+/** Scale image down by 7% on unhover
+ * @param {string} image_id - id of image to scale
+ * @param {number} interval - time in ms to scale image
+ * @returns {void}
+ */
 function unhoverImage(image_id, interval = 250) {
-  /** Scale image down by 7% on unhover
-   * @param {string} image_id - id of image to scale
-   * @param {number} interval - time in ms to scale image
-   * @returns {void}
-   */
   const image = document.getElementById(image_id);
   image.animate({ transform: "scale(1)" }, interval).onfinish = function () {
     image.style.transform = "scale(1)";
   };
 }
+
+/** Open mini popup
+ * @param {string} popupId - id of popup to open
+ * @returns {void}
+ */
 function openMiniPopup(popupId) {
-  /** Open mini popup
-   * @param {string} popupId - id of popup to open
-   * @returns {void}
-   */
   const miniPopup = document.getElementById(popupId);
   miniPopup.classList.toggle("show");
 }
 
+/** Title case a string
+ * @param {string} str - string to title case
+ * @param {string} split - character to split string on
+ * @returns {string} - title cased string
+ */
 function titleCase(str, split = "_") {
-  /** Title case a string
-   * @param {string} str - string to title case
-   * @param {string} split - character to split string on
-   * @returns {string} - title cased string
-   */
   return str
     .toLowerCase()
     .split(split)
@@ -74,12 +74,12 @@ function titleCase(str, split = "_") {
     .join(" ");
 }
 
+/** Set favicon to route type
+ * @param {string} base_url - base url to set favicon to
+ * @param {string} route_type - route type to set favicon to
+ * @returns {void}
+ */
 function setFavicon(base_url, route_type) {
-  /** Set favicon to route type
-   * @param {string} base_url - base url to set favicon to
-   * @param {string} route_type - route type to set favicon to
-   * @returns {void}
-   */
   for (let link of document.getElementsByTagName("link")) {
     if (link.rel in ["shortcut_icon", "apple-touch-icon", "mask-icon"]) {
       link.href = `${base_url}/static/img/${route_type.toLowerCase()}.png`;
@@ -90,12 +90,11 @@ function setFavicon(base_url, route_type) {
   }
 }
 
+/** Set descriptions to route type
+ * @param {string} route_type - route type to set descriptions to
+ * @returns {void}
+ */
 function setDescriptions(route_type) {
-  /** Set descriptions to route type
-   * @param {string} route_type - route type to set descriptions to
-   * @returns {void}
-   */
-
   for (const [key, value] of Object.entries({
     description: "name",
     "og:description": "property",
@@ -110,11 +109,10 @@ function setDescriptions(route_type) {
   }
 }
 
+/** Set urls to route type
+ * @returns {void}
+ */
 function setUrls() {
-  /** Set urls to route type
-   * @returns {void}
-   */
-
   for (const [key, value] of Object.entries({
     "og:url": "property",
     "twitter:url": "name",
@@ -125,11 +123,11 @@ function setUrls() {
   }
 }
 
+/** Set titles to title string
+ * @param {string} route_type - sets titles to route type
+ * @returns {void}
+ */
 function setTitles(route_type) {
-  /** Set titles to title string
-   * @param {string} titleString - title string to set titles to
-   * @returns {void}
-   */
   document.title = "MBTA " + titleCase(route_type) + " Realtime Map";
 
   for (const [key, value] of Object.entries({
@@ -142,13 +140,12 @@ function setTitles(route_type) {
   }
 }
 
+/** Set images to route type
+ * @param {string} base_url - base url to set images to
+ * @param {string} route_type - route type to set images to
+ * @returns {void}
+ */
 function setImages(base_url, route_type) {
-  /** Set images to route type
-   * @param {string} base_url - base url to set images to
-   * @param {string} route_type - route type to set images to
-   * @returns {void}
-   */
-
   for (const [key, value] of Object.entries({
     "og:image": "property",
     "twitter:image": "name",
@@ -161,16 +158,36 @@ function setImages(base_url, route_type) {
   }
 }
 
-function setNavbar(navbarId, route_type, mobile = false) {
-  /** Set navbar to route type
-   * @param {string} navbarId - id of navbar to set
-   * @param {string} route_type - route type to set navbar to
-   * @param {boolean} mobile - whether or not to display navbar on mobile
-   * @returns {void}
-   */
-
+/** Set navbar to route type
+ * @param {string} navbarId - id of navbar to set
+ * @param {string} route_type - route type to set navbar to
+ * @param {boolean} mobile - whether or not to display navbar on mobile
+ * @returns {void}
+ */
+function setNavbar(navbarId, route_type) {
   let navbar = document.getElementById(navbarId);
   const accent_color = ROUTE_COLOR_DICT[route_type.toLowerCase()];
+
+  let titleLogo = document.getElementById("titleLogo");
+
+  titleLogo.addEventListener("mouseenter", function (event) {
+    event.target.animate({ background: accent_color }, 125).onfinish =
+      function () {
+        event.target.style.background = accent_color;
+      };
+  });
+
+  titleLogo.addEventListener("mouseleave", function (event) {
+    event.target.animate({ background: "none" }, 125).onfinish = function () {
+      event.target.style.background = "none";
+    };
+  });
+
+  // titleLogo.addEventListener("mouseleave", function (event) {
+  //   event.target.animate({ color: accent_color }, 125).onfinish = function () {
+  //     event.target.style.color = accent_color;
+  //   };
+  // }
 
   if (inIframe()) {
     navbar.style.display = "none";
@@ -179,69 +196,74 @@ function setNavbar(navbarId, route_type, mobile = false) {
 
   navbar.style.borderBottom = `4px solid ${accent_color}`;
 
-  for (let child of navbar.childNodes) {
-    if (child.nodeName == "#text") continue;
+  for (const ulElement of navbar.getElementsByTagName("ul")) {
+    for (let child of ulElement.childNodes) {
+      if (child.nodeName == "#text") continue;
 
-    const childAccentColor = ROUTE_COLOR_DICT[child.id] || accent_color;
+      const childAccentColor = ROUTE_COLOR_DICT[child.id] || accent_color;
+      const initialBackgroundColor = getStyle(child.id, "background-color");
 
-    if (mobile && child.id != route_type.toLowerCase() && child.id != "home") {
-      navbar.removeChild(child);
-    }
+      if (child.id == route_type.toLowerCase()) {
+        child.href = "#";
+        child.style.color = accent_color;
+        child.style.fontWeight = "bold";
 
-    if (child.id == route_type.toLowerCase()) {
-      child.href = "#";
-      child.style.color = accent_color;
+        child.addEventListener(
+          "mouseenter",
+          function (event) {
+            event.target.animate({ color: "#f2f2f2" }, 125).onfinish =
+              function () {
+                event.target.style.color = "#f2f2f2";
+              };
+          },
+          false
+        );
+
+        child.addEventListener(
+          "mouseleave",
+          function (event) {
+            event.target.animate({ color: accent_color }, 125).onfinish =
+              function () {
+                event.target.style.color = accent_color;
+              };
+          },
+          false
+        );
+      }
 
       child.addEventListener(
         "mouseenter",
         function (event) {
-          event.target.animate({ color: "#f2f2f2" }, 125).onfinish =
-            function () {
-              event.target.style.color = "#f2f2f2";
-            };
+          event.target.animate(
+            { background: childAccentColor, color: "#f2f2f2" },
+            125
+          ).onfinish = function () {
+            event.target.style.color = "#f2f2f2";
+            event.target.style.background = childAccentColor;
+          };
         },
         false
       );
-
       child.addEventListener(
         "mouseleave",
         function (event) {
-          event.target.animate({ color: accent_color }, 125).onfinish =
-            function () {
-              event.target.style.color = accent_color;
-            };
+          event.target.animate(
+            { background: initialBackgroundColor },
+            125
+          ).onfinish = function () {
+            event.target.style.background = initialBackgroundColor;
+          };
         },
         false
       );
     }
-
-    child.addEventListener(
-      "mouseenter",
-      function (event) {
-        event.target.animate({ background: childAccentColor }, 125).onfinish =
-          function () {
-            event.target.style.background = childAccentColor;
-          };
-      },
-      false
-    );
-    child.addEventListener(
-      "mouseleave",
-      function (event) {
-        event.target.animate({ background: "none" }, 125).onfinish =
-          function () {
-            event.target.style.background = "none";
-          };
-      },
-      false
-    );
   }
 }
 
+/** Check if user is in iframe
+ * @returns {boolean} - whether or not user is in iframe
+ */
 function inIframe() {
-  /** Check if user is in iframe
-   * @returns {boolean} - whether or not user is in iframe
-   */
   try {
     return window.self !== window.top;
   } catch (e) {
@@ -249,13 +271,12 @@ function inIframe() {
   }
 }
 
+/** Plot vehicles on map in realtime, updating every 15 seconds
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot vehicles on
+ * @returns {L.realtime} - realtime layer
+ */
 function plotVehicles(url, layer) {
-  /** Plot vehicles on map in realtime, updating every 15 seconds
-   * @param {string} url - url to geojson
-   * @param {L.layerGroup} layer - layer to plot vehicles on
-   * @returns {L.realtime} - realtime layer
-   */
-
   const realtime = L.realtime(url, {
     // interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
     interval: 15000,
@@ -301,14 +322,13 @@ function plotVehicles(url, layer) {
   });
   return realtime;
 }
+/** Plot stops on map in realtime, updating every hour
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot stops on
+ * @returns {L.realtime} - realtime layer
+ */
 
 function plotStops(url, layer) {
-  /** Plot stops on map in realtime, updating every hour
-   * @param {string} url - url to geojson
-   * @param {L.layerGroup} layer - layer to plot stops on
-   * @returns {L.realtime} - realtime layer
-   */
-
   const stopIcon = L.icon({
     iconUrl: "static/img/mbta.png",
     iconSize: [15, 15],
@@ -334,14 +354,13 @@ function plotStops(url, layer) {
   realtime.on("update", handleUpdateEvent);
   return realtime;
 }
-
+/** Plot shapes on map in realtime, updating every hour
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot shapes on
+ * @param {boolean} interactive - whether or not to make shapes interactive
+ * @returns {L.realtime} - realtime layer
+ */
 function plotShapes(url, layer, interactive = true) {
-  /** Plot shapes on map in realtime, updating every hour
-   * @param {string} url - url to geojson
-   * @param {L.layerGroup} layer - layer to plot shapes on
-   * @param {boolean} interactive - whether or not to make shapes interactive
-   * @returns {L.realtime} - realtime layer
-   */
   const polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
 
   const realtime = L.realtime(url, {
@@ -370,14 +389,12 @@ function plotShapes(url, layer, interactive = true) {
   realtime.on("update", handleUpdateEvent);
   return realtime;
 }
-
+/** Plot facilities on map in realtime, updating every hour
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot facilities on
+ * @returns {L.realtime} - realtime layer
+ */
 function plotFacilities(url, layer) {
-  /** Plot facilities on map in realtime, updating every hour
-   * @param {string} url - url to geojson
-   * @param {L.layerGroup} layer - layer to plot facilities on
-   * @returns {L.realtime} - realtime layer
-   */
-
   const facilityIcon = L.icon({
     iconUrl: "static/img/parking.png",
     iconSize: [15, 15],
@@ -403,11 +420,11 @@ function plotFacilities(url, layer) {
   return realtime;
 }
 
+/** Handle update event for realtime layers
+ * @param {L.realtime}
+ * @returns {void}
+ */
 function handleUpdateEvent(entity) {
-  /** Handle update event for realtime layers
-   * @param {L.realtime}
-   * @returns {void}
-   */
   Object.keys(entity.update).forEach(
     function (id) {
       const feature = entity.update[id];
@@ -416,12 +433,12 @@ function handleUpdateEvent(entity) {
   );
 }
 
+/** Update layer
+ * @param {string} id - id of layer to update
+ * @param {L.feature}
+ * @returns {void}
+ */
 function updateLayer(id, feature) {
-  /** Update layer
-   * @param {string} id - id of layer to update
-   * @param {L.feature}
-   * @returns {void}
-   */
   const layer = this.getLayer(id);
   const wasOpen = layer.getPopup().isOpen();
   layer.unbindPopup();
@@ -435,19 +452,18 @@ function updateLayer(id, feature) {
   if (wasOpen) layer.openPopup();
 }
 
+/** Get base layer dictionary
+ * @summary Get base layer dictionary
+ * @param {string} lightId - id of light layer
+ * @param {string} darkId - id of dark layer
+ * @param {object} additionalLayers - additional layers to add to dictionary
+ * @returns {object} - base layer dictionary
+ */
 function getBaseLayerDict(
   lightId = "CartoDB.Positron",
   darkId = "CartoDB.DarkMatter",
   additionalLayers = {}
 ) {
-  /** Get base layer dictionary
-   * @summary Get base layer dictionary
-   * @param {string} lightId - id of light layer
-   * @param {string} darkId - id of dark layer
-   * @param {object} additionalLayers - additional layers to add to dictionary
-   * @returns {object} - base layer dictionary
-   */
-
   const baseLayers = {
     Light: L.tileLayer.provider(lightId),
     Dark: L.tileLayer.provider(darkId),
@@ -479,3 +495,22 @@ function getBaseLayerDict(
 //     maxZoom: 20,
 //   }
 // );
+/**
+ * Gets a c style property from an element
+ * @param {string} id - The element to get the style from
+ * @param {string} styleProp - The style property to get
+ */
+function getStyle(id, styleProp) {
+  let x = document.getElementById(id);
+  let y;
+  if (x.style[styleProp]) return x.style[styleProp];
+
+  if (window.getComputedStyle) {
+    y = document.defaultView
+      .getComputedStyle(x, null)
+      .getPropertyValue(styleProp);
+  } else if (x.currentStyle) {
+    y = x.currentStyle[styleProp];
+  }
+  return y;
+}

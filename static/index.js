@@ -9,14 +9,12 @@ window.addEventListener("load", function () {
   ];
   createMap("map", ROUTE_ARRAY[Math.floor(Math.random() * ROUTE_ARRAY.length)]);
 });
-
+/** map factory function for index.html
+ * @param {string} id - id of div to create map in
+ * @param {string} route_type - route type routes
+ * @returns {L.map} map
+ */
 function createMap(id, route_type) {
-  /** map factory function for index.html
-   * @param {string} id - id of div to create map in
-   * @param {string} route_type - route type routes
-   * @returns {L.map} map
-   */
-
   L.Map.include({
     _initControlPos: function () {
       var corners = (this._controlCorners = {}),

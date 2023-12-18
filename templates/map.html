@@ -92,54 +92,51 @@
     <!-- Custom CSS -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='src/popup.css') }}"
+      href="{{ url_for('static', filename='css/popup.css') }}"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='src/tooltip.css') }}"
+      href="{{ url_for('static', filename='css/tooltip.css') }}"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='src/table.css') }}"
+      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='src/scrollbar.css') }}"
+      href="{{ url_for('static', filename='css/index.css') }}"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='src/leaflet_custom.css') }}"
+      href="{{ url_for('static', filename='css/navbar.css') }}"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='src/animation.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='src/index.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='src/font.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='src/navbar.css') }}"
-    />
-
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='functions.js') }}"></script>
   </head>
 
   <body>
-    <div class="navbar" id="navbar">
+    <nav class="nav" id="navbar">
+      <div class="titleLogo" id="titleLogo"><a href="../">mbtamapper</a></div>
+      <input id="menu-toggle" type="checkbox" title="menutoggle" />
+      <label class="menu-button-container" for="menu-toggle">
+        <div class="menu-button"></div>
+      </label>
+      <ul class="menu">
+        <li id="subway"><a href="../subway">Subway</a></li>
+        <li id="rapid_transit"><a href="../rapid_transit">Rapid Transit</a></li>
+        <li id="commuter_rail"><a href="../commuter_rail">Commuter Rail</a></li>
+        <li id="bus"><a href="../bus">Bus</a></li>
+        <li id="ferry"><a href="../ferry">Ferry</a></li>
+      </ul>
+    </nav>
+    <!-- <nav class="navbar" id="navbar">
       <a href="../subway" id="subway">Subway</a>
       <a href="../rapid_transit" id="rapid_transit">Rapid Transit</a>
       <a href="../commuter_rail" id="commuter_rail">Commuter Rail</a>
       <a href="../bus" id="bus">Bus</a>
       <a href="../ferry" id="ferry">Ferry</a>
       <a href="../" id="home" class="right">Home</a>
-    </div>
+    </nav> -->
     <div id="map"></div>
     <noscript>This page requires Javascript to be enabled.</noscript>
     <script src="{{ url_for('static', filename='map.js') }}"></script>

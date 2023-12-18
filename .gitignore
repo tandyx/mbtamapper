@@ -73,3 +73,4 @@ venv/
 *.dockerignore
 /.dockerignore
 /static/.eslintrc.yml
+/static/.eslintrc.json

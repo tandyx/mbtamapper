@@ -3,25 +3,13 @@
   color: #ffffff !important;
   font-family: "montserrat", "Helvetica", sans-serif !important;
   text-align: left !important;
-  /* backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-font-smoothing: subpixel-antialiased;
-  font-smooth: always; */
-  /* z-index: 21312312 !important;
-  position: relative !important; */
 }
-
-/* .leaflet-popup-pane {
-  z-index: 140213120;
-} */
 
 .leaflet-tooltip {
   font-family: "montserrat", "Helvetica", sans-serif !important;
   color: #fff;
   font-size: 12pt !important;
   background: rgb(0, 0, 0, 0.92) !important;
-  /* backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px); */
   border: 15px rgb(0, 0, 0, 0.92) !important;
 }
 

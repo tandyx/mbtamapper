@@ -67,8 +67,6 @@ class Vehicle(GTFSBase):
         viewonly=True,
     )
 
-    DATETIME_MAPPER = {"updated_at": "updated_at_datetime"}
-
     DIRECTION_MAPPER = {
         "0": "Outbound",
         "1": "Inbound",
