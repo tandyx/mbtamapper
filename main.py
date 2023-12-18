@@ -131,14 +131,14 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 
 if __name__ == "__main__":
-    # logging.getLogger().setLevel(logging.INFO)
-    # feed_loader()
+    logging.getLogger().setLevel(logging.INFO)
+    feed_loader()
 
     # FEED_LOADER.session.execute(
     #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
     # ).all()
-    app = create_default_app()
-    app.run(debug=True)
+    # app = create_default_app()
+    # app.run(debug=True)
     # from gtfs_orms import LinkedDataset
 
     # x = LinkedDataset(url="https://cdn.mbta.com/realtime/Alerts.pb")
