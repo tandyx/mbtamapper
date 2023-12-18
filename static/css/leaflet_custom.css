@@ -1,12 +1,12 @@
 .leaflet-popup-content-wrapper {
   background: rgb(0, 0, 0, 0.92) !important;
   color: #ffffff !important;
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   text-align: left !important;
 }
 
 .leaflet-tooltip {
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   color: #fff;
   font-size: 12pt !important;
   background: rgb(0, 0, 0, 0.92) !important;
@@ -62,7 +62,7 @@
 
 .leaflet-control-attribution,
 .leaflet-control-scale-line {
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   font-size: 8pt !important;
   background: rgb(0, 0, 0, 0.7) !important;
   /* backdrop-filter: blur(5px) !important;
@@ -81,7 +81,7 @@
   /* backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px); */
   color: #ffffff !important;
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   font-size: 8pt !important;
 }
 
@@ -140,7 +140,7 @@
 }
 
 .marker-cluster div {
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   color: #ffffff !important;
 }
 
@@ -160,7 +160,7 @@
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px);
   color: #ffffff !important;
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   font-size: 8pt !important;
 } */
 .leaflet-control-locate-location circle {

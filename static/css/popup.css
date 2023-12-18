@@ -32,7 +32,7 @@
   /* text-rendering: optimizelegibility; */
   /* position: absolute; */
   -webkit-font-smoothing: antialiased;
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
 }
 
 /* Popup arrow */

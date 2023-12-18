@@ -7,6 +7,17 @@ window.addEventListener("load", function () {
   setUrls();
   setNavbar("navbar", ROUTE_TYPE, window.mobileCheck());
   createMap("map", ROUTE_TYPE);
+
+  document.addEventListener("click", function (event) {
+    // Check if the clicked element is not inside the navbar
+    if (!event.target.closest(".nav")) {
+      // Close the hamburger menu
+      let menuToggle = document.getElementById("menu-toggle");
+      if (menuToggle.checked) {
+        menuToggle.checked = false;
+      }
+    }
+  });
 });
 /** map factory function for map.html
  * @param {string} id - id of the map div

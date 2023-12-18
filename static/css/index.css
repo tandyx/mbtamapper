@@ -1,3 +1,8 @@
+:root {
+  --font-family: "montserrat", "Helvetica", sans-serif;
+  --text: #f2f2f2;
+}
+
 @font-face {
   font-family: "montserrat";
   src: url("../fonts/montserrat.ttf");
@@ -31,6 +36,7 @@ body,
   height: 100%;
   width: 100%;
   scroll-behavior: smooth;
+  font-family: var(--font-family) !important;
 }
 
 #map {
@@ -52,7 +58,7 @@ h4 {
 }
 .main {
   font-size: 10pt;
-  font-family: "montserrat", "sans-serif";
+  font-family: var(--font-family);
   color: #ffffff;
   background: rgba(0, 0, 0, 0.9);
   width: auto;
@@ -75,7 +81,7 @@ h4 {
   top: 47%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: "montserrat", "Helvetica", sans-serif;
+  font-family: var(--font-family);
   color: #f2f2f2;
 }
 
@@ -92,7 +98,7 @@ h4 {
 }
 
 input {
-  font-family: "montserrat", "Helvetica", sans-serif;
+  font-family: var(--font-family);
   background-color: rgb(0, 0, 0, 0.7);
   color: #ffffff;
 }
@@ -188,7 +194,7 @@ h1 {
   border-style: solid;
   table-layout: fixed;
   max-height: 150px;
-  font-family: "montserrat", "Helvetica", sans-serif !important;
+  font-family: var(--font-family) !important;
   /* width: 1000% */
   position: relative;
 }
