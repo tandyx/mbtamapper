@@ -8,13 +8,12 @@ window.addEventListener("load", function () {
   setNavbar("navbar", ROUTE_TYPE, window.mobileCheck());
   createMap("map", ROUTE_TYPE);
 });
-
+/** map factory function for map.html
+ * @param {string} id - id of the map div
+ * @param {string} route_type - route type
+ * @returns {L.map} map
+ */
 function createMap(id, route_type) {
-  /** map factory function for map.html
-   * @param {string} route_type - route type
-   * @returns {L.map} map
-   */
-
   const map = L.map(id, {
     minZoom: 9,
     maxZoom: 20,
@@ -67,14 +66,12 @@ function createMap(id, route_type) {
 
   return map;
 }
-
+/** create control layers
+ * @param {Object} tile_layers - base layers
+ * @param {L.layerGroup} layers - layers to be added to the map
+ * @returns {Array} control layers
+ */
 function createControlLayers(tile_layers, ...layers) {
-  /** create control layers
-   * @param {L.tileLayer[]} tile_layers - tile layers to add to layer control
-   * @param {L.layerGroup} layers - layers to be controlled
-   * @returns {L.control} control layers
-   */
-
   const locateControl = L.control.locate({
     enableHighAccuracy: true,
     initialZoomLevel: 15,

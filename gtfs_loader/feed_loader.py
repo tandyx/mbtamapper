@@ -75,7 +75,7 @@ class FeedLoader(Scheduler, Feed):
         self.every(2).minutes.do(jobqueue.put, (self.import_realtime, Alert))
         self.every(12).seconds.do(jobqueue.put, (self.import_realtime, Vehicle))
         self.every().minute.do(jobqueue.put, (self.import_realtime, Prediction))
-        self.every().day.at("04:00", tz=timezone).do(jobqueue.put, self.geojson_exports)
+        self.every().day.at("03:45", tz=timezone).do(jobqueue.put, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(jobqueue.put, self.nightly_import)
 
         worker_thread = threading.Thread(target=worker_main)

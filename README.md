@@ -4,8 +4,6 @@ I built this project using SQLAlchemy.
 
 It essentially builds a sqlite database from a GTFS feed, in part from the static feed loaded every day and in part from the realtime feed. It then uses that database to build a map of the MBTA system, with realtime data, exporting it using flask and using leaflet to render the data.
 
-It's currently deployed to Azure, but I'm looking to move it to Digital Ocean after I run outta money.
-
 ## Linting/Formatting
 
 - Python: Black, Pylint, isort

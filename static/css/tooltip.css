@@ -83,26 +83,6 @@
   animation: fadeIn 500ms;
 }
 
-@-webkit-keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 0.9;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 0.9;
-  }
-}
-
 .tooltiptext-mini_image .contacts {
   left: 90%;
   top: 20%;
