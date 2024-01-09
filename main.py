@@ -1,4 +1,5 @@
-"""Main file for the project. Run this to start the server."""
+"""Main file for the project. Run this to start the backend of the project. \\
+    User must produce the WSGI application using the create_default_app function."""
 import logging
 import os
 from threading import Thread
