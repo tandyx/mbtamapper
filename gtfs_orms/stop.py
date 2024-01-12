@@ -4,8 +4,8 @@ from datetime import datetime
 
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy import Column, Float, ForeignKey, String
-from sqlalchemy.orm import reconstructor, relationship
+from sqlalchemy import Float, ForeignKey, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from helper_functions import get_current_time, list_unpack
 
@@ -18,27 +18,27 @@ class Stop(GTFSBase):
     __tablename__ = "stops"
     __filename__ = "stops.txt"
 
-    stop_id = Column(String, primary_key=True)
-    stop_code = Column(String)
-    stop_name = Column(String)
-    stop_desc = Column(String)
-    platform_code = Column(String)
-    platform_name = Column(String)
-    stop_lat = Column(Float)
-    stop_lon = Column(Float)
-    zone_id = Column(String)
-    stop_address = Column(String)
-    stop_url = Column(String)
-    level_id = Column(String)
-    location_type = Column(String)
-    parent_station = Column(
+    stop_id = mapped_column(String, primary_key=True)
+    stop_code = mapped_column(String)
+    stop_name = mapped_column(String)
+    stop_desc = mapped_column(String)
+    platform_code = mapped_column(String)
+    platform_name = mapped_column(String)
+    stop_lat = mapped_column(Float)
+    stop_lon = mapped_column(Float)
+    zone_id = mapped_column(String)
+    stop_address = mapped_column(String)
+    stop_url = mapped_column(String)
+    level_id = mapped_column(String)
+    location_type = mapped_column(String)
+    parent_station = mapped_column(
         String, ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_boarding = Column(String)
-    municipality = Column(String)
-    on_street = Column(String)
-    at_street = Column(String)
-    vehicle_type = Column(String)
+    wheelchair_boarding = mapped_column(String)
+    municipality = mapped_column(String)
+    on_street = mapped_column(String)
+    at_street = mapped_column(String)
+    vehicle_type = mapped_column(String)
 
     stop_times = relationship("StopTime", back_populates="stop", passive_deletes=True)
     facilities = relationship("Facility", back_populates="stop", passive_deletes=True)

@@ -5,10 +5,10 @@ import os
 from threading import Thread
 from typing import NoReturn
 
+from flask import Flask, jsonify, render_template
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from flask import Flask, jsonify, render_template
 from gtfs_loader import FeedLoader
 
 KEY_DICT: dict[str, tuple[str]] = {

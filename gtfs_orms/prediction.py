@@ -3,8 +3,8 @@
 from datetime import datetime
 
 from dateutil.parser import isoparse
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import reconstructor, relationship
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -15,17 +15,17 @@ class Prediction(GTFSBase):
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
 
-    prediction_id = Column(String)
-    arrival_time = Column(String)
-    departure_time = Column(String)
-    direction_id = Column(String)
-    schedule_relationship = Column(String)
-    stop_sequence = Column(Integer)
-    route_id = Column(String)
-    stop_id = Column(String)
-    trip_id = Column(String)
-    vehicle_id = Column(String)
-    index = Column(Integer, primary_key=True)
+    prediction_id = mapped_column(String)
+    arrival_time = mapped_column(String)
+    departure_time = mapped_column(String)
+    direction_id = mapped_column(String)
+    schedule_relationship = mapped_column(String)
+    stop_sequence = mapped_column(Integer)
+    route_id = mapped_column(String)
+    stop_id = mapped_column(String)
+    trip_id = mapped_column(String)
+    vehicle_id = mapped_column(String)
+    index = mapped_column(Integer, primary_key=True)
 
     route = relationship(
         "Route",

@@ -1,7 +1,7 @@
 """File to hold the Alert class and its associated methods."""
 from dateutil.parser import isoparse
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import reconstructor, relationship
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -12,23 +12,23 @@ class Alert(GTFSBase):
     __tablename__ = "alerts"
     __realtime_name__ = "service_alerts"
 
-    alert_id = Column(String)
-    cause = Column(String)
-    effect = Column(String)
-    severity = Column(String)
-    stop_id = Column(String)
-    agency_id = Column(String)
-    route_id = Column(String)
-    route_type = Column(String)
-    direction_id = Column(String)
-    trip_id = Column(String)
-    active_period_end = Column(String)
-    header = Column(String)
-    description = Column(String)
-    url = Column(String)
-    active_period_start = Column(String)
-    timestamp = Column(String)
-    index = Column(Integer, primary_key=True)
+    alert_id = mapped_column(String)
+    cause = mapped_column(String)
+    effect = mapped_column(String)
+    severity = mapped_column(String)
+    stop_id = mapped_column(String)
+    agency_id = mapped_column(String)
+    route_id = mapped_column(String)
+    route_type = mapped_column(String)
+    direction_id = mapped_column(String)
+    trip_id = mapped_column(String)
+    active_period_end = mapped_column(String)
+    header = mapped_column(String)
+    description = mapped_column(String)
+    url = mapped_column(String)
+    active_period_start = mapped_column(String)
+    timestamp = mapped_column(String)
+    index = mapped_column(Integer, primary_key=True)
 
     route = relationship(
         "Route",

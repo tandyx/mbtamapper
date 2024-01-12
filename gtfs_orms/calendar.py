@@ -2,8 +2,8 @@
 from datetime import datetime
 
 import pytz
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import reconstructor, relationship
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -14,16 +14,16 @@ class Calendar(GTFSBase):
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
-    service_id = Column(String, primary_key=True)
-    monday = Column(Integer)
-    tuesday = Column(Integer)
-    wednesday = Column(Integer)
-    thursday = Column(Integer)
-    friday = Column(Integer)
-    saturday = Column(Integer)
-    sunday = Column(Integer)
-    start_date = Column(String)
-    end_date = Column(String)
+    service_id = mapped_column(String, primary_key=True)
+    monday = mapped_column(Integer)
+    tuesday = mapped_column(Integer)
+    wednesday = mapped_column(Integer)
+    thursday = mapped_column(Integer)
+    friday = mapped_column(Integer)
+    saturday = mapped_column(Integer)
+    sunday = mapped_column(Integer)
+    start_date = mapped_column(String)
+    end_date = mapped_column(String)
 
     calendar_dates = relationship(
         "CalendarDate", back_populates="calendar", passive_deletes=True

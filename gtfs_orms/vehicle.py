@@ -4,8 +4,8 @@
 from dateutil.parser import isoparse
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy import Column, Float, Integer, String
-from sqlalchemy.orm import reconstructor, relationship
+from sqlalchemy import Float, Integer, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from helper_functions import shorten
 
@@ -18,22 +18,22 @@ class Vehicle(GTFSBase):
     __tablename__ = "vehicles"
     __realtime_name__ = "vehicle_positions"
 
-    vehicle_id = Column(String)
-    trip_id = Column(String)
-    route_id = Column(String)
-    direction_id = Column(String)
-    latitude = Column(Float)
-    longitude = Column(Float)
-    bearing = Column(Float)
-    current_stop_sequence = Column(Integer)
-    current_status = Column(String)
-    timestamp = Column(String)
-    stop_id = Column(String)
-    label = Column(String)
-    occupancy_status = Column(String)
-    occupancy_percentage = Column(Integer)
-    speed = Column(Float)
-    index = Column(Integer, primary_key=True)
+    vehicle_id = mapped_column(String)
+    trip_id = mapped_column(String)
+    route_id = mapped_column(String)
+    direction_id = mapped_column(String)
+    latitude = mapped_column(Float)
+    longitude = mapped_column(Float)
+    bearing = mapped_column(Float)
+    current_stop_sequence = mapped_column(Integer)
+    current_status = mapped_column(String)
+    timestamp = mapped_column(String)
+    stop_id = mapped_column(String)
+    label = mapped_column(String)
+    occupancy_status = mapped_column(String)
+    occupancy_percentage = mapped_column(Integer)
+    speed = mapped_column(Float)
+    index = mapped_column(Integer, primary_key=True)
 
     predictions = relationship(
         "Prediction",

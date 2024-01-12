@@ -1,8 +1,8 @@
 """File to hold the Facility class and its associated methods."""
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy import Column, Float, ForeignKey, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import Float, ForeignKey, String
+from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -15,20 +15,20 @@ class Facility(GTFSBase):
     __tablename__ = "facilities"
     __filename__ = "facilities.txt"
 
-    facility_id = Column(String, primary_key=True)
-    facility_code = Column(String)
-    facility_class = Column(String)
-    facility_type = Column(String)
-    stop_id = Column(
+    facility_id = mapped_column(String, primary_key=True)
+    facility_code = mapped_column(String)
+    facility_class = mapped_column(String)
+    facility_type = mapped_column(String)
+    stop_id = mapped_column(
         String,
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
-    facility_short_name = Column(String)
-    facility_long_name = Column(String)
-    facility_desc = Column(String)
-    facility_lat = Column(Float)
-    facility_lon = Column(Float)
-    wheelchair_facility = Column(String)
+    facility_short_name = mapped_column(String)
+    facility_long_name = mapped_column(String)
+    facility_desc = mapped_column(String)
+    facility_lat = mapped_column(Float)
+    facility_lon = mapped_column(Float)
+    wheelchair_facility = mapped_column(String)
 
     facility_properties = relationship(
         "FacilityProperty", back_populates="facility", passive_deletes=True
