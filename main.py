@@ -5,10 +5,10 @@ import os
 from threading import Thread
 from typing import NoReturn
 
-from flask import Flask, jsonify, render_template
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from flask import Flask, jsonify, render_template
 from gtfs_loader import FeedLoader
 
 KEY_DICT: dict[str, tuple[str]] = {
@@ -133,13 +133,13 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader()
+    # feed_loader()
 
     # FEED_LOADER.session.execute(
     #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
     # ).all()
-    # app = create_default_app()
-    # app.run(debug=True)
+    app = create_default_app()
+    app.run(debug=True)
     # from gtfs_orms import LinkedDataset
 
     # x = LinkedDataset(url="https://cdn.mbta.com/realtime/Alerts.pb")

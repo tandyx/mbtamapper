@@ -216,7 +216,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             date (datetime): date to export (default: today)
         """
         date = date or get_current_time()
-        query_obj = Query(route_types)
+        query_obj = Query(*route_types)
         file_subpath = os.path.join(file_path, key)
         for path in (file_path, file_subpath):
             if not os.path.exists(path):
@@ -241,7 +241,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         stops_data = session.execute(query_obj.parent_stops_query).all()
         if key == "RAPID_TRANSIT":
-            stops_data += session.execute(Query(["3"]).parent_stops_query).all()
+            stops_data += session.execute(Query("3").parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops_data += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
@@ -300,10 +300,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         ).all()
         if key == "RAPID_TRANSIT":
             facilities += session.execute(
-                Query(["3"]).get_facilities_query(["parking-area"])
+                Query("3").get_facilities_query(["parking-area"])
             ).all()
         if "4" in query_obj.route_types:
-            facilities += session.execute(self.get_ferry_parking_query()).all()
+            facilities += session.execute(self.ferry_parking_query).all()
         features = FeatureCollection([f[0].as_feature() for f in facilities])
         with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
             dump(features, file)
@@ -323,7 +323,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             FeatureCollection: vehicles as FeatureCollection
         """
         session = self.scoped_session()
-        vehicles_query = Query(route_types).get_vehicles_query(
+        vehicles_query = Query(*route_types).get_vehicles_query(
             self.SL_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):

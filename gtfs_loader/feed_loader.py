@@ -24,7 +24,7 @@ class FeedLoader(Scheduler, Feed):
 
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
 
-    def __init__(self, url: str, keys_dict: dict[str, list[str]]) -> None:
+    def __init__(self, url: str, keys_dict: dict[str, tuple[str]]) -> None:
         """Initializes FeedLoader.
 
         Args:
