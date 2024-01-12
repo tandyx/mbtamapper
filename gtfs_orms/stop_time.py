@@ -46,7 +46,10 @@ class StopTime(GTFSBase):
         # pylint: disable=attribute-defined-outside-init
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
         self.departure_seconds = to_seconds(self.departure_time)
+        self.arrival_seconds = to_seconds(self.arrival_time)
         self.departure_datetime = lazy_convert(self.departure_time)
+        self.unix_departure_time = self.departure_seconds + get_date().timestamp()
+        self.unix_arrival_time = self.arrival_seconds + get_date().timestamp()
 
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop"""
