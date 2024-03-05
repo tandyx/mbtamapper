@@ -6,7 +6,7 @@
 
 .tooltip .tooltiptext {
   visibility: hidden;
-  background-color: #f2f2f2;
+  background-color: var(--text-color);
   opacity: 0.95;
   color: #252525;
   text-align: center;
@@ -51,7 +51,7 @@
   top: 2.5px;
   left: 120%;
   visibility: hidden;
-  background-color: #f2f2f2;
+  background-color: var(--text-color);
   opacity: 0.95;
   color: #252525;
   text-align: center;

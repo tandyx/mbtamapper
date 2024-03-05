@@ -103,8 +103,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             cursor.close()
 
     def __init__(self, url: str) -> None:
-        """Initializes Feed object with url.\
-            Parses url to get GTFS name and create db path.\\
+        """
+        Initializes Feed object with url.
+
+        Parses url to get GTFS name and create db path in temp dir.
 
         Args:
             url (str): url of GTFS feed

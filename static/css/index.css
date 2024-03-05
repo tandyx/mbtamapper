@@ -1,6 +1,8 @@
 :root {
   --font-family: "montserrat", "Helvetica", sans-serif;
-  --text: #f2f2f2;
+  --text-color: #f2f2f2;
+  --background-color: rgb(0, 0, 0, 0.8);
+  --backdrop-blur: 15px;
 }
 
 @font-face {
@@ -53,6 +55,20 @@ noscript {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.subway {
+  background-color: #00843d;
+}
+
+/* const ROUTE_COLOR_DICT = {
+  subway: "#00843D",
+  rapid_transit: "#DA291C",
+  commuter_rail: "#80276C",
+  bus: "#FFC72C",
+  ferry: "#008EAA",
+  all_routes: "#7C878E",
+}; */
+
 h4 {
   color: rgb(85, 85, 85);
 }
@@ -82,7 +98,7 @@ h4 {
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: var(--font-family);
-  color: #f2f2f2;
+  color: var(--text-color);
 }
 
 .vehicle_wrapper {
@@ -190,7 +206,7 @@ h1 {
   border-collapse: collapse;
   text-align: left;
   border-radius: 0px;
-  border-color: #f2f2f2;
+  border-color: var(--text-color);
   border-style: solid;
   table-layout: fixed;
   max-height: 150px;
@@ -226,26 +242,28 @@ h1 {
 
 ::-webkit-scrollbar {
   width: 10px;
-  background-color: #000000;
+  background: none;
   opacity: 0.2;
-  border-radius: 10px;
+  border-radius: 15px;
+  width: 5px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background-color: #000000;
-  border-radius: 10px;
+  background: none;
+
+  border-radius: 15px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background-color: #888;
-  border-radius: 10px;
+  background-color: #424242;
+  border-radius: 15px;
   opacity: 0.6;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #3a3a3a;
+  background-color: #636363;
   opacity: 1;
 }

@@ -1,5 +1,6 @@
 """Main file for the project. Run this to start the backend of the project. \\
     User must produce the WSGI application using the create_default_app function."""
+
 import logging
 import os
 from threading import Thread
@@ -133,7 +134,9 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader()
+    # feed_loader()
+    app = create_default_app()
+    app.run(debug=True)
 
     # FEED_LOADER.session.execute(
     #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
