@@ -1,4 +1,5 @@
 """Module to hold decorators."""
+
 import logging
 import time
 import traceback

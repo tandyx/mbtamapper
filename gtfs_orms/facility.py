@@ -1,4 +1,5 @@
 """File to hold the Facility class and its associated methods."""
+
 from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import Float, ForeignKey, String

@@ -1,4 +1,5 @@
 """Feed Object for GTFS Loader"""
+
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=unused-argument

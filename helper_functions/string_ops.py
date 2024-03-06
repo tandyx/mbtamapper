@@ -1,4 +1,5 @@
 """Defines helper functions for string operations."""
+
 import json
 from typing import Any
 

@@ -1,4 +1,5 @@
 """Holds the base class for all GTFS elements"""
+
 from typing import Any, Self, Type
 
 from sqlalchemy import orm

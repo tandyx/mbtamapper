@@ -1,4 +1,5 @@
 """Helper functions for time conversions for gtfs loader"""
+
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -124,12 +125,14 @@ def timestamp_col_to_iso(dataframe: pd.DataFrame, col: str) -> pd.Series:
         return np.nan
 
     return dataframe[col].apply(
-        lambda x: datetime.fromtimestamp(
-            int(x.get("time")) if isinstance(x, dict) else int(x),
-            tz=pytz.timezone("America/New_York"),
-        ).isoformat()
-        if not pd.isna(x)
-        else None
+        lambda x: (
+            datetime.fromtimestamp(
+                int(x.get("time")) if isinstance(x, dict) else int(x),
+                tz=pytz.timezone("America/New_York"),
+            ).isoformat()
+            if not pd.isna(x)
+            else None
+        )
     )
 
 

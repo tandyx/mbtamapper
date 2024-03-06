@@ -1,4 +1,5 @@
 """File to hold the Stop class and its associated methods."""
+
 # pylint: disable=line-too-long
 from datetime import datetime
 

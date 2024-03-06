@@ -203,22 +203,24 @@ h1 {
 .table th {
   border: 1px;
   width: 100%;
-  border-collapse: collapse;
   text-align: left;
   border-radius: 0px;
   border-color: var(--text-color);
   border-style: solid;
-  table-layout: fixed;
+  /* table-layout: fixed; */
   max-height: 150px;
   font-family: var(--font-family) !important;
   /* width: 1000% */
   position: relative;
+  border-collapse: collapse;
+  isolation: isolate;
 }
 
 .table td,
 .table th {
   margin-right: 5px;
   padding: 10px;
+  background-clip: padding-box;
 
   /* width: 10px; */
   /* text-wrap: balance; */

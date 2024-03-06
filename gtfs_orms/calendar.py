@@ -1,4 +1,5 @@
 """File to hold the Calendar class and its associated methods."""
+
 from datetime import datetime
 
 import pytz

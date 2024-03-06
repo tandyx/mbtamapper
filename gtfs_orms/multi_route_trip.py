@@ -1,4 +1,5 @@
 """File to hold the MultiRouteTrip class and its associated methods."""
+
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import mapped_column, relationship
 

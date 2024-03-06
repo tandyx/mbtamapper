@@ -1,4 +1,5 @@
 """File to hold the Trip class and its associated methods."""
+
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
 

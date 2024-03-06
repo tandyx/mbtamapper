@@ -42,7 +42,12 @@
   color: var(--text-color);
   font-size: 12pt !important;
   background: var(--background-color) !important;
-  border: 15px var(--background-color) !important;
+  border: none;
+}
+
+.leaflet-tooltip::after,
+.leaflet-tooltip {
+  border-radius: 10px !important;
 }
 
 .leaflet-tooltip-right:before {

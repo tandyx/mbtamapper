@@ -1,4 +1,5 @@
 """Defines a class to hold and generate queries."""
+
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=no-self-argument

@@ -1,4 +1,5 @@
 """File to hold the StopTime class and its associated methods."""
+
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 from datetime import datetime

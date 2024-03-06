@@ -1,4 +1,5 @@
 """File to hold the FacilityProperty class and its associated methods."""
+
 from typing import override
 
 from sqlalchemy import ForeignKey, String

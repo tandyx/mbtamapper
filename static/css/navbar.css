@@ -90,7 +90,7 @@ nav a:visited:hover {
 .menu-button::before,
 .menu-button::after {
   display: block;
-  background-color: var(--text);
+  background-color: var(--text-color);
   position: absolute;
   height: 6px;
   width: 32px;

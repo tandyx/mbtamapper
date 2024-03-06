@@ -1,4 +1,5 @@
 """File to hold the Shape class and its associated methods."""
+
 from geojson import Feature
 from shapely.geometry import LineString
 from sqlalchemy import String

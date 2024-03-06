@@ -1,4 +1,5 @@
 """File to hold the Agency class and its associated methods."""
+
 from sqlalchemy import String
 from sqlalchemy.orm import mapped_column, relationship
 

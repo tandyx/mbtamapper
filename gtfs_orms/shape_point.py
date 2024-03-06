@@ -1,4 +1,5 @@
 """File to hold the Calendar class and its associated methods."""
+
 from shapely.geometry import Point
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship

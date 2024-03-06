@@ -1,4 +1,5 @@
 """File to hold the Alert class and its associated methods."""
+
 from dateutil.parser import isoparse
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship

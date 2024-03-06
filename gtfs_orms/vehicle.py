@@ -1,4 +1,5 @@
 """File to hold the Vehicle class and its associated methods."""
+
 # pylint: disable=line-too-long
 
 from dateutil.parser import isoparse

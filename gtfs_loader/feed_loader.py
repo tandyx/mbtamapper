@@ -1,4 +1,5 @@
 """FeedLoader class."""
+
 import logging
 import os
 import queue

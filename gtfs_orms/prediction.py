@@ -1,4 +1,5 @@
 """File to hold the Prediction class and its associated methods."""
+
 # pylint: disable=line-too-long
 from datetime import datetime
 
@@ -76,9 +77,7 @@ class Prediction(GTFSBase):
         return (
             isoparse(self.arrival_time)
             if self.arrival_time
-            else isoparse(self.departure_time)
-            if self.departure_time
-            else None
+            else isoparse(self.departure_time) if self.departure_time else None
         )
 
     def status_as_html(self) -> str:
@@ -103,9 +102,7 @@ class Prediction(GTFSBase):
         stop_name = (
             self.stop.parent_stop.stop_name
             if self.stop and self.stop.parent_stop
-            else self.stop.stop_name
-            if self.stop
-            else ""
+            else self.stop.stop_name if self.stop else ""
         )
 
         flag_stop = (
