@@ -74,14 +74,17 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             connection_record (ConnectionRecord, optional): connection record
         """
 
-        if isinstance(dbapi_connection, sqlite3.Connection):
-            cursor = dbapi_connection.cursor()
-            for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
-                try:
-                    cursor.execute(f"PRAGMA {pragma}")
-                except sqlite3.OperationalError:
-                    logging.warning("PRAGMA %s failed", pragma)
-            cursor.close()
+        if not isinstance(dbapi_connection, sqlite3.Connection):
+            logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
+            return
+
+        cursor = dbapi_connection.cursor()
+        for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
+            try:
+                cursor.execute(f"PRAGMA {pragma}")
+            except sqlite3.OperationalError:
+                logging.warning("PRAGMA %s failed", pragma)
+        cursor.close()
 
     @staticmethod
     @event.listens_for(Engine, "close")
@@ -314,13 +317,13 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @removes_session
     def get_vehicles_feature(
-        self, key: str, route_types: tuple[str], max_tries: int = 10
+        self, key: str, *route_types: str, max_tries: int = 10
     ) -> FeatureCollection:
         """Returns vehicles as FeatureCollection.
 
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            route_types (tuple[str]): route types to export
+            *route_types (str): route types to export
             max_tries (int): maximum number of tries to get data (default: 5)
         Returns:
             FeatureCollection: vehicles as FeatureCollection
@@ -331,12 +334,11 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         )
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(75)
-        data: list[tuple[Vehicle]]
+        data: list[tuple[Vehicle]] = []
         for attempt in range(max_tries):
             try:
                 data = session.execute(vehicles_query).all()
             except (exc.OperationalError, exc.DatabaseError) as error:
-                data = []
                 logging.error("Failed to get vehicle data: %s", error)
             if any(v[0].predictions for v in data):
                 break

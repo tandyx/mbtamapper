@@ -24,7 +24,7 @@ class Query:
     """
 
     @classproperty
-    def ferry_parking_query(cls: [Type[Self]]) -> Select[DeclarativeMeta]:
+    def ferry_parking_query(cls: Type[Self]) -> Select[DeclarativeMeta]:
         """
         Returns a query for ferry parking.
 
@@ -69,7 +69,7 @@ class Query:
         Returns a generic update query for a table.
 
         Args:
-            orm (DeclarativeMeta): table to quer
+            orm (DeclarativeMeta): table to query
         Returns:
             A generic update query for a table.
         """
