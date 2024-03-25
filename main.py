@@ -27,7 +27,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
     """Create app for a given key
 
     Args:
-        key (str, optional): Key for the app. Defaults to None.
+        key (str): Key for the app. Defaults to None.
         proxies (int, optional): Number of proxies to allow on connection, default 10.
     Returns:
         Flask: app for the key."""
@@ -46,7 +46,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         Returns:
             str: geojson of vehicles.
         """
-        return jsonify(FEED_LOADER.get_vehicles_feature(key, KEY_DICT[key]))
+        return jsonify(FEED_LOADER.get_vehicles_feature(key, *KEY_DICT[key]))
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
