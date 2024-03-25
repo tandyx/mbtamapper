@@ -13,12 +13,12 @@ def df_unpack(
         with the packed column removed.
 
     Args:
-        dataframe (pd.DataFrame): dataframe to unpack
-        columns (list[str]): columns to unpack.
-        prefix (bool, optional): whether to add prefix to unpacked columns. \
-            Defaults to True.
+        - `dataframe (pd.DataFrame)`: dataframe to unpack
+        - `columns (list[str])`: columns to unpack.
+        - `prefix (bool, optional)`: whether to add prefix to unpacked columns. \
+            Defaults to True. \n
     Returns:
-        pd.DataFrame: dataframe with unpacked columns
+        - `pd.DataFrame`: dataframe with unpacked columns
     """
 
     for col in columns:
