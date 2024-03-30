@@ -1,9 +1,9 @@
 """Main file for the project. Run this to start the backend of the project. \\
     User must produce the WSGI application using the create_default_app function."""
 
+import argparse
 import logging
 import os
-from threading import Thread
 from typing import NoReturn
 
 from flask import Flask, jsonify, render_template
@@ -21,6 +21,8 @@ KEY_DICT: dict[str, tuple[str]] = {
     "ALL_ROUTES": ("0", "1", "2", "4"),
 }
 FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
+
+ARGPARSE = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")
 
 
 def create_app(key: str, proxies: int = 5) -> Flask:
@@ -116,25 +118,27 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     FEED_LOADER.run()
 
 
-def run_dev_server(_app: Flask, *args, **kwargs) -> None:
-    """Runs the dev server. Doesn't work with 3.12
-
-    Args:
-        app (Flask): Flask app.
-        kwargs: Keyword arguments for app.run.
-    """
-
-    for thread in (
-        Thread(target=feed_loader),
-        Thread(target=_app.run, *args, kwargs=kwargs),
-    ):
-        thread.start()
-        thread.join()
-
-
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader()
+
+    ARGPARSE.add_argument(
+        "--import_data",
+        "-i",
+        action="store_true",
+        help="only has effect if --load is set. Import data from GTFS feed.",
+    )
+
+    ARGPARSE.add_argument(
+        "--frontend",
+        "-f",
+        action="store_true",
+        help="Run flask ONLY - overrides --import_data.",
+    )
+    args = ARGPARSE.parse_args()
+    if args.frontend:
+        app = create_default_app()
+        app.run(debug=True, port=80, host="0.0.0.0")
+    feed_loader(import_data=args.import_data)
     # app = create_default_app()
     # app.run(debug=True)
 

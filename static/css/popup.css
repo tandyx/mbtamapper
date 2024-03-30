@@ -35,7 +35,7 @@
   font-family: var(--font-family) !important;
 }
 
-.popuptext::before {
+/* .popuptext::before {
   content: "";
   -webkit-backdrop-filter: blur(var(--backdrop-blur));
   backdrop-filter: blur(var(--backdrop-blur));
@@ -47,7 +47,7 @@
   width: inherit;
   height: inherit;
   z-index: -1;
-}
+} */
 
 /* Popup arrow */
 /* .popup .popuptext::after {
