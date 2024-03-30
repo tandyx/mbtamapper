@@ -1,4 +1,5 @@
 """File to hold the LinkedDataset class and its associated methods."""
+
 # pylint: disable=no-name-in-module
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
@@ -9,7 +10,8 @@ import pandas as pd
 import requests as rq
 from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import mapped_column
 
 from helper_functions import *
 
@@ -70,11 +72,11 @@ class LinkedDataset(GTFSBase):
     __tablename__ = "linked_datasets"
     __filename__ = "linked_datasets.txt"
 
-    url = Column(String, primary_key=True)
-    trip_updates = Column(Integer)
-    vehicle_positions = Column(Integer)
-    service_alerts = Column(Integer)
-    authentication_type = Column(String)
+    url = mapped_column(String, primary_key=True)
+    trip_updates = mapped_column(Integer)
+    vehicle_positions = mapped_column(Integer)
+    service_alerts = mapped_column(Integer)
+    authentication_type = mapped_column(String)
 
     def as_dataframe(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\
@@ -166,9 +168,11 @@ class LinkedDataset(GTFSBase):
 
         dataframe = self._load_dataframe()
         dataframe = dataframe[
-            dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
-            if "vehicle_timestamp" in dataframe.columns
-            else True
+            (
+                dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
+                if "vehicle_timestamp" in dataframe.columns
+                else True
+            )
         ]
         dataframe["vehicle_timestamp"] = timestamp_col_to_iso(
             dataframe, "vehicle_timestamp"

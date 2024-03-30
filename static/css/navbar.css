@@ -1,8 +1,7 @@
 :root {
   --navbar-height: 50px;
-  --text: #f2f2f2;
   --grey-accent: #525252;
-  --background-color: rgb(26, 26, 26);
+  --navbar-background-color: rgb(26, 26, 26);
 }
 
 * {
@@ -11,15 +10,16 @@
 
 nav {
   position: sticky;
+  font-family: var(--font-family);
   top: 0;
   left: 0;
   width: 100%;
   display: flex;
   flex-direction: row;
-  color: var(--text);
+  color: var(--text-color);
   align-items: center;
   justify-content: space-between;
-  background-color: var(--background-color);
+  background-color: var(--navbar-background-color);
   height: var(--navbar-height);
   padding: 1em;
   font-size: 12pt;
@@ -37,7 +37,7 @@ nav a:visited:hover {
 
 .menu li:hover,
 .titleLogo:hover {
-  color: var(--text);
+  color: var(--text-color);
   cursor: pointer;
   background-color: var(--accent-dark);
 }
@@ -90,7 +90,7 @@ nav a:visited:hover {
 .menu-button::before,
 .menu-button::after {
   display: block;
-  background-color: var(--text);
+  background-color: var(--text-color);
   position: absolute;
   height: 6px;
   width: 32px;
@@ -164,6 +164,6 @@ nav a:visited:hover {
     background-color: #1a1a1a;
   }
   .menu > li:not(:last-child) {
-    border-bottom: 1px solid var(--grey-accent);
+    border-bottom: 1px solid var(--text-color);
   }
 }

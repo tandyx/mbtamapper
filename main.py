@@ -1,7 +1,9 @@
-"""Main file for the project. Run this to start the server."""
+"""Main file for the project. Run this to start the backend of the project. \\
+    User must produce the WSGI application using the create_default_app function."""
+
+import argparse
 import logging
 import os
-from threading import Thread
 from typing import NoReturn
 
 from flask import Flask, jsonify, render_template
@@ -20,12 +22,14 @@ KEY_DICT: dict[str, tuple[str]] = {
 }
 FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
 
+ARGPARSE = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")
+
 
 def create_app(key: str, proxies: int = 5) -> Flask:
     """Create app for a given key
 
     Args:
-        key (str, optional): Key for the app. Defaults to None.
+        key (str): Key for the app. Defaults to None.
         proxies (int, optional): Number of proxies to allow on connection, default 10.
     Returns:
         Flask: app for the key."""
@@ -44,7 +48,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         Returns:
             str: geojson of vehicles.
         """
-        return jsonify(FEED_LOADER.get_vehicles_feature(key, KEY_DICT[key]))
+        return jsonify(FEED_LOADER.get_vehicles_feature(key, *KEY_DICT[key]))
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
@@ -114,31 +118,34 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     FEED_LOADER.run()
 
 
-def run_dev_server(_app: Flask, *args, **kwargs) -> None:
-    """Runs the dev server. Doesn't work with 3.12
-
-    Args:
-        app (Flask): Flask app.
-        kwargs: Keyword arguments for app.run.
-    """
-
-    for thread in (
-        Thread(target=feed_loader),
-        Thread(target=_app.run, *args, kwargs=kwargs),
-    ):
-        thread.start()
-        thread.join()
-
-
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    feed_loader()
+
+    ARGPARSE.add_argument(
+        "--import_data",
+        "-i",
+        action="store_true",
+        help="only has effect if --load is set. Import data from GTFS feed.",
+    )
+
+    ARGPARSE.add_argument(
+        "--frontend",
+        "-f",
+        action="store_true",
+        help="Run flask ONLY - overrides --import_data.",
+    )
+    args = ARGPARSE.parse_args()
+    if args.frontend:
+        app = create_default_app()
+        app.run(debug=True, port=80, host="0.0.0.0")
+    feed_loader(import_data=args.import_data)
+    # app = create_default_app()
+    # app.run(debug=True)
 
     # FEED_LOADER.session.execute(
     #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
     # ).all()
     # app = create_default_app()
     # app.run(debug=True)
-    # from gtfs_orms import LinkedDataset
 
     # x = LinkedDataset(url="https://cdn.mbta.com/realtime/Alerts.pb")

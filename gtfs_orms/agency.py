@@ -1,6 +1,7 @@
 """File to hold the Agency class and its associated methods."""
-from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship
+
+from sqlalchemy import String
+from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -11,12 +12,12 @@ class Agency(GTFSBase):
     __tablename__ = "agencies"
     __filename__ = "agency.txt"
 
-    agency_id = Column(String, primary_key=True)
-    agency_name = Column(String)
-    agency_url = Column(String)
-    agency_timezone = Column(String)
-    agency_lang = Column(String)
-    agency_phone = Column(String)
+    agency_id = mapped_column(String, primary_key=True)
+    agency_name = mapped_column(String)
+    agency_url = mapped_column(String)
+    agency_timezone = mapped_column(String)
+    agency_lang = mapped_column(String)
+    agency_phone = mapped_column(String)
 
     routes = relationship("Route", back_populates="agency", passive_deletes=True)
 

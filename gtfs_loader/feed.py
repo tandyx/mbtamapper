@@ -1,4 +1,5 @@
 """Feed Object for GTFS Loader"""
+
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=unused-argument
@@ -73,14 +74,17 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             connection_record (ConnectionRecord, optional): connection record
         """
 
-        if isinstance(dbapi_connection, sqlite3.Connection):
-            cursor = dbapi_connection.cursor()
-            for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
-                try:
-                    cursor.execute(f"PRAGMA {pragma}")
-                except sqlite3.OperationalError:
-                    logging.warning("PRAGMA %s failed", pragma)
-            cursor.close()
+        if not isinstance(dbapi_connection, sqlite3.Connection):
+            logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
+            return
+
+        cursor = dbapi_connection.cursor()
+        for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
+            try:
+                cursor.execute(f"PRAGMA {pragma}")
+            except sqlite3.OperationalError:
+                logging.warning("PRAGMA %s failed", pragma)
+        cursor.close()
 
     @staticmethod
     @event.listens_for(Engine, "close")
@@ -103,8 +107,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             cursor.close()
 
     def __init__(self, url: str) -> None:
-        """Initializes Feed object with url.\
-            Parses url to get GTFS name and create db path.\\
+        """
+        Initializes Feed object with url.
+
+        Parses url to get GTFS name and create db path in temp dir.
 
         Args:
             url (str): url of GTFS feed
@@ -132,7 +138,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         source = req.get(self.url, timeout=10)
         if not source.ok:
             raise req.exceptions.HTTPError(
-                f"Failed to download {self.url}: {source.status_code}"
+                f"couldn't download {self.url}: {source.status_code}"
             )
         with ZipFile(io.BytesIO(source.content)) as zipfile_bytes:
             zipfile_bytes.extractall(self.zip_path)
@@ -216,7 +222,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             date (datetime): date to export (default: today)
         """
         date = date or get_current_time()
-        query_obj = Query(route_types)
+        query_obj = Query(*route_types)
         file_subpath = os.path.join(file_path, key)
         for path in (file_path, file_subpath):
             if not os.path.exists(path):
@@ -241,7 +247,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         stops_data = session.execute(query_obj.parent_stops_query).all()
         if key == "RAPID_TRANSIT":
-            stops_data += session.execute(Query(["3"]).parent_stops_query).all()
+            stops_data += session.execute(Query("3").parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops_data += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
@@ -300,10 +306,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         ).all()
         if key == "RAPID_TRANSIT":
             facilities += session.execute(
-                Query(["3"]).get_facilities_query(["parking-area"])
+                Query("3").get_facilities_query(["parking-area"])
             ).all()
         if "4" in query_obj.route_types:
-            facilities += session.execute(self.get_ferry_parking_query()).all()
+            facilities += session.execute(self.ferry_parking_query).all()
         features = FeatureCollection([f[0].as_feature() for f in facilities])
         with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
             dump(features, file)
@@ -311,29 +317,28 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @removes_session
     def get_vehicles_feature(
-        self, key: str, route_types: tuple[str], max_tries: int = 10
+        self, key: str, *route_types: str, max_tries: int = 10
     ) -> FeatureCollection:
         """Returns vehicles as FeatureCollection.
 
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            route_types (tuple[str]): route types to export
+            *route_types (str): route types to export
             max_tries (int): maximum number of tries to get data (default: 5)
         Returns:
             FeatureCollection: vehicles as FeatureCollection
         """
         session = self.scoped_session()
-        vehicles_query = Query(route_types).get_vehicles_query(
+        vehicles_query = Query(*route_types).get_vehicles_query(
             self.SL_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(75)
-        data: list[tuple[Vehicle]]
+        data: list[tuple[Vehicle]] = []
         for attempt in range(max_tries):
             try:
                 data = session.execute(vehicles_query).all()
             except (exc.OperationalError, exc.DatabaseError) as error:
-                data = []
                 logging.error("Failed to get vehicle data: %s", error)
             if any(v[0].predictions for v in data):
                 break

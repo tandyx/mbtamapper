@@ -1,10 +1,11 @@
 """File to hold the StopTime class and its associated methods."""
+
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import reconstructor, relationship
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from helper_functions import *
 
@@ -17,24 +18,24 @@ class StopTime(GTFSBase):
     __tablename__ = "stop_times"
     __filename__ = "stop_times.txt"
 
-    trip_id = Column(
+    trip_id = mapped_column(
         String,
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    arrival_time = Column(String)
-    departure_time = Column(String)
-    stop_id = Column(
+    arrival_time = mapped_column(String)
+    departure_time = mapped_column(String)
+    stop_id = mapped_column(
         String, ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    stop_sequence = Column(Integer, primary_key=True)
-    stop_headsign = Column(String)
-    pickup_type = Column(String)
-    drop_off_type = Column(String)
-    timepoint = Column(String)
-    checkpoint_id = Column(String)
-    continuous_pickup = Column(String)
-    continuous_drop_off = Column(String)
+    stop_sequence = mapped_column(Integer, primary_key=True)
+    stop_headsign = mapped_column(String)
+    pickup_type = mapped_column(String)
+    drop_off_type = mapped_column(String)
+    timepoint = mapped_column(String)
+    checkpoint_id = mapped_column(String)
+    continuous_pickup = mapped_column(String)
+    continuous_drop_off = mapped_column(String)
 
     stop = relationship("Stop", back_populates="stop_times")
     trip = relationship("Trip", back_populates="stop_times")
@@ -46,7 +47,10 @@ class StopTime(GTFSBase):
         # pylint: disable=attribute-defined-outside-init
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
         self.departure_seconds = to_seconds(self.departure_time)
+        self.arrival_seconds = to_seconds(self.arrival_time)
         self.departure_datetime = lazy_convert(self.departure_time)
+        self.unix_departure_time = self.departure_seconds + get_date().timestamp()
+        self.unix_arrival_time = self.arrival_seconds + get_date().timestamp()
 
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop"""

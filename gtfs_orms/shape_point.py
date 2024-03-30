@@ -1,7 +1,8 @@
 """File to hold the Calendar class and its associated methods."""
+
 from shapely.geometry import Point
-from sqlalchemy import Column, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -12,15 +13,15 @@ class ShapePoint(GTFSBase):
     __tablename__ = "shape_points"
     __filename__ = "shapes.txt"
 
-    shape_id = Column(
+    shape_id = mapped_column(
         String,
         ForeignKey("shapes.shape_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    shape_pt_lat = Column(Float)
-    shape_pt_lon = Column(Float)
-    shape_pt_sequence = Column(Integer, primary_key=True)
-    shape_dist_traveled = Column(Float)
+    shape_pt_lat = mapped_column(Float)
+    shape_pt_lon = mapped_column(Float)
+    shape_pt_sequence = mapped_column(Integer, primary_key=True)
+    shape_dist_traveled = mapped_column(Float)
 
     shape = relationship("Shape", back_populates="shape_points")
 

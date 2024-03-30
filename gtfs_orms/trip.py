@@ -1,6 +1,7 @@
 """File to hold the Trip class and its associated methods."""
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -11,25 +12,25 @@ class Trip(GTFSBase):
     __tablename__ = "trips"
     __filename__ = "trips.txt"
 
-    route_id = Column(
+    route_id = mapped_column(
         String, ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    service_id = Column(
+    service_id = mapped_column(
         String,
         ForeignKey("calendars.service_id", ondelete="CASCADE", onupdate="CASCADE"),
     )
-    trip_id = Column(String, primary_key=True)
-    trip_headsign = Column(String)
-    trip_short_name = Column(String)
-    direction_id = Column(Integer)
-    block_id = Column(String)
-    shape_id = Column(
+    trip_id = mapped_column(String, primary_key=True)
+    trip_headsign = mapped_column(String)
+    trip_short_name = mapped_column(String)
+    direction_id = mapped_column(Integer)
+    block_id = mapped_column(String)
+    shape_id = mapped_column(
         String, ForeignKey("shapes.shape_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_accessible = Column(String)
-    trip_route_type = Column(String)
-    route_pattern_id = Column(String)
-    bikes_allowed = Column(Integer)
+    wheelchair_accessible = mapped_column(String)
+    trip_route_type = mapped_column(String)
+    route_pattern_id = mapped_column(String)
+    bikes_allowed = mapped_column(Integer)
 
     calendar = relationship("Calendar", back_populates="trips")
     multi_route_trips = relationship(

@@ -1,26 +1,47 @@
 """Defines a class to hold and generate queries."""
+
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
+# pylint: disable=no-self-argument
 from datetime import datetime, timedelta
-from typing import Any, Type
+from typing import Any, Self, Type
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import *
 
 from gtfs_orms import *
+from helper_functions import classproperty
 
 
 class Query:
-    """Class to hold and generate queries.
+    """
+    Class to hold and generate queries. \n
+    Called with Query(r1, r2, ...)
 
     Args:
         route_types (list[str]): list of route_types to query
     """
 
+    @classproperty
+    def ferry_parking_query(cls: Type[Self]) -> Select[DeclarativeMeta]:
+        """
+        Returns a query for ferry parking.
+
+        Returns:
+            A query for ferry parking.
+        """
+        return (
+            select(Facility)
+            .join(Stop, Facility.stop_id == Stop.stop_id)
+            .where(Stop.vehicle_type == "4")
+            .where(Facility.facility_type == "parking-area")
+        )
+
     @staticmethod
     def select(*orms: DeclarativeMeta, **kwargs) -> Select[DeclarativeMeta]:
-        """Returns a generic select query for tables.
+        """
+        Returns a generic select query for tables.
 
         Args:
             *orms: tables to query
@@ -32,7 +53,8 @@ class Query:
 
     @staticmethod
     def delete(orm: DeclarativeMeta) -> Delete[DeclarativeMeta]:
-        """Returns a generic delete query for a table.
+        """
+        Returns a generic delete query for a table.
 
         Args:
             orm (DeclarativeMeta): table to query
@@ -43,10 +65,11 @@ class Query:
 
     @staticmethod
     def update(orm: DeclarativeMeta) -> Update[DeclarativeMeta]:
-        """Returns a generic update query for a table.
+        """
+        Returns a generic update query for a table.
 
         Args:
-            orm (DeclarativeMeta): table to quer
+            orm (DeclarativeMeta): table to query
         Returns:
             A generic update query for a table.
         """
@@ -56,7 +79,8 @@ class Query:
     def get_active_calendars_query(
         date: datetime, specific: bool = False, days_ahead: int = 7
     ) -> Select:
-        """Returns a query for active calendars on a date.
+        """
+        Returns a query for active calendars on a date.
 
         Args:
             date (datetime): date to query
@@ -134,7 +158,8 @@ class Query:
 
     @staticmethod
     def delete_calendars_query(*args, **kwargs) -> Delete[DeclarativeMeta]:
-        """Returns a query to delete calendars.
+        """
+        Returns a query to delete calendars.
 
         Args:
             *args: args for get_active_calendars_query
@@ -196,20 +221,6 @@ class Query:
         return base_query.where(Route.route_id.in_(routes))
 
     @staticmethod
-    def get_ferry_parking_query() -> Select[DeclarativeMeta]:
-        """Returns a query for ferry parking.
-
-        Returns:
-            A query for ferry parking.
-        """
-        return (
-            select(Facility)
-            .join(Stop, Facility.stop_id == Stop.stop_id)
-            .where(Stop.vehicle_type == "4")
-            .where(Facility.facility_type == "parking-area")
-        )
-
-    @staticmethod
     def get_dataset_query(realtime_name: str) -> Select[DeclarativeMeta]:
         """Returns a query for linked dataset.
 
@@ -232,13 +243,13 @@ class Query:
         """
         return select(orm).where(getattr(orm, param) == param_value)
 
-    def __init__(self, route_types: list[str] = None) -> None:
-        """Initializes Query.
+    def __init__(self, *route_types: str) -> None:
+        """Initializes Query, called with Query(r1, r2, ...)
 
         Args:
-            route_types (list[str], optional): list of route_types to query. Defaults to None.
+            route_types (list[str]): list of route_types to query
         """
-        self.route_types = route_types or []
+        self.route_types = route_types or tuple()
         self.trip_query = self.__get_trips_query()
         self.parent_stops_query = self.__get_parent_stops_query()
 

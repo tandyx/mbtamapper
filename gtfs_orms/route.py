@@ -1,6 +1,7 @@
 """File to hold the Route class and its associated methods."""
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import reconstructor, relationship
+
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from helper_functions import get_current_time
 
@@ -15,22 +16,22 @@ class Route(GTFSBase):
     __tablename__ = "routes"
     __filename__ = "routes.txt"
 
-    route_id = Column(String, primary_key=True)
-    agency_id = Column(
+    route_id = mapped_column(String, primary_key=True)
+    agency_id = mapped_column(
         String, ForeignKey("agencies.agency_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    route_short_name = Column(String)
-    route_long_name = Column(String)
-    route_desc = Column(String)
-    route_type = Column(String)
-    route_url = Column(String)
-    route_color = Column(String)
-    route_text_color = Column(String)
-    route_sort_order = Column(Integer)
-    route_fare_class = Column(String)
-    line_id = Column(String)
-    listed_route = Column(String)
-    network_id = Column(String)
+    route_short_name = mapped_column(String)
+    route_long_name = mapped_column(String)
+    route_desc = mapped_column(String)
+    route_type = mapped_column(String)
+    route_url = mapped_column(String)
+    route_color = mapped_column(String)
+    route_text_color = mapped_column(String)
+    route_sort_order = mapped_column(Integer)
+    route_fare_class = mapped_column(String)
+    line_id = mapped_column(String)
+    listed_route = mapped_column(String)
+    network_id = mapped_column(String)
 
     agency = relationship("Agency", back_populates="routes")
     multi_route_trips = relationship(
