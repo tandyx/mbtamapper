@@ -138,7 +138,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         source = req.get(self.url, timeout=10)
         if not source.ok:
             raise req.exceptions.HTTPError(
-                f"Failed to download {self.url}: {source.status_code}"
+                f"couldn't download {self.url}: {source.status_code}"
             )
         with ZipFile(io.BytesIO(source.content)) as zipfile_bytes:
             zipfile_bytes.extractall(self.zip_path)

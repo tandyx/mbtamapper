@@ -52,7 +52,7 @@ def timeit(_func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
         - `_func (function)`: Function to wrap.
         - `round_to (int, optional)`: Number of decimal places to round to. Defaults to 3. \n
     Returns:
-        `function`: Wrapped function.
+        - `function`: Wrapped function.
     """
 
     def _timeit(*args, **kwargs) -> Any:
@@ -73,9 +73,9 @@ class classproperty(property):  # pylint: disable=invalid-name
     """Decorator to create a class property.
 
     Args:
-        property (property): property to wrap.
+        - `property (property)`: property to wrap.
     Returns:
-        property: Wrapped property."""
+        - `property`: Wrapped property."""
 
     def __get__(self, owner_self: object, owner_cls: object):
         return self.fget(owner_cls)
