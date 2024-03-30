@@ -12,9 +12,9 @@ def to_seconds(time: str) -> int:
     """Converts a string in HH:MM:SS format to seconds past midnight
 
     Args:
-        time (str): A string in HH:MM:SS format
+        - `time (str)`: A string in HH:MM:SS format
     Returns:
-        int: The number of seconds past midnight"""
+        - `int`: The number of seconds past midnight"""
 
     hours, minutes, seconds = time.split(":")
     return int(hours) * 3600 + int(minutes) * 60 + int(seconds)

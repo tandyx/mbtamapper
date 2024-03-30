@@ -73,9 +73,9 @@ class classproperty(property):  # pylint: disable=invalid-name
     """Decorator to create a class property.
 
     Args:
-        - `property (property)`: property to wrap.
+        - `property (property)`: property to wrap. \n
     Returns:
-        - `property`: Wrapped property."""
+        `property`: Wrapped property."""
 
     def __get__(self, owner_self: object, owner_cls: object):
         return self.fget(owner_cls)

@@ -134,9 +134,9 @@ def run_dev_server(_app: Flask, *args, **kwargs) -> None:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    # feed_loader()
-    app = create_default_app()
-    app.run(debug=True)
+    feed_loader()
+    # app = create_default_app()
+    # app.run(debug=True)
 
     # FEED_LOADER.session.execute(
     #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
