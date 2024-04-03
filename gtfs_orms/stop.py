@@ -2,6 +2,7 @@
 
 # pylint: disable=line-too-long
 from datetime import datetime
+from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -12,6 +13,14 @@ from helper_functions import get_current_time, list_unpack
 
 from .gtfs_base import GTFSBase
 
+if TYPE_CHECKING:
+    from .alert import Alert
+    from .facility import Facility
+    from .prediction import Prediction
+    from .route import Route
+    from .stop_time import StopTime
+    from .vehicle import Vehicle
+
 
 class Stop(GTFSBase):
     """Stop"""
@@ -19,55 +28,59 @@ class Stop(GTFSBase):
     __tablename__ = "stops"
     __filename__ = "stops.txt"
 
-    stop_id = mapped_column(String, primary_key=True)
-    stop_code = mapped_column(String)
-    stop_name = mapped_column(String)
-    stop_desc = mapped_column(String)
-    platform_code = mapped_column(String)
-    platform_name = mapped_column(String)
-    stop_lat = mapped_column(Float)
-    stop_lon = mapped_column(Float)
-    zone_id = mapped_column(String)
-    stop_address = mapped_column(String)
-    stop_url = mapped_column(String)
-    level_id = mapped_column(String)
-    location_type = mapped_column(String)
-    parent_station = mapped_column(
+    stop_id: str = mapped_column(String, primary_key=True)
+    stop_code: str = mapped_column(String)
+    stop_name: str = mapped_column(String)
+    stop_desc: str = mapped_column(String)
+    platform_code: str = mapped_column(String)
+    platform_name: str = mapped_column(String)
+    stop_lat: float = mapped_column(Float)
+    stop_lon: float = mapped_column(Float)
+    zone_id: str = mapped_column(String)
+    stop_address: str = mapped_column(String)
+    stop_url: str = mapped_column(String)
+    level_id: str = mapped_column(String)
+    location_type: str = mapped_column(String)
+    parent_station: str = mapped_column(
         String, ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_boarding = mapped_column(String)
-    municipality = mapped_column(String)
-    on_street = mapped_column(String)
-    at_street = mapped_column(String)
-    vehicle_type = mapped_column(String)
+    wheelchair_boarding: str = mapped_column(String)
+    municipality: str = mapped_column(String)
+    on_street: str = mapped_column(String)
+    at_street: str = mapped_column(String)
+    vehicle_type: str = mapped_column(String)
 
-    stop_times = relationship("StopTime", back_populates="stop", passive_deletes=True)
-    facilities = relationship("Facility", back_populates="stop", passive_deletes=True)
-    parent_stop = relationship(
+    stop_times: list["StopTime"] = relationship(
+        "StopTime", back_populates="stop", passive_deletes=True
+    )
+    facilities: list["Facility"] = relationship(
+        "Facility", back_populates="stop", passive_deletes=True
+    )
+    parent_stop: Optional["Stop"] = relationship(
         "Stop", remote_side=[stop_id], back_populates="child_stops"
     )
-    child_stops = relationship("Stop", back_populates="parent_stop")
+    child_stops: list["Stop"] = relationship("Stop", back_populates="parent_stop")
 
-    predictions = relationship(
+    predictions: list["Prediction"] = relationship(
         "Prediction",
         back_populates="stop",
         primaryjoin="foreign(Prediction.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-    vehicles = relationship(
+    vehicles: list["Vehicle"] = relationship(
         "Vehicle",
         back_populates="stop",
         primaryjoin="Stop.stop_id==foreign(Vehicle.stop_id)",
         viewonly=True,
     )
-    alerts = relationship(
+    alerts: list["Alert"] = relationship(
         "Alert",
         back_populates="stop",
         primaryjoin="foreign(Alert.stop_id)==Stop.stop_id",
         viewonly=True,
     )
 
-    routes = relationship(
+    routes: list["Route"] = relationship(
         "Route",
         primaryjoin="Stop.stop_id==StopTime.stop_id",
         secondary="join(StopTime, Trip, StopTime.trip_id==Trip.trip_id)",

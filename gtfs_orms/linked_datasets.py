@@ -72,11 +72,11 @@ class LinkedDataset(GTFSBase):
     __tablename__ = "linked_datasets"
     __filename__ = "linked_datasets.txt"
 
-    url = mapped_column(String, primary_key=True)
-    trip_updates = mapped_column(Integer)
-    vehicle_positions = mapped_column(Integer)
-    service_alerts = mapped_column(Integer)
-    authentication_type = mapped_column(String)
+    url: str = mapped_column(String, primary_key=True)
+    trip_updates: int = mapped_column(Integer)
+    vehicle_positions: int = mapped_column(Integer)
+    service_alerts: int = mapped_column(Integer)
+    authentication_type: str = mapped_column(String)
 
     def as_dataframe(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\

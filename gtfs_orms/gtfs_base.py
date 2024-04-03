@@ -22,6 +22,7 @@ class GTFSBase(orm.DeclarativeBase):
     __filename__: str
     __realtime_name__: str
     __realtime_name__: str
+    __allow_unmapped__ = True
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
     # primary_keys: list[str] = [key for key in __class__.__table__.columns if key.primary_key]
@@ -35,6 +36,7 @@ class GTFSBase(orm.DeclarativeBase):
         Returns:
             list[Column]: list of primary keys
         """
+
         return [key.name for key in cls.__table__.columns if key.primary_key]
 
     def __repr__(self) -> str:
@@ -106,12 +108,12 @@ class GTFSBase(orm.DeclarativeBase):
         Override this method to change the dict representation.
         
         Args:
-            *args: unused, but can be used in overriden methods to \
+            - `*args`: unused, but can be used in overriden methods to \
                 pass in additional arguments
-            **kwargs: unused, but can be used in overriden methods to \
-                pass in additional arguments
+            - `**kwargs`: unused, but can be used in overriden methods to \
+                pass in additional arguments \n
         Returns:
-            dict[str, Any]: dict representation of the object
+            - `dict[str, Any]`: dict representation of the object
         """
 
         new_dict = self.__dict__.copy()

@@ -2,6 +2,8 @@
 
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
+
+from typing import TYPE_CHECKING
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Integer, String
@@ -11,6 +13,10 @@ from helper_functions import *
 
 from .gtfs_base import GTFSBase
 
+if TYPE_CHECKING:
+    from .stop import Stop
+    from .trip import Trip
+
 
 class StopTime(GTFSBase):
     """Stop Times"""
@@ -18,27 +24,27 @@ class StopTime(GTFSBase):
     __tablename__ = "stop_times"
     __filename__ = "stop_times.txt"
 
-    trip_id = mapped_column(
+    trip_id: str = mapped_column(
         String,
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    arrival_time = mapped_column(String)
-    departure_time = mapped_column(String)
-    stop_id = mapped_column(
+    arrival_time: str = mapped_column(String)
+    departure_time: str = mapped_column(String)
+    stop_id: str = mapped_column(
         String, ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    stop_sequence = mapped_column(Integer, primary_key=True)
-    stop_headsign = mapped_column(String)
-    pickup_type = mapped_column(String)
-    drop_off_type = mapped_column(String)
-    timepoint = mapped_column(String)
-    checkpoint_id = mapped_column(String)
-    continuous_pickup = mapped_column(String)
-    continuous_drop_off = mapped_column(String)
+    stop_sequence: int = mapped_column(Integer, primary_key=True)
+    stop_headsign: str = mapped_column(String)
+    pickup_type: str = mapped_column(String)
+    drop_off_type: str = mapped_column(String)
+    timepoint: str = mapped_column(String)
+    checkpoint_id: str = mapped_column(String)
+    continuous_pickup: str = mapped_column(String)
+    continuous_drop_off: str = mapped_column(String)
 
-    stop = relationship("Stop", back_populates="stop_times")
-    trip = relationship("Trip", back_populates="stop_times")
+    stop: "Stop" = relationship("Stop", back_populates="stop_times")
+    trip: "Trip" = relationship("Trip", back_populates="stop_times")
 
     @reconstructor
     def _init_on_load_(self):

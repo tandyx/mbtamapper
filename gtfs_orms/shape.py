@@ -1,5 +1,7 @@
 """File to hold the Shape class and its associated methods."""
 
+from typing import TYPE_CHECKING
+
 from geojson import Feature
 from shapely.geometry import LineString
 from sqlalchemy import String
@@ -7,16 +9,22 @@ from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
+if TYPE_CHECKING:
+    from .shape_point import ShapePoint
+    from .trip import Trip
+
 
 class Shape(GTFSBase):
     """Shape"""
 
     __tablename__ = "shapes"
 
-    shape_id = mapped_column(String, primary_key=True, index=False)
+    shape_id: str = mapped_column(String, primary_key=True, index=False)
 
-    trips = relationship("Trip", back_populates="shape", passive_deletes=True)
-    shape_points = relationship(
+    trips: list["Trip"] = relationship(
+        "Trip", back_populates="shape", passive_deletes=True
+    )
+    shape_points: list["ShapePoint"] = relationship(
         "ShapePoint", back_populates="shape", passive_deletes=True
     )
 

@@ -1,10 +1,17 @@
 """File to hold the Alert class and its associated methods."""
 
+from typing import TYPE_CHECKING
+
 from dateutil.parser import isoparse
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
+
+if TYPE_CHECKING:
+    from .route import Route
+    from .stop import Stop
+    from .trip import Trip
 
 
 class Alert(GTFSBase):
@@ -13,48 +20,42 @@ class Alert(GTFSBase):
     __tablename__ = "alerts"
     __realtime_name__ = "service_alerts"
 
-    alert_id = mapped_column(String)
-    cause = mapped_column(String)
-    effect = mapped_column(String)
-    severity = mapped_column(String)
-    stop_id = mapped_column(String)
-    agency_id = mapped_column(String)
-    route_id = mapped_column(String)
-    route_type = mapped_column(String)
-    direction_id = mapped_column(String)
-    trip_id = mapped_column(String)
-    active_period_end = mapped_column(String)
-    header = mapped_column(String)
-    description = mapped_column(String)
-    url = mapped_column(String)
-    active_period_start = mapped_column(String)
-    timestamp = mapped_column(String)
-    index = mapped_column(Integer, primary_key=True)
+    alert_id: str = mapped_column(String)
+    cause: str = mapped_column(String)
+    effect: str = mapped_column(String)
+    severity: str = mapped_column(String)
+    stop_id: str = mapped_column(String)
+    agency_id: str = mapped_column(String)
+    route_id: str = mapped_column(String)
+    route_type: str = mapped_column(String)
+    direction_id: str = mapped_column(String)
+    trip_id: str = mapped_column(String)
+    active_period_end: str = mapped_column(String)
+    header: str = mapped_column(String)
+    description: str = mapped_column(String)
+    url: str = mapped_column(String)
+    active_period_start: str = mapped_column(String)
+    timestamp: str = mapped_column(String)
+    index: int = mapped_column(Integer, primary_key=True)
 
-    route = relationship(
+    route: "Route" = relationship(
         "Route",
         back_populates="alerts",
         primaryjoin="foreign(Alert.route_id)==Route.route_id",
         viewonly=True,
     )
-    trip = relationship(
+    trip: "Trip" = relationship(
         "Trip",
         back_populates="alerts",
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
     )
-    stop = relationship(
+    stop: "Stop" = relationship(
         "Stop",
         back_populates="alerts",
         primaryjoin="foreign(Alert.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-
-    DATETIME_MAPPER = {
-        "active_period_end": "end_datetime",
-        "active_period_start": "start_datetime",
-        "timestamp": "updated_at_datetime",
-    }
 
     @reconstructor
     def _init_on_load_(self):

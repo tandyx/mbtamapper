@@ -1,12 +1,18 @@
 """File to hold the Calendar class and its associated methods."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pytz
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
+
+if TYPE_CHECKING:
+    from .calendar_attribute import CalendarAttribute
+    from .calendar_date import CalendarDate
+    from .trip import Trip
 
 
 class Calendar(GTFSBase):
@@ -15,24 +21,26 @@ class Calendar(GTFSBase):
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
-    service_id = mapped_column(String, primary_key=True)
-    monday = mapped_column(Integer)
-    tuesday = mapped_column(Integer)
-    wednesday = mapped_column(Integer)
-    thursday = mapped_column(Integer)
-    friday = mapped_column(Integer)
-    saturday = mapped_column(Integer)
-    sunday = mapped_column(Integer)
-    start_date = mapped_column(String)
-    end_date = mapped_column(String)
+    service_id: str = mapped_column(String, primary_key=True)
+    monday: int = mapped_column(Integer)
+    tuesday: int = mapped_column(Integer)
+    wednesday: int = mapped_column(Integer)
+    thursday: int = mapped_column(Integer)
+    friday: int = mapped_column(Integer)
+    saturday: int = mapped_column(Integer)
+    sunday: int = mapped_column(Integer)
+    start_date: str = mapped_column(String)
+    end_date: str = mapped_column(String)
 
-    calendar_dates = relationship(
+    calendar_dates: list["CalendarDate"] = relationship(
         "CalendarDate", back_populates="calendar", passive_deletes=True
     )
-    calendar_attributes = relationship(
+    calendar_attributes: list["CalendarAttribute"] = relationship(
         "CalendarAttribute", back_populates="calendar", passive_deletes=True
     )
-    trips = relationship("Trip", back_populates="calendar", passive_deletes=True)
+    trips: list["Trip"] = relationship(
+        "Trip", back_populates="calendar", passive_deletes=True
+    )
 
     @reconstructor
     def _init_on_load_(self) -> None:
@@ -55,7 +63,7 @@ class Calendar(GTFSBase):
         Returns:
             bool: True if the calendar operates on the date
         """
-        exception = next(
+        exception: "CalendarDate" = next(
             (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
         )
 

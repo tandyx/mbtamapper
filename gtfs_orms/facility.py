@@ -1,11 +1,17 @@
 """File to hold the Facility class and its associated methods."""
 
+from typing import TYPE_CHECKING
+
 from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import Float, ForeignKey, String
 from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
+
+if TYPE_CHECKING:
+    from .facility_property import FacilityProperty
+    from .stop import Stop
 
 # pylint: disable=line-too-long
 
@@ -16,32 +22,32 @@ class Facility(GTFSBase):
     __tablename__ = "facilities"
     __filename__ = "facilities.txt"
 
-    facility_id = mapped_column(String, primary_key=True)
-    facility_code = mapped_column(String)
-    facility_class = mapped_column(String)
-    facility_type = mapped_column(String)
-    stop_id = mapped_column(
+    facility_id: str = mapped_column(String, primary_key=True)
+    facility_code: str = mapped_column(String)
+    facility_class: str = mapped_column(String)
+    facility_type: str = mapped_column(String)
+    stop_id: str = mapped_column(
         String,
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
-    facility_short_name = mapped_column(String)
-    facility_long_name = mapped_column(String)
-    facility_desc = mapped_column(String)
-    facility_lat = mapped_column(Float)
-    facility_lon = mapped_column(Float)
-    wheelchair_facility = mapped_column(String)
+    facility_short_name: str = mapped_column(String)
+    facility_long_name: str = mapped_column(String)
+    facility_desc: str = mapped_column(String)
+    facility_lat: float = mapped_column(Float)
+    facility_lon: float = mapped_column(Float)
+    wheelchair_facility: str = mapped_column(String)
 
-    facility_properties = relationship(
+    facility_properties: list["FacilityProperty"] = relationship(
         "FacilityProperty", back_populates="facility", passive_deletes=True
     )
 
-    stop = relationship("Stop", back_populates="facilities")
+    stop: "Stop" = relationship("Stop", back_populates="facilities")
 
     def as_point(self) -> Point:
         """Returns a shapely Point object of the facility
 
         Returns:
-            Point: shapely Point object of the facility
+            - `Point`: shapely Point object of the facility
         """
         return Point(self.facility_lon, self.facility_lat)
 
@@ -49,7 +55,7 @@ class Facility(GTFSBase):
         """Returns facility object as a feature.
 
         Returns:
-            Feature: facility as a feature.
+            - `Feature`: facility as a feature.\n
         """
 
         point = self.as_point()
@@ -69,9 +75,9 @@ class Facility(GTFSBase):
         """Returns facility object as a html string.
 
         Args:
-            parking (bool, optional): Whether to return parking facilities. Defaults to True.
+            - `parking (bool, optional)`: Whether to return parking facilities. Defaults to True. \n
         Returns:
-            str: facility as a html string.
+            - `str`: facility as a html string.
         """
 
         return (

@@ -1,5 +1,7 @@
 """File to hold the Route class and its associated methods."""
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
@@ -9,6 +11,14 @@ from .gtfs_base import GTFSBase
 
 # pylint: disable=line-too-long
 
+if TYPE_CHECKING:
+    from .agency import Agency
+    from .alert import Alert
+    from .multi_route_trip import MultiRouteTrip
+    from .prediction import Prediction
+    from .trip import Trip
+    from .vehicle import Vehicle
+
 
 class Route(GTFSBase):
     """Route"""
@@ -16,29 +26,31 @@ class Route(GTFSBase):
     __tablename__ = "routes"
     __filename__ = "routes.txt"
 
-    route_id = mapped_column(String, primary_key=True)
-    agency_id = mapped_column(
+    route_id: str = mapped_column(String, primary_key=True)
+    agency_id: str = mapped_column(
         String, ForeignKey("agencies.agency_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    route_short_name = mapped_column(String)
-    route_long_name = mapped_column(String)
-    route_desc = mapped_column(String)
-    route_type = mapped_column(String)
-    route_url = mapped_column(String)
-    route_color = mapped_column(String)
-    route_text_color = mapped_column(String)
-    route_sort_order = mapped_column(Integer)
-    route_fare_class = mapped_column(String)
-    line_id = mapped_column(String)
-    listed_route = mapped_column(String)
-    network_id = mapped_column(String)
+    route_short_name: str = mapped_column(String)
+    route_long_name: str = mapped_column(String)
+    route_desc: str = mapped_column(String)
+    route_type: str = mapped_column(String)
+    route_url: str = mapped_column(String)
+    route_color: str = mapped_column(String)
+    route_text_color: str = mapped_column(String)
+    route_sort_order: int = mapped_column(Integer)
+    route_fare_class: str = mapped_column(String)
+    line_id: str = mapped_column(String)
+    listed_route: str = mapped_column(String)
+    network_id: str = mapped_column(String)
 
-    agency = relationship("Agency", back_populates="routes")
-    multi_route_trips = relationship(
+    agency: "Agency" = relationship("Agency", back_populates="routes")
+    multi_route_trips: list["MultiRouteTrip"] = relationship(
         "MultiRouteTrip", back_populates="route", passive_deletes=True
     )
-    trips = relationship("Trip", back_populates="route", passive_deletes=True)
-    all_trips = relationship(
+    trips: list["Trip"] = relationship(
+        "Trip", back_populates="route", passive_deletes=True
+    )
+    all_trips: list["Trip"] = relationship(
         "Trip",
         primaryjoin="""or_(
             foreign(Trip.route_id)==Route.route_id, 
@@ -47,19 +59,19 @@ class Route(GTFSBase):
             )""",
         viewonly=True,
     )
-    predictions = relationship(
+    predictions: list["Prediction"] = relationship(
         "Prediction",
         back_populates="route",
         primaryjoin="foreign(Prediction.route_id)==Route.route_id",
         viewonly=True,
     )
-    vehicles = relationship(
+    vehicles: list["Vehicle"] = relationship(
         "Vehicle",
         back_populates="route",
         primaryjoin="foreign(Vehicle.route_id)==Route.route_id",
         viewonly=True,
     )
-    alerts = relationship(
+    alerts: list["Alert"] = relationship(
         "Alert",
         back_populates="route",
         primaryjoin="foreign(Alert.route_id)==Route.route_id",

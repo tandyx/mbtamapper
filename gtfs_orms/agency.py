@@ -1,9 +1,14 @@
 """File to hold the Agency class and its associated methods."""
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String
 from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
+
+if TYPE_CHECKING:
+    from .route import Route
 
 
 class Agency(GTFSBase):
@@ -12,14 +17,16 @@ class Agency(GTFSBase):
     __tablename__ = "agencies"
     __filename__ = "agency.txt"
 
-    agency_id = mapped_column(String, primary_key=True)
-    agency_name = mapped_column(String)
-    agency_url = mapped_column(String)
-    agency_timezone = mapped_column(String)
-    agency_lang = mapped_column(String)
-    agency_phone = mapped_column(String)
+    agency_id: str = mapped_column(String, primary_key=True)
+    agency_name: str = mapped_column(String)
+    agency_url: str = mapped_column(String)
+    agency_timezone: str = mapped_column(String)
+    agency_lang: str = mapped_column(String)
+    agency_phone: str = mapped_column(String)
 
-    routes = relationship("Route", back_populates="agency", passive_deletes=True)
+    routes: list["Route"] = relationship(
+        "Route", back_populates="agency", passive_deletes=True
+    )
 
     def as_html(self) -> str:
         """Return the agency as HTML
