@@ -22,22 +22,23 @@ KEY_DICT: dict[str, tuple[str]] = {
 }
 FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
 
-ARGPARSE = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")
-
 
 def create_app(key: str, proxies: int = 5) -> Flask:
     """Create app for a given key
 
     Args:
-        key (str): Key for the app. Defaults to None.
-        proxies (int, optional): Number of proxies to allow on connection, default 10.
+        `key (str)`: Key for the app. Defaults to None.
+        `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
-        Flask: app for the key."""
+        `Flask`: app for the key."""
     _app = Flask(__name__)
 
     @_app.route("/")
     def render_map() -> str:
-        """Returns map.html."""
+        """Returns map.html.
+
+        returns:
+            - `str`: map.html"""
         return render_template("map.html")
 
     @_app.route("/vehicles")
@@ -46,7 +47,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
             flask, exported to /vehicles as an api.
             
         Returns:
-            str: geojson of vehicles.
+            - `str`: geojson of vehicles.
         """
         return jsonify(FEED_LOADER.get_vehicles_feature(key, *KEY_DICT[key]))
 
@@ -55,7 +56,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         """Tears down database session.
 
         Args:
-            exception (Exception, optional): Exception to log. Defaults to None.
+            - `exception (Exception, optional)`: Exception to log. Defaults to None.
         """
         FEED_LOADER.scoped_session.remove()
         if exception:
@@ -76,9 +77,9 @@ def create_default_app(proxies: int = 5) -> Flask:
     """Creates the default Flask object
 
     Args:
-        proxies (int, optional): Number of proxies to allow on connection, default 10.
+        - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
-        Flask: default app.
+        - `Flask`: default app.
     """
 
     _app = Flask(__name__)
@@ -108,7 +109,7 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     """Feed loader.
 
     Args:
-        import_data (bool, optional): Whether to import data. Defaults to False.
+        - `import_data (bool, optional)`: Whether to import data. Defaults to False.
     """
 
     if import_data or not os.path.exists(FEED_LOADER.db_path):
@@ -118,34 +119,72 @@ def feed_loader(import_data: bool = False) -> NoReturn:
     FEED_LOADER.run()
 
 
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.INFO)
+def get_args(**kwargs) -> argparse.ArgumentParser:
+    """Add arguments to the parser.
 
-    ARGPARSE.add_argument(
+    args:
+        - `**kwargs`: key value pairs of arguments to add to the parser.
+            The key is the argument name and the value
+            is a dictionary of arguments to pass to `add_argument`.\n
+    returns:
+        - `argparse.ArgumentParser`: parser with added arguments.
+    """
+
+    _argparse = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")
+
+    _argparse.add_argument(
         "--import_data",
         "-i",
         action="store_true",
         help="only has effect if --load is set. Import data from GTFS feed.",
     )
 
-    ARGPARSE.add_argument(
+    _argparse.add_argument(
         "--frontend",
         "-f",
         action="store_true",
         help="Run flask ONLY - overrides --import_data.",
     )
-    args = ARGPARSE.parse_args()
+
+    _argparse.add_argument(
+        "--port",
+        "-p",
+        type=int,
+        default=80,
+        help="Port to run the server on.",
+    )
+
+    _argparse.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host to run the server on.",
+    )
+
+    _argparse.add_argument(
+        "--proxies",
+        "-x",
+        type=int,
+        default=5,
+        help="Number of proxies to allow on connection.",
+    )
+
+    _argparse.add_argument(
+        "--log_level",
+        "-l",
+        default="INFO",
+        help="Logging level \\ (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
+    )
+
+    for key, value in kwargs.items():
+        _argparse.add_argument(key, **value)
+
+    return _argparse
+
+
+if __name__ == "__main__":
+    args = get_args().parse_args()
+    logging.getLogger().setLevel(getattr(logging, args.log_level))
     if args.frontend:
-        app = create_default_app()
-        app.run(debug=True, port=80, host="0.0.0.0")
+        app = create_default_app(args.proxies)
+        app.run(debug=True, port=args.port, host=args.host)
     feed_loader(import_data=args.import_data)
-    # app = create_default_app()
-    # app.run(debug=True)
-
-    # FEED_LOADER.session.execute(
-    #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
-    # ).all()
-    # app = create_default_app()
-    # app.run(debug=True)
-
-    # x = LinkedDataset(url="https://cdn.mbta.com/realtime/Alerts.pb")
