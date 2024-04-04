@@ -13,7 +13,7 @@ from google.transit.gtfs_realtime_pb2 import FeedMessage
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import mapped_column
 
-from helper_functions import *
+from helper_functions import df_unpack
 
 from .gtfs_base import GTFSBase
 
@@ -150,7 +150,9 @@ class LinkedDataset(GTFSBase):
             "trip_update_stop_time_update_departure",
             "trip_update_stop_time_update_arrival",
         ):
-            dataframe[col] = timestamp_col_to_iso(dataframe, col)
+            dataframe[col] = dataframe[col].apply(
+                lambda x: (int(x.get("time")) if isinstance(x, dict) else x)
+            )
 
         dataframe["trip_update_stop_time_update_stop_sequence"] = (
             dataframe["trip_update_stop_time_update_stop_sequence"]
@@ -174,10 +176,6 @@ class LinkedDataset(GTFSBase):
                 else True
             )
         ]
-        dataframe["vehicle_timestamp"] = timestamp_col_to_iso(
-            dataframe, "vehicle_timestamp"
-        )
-
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
     def _process_service_alerts(self) -> pd.DataFrame:
@@ -203,9 +201,5 @@ class LinkedDataset(GTFSBase):
             if "alert_informed_entity_trip" in dataframe.columns
             else None
         )
-        dataframe["timestamp"] = get_current_time().isoformat()
-
-        for col in ("alert_active_period_start", "alert_active_period_end"):
-            dataframe[col] = timestamp_col_to_iso(dataframe, col)
-
+        dataframe["timestamp"] = time.time()
         return self._post_process(dataframe, ALERT_RENAME_DICT)

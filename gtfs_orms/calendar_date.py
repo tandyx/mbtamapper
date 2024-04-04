@@ -1,6 +1,6 @@
 """File to hold the CalendarDate class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import mapped_column, relationship
@@ -23,7 +23,7 @@ class CalendarDate(GTFSBase):  # pylint: disable=too-few-public-methods
         primary_key=True,
     )
     date: str = mapped_column(String, primary_key=True)
-    exception_type: str = mapped_column(String)
-    holiday_name: str = mapped_column(String)
+    exception_type: Optional[str] = mapped_column(String)
+    holiday_name: Optional[str] = mapped_column(String)
 
     calendar: "Calendar" = relationship("Calendar", back_populates="calendar_dates")

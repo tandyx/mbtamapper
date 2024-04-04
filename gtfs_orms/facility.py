@@ -1,6 +1,6 @@
 """File to hold the Facility class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -23,19 +23,19 @@ class Facility(GTFSBase):
     __filename__ = "facilities.txt"
 
     facility_id: str = mapped_column(String, primary_key=True)
-    facility_code: str = mapped_column(String)
-    facility_class: str = mapped_column(String)
-    facility_type: str = mapped_column(String)
-    stop_id: str = mapped_column(
+    facility_code: Optional[str] = mapped_column(String)
+    facility_class: Optional[str] = mapped_column(String)
+    facility_type: Optional[str] = mapped_column(String)
+    stop_id: Optional[str] = mapped_column(
         String,
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
-    facility_short_name: str = mapped_column(String)
-    facility_long_name: str = mapped_column(String)
-    facility_desc: str = mapped_column(String)
-    facility_lat: float = mapped_column(Float)
-    facility_lon: float = mapped_column(Float)
-    wheelchair_facility: str = mapped_column(String)
+    facility_short_name: Optional[str] = mapped_column(String)
+    facility_long_name: Optional[str] = mapped_column(String)
+    facility_desc: Optional[str] = mapped_column(String)
+    facility_lat: Optional[float] = mapped_column(Float)
+    facility_lon: Optional[float] = mapped_column(Float)
+    wheelchair_facility: Optional[str] = mapped_column(String)
 
     facility_properties: list["FacilityProperty"] = relationship(
         "FacilityProperty", back_populates="facility", passive_deletes=True
@@ -62,130 +62,4 @@ class Facility(GTFSBase):
         if point == self.stop.as_point():
             point = Point(self.facility_lon + 0.001, self.facility_lat + 0.001)
 
-        return Feature(
-            id=self.facility_id,
-            geometry=point,
-            properties={
-                "popupContent": self.as_html_popup(),
-                "name": self.facility_long_name or self.facility_short_name,
-            },
-        )
-
-    def as_html_row(self, parking: bool = True) -> str:
-        """Returns facility object as a html string.
-
-        Args:
-            - `parking (bool, optional)`: Whether to return parking facilities. Defaults to True. \n
-        Returns:
-            - `str`: facility as a html string.
-        """
-
-        return (
-            "<tr>"
-            f"<td>{self.facility_long_name}</td>"
-            f"<td>{self.return_formatted_capacity()}</td>"
-            f"{('<td>' + self.return_property('fee-daily', 'Unknown') + '</td>') if parking else ''}"
-            f"{('<td>' + self.return_formatted_payment_app('') + '</td>') if parking else ''}"
-            "</tr>"
-        )
-
-    def as_html_popup(self) -> str:
-        """Returns facility object as a html string.
-
-        Returns:
-            str: facility as a html string.
-        """
-        contact_url = self.return_property("contact-url")
-        owner = self.return_property("owner", "Unknown")
-        daily_rate = self.return_property("fee-daily")
-        monthly_rate = self.return_property("fee-monthly")
-        payment_app_html = self.return_formatted_payment_app()
-        header_html = (
-            f"<a href = '{contact_url}' target='_blank' rel='noopener' class = 'facility_header popup_header'>{self.facility_long_name}</a></br>"
-            if contact_url
-            else f"<a class = 'facility_header'>{self.facility_long_name}</a></br>"
-        )
-
-        daily_rate_html = f"Daily Rate: {daily_rate}</br>" if daily_rate else ""
-        monthly_rate_html = f"Monthly Rate: {monthly_rate}</br>" if monthly_rate else ""
-
-        contact_html = (
-            f"Contact: <a href = '{contact_url}' target='_blank' class = 'facility_contact'>{self.return_property('contact', 'Unknown')}</a><span class='popup_footer'> ({self.return_property('contact-phone')})</span></br>"
-            if contact_url
-            else ""
-        )
-        acessible_spots = int(self.return_property("capacity-accessible", 0))
-        wheelchair = (
-            """<div class = "tooltip-mini_image" onmouseover="hoverImage('whImg')" onmouseleave="unhoverImage('whImg')">"""
-            """<img src="static/img/wheelchair.png" alt="accessible" class="mini_image" id="whImg">"""
-            f"""<span class="tooltiptext-mini_image">Accessible spots: {acessible_spots}</span></div></br>"""
-            if acessible_spots
-            else ""
-        )
-
-        return (
-            f"{header_html}"
-            f"<body>"
-            f"{owner if owner not in ('City/Town', 'Unknown', 'Private') else self.return_property('operator', owner)}</br>"
-            f"—————————————————————————————————</br>"
-            f"{wheelchair}"
-            f"Capacity: {self.return_property('capacity', 'Unknown')} </br>"
-            f"{('Payment App: ' + payment_app_html) if payment_app_html else ''}"
-            f"{daily_rate_html}"
-            f"{monthly_rate_html}"
-            f"<span class='popup_footer'>"
-            f"{contact_html}"
-            f"Overnight Parking: {self.return_property('overnight-allowed', 'Unknown')}</br>"
-            "</span></body>"
-        )
-
-    def return_property(self, property_id: str, default: str = "") -> str:
-        """Returns facility object as a html string.
-
-        Args:
-            property_id (str): The property_id to return.
-            default (str, optional): The default value to return if the property_id is not found. Defaults to "".
-        Returns:
-            str: The value of the property_id.
-        """
-        return next(
-            (
-                fp.value
-                for fp in self.facility_properties
-                if fp.property_id == property_id
-            ),
-            default,
-        )
-
-    def return_formatted_payment_app(self, default: str = "") -> str:
-        """Returns the payment app of the facility as a formatted string.
-
-        Args:
-            default (str, optional): The default value to return if the payment app is not found. Defaults to "".
-        Returns:
-            str: The payment app of the facility as a formatted string.
-        """
-        payment_app_url = self.return_property("payment-app-url")
-        payment_app_id = self.return_property("payment-app-id")
-        return (
-            f"<a href = {payment_app_url} target='_blank' class='facility_accent';'>{self.return_property('payment-app', 'Unknown') }</a>{(f' - {payment_app_id}') if payment_app_id else ''}</br>"
-            if payment_app_url
-            else default
-        )
-
-    def return_formatted_capacity(self, default: str = "") -> str:
-        """Returns the capacity of the facility as a formatted string.
-
-        Args:
-            default (str, optional): The default value to return if the capacity is not found. Defaults to "".
-        Returns:
-            str: The capacity of the facility as a formatted string.
-        """
-        accessible_spots = self.return_property("capacity-accessible")
-        accessible_spots = (
-            f"<span class='facility_accent'>({accessible_spots})</span>"
-            if accessible_spots != ""
-            else default
-        )
-
-        return self.return_property("capacity", "Unknown") + " " + accessible_spots
+        return Feature(id=self.facility_id, geometry=point, properties=self.as_json())

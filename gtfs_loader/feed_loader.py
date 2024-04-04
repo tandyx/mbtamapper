@@ -49,9 +49,7 @@ class FeedLoader(Scheduler, Feed):
     def geojson_exports(self) -> None:
         """Exports geojsons."""
         for key, routes in self.keys_dict.items():
-            self.export_geojsons(
-                key, routes, __class__.GEOJSON_PATH, get_current_time()
-            )
+            self.export_geojsons(key, routes, __class__.GEOJSON_PATH)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
@@ -76,7 +74,7 @@ class FeedLoader(Scheduler, Feed):
         self.every(2).minutes.do(jobqueue.put, (self.import_realtime, Alert))
         self.every(12).seconds.do(jobqueue.put, (self.import_realtime, Vehicle))
         self.every().minute.do(jobqueue.put, (self.import_realtime, Prediction))
-        self.every().day.at("03:45", tz=timezone).do(jobqueue.put, self.geojson_exports)
+        # self.every().day.at("03:45", tz=timezone).do(jobqueue.put, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(jobqueue.put, self.nightly_import)
 
         worker_thread = threading.Thread(target=worker_main)

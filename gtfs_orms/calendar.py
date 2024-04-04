@@ -63,7 +63,7 @@ class Calendar(GTFSBase):
         Returns:
             bool: True if the calendar operates on the date
         """
-        exception: "CalendarDate" = next(
+        exception = next(
             (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
         )
 

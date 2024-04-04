@@ -1,10 +1,11 @@
 """Holds the base class for all GTFS elements"""
 
+import json
 from typing import Any, Self, Type
 
 from sqlalchemy import orm
 
-from helper_functions import classproperty, is_json_searializable
+from helper_functions import classproperty
 
 # pylint: disable=unused-argument
 
@@ -84,7 +85,7 @@ class GTFSBase(orm.DeclarativeBase):
 
         return all(getattr(self, key, None) is not None for key in self.primary_keys)
 
-    def as_json(self, *args, **kwargs) -> dict[str, Any]:
+    def as_json(self, *include, **kwargs) -> dict[str, Any]:
         """Returns a json searizable representation of \
             the object as opposed to Base.as_dict() which returns a dict.
             
@@ -99,17 +100,16 @@ class GTFSBase(orm.DeclarativeBase):
 
         return {
             k: v
-            for k, v in self.__dict__.items()
-            if k != "_sa_instance_state" and is_json_searializable(v)
+            for k, v in self.as_dict(*include).items()
+            if not k.startswith("_") and _is_json_searializable(v)
         }
 
-    def as_dict(self, *args, **kwargs) -> dict[str, Any]:
+    def as_dict(self, *include, **kwargs) -> dict[str, Any]:
         """Returns a dict representation of the object, front-facing.\
-        Override this method to change the dict representation.
+        Override this method to change the `dict `representation.
         
         Args:
-            - `*args`: unused, but can be used in overriden methods to \
-                pass in additional arguments
+            - `*include`: other orm attars to include within the dict
             - `**kwargs`: unused, but can be used in overriden methods to \
                 pass in additional arguments \n
         Returns:
@@ -119,4 +119,30 @@ class GTFSBase(orm.DeclarativeBase):
         new_dict = self.__dict__.copy()
         if "_sa_instance_state" in new_dict:
             del new_dict["_sa_instance_state"]
+        for attr in include:
+            if not hasattr(self, attr):
+                continue
+            attar_val = getattr(self, attr)
+            if isinstance(attar_val, GTFSBase):
+                new_dict[attr] = attar_val.as_dict(*include)
+            if isinstance(attar_val, list):
+                new_dict[attr] = [
+                    d.as_dict(*include) if isinstance(d, GTFSBase) else d
+                    for d in attar_val
+                ]
         return new_dict
+
+
+def _is_json_searializable(obj: Any) -> bool:
+    """Checks if an object is JSON serializable.
+
+    Args:
+        - `obj (Any)`: Object to check. \n
+    Returns:
+        - `bool`: Whether the object is JSON serializable.
+    """
+    try:
+        json.dumps(obj)
+        return True
+    except TypeError:
+        return False

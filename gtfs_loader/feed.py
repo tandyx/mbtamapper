@@ -11,7 +11,7 @@ import sqlite3
 import tempfile
 import time
 from datetime import datetime
-from typing import Type
+from typing import Type, cast
 from zipfile import ZipFile
 
 import pandas as pd
@@ -31,7 +31,6 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     """Loads GTFS data into a route_type specific SQLite database. \
         This class also contains methods to query the database. \
         inherits from Query class, which contains queries. \
-    \n
     This class is thread-safe.
         
 
@@ -211,37 +210,45 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @timeit
     def export_geojsons(
-        self, key: str, route_types: tuple[str], file_path: str, date: datetime = None
+        self, key: str, route_types: tuple[str], file_path: str
     ) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
-            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            route_types (list[str]): route types to export
-            file_path (str): path to export files to
-            date (datetime): date to export (default: today)
+            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            - `route_types (list[str])`: route types to export
+            - `file_path (str)`: path to export files to
         """
-        date = date or get_current_time()
         query_obj = Query(*route_types)
         file_subpath = os.path.join(file_path, key)
         for path in (file_path, file_subpath):
             if not os.path.exists(path):
                 os.mkdir(path)
-        self.export_parking_lots(key, file_subpath, query_obj)
-        self.export_shapes(key, file_subpath, query_obj)
-        self.export_stops(key, file_subpath, query_obj, date)
+        with open(
+            os.path.join(file_subpath, "park.json"), "w", encoding="utf-8"
+        ) as file:
+            dump(self.get_parking_features(key, query_obj), file)
+            logging.info("Exported %s", file.name)
+        with open(
+            os.path.join(file_subpath, "shapes.json"), "w", encoding="utf-8"
+        ) as file:
+            dump(self.get_shapes_feature(key, query_obj), file)
+            logging.info("Exported %s", file.name)
+        with open(
+            os.path.join(file_subpath, "stops.json"), "w", encoding="utf-8"
+        ) as file:
+            dump(self.get_stop_features(key, query_obj), file)
+            logging.info("Exported %s", file.name)
 
     @removes_session
-    def export_stops(
-        self, key: str, file_path: str, query_obj: Query, date: datetime
-    ) -> None:
+    def get_stop_features(self, key: str, query_obj: Query) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
-            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            file_path (str): path to export files to
-            query_obj (Query): Query object
-            date (datetime): date to export
+            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            - `query_obj (Query)`: Query object
+        returns:
+            - `FeatureCollection`: stops as FeatureCollection
         """
         session = self.scoped_session()
 
@@ -252,20 +259,16 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             stops_data += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
-
-        features = FeatureCollection([s[0].as_feature(date) for s in stops_data])
-        with open(os.path.join(file_path, "stops.json"), "w", encoding="utf-8") as file:
-            dump(features, file)
-            logging.info("Exported %s", file.name)
+        return FeatureCollection([s[0].as_feature() for s in stops_data])
 
     @removes_session
-    def export_shapes(self, key: str, file_path: str, query_obj: Query) -> None:
+    def get_shapes_feature(self, key: str, query_obj: Query) -> FeatureCollection:
         """Generates geojsons for shapes.
 
         Args:
-            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            file_path (str): path to export files to
-            query_obj (Query): Query object
+            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+        returns:
+            - `FeatureCollection`: shapes as FeatureCollection
         """
         session = self.scoped_session()
 
@@ -280,23 +283,18 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                 )
             ).all()
 
-        features = FeatureCollection(
+        return FeatureCollection(
             [s[0].as_feature() for s in sorted(shape_data, reverse=True)]
         )
-        with open(
-            os.path.join(file_path, "shapes.json"), "w", encoding="utf-8"
-        ) as file:
-            dump(features, file)
-            logging.info("Exported %s", file.name)
 
     @removes_session
-    def export_parking_lots(self, key: str, file_path: str, query_obj: Query) -> None:
+    def get_parking_features(self, key: str, query_obj: Query) -> FeatureCollection:
         """Generates geojsons for facilities.
 
         Args:
-            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            file_path (str): path to export files to
-            query_obj (Query): Query object
+            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+        returns:
+            - `FeatureCollection`: facilities as FeatureCollection
         """
 
         session = self.scoped_session()
@@ -310,10 +308,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             ).all()
         if "4" in query_obj.route_types:
             facilities += session.execute(self.ferry_parking_query).all()
-        features = FeatureCollection([f[0].as_feature() for f in facilities])
-        with open(os.path.join(file_path, "park.json"), "w", encoding="utf-8") as file:
-            dump(features, file)
-            logging.info("Exported %s", file.name)
+        return FeatureCollection([f[0].as_feature() for f in facilities])
 
     @removes_session
     def get_vehicles_feature(
@@ -383,3 +378,38 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             res = self.to_sql(data.iloc[1:], orm, **kwargs)
         logging.info("Added %s rows to %s", res, orm.__tablename__)
         return res
+
+    @removes_session
+    def get_orm_json(
+        self, _orm: type[GTFSBase], *include, geojson: bool = False, **kwargs
+    ) -> list[dict[str]] | FeatureCollection:
+        """Returns a dictionary of the ORM names and their corresponding JSON names.
+
+        args:
+            - `_orm (str)`: ORM to return.
+            - `*include`: other orms to include
+            - `geojson (bool)`: use `geojson` rather than `json`
+        Returns:
+            - `list[dict[str]`: dictionary of the ORM names and their corresponding JSON names.
+        """
+        session = self.scoped_session()
+        # pylint: disable=singleton-comparison
+
+        data = session.execute(
+            self.select(_orm).where(
+                *(
+                    (
+                        getattr(_orm, k) == v
+                        if v not in {"null", "None"}
+                        else getattr(_orm, k) == None
+                    )
+                    for k, v in kwargs.items()
+                )
+            )
+        ).all()
+        try:
+            if geojson:
+                return FeatureCollection([d[0].as_feature(*include) for d in data])
+            return [d[0].as_json(*include) for d in data]
+        except AttributeError:
+            return []

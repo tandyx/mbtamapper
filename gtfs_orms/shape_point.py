@@ -2,6 +2,7 @@
 
 from typing import TYPE_CHECKING
 
+from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
@@ -33,3 +34,18 @@ class ShapePoint(GTFSBase):
     def as_point(self) -> Point:
         """Returns a shapely Point object of the shape point"""
         return Point(self.shape_pt_lon, self.shape_pt_lat)
+
+    def as_feature(self, *include: str) -> Feature:
+        """Returns shape point object as a feature.
+
+        Args:
+            - `*include`: A list of properties to include in the feature object.\n
+        Returns:
+            - `Feature`: A GeoJSON feature object.
+        """
+
+        return Feature(
+            id=self.shape_id,
+            geometry=self.as_point(),
+            properties=self.as_json(*include),
+        )

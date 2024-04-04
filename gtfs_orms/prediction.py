@@ -1,9 +1,9 @@
 """File to hold the Prediction class and its associated methods."""
 
 # pylint: disable=line-too-long
-from datetime import datetime
 
-from dateutil.parser import isoparse
+from typing import Optional
+
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
 
@@ -16,17 +16,15 @@ class Prediction(GTFSBase):
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
 
-    prediction_id = mapped_column(String)
-    arrival_time = mapped_column(String)
-    departure_time = mapped_column(String)
-    direction_id = mapped_column(String)
-    schedule_relationship = mapped_column(String)
-    stop_sequence = mapped_column(Integer)
-    route_id = mapped_column(String)
-    stop_id = mapped_column(String)
-    trip_id = mapped_column(String)
-    vehicle_id = mapped_column(String)
-    index = mapped_column(Integer, primary_key=True)
+    prediction_id: str = mapped_column(String, primary_key=True)
+    arrival_time: Optional[str] = mapped_column(String)
+    departure_time: Optional[str] = mapped_column(String)
+    direction_id: Optional[str] = mapped_column(String)
+    stop_sequence: Optional[int] = mapped_column(Integer)
+    route_id: Optional[str] = mapped_column(String)
+    stop_id: Optional[str] = mapped_column(String)
+    trip_id: Optional[str] = mapped_column(String)
+    vehicle_id: Optional[str] = mapped_column(String)
 
     route = relationship(
         "Route",
@@ -61,91 +59,8 @@ class Prediction(GTFSBase):
         uselist=False,
     )
 
-    DATETIME_MAPPER = {
-        "arrival_time": "arrival_datetime",
-        "departure_time": "departure_datetime",
-    }
-
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
-        self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
-
-    def __predict(self) -> datetime | None:
-        return (
-            isoparse(self.arrival_time)
-            if self.arrival_time
-            else isoparse(self.departure_time) if self.departure_time else None
-        )
-
-    def status_as_html(self) -> str:
-        """Returns status as html."""
-        self.stop_sequence = self.stop_sequence or 0
-        scheduled = self.stop_time.departure_datetime if self.stop_time else None
-        delay = (
-            int((self.predicted - scheduled).total_seconds() / 60)
-            if (self.predicted and scheduled)
-            else 0
-        )
-        if delay < -1400:
-            delay += 1440
-        if delay <= 2:
-            return ""
-
-        return f"""<span style="color:{self.__color(delay)};">{f"{str(delay)} minutes late"}</span>"""
-
-    def as_html(self) -> str:
-        """Returns prediction as html."""
-
-        stop_name = (
-            self.stop.parent_stop.stop_name
-            if self.stop and self.stop.parent_stop
-            else self.stop.stop_name if self.stop else ""
-        )
-
-        flag_stop = (
-            "<div class = 'tooltip'>"
-            f"<span class='flag_stop'>{stop_name}</span>"
-            "<span class='tooltiptext'>Flag stop.</span></div>"
-            if self.stop_time and self.stop_time.is_flag_stop()
-            else ""
-        )
-
-        early_departure = (
-            "<div class = 'tooltip'>"
-            f"<span class='early_departure'>{stop_name}</span>"
-            "<span class='tooltiptext'>Early departure stop.</span></div>"
-            if self.stop_time and self.stop_time.is_early_departure()
-            else ""
-        )
-
-        return (
-            """<tr>"""
-            f"""<td>{flag_stop or early_departure or stop_name}</td>"""
-            f"""<td>{(self.stop.platform_name  if self.stop else "") or ""}</td>"""
-            f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {"—" if self.status_as_html() else ""} {self.status_as_html()}</td>"""
-            """</tr>"""
-        )
-
-    def __color(self, delay: int) -> str:
-        """Returns a color based on the delay.
-
-        Args:
-            delay (int): delay in minutes
-        Returns:
-            str: color
-        """
-
-        delay_dict = {
-            "#ffffff": delay < 5,  # white
-            "#ffff00": 5 <= delay < 10,
-            "#ff8000": 10 <= delay < 15,
-            "#ff0000": delay >= 15,
-        }
-
-        for color, condition in delay_dict.items():
-            if condition:
-                return color
-        return "#ffffff"

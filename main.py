@@ -4,13 +4,14 @@
 import argparse
 import logging
 import os
-from typing import NoReturn
+from typing import Callable, NoReturn
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from gtfs_loader import FeedLoader
+from gtfs_loader import FeedLoader, Query
+from helper_functions import timeit
 
 KEY_DICT: dict[str, tuple[str]] = {
     "SUBWAY": ("0", "1"),
@@ -42,6 +43,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         return render_template("map.html")
 
     @_app.route("/vehicles")
+    @_app.route("/api/vehicle")
     def get_vehicles() -> str:
         """Returns vehicles as geojson in the context of the route type AND \
             flask, exported to /vehicles as an api.
@@ -50,6 +52,24 @@ def create_app(key: str, proxies: int = 5) -> Flask:
             - `str`: geojson of vehicles.
         """
         return jsonify(FEED_LOADER.get_vehicles_feature(key, *KEY_DICT[key]))
+
+    @_app.route("/api/stop")
+    def get_stops() -> str:
+        """Returns stops as geojson in the context of the route type AND \
+            flask, exported to /stops as an api.
+        returns:
+            - `str`: geojson of stops.
+        """
+        return jsonify(FEED_LOADER.get_stop_features(key, Query(*KEY_DICT[key])))
+
+    @_app.route("/api/parking")
+    def get_parking() -> str:
+        """Returns parking as geojson in the context of the route type AND \
+            flask, exported to /parking as an api.
+        returns:
+            - `str`: geojson of parking.
+        """
+        return jsonify(FEED_LOADER.get_parking_features(key, Query(*KEY_DICT[key])))
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
@@ -88,6 +108,50 @@ def create_default_app(proxies: int = 5) -> Flask:
     def index():
         """Returns index.html."""
         return render_template("index.html")
+
+    @timeit
+    @_app.route("/api/<orm_name>")
+    def get_orm(orm_name: str) -> str:
+        """Returns the ORM for a given key.
+
+        Args:
+            - `orm (str)`: ORM to return.
+        Returns:
+            - `str`: ORM for the key.
+        """
+        orm_name = orm_name.lower()
+        orm = next(
+            (
+                o
+                for o in FEED_LOADER.__realtime_orms__ + FEED_LOADER.__schedule_orms__
+                if o.__name__.lower() == orm_name
+            ),
+            None,
+        )
+        if not orm:
+            return jsonify({"error": f"{orm_name} not found."}), 404
+        params = request.args.to_dict()
+        include = params.pop("include", "").split(",")
+        as_geojson = bool(params.pop("geojson", False))
+        if not params:
+            return jsonify({"error": "No filtering arguments provided."}), 400
+        data = FEED_LOADER.get_orm_json(orm, *include, geojson=as_geojson, **params)
+        if data is None:
+            return (
+                jsonify(
+                    {
+                        "error": "Potentnially unsupported argument.",
+                        f"potentnial args for {orm_name}?": [
+                            i
+                            for i in dir(orm)
+                            if not i.startswith("_")
+                            and not isinstance(getattr(orm, i), Callable)
+                        ],
+                    }
+                ),
+                404,
+            )
+        return jsonify(data)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -143,6 +207,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--frontend",
         "-f",
         action="store_true",
+        # default=True,
         help="Run flask ONLY - overrides --import_data.",
     )
 

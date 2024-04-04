@@ -78,13 +78,3 @@ class Trip(GTFSBase):
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
     )
-
-    DIRECTION_ID_MAPPER = {"0": "Outbound", "1": "Inbound"}
-
-    def as_label(self) -> str:
-        """Returns trip as label"""
-        return f"{self.trip_short_name or self.trip_id}: {self.trip_headsign}"
-
-    def return_direction(self) -> str:
-        """Returns trip as label"""
-        return self.DIRECTION_ID_MAPPER.get(str(self.direction_id), "Unknown")

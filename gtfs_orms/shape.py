@@ -42,13 +42,13 @@ class Shape(GTFSBase):
 
         return LineString([sp.as_point() for sp in self.sorted_points])
 
-    def as_feature(self) -> Feature:
+    def as_feature(self, *args) -> Feature:  # pylint: disable=unused-argument
         """Returns shape object as a feature."""
 
         feature = Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_html_dict(),
+            properties=self.trips[0].route.as_json(),
         )
 
         return feature

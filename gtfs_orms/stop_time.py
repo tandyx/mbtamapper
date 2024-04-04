@@ -3,8 +3,8 @@
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 
-from typing import TYPE_CHECKING
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
@@ -54,7 +54,6 @@ class StopTime(GTFSBase):
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
         self.departure_seconds = to_seconds(self.departure_time)
         self.arrival_seconds = to_seconds(self.arrival_time)
-        self.departure_datetime = lazy_convert(self.departure_time)
         self.unix_departure_time = self.departure_seconds + get_date().timestamp()
         self.unix_arrival_time = self.arrival_seconds + get_date().timestamp()
 
@@ -83,34 +82,4 @@ class StopTime(GTFSBase):
         """Returns true if this StopTime is the last stop in the trip"""
         return self.stop_sequence == max(
             st.stop_sequence for st in self.trip.stop_times
-        )
-
-    def as_html(self) -> str:
-        """Returns a StopTime obj as an html row"""
-
-        trip_name = self.trip.trip_short_name or self.trip_id
-
-        flag_stop = (
-            "<div class = 'tooltip'>"
-            f"<span class='flag_stop'>{trip_name}</span>"
-            "<span class='tooltiptext'>Flag stop.</span></div>"
-            if self.is_flag_stop()
-            else ""
-        )
-
-        early_departure = (
-            "<div class = 'tooltip'>"
-            f"<span class='early_departure'>{trip_name}</span>"
-            "<span class='tooltiptext'>Early departure stop.</span></div>"
-            if self.is_early_departure()
-            else ""
-        )
-
-        return (
-            f"""<tr> <td style='color:#{self.trip.route.route_color};'>"""
-            f"""{shorten(self.trip.route.route_short_name or self.trip.route.route_long_name)}</td>"""  # pylint: disable=line-too-long
-            f"""<td>{flag_stop or early_departure or trip_name}</td>"""
-            f"""<td>{self.destination_label}</td>"""
-            f"""<td>{format_time(self.departure_time)}</td>"""
-            f"""<td>{self.stop.platform_name or ""}</td></tr>"""
         )

@@ -7,7 +7,6 @@ from sqlalchemy.orm import mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
-
 if TYPE_CHECKING:
     from .route import Route
     from .trip import Trip

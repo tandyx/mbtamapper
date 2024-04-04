@@ -15,18 +15,3 @@ def shorten(string: str, length: int = 20, suffix: str = "...") -> str:
         - `str`: Shortened string.
     """
     return (string[:length] + suffix) if len(string) > length else string
-
-
-def is_json_searializable(obj: Any) -> bool:
-    """Checks if an object is JSON serializable.
-
-    Args:
-        - `obj (Any)`: Object to check. \n
-    Returns:
-        - `bool`: Whether the object is JSON serializable.
-    """
-    try:
-        json.dumps(obj)
-        return True
-    except TypeError:
-        return False
