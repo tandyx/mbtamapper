@@ -28,5 +28,6 @@ class MultiRouteTrip(GTFSBase):  # pylint: disable=too-few-public-methods
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
+
     trip: "Trip" = relationship("Trip", back_populates="multi_route_trips")
     route: "Route" = relationship("Route", back_populates="multi_route_trips")

@@ -18,12 +18,13 @@ class FacilityProperty(GTFSBase):  # pylint: disable=too-few-public-methods
     __filename__ = "facilities_properties.txt"
 
     facility_id: str = mapped_column(
+        "facility_id",
         String,
         ForeignKey("facilities.facility_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    property_id: str = mapped_column(String, primary_key=True)
-    value: str = mapped_column(String, primary_key=True)
+    property_id: str = mapped_column("property_id", String, primary_key=True)
+    value: str = mapped_column("value", String, primary_key=True)
 
     facility: "Facility" = relationship(
         "Facility", back_populates="facility_properties"

@@ -25,27 +25,27 @@ class Stop(GTFSBase):
     __tablename__ = "stops"
     __filename__ = "stops.txt"
 
-    stop_id: str = mapped_column(String, primary_key=True)
-    stop_code: str = mapped_column(String)
-    stop_name: str = mapped_column(String)
-    stop_desc: str = mapped_column(String)
-    platform_code: str = mapped_column(String)
-    platform_name: str = mapped_column(String)
-    stop_lat: float = mapped_column(Float)
-    stop_lon: float = mapped_column(Float)
-    zone_id: str = mapped_column(String)
-    stop_address: str = mapped_column(String)
-    stop_url: str = mapped_column(String)
-    level_id: str = mapped_column(String)
-    location_type: str = mapped_column(String)
-    parent_station: str = mapped_column(
+    stop_id: Optional[str] = mapped_column(String, primary_key=True)
+    stop_code: Optional[str] = mapped_column(String)
+    stop_name: Optional[str] = mapped_column(String)
+    stop_desc: Optional[str] = mapped_column(String)
+    platform_code: Optional[str] = mapped_column(String)
+    platform_name: Optional[str] = mapped_column(String)
+    stop_lat: Optional[float] = mapped_column(Float)
+    stop_lon: Optional[float] = mapped_column(Float)
+    zone_id: Optional[str] = mapped_column(String)
+    stop_address: Optional[str] = mapped_column(String)
+    stop_url: Optional[str] = mapped_column(String)
+    level_id: Optional[str] = mapped_column(String)
+    location_type: Optional[str] = mapped_column(String)
+    parent_station: Optional[str] = mapped_column(
         String, ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_boarding: str = mapped_column(String)
-    municipality: str = mapped_column(String)
-    on_street: str = mapped_column(String)
-    at_street: str = mapped_column(String)
-    vehicle_type: str = mapped_column(String)
+    wheelchair_boarding: Optional[str] = mapped_column(String)
+    municipality: Optional[str] = mapped_column(String)
+    on_street: Optional[str] = mapped_column(String)
+    at_street: Optional[str] = mapped_column(String)
+    vehicle_type: Optional[str] = mapped_column(String)
 
     stop_times: list["StopTime"] = relationship(
         "StopTime", back_populates="stop", passive_deletes=True

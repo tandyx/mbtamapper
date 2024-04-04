@@ -1,6 +1,6 @@
 """File to hold the Trip class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
@@ -24,25 +24,25 @@ class Trip(GTFSBase):
     __tablename__ = "trips"
     __filename__ = "trips.txt"
 
-    route_id: str = mapped_column(
+    route_id: Optional[str] = mapped_column(
         String, ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    service_id: str = mapped_column(
+    service_id: Optional[str] = mapped_column(
         String,
         ForeignKey("calendars.service_id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     trip_id: str = mapped_column(String, primary_key=True)
-    trip_headsign: str = mapped_column(String)
-    trip_short_name: str = mapped_column(String)
-    direction_id: int = mapped_column(Integer)
-    block_id: str = mapped_column(String)
-    shape_id: str = mapped_column(
+    trip_headsign: Optional[str] = mapped_column(String)
+    trip_short_name: Optional[str] = mapped_column(String)
+    direction_id: Optional[int] = mapped_column(Integer)
+    block_id: Optional[str] = mapped_column(String)
+    shape_id: Optional[str] = mapped_column(
         String, ForeignKey("shapes.shape_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_accessible: str = mapped_column(String)
-    trip_route_type: str = mapped_column(String)
-    route_pattern_id: str = mapped_column(String)
-    bikes_allowed: int = mapped_column(Integer)
+    wheelchair_accessible: Optional[str] = mapped_column(String)
+    trip_route_type: Optional[str] = mapped_column(String)
+    route_pattern_id: Optional[str] = mapped_column(String)
+    bikes_allowed: Optional[int] = mapped_column(Integer)
 
     calendar: "Calendar" = relationship("Calendar", back_populates="trips")
     multi_route_trips: list["MultiRouteTrip"] = relationship(

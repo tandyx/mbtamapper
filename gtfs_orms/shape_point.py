@@ -1,6 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -24,10 +24,10 @@ class ShapePoint(GTFSBase):
         ForeignKey("shapes.shape_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    shape_pt_lat: float = mapped_column(Float)
-    shape_pt_lon: float = mapped_column(Float)
-    shape_pt_sequence: int = mapped_column(Integer, primary_key=True)
-    shape_dist_traveled: float = mapped_column(Float)
+    shape_pt_lat: Optional[float] = mapped_column(Float)
+    shape_pt_lon: Optional[float] = mapped_column(Float)
+    shape_pt_sequence: Optional[int] = mapped_column(Integer, primary_key=True)
+    shape_dist_traveled: Optional[float] = mapped_column(Float)
 
     shape: "Shape" = relationship("Shape", back_populates="shape_points")
 

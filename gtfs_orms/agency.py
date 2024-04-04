@@ -17,12 +17,12 @@ class Agency(GTFSBase):
     __tablename__ = "agencies"
     __filename__ = "agency.txt"
 
-    agency_id: str = mapped_column(String, primary_key=True)
-    agency_name: Optional[str] = mapped_column(String)
-    agency_url: Optional[str] = mapped_column(String)
-    agency_timezone: Optional[str] = mapped_column(String)
-    agency_lang: Optional[str] = mapped_column(String)
-    agency_phone: Optional[str] = mapped_column(String)
+    agency_id: str = mapped_column("agency_id", String, primary_key=True)
+    agency_name: Optional[str] = mapped_column("agency_name", String)
+    agency_url: Optional[str] = mapped_column("agency_url", String)
+    agency_timezone: Optional[str] = mapped_column("agency_timezone", String)
+    agency_lang: Optional[str] = mapped_column("agency_lang", String)
+    agency_phone: Optional[str] = mapped_column("agency_phone", String)
 
     routes: list["Route"] = relationship(
         "Route", back_populates="agency", passive_deletes=True

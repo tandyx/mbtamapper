@@ -21,16 +21,16 @@ class Calendar(GTFSBase):
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
-    service_id: str = mapped_column(String, primary_key=True)
-    monday: int = mapped_column(Integer)
-    tuesday: int = mapped_column(Integer)
-    wednesday: int = mapped_column(Integer)
-    thursday: int = mapped_column(Integer)
-    friday: int = mapped_column(Integer)
-    saturday: int = mapped_column(Integer)
-    sunday: int = mapped_column(Integer)
-    start_date: str = mapped_column(String)
-    end_date: str = mapped_column(String)
+    service_id: str = mapped_column("service_id", String, primary_key=True)
+    monday: int = mapped_column("monday", Integer)
+    tuesday: int = mapped_column("tuesday", Integer)
+    wednesday: int = mapped_column("wednesday", Integer)
+    thursday: int = mapped_column("thursday", Integer)
+    friday: int = mapped_column("friday", Integer)
+    saturday: int = mapped_column("saturday", Integer)
+    sunday: int = mapped_column("sunday", Integer)
+    start_date: str = mapped_column("start_date", String)
+    end_date: str = mapped_column("end_date", String)
 
     calendar_dates: list["CalendarDate"] = relationship(
         "CalendarDate", back_populates="calendar", passive_deletes=True

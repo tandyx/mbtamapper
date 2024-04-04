@@ -4,7 +4,7 @@
 # pylint: disable=unused-wildcard-import
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
@@ -29,19 +29,19 @@ class StopTime(GTFSBase):
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    arrival_time: str = mapped_column(String)
-    departure_time: str = mapped_column(String)
-    stop_id: str = mapped_column(
+    arrival_time: Optional[str] = mapped_column(String)
+    departure_time: Optional[str] = mapped_column(String)
+    stop_id: Optional[str] = mapped_column(
         String, ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    stop_sequence: int = mapped_column(Integer, primary_key=True)
-    stop_headsign: str = mapped_column(String)
-    pickup_type: str = mapped_column(String)
-    drop_off_type: str = mapped_column(String)
-    timepoint: str = mapped_column(String)
-    checkpoint_id: str = mapped_column(String)
-    continuous_pickup: str = mapped_column(String)
-    continuous_drop_off: str = mapped_column(String)
+    stop_sequence: Optional[int] = mapped_column(Integer, primary_key=True)
+    stop_headsign: Optional[str] = mapped_column(String)
+    pickup_type: Optional[str] = mapped_column(String)
+    drop_off_type: Optional[str] = mapped_column(String)
+    timepoint: Optional[str] = mapped_column(String)
+    checkpoint_id: Optional[str] = mapped_column(String)
+    continuous_pickup: Optional[str] = mapped_column(String)
+    continuous_drop_off: Optional[str] = mapped_column(String)
 
     stop: "Stop" = relationship("Stop", back_populates="stop_times")
     trip: "Trip" = relationship("Trip", back_populates="stop_times")

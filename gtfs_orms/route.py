@@ -1,6 +1,6 @@
 """File to hold the Route class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, reconstructor, relationship
@@ -25,21 +25,21 @@ class Route(GTFSBase):
     __filename__ = "routes.txt"
 
     route_id: str = mapped_column(String, primary_key=True)
-    agency_id: str = mapped_column(
+    agency_id: Optional[str] = mapped_column(
         String, ForeignKey("agencies.agency_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    route_short_name: str = mapped_column(String)
-    route_long_name: str = mapped_column(String)
-    route_desc: str = mapped_column(String)
-    route_type: str = mapped_column(String)
-    route_url: str = mapped_column(String)
-    route_color: str = mapped_column(String)
-    route_text_color: str = mapped_column(String)
-    route_sort_order: int = mapped_column(Integer)
-    route_fare_class: str = mapped_column(String)
-    line_id: str = mapped_column(String)
-    listed_route: str = mapped_column(String)
-    network_id: str = mapped_column(String)
+    route_short_name: Optional[str] = mapped_column(String)
+    route_long_name: Optional[str] = mapped_column(String)
+    route_desc: Optional[str] = mapped_column(String)
+    route_type: Optional[str] = mapped_column(String)
+    route_url: Optional[str] = mapped_column(String)
+    route_color: Optional[str] = mapped_column(String)
+    route_text_color: Optional[str] = mapped_column(String)
+    route_sort_order: Optional[int] = mapped_column(Integer)
+    route_fare_class: Optional[str] = mapped_column(String)
+    line_id: Optional[str] = mapped_column(String)
+    listed_route: Optional[str] = mapped_column(String)
+    network_id: Optional[str] = mapped_column(String)
 
     agency: "Agency" = relationship("Agency", back_populates="routes")
     multi_route_trips: list["MultiRouteTrip"] = relationship(

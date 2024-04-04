@@ -1,7 +1,7 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -24,20 +24,20 @@ class Vehicle(GTFSBase):
     __realtime_name__ = "vehicle_positions"
 
     vehicle_id: str = mapped_column(String, primary_key=True)
-    trip_id: str = mapped_column(String)
-    route_id: str = mapped_column(String)
-    direction_id: str = mapped_column(String)
-    latitude: float = mapped_column(Float)
-    longitude: float = mapped_column(Float)
-    bearing: float = mapped_column(Float)
-    current_stop_sequence: int = mapped_column(Integer)
-    current_status: str = mapped_column(String)
-    timestamp: int = mapped_column(Integer)
-    stop_id: str = mapped_column(String)
-    label: str = mapped_column(String)
-    occupancy_status: str = mapped_column(String)
-    occupancy_percentage: int = mapped_column(Integer)
-    speed: float = mapped_column(Float)
+    trip_id: Optional[str] = mapped_column(String)
+    route_id: Optional[str] = mapped_column(String)
+    direction_id: Optional[str] = mapped_column(String)
+    latitude: Optional[float] = mapped_column(Float)
+    longitude: Optional[float] = mapped_column(Float)
+    bearing: Optional[float] = mapped_column(Float)
+    current_stop_sequence: Optional[int] = mapped_column(Integer)
+    current_status: Optional[str] = mapped_column(String)
+    timestamp: Optional[int] = mapped_column(Integer)
+    stop_id: Optional[str] = mapped_column(String)
+    label: Optional[str] = mapped_column(String)
+    occupancy_status: Optional[str] = mapped_column(String)
+    occupancy_percentage: Optional[int] = mapped_column(Integer)
+    speed: Optional[float] = mapped_column(Float)
 
     predictions: list["Prediction"] = relationship(
         "Prediction",
