@@ -53,7 +53,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         """
         return jsonify(
             FEED_LOADER.get_vehicles_feature(
-                key, *KEY_DICT[key], request.args.get("include", "").split(",")
+                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
             )
         )
 
@@ -229,7 +229,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--frontend",
         "-f",
         action="store_true",
-        # default=True,
+        default=True,
         help="Run flask ONLY - overrides --import_data.",
     )
 

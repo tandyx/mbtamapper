@@ -16,7 +16,7 @@
     align-items: center;
     /* background-color: var(--dark-text-color); */
     border-radius: 10px;
-    border: 1px solid var(--text-color);
+    /* border: 1px solid var(--text-color); */
     /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
     padding: 8% 10% 8% 10%;
     width: 50%;

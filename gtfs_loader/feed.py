@@ -318,30 +318,26 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @removes_session
     def get_vehicles_feature(
-        self,
-        key: str,
-        *route_types: str,
-        max_tries: int = 10,
-        include: list[str] = None,
+        self, key: str, query_obj: Query, *include: str
     ) -> FeatureCollection:
         """Returns vehicles as FeatureCollection.
 
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `*route_types (str)`: route types to export
+            - `route_types (str)`: route types to export
             - `max_tries (int)`: maximum number of tries to get data (default: 5)
-            - \n
+            - `*include (str)`: other orms to include \n
         Returns:
             - `FeatureCollection`: vehicles as FeatureCollection
         """
         session = self.scoped_session()
-        vehicles_query = Query(*route_types).get_vehicles_query(
+        vehicles_query = query_obj.get_vehicles_query(
             self.SL_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(75)
         data: list[tuple[Vehicle]] = []
-        for attempt in range(max_tries):
+        for attempt in range(10):
             try:
                 data = session.execute(vehicles_query).all()
             except (exc.OperationalError, exc.DatabaseError) as error:
@@ -351,7 +347,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             time.sleep(0.5)
         if not data:
             logging.error("No data returned in %s attemps", attempt + 1)
-        return FeatureCollection([v[0].as_feature(*(include or [])) for v in data])
+        return FeatureCollection([v[0].as_feature(*include) for v in data])
 
     @removes_session
     def to_sql(
