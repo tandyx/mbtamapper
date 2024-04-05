@@ -125,16 +125,17 @@ class LinkedDataset(GTFSBase):
         Returns:
             pd.DataFrame: Realtime data from the linked dataset.
         """
-
-        dataframe = (
-            dataframe.drop_duplicates("id")
-            .reset_index(drop=True)
-            .drop(
-                columns=[col for col in dataframe.columns if col not in rename_dict],
-                axis=1,
-            )
-            .rename(columns=rename_dict)
+        if not self.trip_updates:
+            dataframe.drop_duplicates("id", inplace=True)
+        dataframe.reset_index(drop=True, inplace=True)
+        dataframe.drop(
+            columns=[col for col in dataframe.columns if col not in rename_dict],
+            axis=1,
+            inplace=True,
         )
+        dataframe.rename(columns=rename_dict, inplace=True)
+        if self.trip_updates:
+            dataframe["index"] = dataframe.index
         return dataframe
 
     def _process_trip_updates(self) -> pd.DataFrame:

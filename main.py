@@ -229,7 +229,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--frontend",
         "-f",
         action="store_true",
-        default=True,
+        # default=True,
         help="Run flask ONLY - overrides --import_data.",
     )
 

@@ -52,7 +52,7 @@ function createMap(id, route_type) {
   plotStops(`/${route_type.toLowerCase()}/api/stop`, stop_layer);
   plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer);
   plotVehicles(
-    `/${route_type.toLowerCase()}/vehicles?include=route`,
+    `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
     vehicle_layer
   );
   plotFacilities(`/static/geojsons/${route_type}/park.json`, parking_lots);
@@ -161,7 +161,7 @@ function plotShapes(url, layer, interactive = true) {
     },
     onEachFeature(f, l) {
       l.setStyle({
-        color: f.properties.color,
+        color: `#${f.properties.route_color}`,
         opacity: f.properties.opacity,
         weight: 1.3,
         renderer: polyLineRender,

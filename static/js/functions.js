@@ -32,6 +32,16 @@ function titleCase(str, split = "_") {
     .join(" ");
 }
 
+/** Title case a string, but only the first letter
+ * @param {string} str - string to title case
+ * @param {string} split - character to split string on
+ * @returns {string} - title cased string
+ */
+function almostTitleCase(str, split = "_") {
+  const _str = str.toLowerCase().split(split).join(" ");
+  return _str.charAt(0).toUpperCase() + _str.slice(1);
+}
+
 /** Set images to route type
  * @param {string} base_url - base url to set images to
  * @param {string} route_type - route type to set images to
@@ -79,4 +89,18 @@ function getStyle(id, styleProp) {
     y = x.currentStyle[styleProp];
   }
   return y;
+}
+
+/**
+ * Truncate a string
+ * @param {string} str - The string to truncate
+ * @param {number} num - The number of characters to truncate the string to
+ * @param {string} tail - The string to append to the end of the truncated string
+ * @returns {string} - The truncated string
+ */
+function truncateString(str, num, tail = "...") {
+  if (str.length <= num) {
+    return str;
+  }
+  return str.slice(0, num) + tail;
 }

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .prediction import Prediction
     from .route import Route
     from .stop import Stop
+    from .stop_time import StopTime
     from .trip import Trip
 
 
@@ -59,6 +60,13 @@ class Vehicle(GTFSBase):
         viewonly=True,
     )
 
+    stop_time: Mapped["StopTime"] = relationship(
+        primaryjoin="""and_(foreign(Vehicle.trip_id)==StopTime.trip_id,
+                            foreign(Vehicle.stop_id)==StopTime.stop_id,)""",
+        viewonly=True,
+        uselist=False,
+    )
+
     next_stop: Mapped[list["Prediction"]] = relationship(
         primaryjoin="""and_(foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
                             foreign(Vehicle.stop_id)==Prediction.stop_id)""",
@@ -74,6 +82,22 @@ class Vehicle(GTFSBase):
         self.speed = self.speed if not self.speed else self.speed * 2.23694
         self.route_color = self.route.route_color if self.route else None
         self.bikes_allowed = self.trip.bikes_allowed == 1 if self.trip else False
+        self.trip_short_name = (
+            self.trip.trip_short_name
+            if self.trip and self.trip.trip_short_name
+            else self.trip_id
+        )
+        self.headsign = (
+            self.trip.trip_headsign
+            if self.trip
+            else max(self.predictions).stop.stop_name if self.predictions else None
+        )
+        self.wheelchair_accessible = bool(
+            self.trip.wheelchair_accessible
+            if self.trip
+            else any(x.stop.wheelchair_boarding for x in self.predictions)
+        )
+
         self.display_name = (
             self.trip.trip_short_name
             if self.trip and self.trip.trip_short_name

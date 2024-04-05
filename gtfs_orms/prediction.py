@@ -2,9 +2,9 @@
 
 # pylint: disable=line-too-long
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy.orm import mapped_column, Mapped, reconstructor, relationship
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -22,7 +22,7 @@ class Prediction(GTFSBase):
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
 
-    prediction_id: Mapped[str] = mapped_column(primary_key=True)
+    prediction_id: Mapped[str]
     arrival_time: Mapped[Optional[int]]
     departure_time: Mapped[Optional[int]]
     direction_id: Mapped[Optional[str]]
@@ -31,6 +31,7 @@ class Prediction(GTFSBase):
     stop_id: Mapped[Optional[str]]
     trip_id: Mapped[Optional[str]]
     vehicle_id: Mapped[Optional[str]]
+    index: Mapped[int] = mapped_column(primary_key=True)
 
     route: Mapped["Route"] = relationship(
         back_populates="predictions",
@@ -55,13 +56,54 @@ class Prediction(GTFSBase):
 
     stop_time: Mapped["StopTime"] = relationship(
         primaryjoin="""and_(foreign(Prediction.trip_id)==StopTime.trip_id,
-                            foreign(Prediction.stop_id)==StopTime.stop_id,)""",
+        foreign(Prediction.stop_id)==StopTime.stop_id,)""",
         viewonly=True,
         uselist=False,
     )
+
+    @property
+    def delay(self) -> int:
+        """Returns the delay of the prediction.
+
+        Returns:
+            - `int`: the delay of the prediction
+        """
+        if not self.stop_time:
+            return 0
+        if self.departure_time and self.stop_time.departure_timestamp:
+            return self.departure_time - self.stop_time.departure_timestamp
+        if self.arrival_time and self.stop_time.arrival_seconds:
+            return self.arrival_time - self.stop_time.arrival_timestamp
+        return 0
 
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.stop_sequence = self.stop_sequence or 0
+        self.stop_name = self.stop.stop_name
+        self.comp_delay = self.delay
+
+    def __lt__(self, other: "Prediction") -> bool:
+        """Implements less than operator.
+
+        Returns:
+            - `bool`: whether the object is less than the other
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        return self.stop_sequence < other.stop_sequence
+
+    def __eq__(self, other: "Prediction") -> bool:
+        """Implements equality operator.
+
+        Returns:
+            - `bool`: whether the objects are equal
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        return self.stop_sequence == other.stop_sequence

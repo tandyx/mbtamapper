@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from geojson import Feature
 from shapely.geometry import LineString
-from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 

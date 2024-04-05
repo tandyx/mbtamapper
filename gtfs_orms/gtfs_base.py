@@ -103,6 +103,23 @@ class GTFSBase(orm.DeclarativeBase):
             if not k.startswith("_") and _is_json_searializable(v)
         }
 
+    def as_json_dict(self) -> dict[str, Any]:
+        """Returns a dict representation of the object
+        
+        args:
+            - `*include`: other orm attars to include within the dict
+            - `**kwargs`: unused, but can be used in overriden methods to \
+                pass in additional arguments \n
+        returns:
+            - `dict[str, Any]`: dict representation of the object
+        """
+
+        return {
+            k: v
+            for k, v in self.__dict__.items()
+            if not k.startswith("_") and _is_json_searializable(v)
+        }
+
     def as_dict(self, *include, **kwargs) -> dict[str, Any]:
         """Returns a dict representation of the object, front-facing.\
         Override this method to change the `dict `representation.
@@ -123,10 +140,10 @@ class GTFSBase(orm.DeclarativeBase):
                 continue
             attar_val = getattr(self, attr)
             if isinstance(attar_val, GTFSBase):
-                new_dict[attr] = attar_val.as_json(*include)
+                new_dict[attr] = attar_val.as_json_dict()
             if isinstance(attar_val, list):
                 new_dict[attr] = [
-                    d.as_json(*include) if isinstance(d, GTFSBase) else d
+                    d.as_json_dict() if isinstance(d, GTFSBase) else d
                     for d in attar_val
                 ]
         return new_dict

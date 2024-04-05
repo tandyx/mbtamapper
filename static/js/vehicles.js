@@ -110,20 +110,59 @@ function getVehicleIcon(bearing, color, displayString = null) {
   });
 }
 
+const DIRECTION_MAPPER = {
+  0: "Outbound",
+  1: "Inbound",
+};
+
 /**
  * gets vehicle text
  * @param {object} properties
+ * @returns {HTMLDivElement} - vehicle text
  */
-
 function getVehicleText(properties) {
   const vehicleText = document.createElement("div");
-  const header = document.createElement("a");
-  header.href = properties.route.route_url;
-  header.target = "_blank";
-  header.classList.add("popup_header");
-  header.style.color = `#${properties.route_color}`;
-  header.textContent = properties.trip_short_name || properties.trip_id;
-  vehicleText.appendChild(header);
+  vehicleText.innerHTML = `
+  <p>
+  <a href="${properties.route.route_url}" target="_blank" style="color:#${
+    properties.route_color
+  }" class="popup_header">${properties.trip_short_name}</a></p><p>${
+    DIRECTION_MAPPER[properties.direction_id]
+  } to ${properties.headsign}</p>
+  `;
+  vehicleText.innerHTML += `<hr><p>`;
+  if (properties.bikes_allowed) {
+    vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>`;
+  }
+  if (properties.wheelchair_accessible) {
+    if (properties.bikes_allowed) {
+      vehicleText.innerHTML += `&nbsp;&nbsp;&nbsp;`;
+    }
+    vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='wheelchair accessible'>&#xf193;</span>`;
+  }
+  vehicleText.innerHTML += `</p>`;
+  if (properties.stop_time) {
+    vehicleText.innerHTML += `<p>${almostTitleCase(
+      properties.current_status
+    )} ${properties.stop_time.stop_name}</p>`;
+    vehicleText.innerHTML += `<p>delay: ${properties.stop_time.delay} seconds</p>`;
+  } else if (properties.next_stop) {
+    vehicleText.innerHTML += `<p>${almostTitleCase(
+      properties.current_status
+    )} ${properties.next_stop.stop_name}</p>`;
+  }
+
+  // const header = document.createElement("div");
+  // const headerAnchor = document.createElement("a");
+  // headerAnchor.href = properties.route.route_url;
+  // headerAnchor.target = "_blank";
+  // headerAnchor.classList.add("popup_header");
+  // headerAnchor.style.color = `#${properties.route_color}`;
+  // headerAnchor.textContent = properties.trip_short_name || properties.trip_id;
+  // header.appendChild(headerAnchor);
+  // vehicleText.appendChild(header);
+  // const subHeader = document.createElement("");
+
   return vehicleText;
 
   // vehicleText.innerHTML = "";

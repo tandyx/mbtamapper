@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from helper_functions import *
 
@@ -55,6 +55,31 @@ class StopTime(GTFSBase):
         self.arrival_seconds = to_seconds(self.arrival_time)
         self.departure_timestamp = self.departure_seconds + get_date().timestamp()
         self.arrival_timestamp = self.arrival_seconds + get_date().timestamp()
+        self.stop_name = self.stop.stop_name
+
+    def __lt__(self, other: "StopTime") -> bool:
+        """Implements less than operator.
+
+        Returns:
+            - `bool`: whether the object is less than the other
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        return self.stop_sequence < other.stop_sequence
+
+    def __eq__(self, other: "StopTime") -> bool:
+        """Implements equality operator.
+
+        Returns:
+            - `bool`: whether the objects are equal
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        return self.stop_sequence == other.stop_sequence
 
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop"""

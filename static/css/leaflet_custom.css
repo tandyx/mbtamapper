@@ -4,6 +4,9 @@
   border-radius: var(--border-radius) !important;
   text-align: left !important;
   background: var(--text-color) !important;
+  p {
+    margin: 0 !important;
+  }
 }
 
 .leaflet-popup-content {

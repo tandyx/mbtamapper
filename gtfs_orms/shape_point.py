@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import mapped_column, relationship, Mapped
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
