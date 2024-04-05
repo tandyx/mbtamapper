@@ -11,7 +11,7 @@ import sqlite3
 import tempfile
 import time
 from datetime import datetime
-from typing import Type, cast
+from typing import Type
 from zipfile import ZipFile
 
 import pandas as pd
@@ -22,7 +22,7 @@ from sqlalchemy.exc import IllegalStateChangeError, IntegrityError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from gtfs_orms import *
-from helper_functions import get_current_time, removes_session, timeit
+from helper_functions import removes_session, timeit
 
 from .query import Query
 
@@ -183,7 +183,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """Imports realtime data into the database.
 
         Args:
-            orm (Type[Alert | Vehicle | Prediction]): realtime ORM type.
+            - `orm (Type[Alert | Vehicle | Prediction])`: realtime ORM type.
         """
         if orm not in __class__.__realtime_orms__:
             raise ValueError(f"{orm} is not a realtime ORM")
@@ -232,7 +232,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         with open(
             os.path.join(file_subpath, "shapes.json"), "w", encoding="utf-8"
         ) as file:
-            dump(self.get_shapes_feature(key, query_obj), file)
+            dump(self.get_shape_features(key, query_obj), file)
             logging.info("Exported %s", file.name)
         with open(
             os.path.join(file_subpath, "stops.json"), "w", encoding="utf-8"
@@ -241,7 +241,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             logging.info("Exported %s", file.name)
 
     @removes_session
-    def get_stop_features(self, key: str, query_obj: Query) -> None:
+    def get_stop_features(self, key: str, query_obj: Query, *include: str) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
@@ -251,7 +251,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             - `FeatureCollection`: stops as FeatureCollection
         """
         session = self.scoped_session()
-
+        stops_data: list[tuple[Stop]]
         stops_data = session.execute(query_obj.parent_stops_query).all()
         if key == "RAPID_TRANSIT":
             stops_data += session.execute(Query("3").parent_stops_query).all()
@@ -259,14 +259,18 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             stops_data += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
-        return FeatureCollection([s[0].as_feature() for s in stops_data])
+        return FeatureCollection([s[0].as_feature(*include) for s in stops_data])
 
     @removes_session
-    def get_shapes_feature(self, key: str, query_obj: Query) -> FeatureCollection:
+    def get_shape_features(
+        self, key: str, query_obj: Query, *include: str
+    ) -> FeatureCollection:
         """Generates geojsons for shapes.
 
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            -
+            - \n
         returns:
             - `FeatureCollection`: shapes as FeatureCollection
         """
@@ -284,11 +288,13 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             ).all()
 
         return FeatureCollection(
-            [s[0].as_feature() for s in sorted(shape_data, reverse=True)]
+            [s[0].as_feature(*include) for s in sorted(shape_data, reverse=True)]
         )
 
     @removes_session
-    def get_parking_features(self, key: str, query_obj: Query) -> FeatureCollection:
+    def get_parking_features(
+        self, key: str, query_obj: Query, *include: str
+    ) -> FeatureCollection:
         """Generates geojsons for facilities.
 
         Args:
@@ -298,7 +304,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """
 
         session = self.scoped_session()
-
+        facilities: list[tuple[Facility]]
         facilities = session.execute(
             query_obj.get_facilities_query(["parking-area"])
         ).all()
@@ -308,20 +314,25 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             ).all()
         if "4" in query_obj.route_types:
             facilities += session.execute(self.ferry_parking_query).all()
-        return FeatureCollection([f[0].as_feature() for f in facilities])
+        return FeatureCollection([f[0].as_feature(*include) for f in facilities])
 
     @removes_session
     def get_vehicles_feature(
-        self, key: str, *route_types: str, max_tries: int = 10
+        self,
+        key: str,
+        *route_types: str,
+        max_tries: int = 10,
+        include: list[str] = None,
     ) -> FeatureCollection:
         """Returns vehicles as FeatureCollection.
 
         Args:
-            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            *route_types (str): route types to export
-            max_tries (int): maximum number of tries to get data (default: 5)
+            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            - `*route_types (str)`: route types to export
+            - `max_tries (int)`: maximum number of tries to get data (default: 5)
+            - \n
         Returns:
-            FeatureCollection: vehicles as FeatureCollection
+            - `FeatureCollection`: vehicles as FeatureCollection
         """
         session = self.scoped_session()
         vehicles_query = Query(*route_types).get_vehicles_query(
@@ -340,7 +351,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             time.sleep(0.5)
         if not data:
             logging.error("No data returned in %s attemps", attempt + 1)
-        return FeatureCollection([v[0].as_feature() for v in data])
+        return FeatureCollection([v[0].as_feature(*(include or [])) for v in data])
 
     @removes_session
     def to_sql(
@@ -382,7 +393,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     @removes_session
     def get_orm_json(
         self, _orm: type[GTFSBase], *include, geojson: bool = False, **kwargs
-    ) -> list[dict[str]] | FeatureCollection:
+    ) -> list[dict[str]] | FeatureCollection | None:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
         args:

@@ -10,7 +10,7 @@ from typing import NoReturn
 from schedule import Scheduler
 
 from gtfs_orms import Alert, Prediction, Vehicle
-from helper_functions import get_current_time, get_date, timeit
+from helper_functions import get_date, timeit
 
 from .feed import Feed
 

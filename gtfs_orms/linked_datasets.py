@@ -10,8 +10,7 @@ import pandas as pd
 import requests as rq
 from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from helper_functions import df_unpack
 
@@ -72,11 +71,11 @@ class LinkedDataset(GTFSBase):
     __tablename__ = "linked_datasets"
     __filename__ = "linked_datasets.txt"
 
-    url: str = mapped_column(String, primary_key=True)
-    trip_updates: int = mapped_column(Integer)
-    vehicle_positions: int = mapped_column(Integer)
-    service_alerts: int = mapped_column(Integer)
-    authentication_type: str = mapped_column(String)
+    url: Mapped[str] = mapped_column(primary_key=True)
+    trip_updates: Mapped[int]
+    vehicle_positions: Mapped[int]
+    service_alerts: Mapped[int]
+    authentication_type: Mapped[str]
 
     def as_dataframe(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\
@@ -128,15 +127,14 @@ class LinkedDataset(GTFSBase):
         """
 
         dataframe = (
-            dataframe.reset_index(drop=True)
+            dataframe.drop_duplicates("id")
+            .reset_index(drop=True)
             .drop(
                 columns=[col for col in dataframe.columns if col not in rename_dict],
                 axis=1,
             )
             .rename(columns=rename_dict)
         )
-        dataframe["index"] = dataframe.index
-
         return dataframe
 
     def _process_trip_updates(self) -> pd.DataFrame:
@@ -159,6 +157,7 @@ class LinkedDataset(GTFSBase):
             .fillna(0)
             .astype(int)
         )
+
         return self._post_process(dataframe, PREDICTION_RENAME_DICT)
 
     def _process_vehicle_positions(self) -> pd.DataFrame:

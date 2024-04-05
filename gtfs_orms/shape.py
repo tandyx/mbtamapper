@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING
 
 from geojson import Feature
 from shapely.geometry import LineString
-from sqlalchemy import String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
 
 from .gtfs_base import GTFSBase
 
@@ -19,13 +18,13 @@ class Shape(GTFSBase):
 
     __tablename__ = "shapes"
 
-    shape_id: str = mapped_column(String, primary_key=True, index=False)
+    shape_id: Mapped[str] = mapped_column(primary_key=True)
 
-    trips: list["Trip"] = relationship(
-        "Trip", back_populates="shape", passive_deletes=True
+    trips: Mapped[list["Trip"]] = relationship(
+        back_populates="shape", passive_deletes=True
     )
-    shape_points: list["ShapePoint"] = relationship(
-        "ShapePoint", back_populates="shape", passive_deletes=True
+    shape_points: Mapped[list["ShapePoint"]] = relationship(
+        back_populates="shape", passive_deletes=True
     )
 
     @reconstructor
@@ -33,22 +32,28 @@ class Shape(GTFSBase):
         """Load the shape points into a list of ShapePoint objects."""
         # pylint: disable=attribute-defined-outside-init
 
-        self.sorted_points = sorted(
+        self.sorted_points: list["ShapePoint"] = sorted(
             self.shape_points, key=lambda x: x.shape_pt_sequence
         )
 
     def as_linestring(self) -> LineString:
-        """Return a shapely LineString object of the shape"""
+        """Return a shapely `LineString` object of the shape"""
 
         return LineString([sp.as_point() for sp in self.sorted_points])
 
-    def as_feature(self, *args) -> Feature:  # pylint: disable=unused-argument
-        """Returns shape object as a feature."""
+    def as_feature(self, *include) -> Feature:  # pylint: disable=unused-argument
+        """Returns shape object as a feature.
+
+        args:
+            - `*include`: A list of properties to include in the feature object.\n
+        Returns:
+            - `Feature`: A GeoJSON feature object.
+        """
 
         feature = Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_json(),
+            properties=self.trips[0].route.as_json(*include),
         )
 
         return feature

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy import Float, ForeignKey, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -25,60 +25,56 @@ class Stop(GTFSBase):
     __tablename__ = "stops"
     __filename__ = "stops.txt"
 
-    stop_id: Optional[str] = mapped_column(String, primary_key=True)
-    stop_code: Optional[str] = mapped_column(String)
-    stop_name: Optional[str] = mapped_column(String)
-    stop_desc: Optional[str] = mapped_column(String)
-    platform_code: Optional[str] = mapped_column(String)
-    platform_name: Optional[str] = mapped_column(String)
-    stop_lat: Optional[float] = mapped_column(Float)
-    stop_lon: Optional[float] = mapped_column(Float)
-    zone_id: Optional[str] = mapped_column(String)
-    stop_address: Optional[str] = mapped_column(String)
-    stop_url: Optional[str] = mapped_column(String)
-    level_id: Optional[str] = mapped_column(String)
-    location_type: Optional[str] = mapped_column(String)
-    parent_station: Optional[str] = mapped_column(
-        String, ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
+    stop_id: Mapped[Optional[str]] = mapped_column(primary_key=True)
+    stop_code: Mapped[Optional[str]]
+    stop_name: Mapped[Optional[str]]
+    stop_desc: Mapped[Optional[str]]
+    platform_code: Mapped[Optional[str]]
+    platform_name: Mapped[Optional[str]]
+    stop_lat: Mapped[Optional[float]]
+    stop_lon: Mapped[Optional[float]]
+    zone_id: Mapped[Optional[str]]
+    stop_address: Mapped[Optional[str]]
+    stop_url: Mapped[Optional[str]]
+    level_id: Mapped[Optional[str]]
+    location_type: Mapped[Optional[str]]
+    parent_station: Mapped[Optional[str]] = mapped_column(
+        ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_boarding: Optional[str] = mapped_column(String)
-    municipality: Optional[str] = mapped_column(String)
-    on_street: Optional[str] = mapped_column(String)
-    at_street: Optional[str] = mapped_column(String)
-    vehicle_type: Optional[str] = mapped_column(String)
+    wheelchair_boarding: Mapped[Optional[str]]
+    municipality: Mapped[Optional[str]]
+    on_street: Mapped[Optional[str]]
+    at_street: Mapped[Optional[str]]
+    vehicle_type: Mapped[Optional[str]]
 
-    stop_times: list["StopTime"] = relationship(
-        "StopTime", back_populates="stop", passive_deletes=True
+    stop_times: Mapped[list["StopTime"]] = relationship(
+        back_populates="stop", passive_deletes=True
     )
-    facilities: list["Facility"] = relationship(
-        "Facility", back_populates="stop", passive_deletes=True
+    facilities: Mapped[list["Facility"]] = relationship(
+        back_populates="stop", passive_deletes=True
     )
-    parent_stop: Optional["Stop"] = relationship(
-        "Stop", remote_side=[stop_id], back_populates="child_stops"
+    parent_stop: Mapped["Stop"] = relationship(
+        remote_side=[stop_id], back_populates="child_stops"
     )
-    child_stops: list["Stop"] = relationship("Stop", back_populates="parent_stop")
+    child_stops: Mapped[list["Stop"]] = relationship(back_populates="parent_stop")
 
-    predictions: list["Prediction"] = relationship(
-        "Prediction",
+    predictions: Mapped[list["Prediction"]] = relationship(
         back_populates="stop",
         primaryjoin="foreign(Prediction.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-    vehicles: list["Vehicle"] = relationship(
-        "Vehicle",
+    vehicles: Mapped[list["Vehicle"]] = relationship(
         back_populates="stop",
         primaryjoin="Stop.stop_id==foreign(Vehicle.stop_id)",
         viewonly=True,
     )
-    alerts: list["Alert"] = relationship(
-        "Alert",
+    alerts: Mapped[list["Alert"]] = relationship(
         back_populates="stop",
         primaryjoin="foreign(Alert.stop_id)==Stop.stop_id",
         viewonly=True,
     )
 
-    routes: list["Route"] = relationship(
-        "Route",
+    routes: Mapped[list["Route"]] = relationship(
         primaryjoin="Stop.stop_id==StopTime.stop_id",
         secondary="join(StopTime, Trip, StopTime.trip_id==Trip.trip_id)",
         secondaryjoin="Trip.route_id==Route.route_id",

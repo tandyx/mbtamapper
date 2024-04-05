@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy import Float, Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
 
 from .gtfs_base import GTFSBase
 
@@ -23,49 +22,44 @@ class Vehicle(GTFSBase):
     __tablename__ = "vehicles"
     __realtime_name__ = "vehicle_positions"
 
-    vehicle_id: str = mapped_column(String, primary_key=True)
-    trip_id: Optional[str] = mapped_column(String)
-    route_id: Optional[str] = mapped_column(String)
-    direction_id: Optional[str] = mapped_column(String)
-    latitude: Optional[float] = mapped_column(Float)
-    longitude: Optional[float] = mapped_column(Float)
-    bearing: Optional[float] = mapped_column(Float)
-    current_stop_sequence: Optional[int] = mapped_column(Integer)
-    current_status: Optional[str] = mapped_column(String)
-    timestamp: Optional[int] = mapped_column(Integer)
-    stop_id: Optional[str] = mapped_column(String)
-    label: Optional[str] = mapped_column(String)
-    occupancy_status: Optional[str] = mapped_column(String)
-    occupancy_percentage: Optional[int] = mapped_column(Integer)
-    speed: Optional[float] = mapped_column(Float)
+    vehicle_id: Mapped[str] = mapped_column(primary_key=True)
+    trip_id: Mapped[Optional[str]]
+    route_id: Mapped[Optional[str]]
+    direction_id: Mapped[Optional[str]]
+    latitude: Mapped[Optional[float]]
+    longitude: Mapped[Optional[float]]
+    bearing: Mapped[Optional[float]]
+    current_stop_sequence: Mapped[Optional[int]]
+    current_status: Mapped[Optional[str]]
+    timestamp: Mapped[Optional[int]]
+    stop_id: Mapped[Optional[str]]
+    label: Mapped[Optional[str]]
+    occupancy_status: Mapped[Optional[str]]
+    occupancy_percentage: Mapped[Optional[int]]
+    speed: Mapped[Optional[float]]
 
-    predictions: list["Prediction"] = relationship(
-        "Prediction",
+    predictions: Mapped[list["Prediction"]] = relationship(
         back_populates="vehicle",
         primaryjoin="Vehicle.trip_id==foreign(Prediction.trip_id)",
         viewonly=True,
     )
-    route: "Route" = relationship(
-        "Route",
+    route: Mapped["Route"] = relationship(
         back_populates="vehicles",
         primaryjoin="foreign(Vehicle.route_id)==Route.route_id",
         viewonly=True,
     )
-    stop: "Stop" = relationship(
-        "Stop",
+    stop: Mapped["Stop"] = relationship(
         back_populates="vehicles",
         primaryjoin="foreign(Vehicle.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-    trip: "Trip" = relationship(
-        "Trip",
+    trip: Mapped["Trip"] = relationship(
         back_populates="vehicle",
         primaryjoin="foreign(Vehicle.trip_id)==Trip.trip_id",
         viewonly=True,
     )
 
-    next_stop_prediction: list["Prediction"] = relationship(
-        "Prediction",
+    next_stop: Mapped[list["Prediction"]] = relationship(
         primaryjoin="""and_(foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
                             foreign(Vehicle.stop_id)==Prediction.stop_id)""",
         viewonly=True,
@@ -78,6 +72,19 @@ class Vehicle(GTFSBase):
         self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
         self.speed = self.speed if not self.speed else self.speed * 2.23694
+        self.route_color = self.route.route_color if self.route else None
+        self.bikes_allowed = self.trip.bikes_allowed == 1 if self.trip else False
+        self.display_name = (
+            self.trip.trip_short_name
+            if self.trip and self.trip.trip_short_name
+            else (
+                self.route.route_short_name
+                if self.route
+                and (self.route.route_type == "3" or self.route_id.startswith("Green"))
+                and self.route.route_short_name
+                else ""
+            )
+        )
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""

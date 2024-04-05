@@ -1,0 +1,146 @@
+.titlepage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  color: var(--text-color);
+  background-color: var(--dark-text-color);
+  .mainContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* background-color: var(--dark-text-color); */
+    border-radius: 10px;
+    border: 1px solid var(--text-color);
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+    padding: 8% 10% 8% 10%;
+    width: 50%;
+    margin: 50px 0px 50px 0px;
+  }
+
+  .subheader {
+    font-size: 0.8em;
+    margin: 0;
+  }
+
+  hr {
+    width: 100%;
+    margin: 10px 0px 20px 0px;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  li {
+    margin: 5px 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: var(--text-color);
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  table {
+    width: 80%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  table,
+  td,
+  th {
+    border: 1px solid var(--text-color);
+  }
+
+  .margin-top-neg-30 {
+    margin-top: -30px;
+  }
+
+  .footer {
+    width: 80%;
+    margin: 20px 0px -30px 0px;
+    font-size: 0.7em;
+    text-align: center;
+  }
+
+  .link-wrapper {
+    margin-top: 10px;
+
+    font-size: 1.5em !important;
+    * {
+      margin-right: 6px;
+    }
+    a:hover,
+    a:visited:hover {
+      text-decoration: none;
+      color: var(--accent-color) !important;
+    }
+  }
+
+  .button_base {
+    a {
+      text-decoration: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      padding: 10px;
+    }
+    a:hover {
+      text-decoration: none !important;
+    }
+  }
+
+  .subway:hover {
+    background-color: var(--subway-color);
+  }
+
+  .rapid_transit:hover {
+    background-color: var(--rapid-transit-color);
+  }
+
+  .commuter_rail:hover {
+    background-color: var(--commuter-rail-color);
+  }
+
+  .bus:hover {
+    background-color: var(--bus-color);
+  }
+
+  .ferry:hover {
+    background-color: var(--ferry-color);
+  }
+}
+
+/* body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.1) 5%,
+      rgb(0, 0, 0) 90%
+    ),
+    url("{{ url_for('static', filename='img/background.png') }}");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+} */
+
+@media screen and (max-width: 768px) {
+  .titlepage {
+    .mainContainer {
+      border: none;
+    }
+  }
+}

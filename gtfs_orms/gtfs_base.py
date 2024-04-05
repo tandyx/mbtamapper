@@ -23,7 +23,6 @@ class GTFSBase(orm.DeclarativeBase):
     __filename__: str
     __realtime_name__: str
     __realtime_name__: str
-    __allow_unmapped__ = True
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
     # primary_keys: list[str] = [key for key in __class__.__table__.columns if key.primary_key]
@@ -124,10 +123,10 @@ class GTFSBase(orm.DeclarativeBase):
                 continue
             attar_val = getattr(self, attr)
             if isinstance(attar_val, GTFSBase):
-                new_dict[attr] = attar_val.as_dict(*include)
+                new_dict[attr] = attar_val.as_json(*include)
             if isinstance(attar_val, list):
                 new_dict[attr] = [
-                    d.as_dict(*include) if isinstance(d, GTFSBase) else d
+                    d.as_json(*include) if isinstance(d, GTFSBase) else d
                     for d in attar_val
                 ]
         return new_dict

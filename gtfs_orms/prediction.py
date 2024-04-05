@@ -2,12 +2,18 @@
 
 # pylint: disable=line-too-long
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy.orm import mapped_column, Mapped, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
+
+if TYPE_CHECKING:
+    from .route import Route
+    from .stop import Stop
+    from .stop_time import StopTime
+    from .trip import Trip
+    from .vehicle import Vehicle
 
 
 class Prediction(GTFSBase):
@@ -16,43 +22,38 @@ class Prediction(GTFSBase):
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
 
-    prediction_id: str = mapped_column(String, primary_key=True)
-    arrival_time: Optional[str] = mapped_column(String)
-    departure_time: Optional[str] = mapped_column(String)
-    direction_id: Optional[str] = mapped_column(String)
-    stop_sequence: Optional[int] = mapped_column(Integer)
-    route_id: Optional[str] = mapped_column(String)
-    stop_id: Optional[str] = mapped_column(String)
-    trip_id: Optional[str] = mapped_column(String)
-    vehicle_id: Optional[str] = mapped_column(String)
+    prediction_id: Mapped[str] = mapped_column(primary_key=True)
+    arrival_time: Mapped[Optional[int]]
+    departure_time: Mapped[Optional[int]]
+    direction_id: Mapped[Optional[str]]
+    stop_sequence: Mapped[Optional[int]]
+    route_id: Mapped[Optional[str]]
+    stop_id: Mapped[Optional[str]]
+    trip_id: Mapped[Optional[str]]
+    vehicle_id: Mapped[Optional[str]]
 
-    route = relationship(
-        "Route",
+    route: Mapped["Route"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.route_id)==Route.route_id",
         viewonly=True,
     )
-    stop = relationship(
-        "Stop",
+    stop: Mapped["Stop"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-    trip = relationship(
-        "Trip",
+    trip: Mapped["Trip"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.trip_id)==Trip.trip_id",
         viewonly=True,
     )
-    vehicle = relationship(
-        "Vehicle",
+    vehicle: Mapped["Vehicle"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.vehicle_id)==Vehicle.vehicle_id",
         viewonly=True,
     )
 
-    stop_time = relationship(
-        "StopTime",
+    stop_time: Mapped["StopTime"] = relationship(
         primaryjoin="""and_(foreign(Prediction.trip_id)==StopTime.trip_id,
                             foreign(Prediction.stop_id)==StopTime.stop_id,)""",
         viewonly=True,

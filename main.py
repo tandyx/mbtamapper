@@ -4,7 +4,7 @@
 import argparse
 import logging
 import os
-from typing import Callable, NoReturn
+from typing import NoReturn
 
 from flask import Flask, jsonify, render_template, request
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -51,8 +51,13 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         Returns:
             - `str`: geojson of vehicles.
         """
-        return jsonify(FEED_LOADER.get_vehicles_feature(key, *KEY_DICT[key]))
+        return jsonify(
+            FEED_LOADER.get_vehicles_feature(
+                key, *KEY_DICT[key], request.args.get("include", "").split(",")
+            )
+        )
 
+    @_app.route("/stops")
     @_app.route("/api/stop")
     def get_stops() -> str:
         """Returns stops as geojson in the context of the route type AND \
@@ -60,8 +65,13 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         returns:
             - `str`: geojson of stops.
         """
-        return jsonify(FEED_LOADER.get_stop_features(key, Query(*KEY_DICT[key])))
+        return jsonify(
+            FEED_LOADER.get_stop_features(
+                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+            )
+        )
 
+    @_app.route("/facilities")
     @_app.route("/api/parking")
     def get_parking() -> str:
         """Returns parking as geojson in the context of the route type AND \
@@ -69,7 +79,28 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         returns:
             - `str`: geojson of parking.
         """
-        return jsonify(FEED_LOADER.get_parking_features(key, Query(*KEY_DICT[key])))
+        return jsonify(
+            FEED_LOADER.get_parking_features(
+                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+            )
+        )
+
+    @_app.route("/routes")
+    @_app.route("/shapes")
+    @_app.route("/api/route")
+    @_app.route("/api/shape")
+    def get_routes() -> str:
+        """Returns routes as geojson in the context of the route type AND \
+            flask, exported to /routes as an api.
+        returns:
+            - `str`: geojson of routes.
+        """
+
+        return jsonify(
+            FEED_LOADER.get_shape_features(
+                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+            )
+        )
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
@@ -133,24 +164,15 @@ def create_default_app(proxies: int = 5) -> Flask:
         params = request.args.to_dict()
         include = params.pop("include", "").split(",")
         as_geojson = bool(params.pop("geojson", False))
+        error_msg = {
+            "error": "unknown/invalid filtering arguments provided",
+            f"potentnial args for {orm_name}": orm.__table__.columns.keys(),
+        }
         if not params:
-            return jsonify({"error": "No filtering arguments provided."}), 400
+            return jsonify(error_msg), 400
         data = FEED_LOADER.get_orm_json(orm, *include, geojson=as_geojson, **params)
         if data is None:
-            return (
-                jsonify(
-                    {
-                        "error": "Potentnially unsupported argument.",
-                        f"potentnial args for {orm_name}?": [
-                            i
-                            for i in dir(orm)
-                            if not i.startswith("_")
-                            and not isinstance(getattr(orm, i), Callable)
-                        ],
-                    }
-                ),
-                404,
-            )
+            return jsonify(error_msg), 404
         return jsonify(data)
 
     if proxies:

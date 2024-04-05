@@ -1,11 +1,5 @@
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
-  setFavicon(window.location.href, ROUTE_TYPE);
-  setImages(window.location.href, ROUTE_TYPE);
-  setDescriptions(ROUTE_TYPE);
-  setTitles(ROUTE_TYPE);
-  setUrls();
-  setNavbar("navbar", ROUTE_TYPE, window.mobileCheck());
   createMap("map", ROUTE_TYPE);
 
   document.addEventListener("click", function (event) {
@@ -39,7 +33,7 @@ function createMap(id, route_type) {
   const baseLayers = getBaseLayerDict(...Array(2), {
     Alt: "Stadia.AlidadeSmoothDark",
   });
-  baseLayers["Light"].addTo(map);
+  baseLayers["Dark"].addTo(map);
 
   let stop_layer = L.layerGroup().addTo(map);
   stop_layer.name = "Stops";
@@ -55,7 +49,7 @@ function createMap(id, route_type) {
   let parking_lots = L.layerGroup();
   parking_lots.name = "Parking Lots";
 
-  plotStops(`/static/geojsons/${route_type}/stops.json`, stop_layer);
+  plotStops(`/${route_type.toLowerCase()}/api/stop`, stop_layer);
   plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer);
   plotVehicles(`/${route_type.toLowerCase()}/vehicles`, vehicle_layer);
   plotFacilities(`/static/geojsons/${route_type}/park.json`, parking_lots);
@@ -110,4 +104,158 @@ function createControlLayers(tile_layers, ...layers) {
   );
 
   return [locateControl, controlSearch, layerControl];
+}
+
+/** Plot stops on map in realtime, updating every hour
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot stops on
+ * @returns {L.realtime} - realtime layer
+ */
+
+function plotStops(url, layer) {
+  const stopIcon = L.icon({
+    iconUrl: "static/img/mbta.png",
+    iconSize: [15, 15],
+  });
+
+  const realtime = L.realtime(url, {
+    interval: 3600000,
+    type: "FeatureCollection",
+    container: layer,
+    cache: true,
+    removeMissing: true,
+    getFeatureId(f) {
+      return f.id;
+    },
+    onEachFeature(f, l) {
+      l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+      l.bindTooltip(f.id);
+      l.setIcon(stopIcon);
+      l.setZIndexOffset(-100);
+    },
+  });
+
+  realtime.on("update", handleUpdateEvent);
+  return realtime;
+}
+/** Plot shapes on map in realtime, updating every hour
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot shapes on
+ * @param {boolean} interactive - whether or not to make shapes interactive
+ * @returns {L.realtime} - realtime layer
+ */
+function plotShapes(url, layer, interactive = true) {
+  const polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
+
+  const realtime = L.realtime(url, {
+    interval: 3600000,
+    type: "FeatureCollection",
+    container: layer,
+    cache: true,
+    removeMissing: true,
+    getFeatureId(f) {
+      return f.id;
+    },
+    onEachFeature(f, l) {
+      l.setStyle({
+        color: f.properties.color,
+        opacity: f.properties.opacity,
+        weight: 1.3,
+        renderer: polyLineRender,
+      });
+      if (interactive) {
+        l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+        l.bindTooltip(f.properties.name);
+      }
+    },
+  });
+
+  realtime.on("update", handleUpdateEvent);
+  return realtime;
+}
+/** Plot facilities on map in realtime, updating every hour
+ * @param {string} url - url to geojson
+ * @param {L.layerGroup} layer - layer to plot facilities on
+ * @returns {L.realtime} - realtime layer
+ */
+function plotFacilities(url, layer) {
+  const facilityIcon = L.icon({
+    iconUrl: "static/img/parking.png",
+    iconSize: [15, 15],
+  });
+
+  const realtime = L.realtime(url, {
+    interval: 3600000,
+    type: "FeatureCollection",
+    container: layer,
+    cache: true,
+    removeMissing: true,
+    getFeatureId(f) {
+      return f.id;
+    },
+    onEachFeature(f, l) {
+      l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+      l.bindTooltip(f.properties.name);
+      l.setIcon(facilityIcon);
+      l.setZIndexOffset(-150);
+    },
+  });
+  realtime.on("update", handleUpdateEvent);
+  return realtime;
+}
+
+/** Handle update event for realtime layers
+ * @param {L.realtime}
+ * @returns {void}
+ */
+function handleUpdateEvent(entity) {
+  Object.keys(entity.update).forEach(
+    function (id) {
+      const feature = entity.update[id];
+      updateLayer.call(this, id, feature);
+    }.bind(this)
+  );
+}
+
+/** Update layer
+ * @param {string} id - id of layer to update
+ * @param {L.feature}
+ * @returns {void}
+ */
+function updateLayer(id, feature) {
+  const layer = this.getLayer(id);
+  const wasOpen = layer.getPopup().isOpen();
+  layer.unbindPopup();
+
+  if (wasOpen) layer.closePopup();
+
+  layer.bindPopup(feature.properties.popupContent, {
+    maxWidth: "auto",
+  });
+
+  if (wasOpen) layer.openPopup();
+}
+
+/** Get base layer dictionary
+ * @summary Get base layer dictionary
+ * @param {string} lightId - id of light layer
+ * @param {string} darkId - id of dark layer
+ * @param {object} additionalLayers - additional layers to add to dictionary
+ * @returns {object} - base layer dictionary
+ */
+function getBaseLayerDict(
+  lightId = "CartoDB.Positron",
+  darkId = "CartoDB.DarkMatter",
+  additionalLayers = {}
+) {
+  const baseLayers = {
+    Light: L.tileLayer.provider(lightId),
+    Dark: L.tileLayer.provider(darkId),
+  };
+
+  for (const [key, value] of Object.entries(additionalLayers)) {
+    baseLayers[key] = L.tileLayer.provider(value);
+  }
+
+  return baseLayers;
 }

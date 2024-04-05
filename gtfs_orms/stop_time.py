@@ -6,8 +6,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import ForeignKey, Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
 
 from helper_functions import *
 
@@ -24,27 +24,26 @@ class StopTime(GTFSBase):
     __tablename__ = "stop_times"
     __filename__ = "stop_times.txt"
 
-    trip_id: str = mapped_column(
-        String,
+    trip_id: Mapped[str] = mapped_column(
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    arrival_time: Optional[str] = mapped_column(String)
-    departure_time: Optional[str] = mapped_column(String)
-    stop_id: Optional[str] = mapped_column(
-        String, ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
+    arrival_time: Mapped[Optional[str]]
+    departure_time: Mapped[Optional[str]]
+    stop_id: Mapped[Optional[str]] = mapped_column(
+        ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    stop_sequence: Optional[int] = mapped_column(Integer, primary_key=True)
-    stop_headsign: Optional[str] = mapped_column(String)
-    pickup_type: Optional[str] = mapped_column(String)
-    drop_off_type: Optional[str] = mapped_column(String)
-    timepoint: Optional[str] = mapped_column(String)
-    checkpoint_id: Optional[str] = mapped_column(String)
-    continuous_pickup: Optional[str] = mapped_column(String)
-    continuous_drop_off: Optional[str] = mapped_column(String)
+    stop_sequence: Mapped[Optional[int]] = mapped_column(primary_key=True)
+    stop_headsign: Mapped[Optional[str]]
+    pickup_type: Mapped[Optional[str]]
+    drop_off_type: Mapped[Optional[str]]
+    timepoint: Mapped[Optional[str]]
+    checkpoint_id: Mapped[Optional[str]]
+    continuous_pickup: Mapped[Optional[str]]
+    continuous_drop_off: Mapped[Optional[str]]
 
-    stop: "Stop" = relationship("Stop", back_populates="stop_times")
-    trip: "Trip" = relationship("Trip", back_populates="stop_times")
+    stop: Mapped["Stop"] = relationship(back_populates="stop_times")
+    trip: Mapped["Trip"] = relationship(back_populates="stop_times")
 
     @reconstructor
     def _init_on_load_(self):
@@ -54,8 +53,8 @@ class StopTime(GTFSBase):
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
         self.departure_seconds = to_seconds(self.departure_time)
         self.arrival_seconds = to_seconds(self.arrival_time)
-        self.unix_departure_time = self.departure_seconds + get_date().timestamp()
-        self.unix_arrival_time = self.arrival_seconds + get_date().timestamp()
+        self.departure_timestamp = self.departure_seconds + get_date().timestamp()
+        self.arrival_timestamp = self.arrival_seconds + get_date().timestamp()
 
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop"""

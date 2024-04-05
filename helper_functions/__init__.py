@@ -6,4 +6,3 @@ GTFS package. They are kept here to avoid code duplication."""
 from .decorators import classproperty, removes_session, timeit
 from .df_unpack import df_unpack, list_unpack
 from .gtfs_helper_time_functions import *
-from .string_ops import shorten

@@ -4,8 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytz
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -21,25 +20,25 @@ class Calendar(GTFSBase):
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
-    service_id: str = mapped_column("service_id", String, primary_key=True)
-    monday: int = mapped_column("monday", Integer)
-    tuesday: int = mapped_column("tuesday", Integer)
-    wednesday: int = mapped_column("wednesday", Integer)
-    thursday: int = mapped_column("thursday", Integer)
-    friday: int = mapped_column("friday", Integer)
-    saturday: int = mapped_column("saturday", Integer)
-    sunday: int = mapped_column("sunday", Integer)
-    start_date: str = mapped_column("start_date", String)
-    end_date: str = mapped_column("end_date", String)
+    service_id: Mapped[str] = mapped_column(primary_key=True)
+    monday: Mapped[int]
+    tuesday: Mapped[int]
+    wednesday: Mapped[int]
+    thursday: Mapped[int]
+    friday: Mapped[int]
+    saturday: Mapped[int]
+    sunday: Mapped[int]
+    start_date: Mapped[str]
+    end_date: Mapped[str]
 
-    calendar_dates: list["CalendarDate"] = relationship(
-        "CalendarDate", back_populates="calendar", passive_deletes=True
+    calendar_dates: Mapped[list["CalendarDate"]] = relationship(
+        back_populates="calendar", passive_deletes=True
     )
-    calendar_attributes: list["CalendarAttribute"] = relationship(
-        "CalendarAttribute", back_populates="calendar", passive_deletes=True
+    calendar_attributes: Mapped[list["CalendarAttribute"]] = relationship(
+        back_populates="calendar", passive_deletes=True
     )
-    trips: list["Trip"] = relationship(
-        "Trip", back_populates="calendar", passive_deletes=True
+    trips: Mapped[list["Trip"]] = relationship(
+        back_populates="calendar", passive_deletes=True
     )
 
     @reconstructor

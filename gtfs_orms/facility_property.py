@@ -2,8 +2,8 @@
 
 from typing import TYPE_CHECKING, override
 
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -17,21 +17,17 @@ class FacilityProperty(GTFSBase):  # pylint: disable=too-few-public-methods
     __tablename__ = "facilities_properties"
     __filename__ = "facilities_properties.txt"
 
-    facility_id: str = mapped_column(
-        "facility_id",
-        String,
+    facility_id: Mapped[str] = mapped_column(
         ForeignKey("facilities.facility_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    property_id: str = mapped_column("property_id", String, primary_key=True)
-    value: str = mapped_column("value", String, primary_key=True)
+    property_id: Mapped[str] = mapped_column(primary_key=True)
+    value: Mapped[str] = mapped_column(primary_key=True)
 
-    facility: "Facility" = relationship(
-        "Facility", back_populates="facility_properties"
-    )
+    facility: Mapped["Facility"] = relationship(back_populates="facility_properties")
 
     @override
-    def as_dict(self, *args, **kwargs):
+    def as_dict(self, *args, **kwargs):  # pylint: disable=unused-argument
         """Return the facility property as a dictionary \
         (useful for JSON serialization).
         

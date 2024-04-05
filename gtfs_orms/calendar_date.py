@@ -2,8 +2,8 @@
 
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .gtfs_base import GTFSBase
 
@@ -17,14 +17,12 @@ class CalendarDate(GTFSBase):  # pylint: disable=too-few-public-methods
     __tablename__ = "calendar_dates"
     __filename__ = "calendar_dates.txt"
 
-    service_id: str = mapped_column(
-        "service_id",
-        String,
+    service_id: Mapped[str] = mapped_column(
         ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    date: str = mapped_column("date", String, primary_key=True)
-    exception_type: Optional[str] = mapped_column("exception_type", String)
-    holiday_name: Optional[str] = mapped_column("holiday_name", String)
+    date: Mapped[str] = mapped_column(primary_key=True)
+    exception_type: Mapped[Optional[str]]
+    holiday_name: Mapped[Optional[str]]
 
-    calendar: "Calendar" = relationship("Calendar", back_populates="calendar_dates")
+    calendar: Mapped["Calendar"] = relationship(back_populates="calendar_dates")

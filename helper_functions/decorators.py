@@ -40,6 +40,7 @@ def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
                 attr = getattr(arg, attr_name)
                 if isinstance(attr, scoped_session):
                     attr.remove()
+                    return res
         return res
 
     return _removes_session
@@ -75,7 +76,7 @@ class classproperty(property):  # pylint: disable=invalid-name
     Args:
         - `property (property)`: property to wrap. \n
     Returns:
-        `property`: Wrapped property."""
+        - `property`: Wrapped property."""
 
     def __get__(self, owner_self: object, owner_cls: object):
         return self.fget(owner_cls)

@@ -2,8 +2,8 @@
 
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import ForeignKey, Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import mapped_column, reconstructor, relationship, Mapped
 
 from .gtfs_base import GTFSBase
 
@@ -24,32 +24,31 @@ class Route(GTFSBase):
     __tablename__ = "routes"
     __filename__ = "routes.txt"
 
-    route_id: str = mapped_column(String, primary_key=True)
-    agency_id: Optional[str] = mapped_column(
-        String, ForeignKey("agencies.agency_id", ondelete="CASCADE", onupdate="CASCADE")
+    route_id: Mapped[str] = mapped_column(primary_key=True)
+    agency_id: Mapped[str] = mapped_column(
+        ForeignKey("agencies.agency_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    route_short_name: Optional[str] = mapped_column(String)
-    route_long_name: Optional[str] = mapped_column(String)
-    route_desc: Optional[str] = mapped_column(String)
-    route_type: Optional[str] = mapped_column(String)
-    route_url: Optional[str] = mapped_column(String)
-    route_color: Optional[str] = mapped_column(String)
-    route_text_color: Optional[str] = mapped_column(String)
-    route_sort_order: Optional[int] = mapped_column(Integer)
-    route_fare_class: Optional[str] = mapped_column(String)
-    line_id: Optional[str] = mapped_column(String)
-    listed_route: Optional[str] = mapped_column(String)
-    network_id: Optional[str] = mapped_column(String)
+    route_short_name: Mapped[Optional[str]]
+    route_long_name: Mapped[Optional[str]]
+    route_desc: Mapped[Optional[str]]
+    route_type: Mapped[Optional[str]]
+    route_url: Mapped[Optional[str]]
+    route_color: Mapped[Optional[str]]
+    route_text_color: Mapped[Optional[str]]
+    route_sort_order: Mapped[int]
+    route_fare_class: Mapped[Optional[str]]
+    line_id: Mapped[Optional[str]]
+    listed_route: Mapped[Optional[str]]
+    network_id: Mapped[Optional[str]]
 
-    agency: "Agency" = relationship("Agency", back_populates="routes")
-    multi_route_trips: list["MultiRouteTrip"] = relationship(
-        "MultiRouteTrip", back_populates="route", passive_deletes=True
+    agency: Mapped["Agency"] = relationship(back_populates="routes")
+    multi_route_trips: Mapped[list["MultiRouteTrip"]] = relationship(
+        back_populates="route", passive_deletes=True
     )
-    trips: list["Trip"] = relationship(
-        "Trip", back_populates="route", passive_deletes=True
+    trips: Mapped[list["Trip"]] = relationship(
+        back_populates="route", passive_deletes=True
     )
-    all_trips: list["Trip"] = relationship(
-        "Trip",
+    all_trips: Mapped[list["Trip"]] = relationship(
         primaryjoin="""or_(
             foreign(Trip.route_id)==Route.route_id, 
             and_(Trip.trip_id==remote(MultiRouteTrip.trip_id), 
@@ -57,20 +56,17 @@ class Route(GTFSBase):
             )""",
         viewonly=True,
     )
-    predictions: list["Prediction"] = relationship(
-        "Prediction",
+    predictions: Mapped[list["Prediction"]] = relationship(
         back_populates="route",
         primaryjoin="foreign(Prediction.route_id)==Route.route_id",
         viewonly=True,
     )
-    vehicles: list["Vehicle"] = relationship(
-        "Vehicle",
+    vehicles: Mapped[list["Vehicle"]] = relationship(
         back_populates="route",
         primaryjoin="foreign(Vehicle.route_id)==Route.route_id",
         viewonly=True,
     )
-    alerts: list["Alert"] = relationship(
-        "Alert",
+    alerts: Mapped[list["Alert"]] = relationship(
         back_populates="route",
         primaryjoin="foreign(Alert.route_id)==Route.route_id",
         viewonly=True,
