@@ -25,7 +25,7 @@ class Prediction(GTFSBase):
     prediction_id: Mapped[str]
     arrival_time: Mapped[Optional[int]]
     departure_time: Mapped[Optional[int]]
-    direction_id: Mapped[Optional[str]]
+    direction_id: Mapped[Optional[int]]
     stop_sequence: Mapped[Optional[int]]
     route_id: Mapped[Optional[str]]
     stop_id: Mapped[Optional[str]]
@@ -61,28 +61,13 @@ class Prediction(GTFSBase):
         uselist=False,
     )
 
-    @property
-    def delay(self) -> int:
-        """Returns the delay of the prediction.
-
-        Returns:
-            - `int`: the delay of the prediction
-        """
-        if not self.stop_time:
-            return 0
-        if self.departure_time and self.stop_time.departure_timestamp:
-            return self.departure_time - self.stop_time.departure_timestamp
-        if self.arrival_time and self.stop_time.arrival_seconds:
-            return self.arrival_time - self.stop_time.arrival_timestamp
-        return 0
-
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.stop_sequence = self.stop_sequence or 0
         self.stop_name = self.stop.stop_name
-        self.comp_delay = self.delay
+        self.delay = self._delay
 
     def __lt__(self, other: "Prediction") -> bool:
         """Implements less than operator.
@@ -107,3 +92,18 @@ class Prediction(GTFSBase):
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
         return self.stop_sequence == other.stop_sequence
+
+    @property
+    def _delay(self) -> int:
+        """Returns the delay of the prediction.
+
+        Returns:
+            - `int`: the delay of the prediction
+        """
+        if not self.stop_time:
+            return 0
+        if self.departure_time and self.stop_time.departure_timestamp:
+            return self.departure_time - self.stop_time.departure_timestamp
+        if self.arrival_time and self.stop_time.arrival_seconds:
+            return self.arrival_time - self.stop_time.arrival_timestamp
+        return 0

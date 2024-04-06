@@ -1,6 +1,7 @@
 """Main file for the project. Run this to start the backend of the project. \\
     User must produce the WSGI application using the create_default_app function."""
 
+import json
 import argparse
 import logging
 import os
@@ -21,6 +22,10 @@ KEY_DICT: dict[str, tuple[str]] = {
     "FERRY": ("4",),
     "ALL_ROUTES": ("0", "1", "2", "4"),
 }
+
+with open("content.json", "r", encoding="utf-8") as file:
+    CONTENT_DICT: dict[str, dict[str, str]] = json.load(file)
+
 FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
 
 
@@ -40,7 +45,11 @@ def create_app(key: str, proxies: int = 5) -> Flask:
 
         returns:
             - `str`: map.html"""
-        return render_template("map.html")
+        return render_template(
+            "map.html",
+            navbar_content={k: v for k, v in CONTENT_DICT.items() if k != "ALL_ROUTES"},
+            **CONTENT_DICT[key],
+        )
 
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
@@ -138,7 +147,11 @@ def create_default_app(proxies: int = 5) -> Flask:
     @_app.route("/")
     def index():
         """Returns index.html."""
-        return render_template("index.html")
+
+        return render_template(
+            "index.html",
+            content={k: v for k, v in CONTENT_DICT.items() if k != "ALL_ROUTES"},
+        )
 
     @timeit
     @_app.route("/api/<orm_name>")

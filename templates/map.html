@@ -6,49 +6,29 @@
       name="viewport"
       content="width=device-width, initial-scale=0.9, maximum-scale=1.0, user-scalable=no"
     />
-    <meta name="description" content="MBTA's realtime map of a route." />
+    <meta name="description" content="{{ description }}" />
     <meta name="keywords" content="MBTA, Realtime, Map" />
     <meta name="author" content="Johan Cho" />
-    <title>MBTA System Map</title>
+    <title>{{ title }}</title>
 
-    <meta property="og:title" content="MBTA System Map" />
+    <meta property="og:title" content="{{ title }}" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mbtamapper.com/" />
-    <meta
-      property="og:image"
-      content="{{ url_for('static', filename='img/all_routes.png') }}"
-    />
-    <meta property="og:description" content="MBTA realtime map of a route." />
+    <meta property="og:image" content="{{ image }}" />
+    <meta property="og:description" content="{{ description }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@tandywastaken" />
     <meta name="twitter:creator" content="@tandywastaken" />
     <meta name="twitter:title" content="MBTA System Map" />
-    <meta name="twitter:description" content="MBTA realtime map of a route." />
-    <meta
-      name="twitter:image"
-      content="https://mbtamapper.com/static/img/mbta.png"
-    />
+    <meta name="twitter:description" content="{{ description }}" />
+    <meta name="twitter:image" content="{{ image }}" />
     <meta name="twitter:url" content="https://mbtamapper.com/" />
 
     <!-- icons -->
-
-    <link
-      rel="icon"
-      href="{{ url_for('static', filename='img/all_routes.ico') }}"
-    />
-
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="https://mbtamapper.com/static/img/mbta.ico"
-    />
-
-    <link
-      rel="shortcut_icon"
-      sizes="180x180"
-      href="https://mbtamapper.com/static/img/mbta.ico"
-    />
+    <link rel="icon" href="{{ icon }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ icon }}" />
+    <link rel="shortcut_icon" sizes="180x180" href="{{ icon }}" />
 
     <!-- Leaflet -->
     <link
@@ -89,11 +69,9 @@
     />
     <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
 
+    <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
+
     <!-- Custom CSS -->
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/popup.css') }}"
-    />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
@@ -119,19 +97,15 @@
         <div class="menu-button"></div>
       </label>
       <ul class="menu">
-        <li id="subway"><a href="../subway">Subway</a></li>
-        <li id="rapid_transit"><a href="../rapid_transit">Rapid Transit</a></li>
-        <li id="commuter_rail"><a href="../commuter_rail">Commuter Rail</a></li>
-        <li id="bus"><a href="../bus">Bus</a></li>
-        <li id="ferry"><a href="../ferry">Ferry</a></li>
+        {% for key, value in navbar_content.items() %}
+        <li id="{{ key | lower }}">
+          <a href="../{{ key | lower }}">{{ value.display_name }}</a>
+        </li>
+        {% endfor %}
       </ul>
     </nav>
     <div id="map"></div>
     <noscript>This page requires Javascript to be enabled.</noscript>
-    <script
-      src="{{ url_for('static', filename='js/map.js') }}"
-      async
-      defer
-    ></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   </body>
 </html>

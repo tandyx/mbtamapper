@@ -18,11 +18,11 @@
       name="description"
       content="Portfolio for a northeastern university industrial engineering student who's interested in data science"
     />
-    <link rel="icon" href="/src/img/lucario.ico" type="image/x-icon" />
+    <link rel="icon" href="/static/img/all_routes.ico" type="image/x-icon" />
     <title>Johan Cho</title>
 
     <meta property="og:url" content="https://johan-cho.github.io" />
-    <meta property="og:image" content="/src/img/lucario.jpg" />
+    <meta property="og:image" content="/static/img/mbta.png" />
     <meta property="og:description" content="my portfolio" />
     <meta property="og:title" content="Johan Cho" />
     <!-- <meta property="og:site_name" content="johan cho's portfolio" /> -->
@@ -45,41 +45,16 @@
       <hr />
 
       <table>
+        {% for key, value in content.items() %}
         <tr>
-          <td class="button_base subway">
-            <a class="fa" href="/subway">
-              &#xf239; &nbsp; <span class="montserrat">subway</span></a
+          <td class="button_base {{ key | lower }}">
+            <a class="fa" href="/{{ key | lower }}">
+              &#{{ value.fa_unicode }}; &nbsp;
+              <span class="montserrat">{{ value.display_name }}</span></a
             >
           </td>
         </tr>
-        <tr>
-          <td class="button_base rapid_transit">
-            <a class="fa" href="/rapid_transit">
-              &#xf239; &nbsp; <span class="montserrat">"rapid" transit</span></a
-            >
-          </td>
-        </tr>
-        <tr>
-          <td class="button_base commuter_rail">
-            <a class="fa" href="/commuter_rail">
-              &#xf238; &nbsp; <span class="montserrat">commuter rail</span></a
-            >
-          </td>
-        </tr>
-        <tr>
-          <td class="button_base bus">
-            <a class="fa" href="/bus">
-              &#xf207; &nbsp; <span class="montserrat">bus</span></a
-            >
-          </td>
-        </tr>
-        <tr>
-          <td class="button_base ferry">
-            <a class="fa" href="/ferry">
-              &#xf21a; &nbsp; <span class="montserrat">ferry</span></a
-            >
-          </td>
-        </tr>
+        {% endfor %}
       </table>
 
       <div class="footer">

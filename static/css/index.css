@@ -211,41 +211,6 @@ h1 {
   margin-left: -2px !important;
 }
 
-.table,
-.table tr,
-.table td,
-.table th {
-  border: 1px;
-  width: 100%;
-  text-align: left;
-  border-radius: 0px;
-  border-color: var(--text-color);
-  border-style: solid;
-  /* table-layout: fixed; */
-  max-height: 150px;
-  font-family: var(--font-family) !important;
-  /* width: 1000% */
-  position: relative;
-  border-collapse: collapse;
-  isolation: isolate;
-}
-
-.table td,
-.table th {
-  margin-right: 5px;
-  padding: 10px;
-  background-clip: padding-box;
-
-  /* width: 10px; */
-  /* text-wrap: balance; */
-  overflow-wrap: break-word;
-}
-
-.table th {
-  position: sticky;
-  top: 0;
-}
-
 .homepage {
   margin-left: auto;
   margin-right: auto;
@@ -314,4 +279,40 @@ h1 {
 .tooltip:hover::after,
 .tooltip:hover::before {
   opacity: 1;
+}
+
+.severe-delay {
+  color: #da291c !important;
+}
+
+.moderate-delay {
+  color: #da7f00 !important;
+}
+
+.slight-delay {
+  color: #ffbe0b !important;
+}
+
+.on-time {
+  color: #007220 !important;
+}
+
+#subway:hover {
+  background-color: var(--subway-color);
+}
+
+#rapid_transit:hover {
+  background-color: var(--rapid-transit-color);
+}
+
+#commuter_rail:hover {
+  background-color: var(--commuter-rail-color);
+}
+
+#bus:hover {
+  background-color: var(--bus-color);
+}
+
+#ferry:hover {
+  background-color: var(--ferry-color);
 }

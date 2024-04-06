@@ -26,7 +26,7 @@ class Vehicle(GTFSBase):
     vehicle_id: Mapped[str] = mapped_column(primary_key=True)
     trip_id: Mapped[Optional[str]]
     route_id: Mapped[Optional[str]]
-    direction_id: Mapped[Optional[str]]
+    direction_id: Mapped[Optional[int]]
     latitude: Mapped[Optional[float]]
     longitude: Mapped[Optional[float]]
     bearing: Mapped[Optional[float]]
@@ -79,36 +79,13 @@ class Vehicle(GTFSBase):
         # pylint: disable=attribute-defined-outside-init
         self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
-        self.speed = self.speed if not self.speed else self.speed * 2.23694
         self.route_color = self.route.route_color if self.route else None
         self.bikes_allowed = self.trip.bikes_allowed == 1 if self.trip else False
-        self.trip_short_name = (
-            self.trip.trip_short_name
-            if self.trip and self.trip.trip_short_name
-            else self.trip_id
-        )
-        self.headsign = (
-            self.trip.trip_headsign
-            if self.trip
-            else max(self.predictions).stop.stop_name if self.predictions else None
-        )
-        self.wheelchair_accessible = bool(
-            self.trip.wheelchair_accessible
-            if self.trip
-            else any(x.stop.wheelchair_boarding for x in self.predictions)
-        )
-
-        self.display_name = (
-            self.trip.trip_short_name
-            if self.trip and self.trip.trip_short_name
-            else (
-                self.route.route_short_name
-                if self.route
-                and (self.route.route_type == "3" or self.route_id.startswith("Green"))
-                and self.route.route_short_name
-                else ""
-            )
-        )
+        self.speed_mph = self._speed_mph
+        self.trip_short_name = self._trip_short_name
+        self.headsign = self._headsign
+        self.wheelchair_accessible = self._wheelchair_accessible
+        self.display_name = self._display_name
 
     def as_point(self) -> Point:
         """Returns vehicle as point."""
@@ -128,3 +105,71 @@ class Vehicle(GTFSBase):
             geometry=self.as_point(),
             properties=self.as_json(*include),
         )
+
+    @property
+    def _speed_mph(self) -> float | None:
+        """Returns speed.
+
+        returns:
+            - `float`: speed
+        """
+        if not self.speed and self.current_status == "STOPPED_AT":
+            return 0
+        if not self.speed:
+            return self.speed
+        return self.speed * 2.23694
+
+    @property
+    def _display_name(self) -> str:
+        """Returns display name.
+
+        returns:
+            - `str`: display name
+        """
+
+        if self.trip and self.trip.trip_short_name:
+            return self.trip.trip_short_name
+        if (
+            self.route
+            and (self.route.route_type == "3" or self.route_id.startswith("Green"))
+            and self.route.route_short_name
+        ):
+            return self.route.route_short_name
+        return ""
+
+    @property
+    def _wheelchair_accessible(self) -> bool:
+        """Returns wheelchair accessible.
+
+        returns:
+            - `bool`: wheelchair accessible
+        """
+        if self.trip:
+            return bool(self.trip.wheelchair_accessible)
+        return any(x.stop.wheelchair_boarding for x in self.predictions)
+
+    @property
+    def _headsign(self) -> str:
+        """Returns headsign.
+
+        returns:
+            - `str`: headsign
+        """
+
+        if self.trip:
+            return self.trip.trip_headsign
+        if self.predictions:
+            return max(self.predictions).stop.stop_name
+        return ""
+
+    @property
+    def _trip_short_name(self) -> str:
+        """Returns trip short name.
+
+        returns:
+            - `str`: trip short name
+        """
+
+        if self.trip and self.trip.trip_short_name:
+            return self.trip.trip_short_name
+        return self.trip_id

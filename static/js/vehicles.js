@@ -15,7 +15,9 @@ function plotVehicles(url, layer) {
       return f.id;
     },
     onEachFeature(f, l) {
-      l.bindPopup(getVehicleText(f.properties), { maxWidth: "auto" });
+      l.bindPopup(getVehicleText(f.properties), {
+        minWidth: 200,
+      });
       l.bindTooltip(f.properties.trip_name || f.id);
       l.setIcon(
         getVehicleIcon(
@@ -33,11 +35,11 @@ function plotVehicles(url, layer) {
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
-        const wasOpen = layer.getPopup().isOpen();
+        const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
-        layer.bindPopup(getVehicleText(layer.properties), {
-          maxWidth: "auto",
+        layer.bindPopup(getVehicleText(feature.properties), {
+          minWidth: 200,
         });
         layer.setIcon(
           getVehicleIcon(
@@ -113,6 +115,8 @@ function getVehicleIcon(bearing, color, displayString = null) {
 const DIRECTION_MAPPER = {
   0: "Outbound",
   1: "Inbound",
+  0.0: "Outbound",
+  1.0: "Inbound",
 };
 
 /**
@@ -124,7 +128,11 @@ function getVehicleText(properties) {
   const vehicleText = document.createElement("div");
   vehicleText.innerHTML = `
   <p>
-  <a href="${properties.route.route_url}" target="_blank" style="color:#${
+  <a href="${
+    properties.route
+      ? properties.route.route_url
+      : "https://mbta.com/schedules/" + self.properties.route_id
+  }" target="_blank" style="color:#${
     properties.route_color
   }" class="popup_header">${properties.trip_short_name}</a></p><p>${
     DIRECTION_MAPPER[properties.direction_id]
@@ -144,13 +152,59 @@ function getVehicleText(properties) {
   if (properties.stop_time) {
     vehicleText.innerHTML += `<p>${almostTitleCase(
       properties.current_status
-    )} ${properties.stop_time.stop_name}</p>`;
-    vehicleText.innerHTML += `<p>delay: ${properties.stop_time.delay} seconds</p>`;
+    )} ${properties.stop_time.stop_name} - ${formatTimestamp(
+      properties.timestamp,
+      "%I:%M %P"
+    )}</p>`;
+    if (properties.next_stop && properties.next_stop.delay !== null) {
+      const delay_minutes = Math.floor(properties.next_stop.delay / 60);
+      if (properties.next_stop.delay >= 900) {
+        vehicleText.innerHTML += `<i class='severe-delay'>${delay_minutes} minutes late</i>`;
+      } else if (properties.next_stop.delay >= 600) {
+        vehicleText.innerHTML += `<i class='moderate-delay'>${delay_minutes} minutes late</i>`;
+      } else if (properties.next_stop.delay >= 300) {
+        vehicleText.innerHTML += `<i class='slight-delay'>${delay_minutes} minutes late</i>`;
+      } else if (delay_minutes === 0) {
+        vehicleText.innerHTML += `<i>on time</i>`;
+      } else {
+        vehicleText.innerHTML += `<i class='on-time'>${Math.abs(
+          delay_minutes
+        )} minutes early</i>`;
+      }
+
+      // vehicleText.innerHTML += `<p>delay: ${properties.next_stop.delay} minutes</p>`;
+    }
   } else if (properties.next_stop) {
     vehicleText.innerHTML += `<p>${almostTitleCase(
       properties.current_status
-    )} ${properties.next_stop.stop_name}</p>`;
+    )} ${properties.next_stop.stop_name} - ${formatTimestamp(
+      properties.timestamp,
+      "%I:%M %P"
+    )}</p>`;
   }
+  if (properties.occupancy_status) {
+    vehicleText.innerHTML += `<p><span class="${
+      properties.occupancy_percentage >= 80
+        ? "severe-delay"
+        : properties.occupancy_percentage >= 40
+        ? "moderate-delay"
+        : ""
+    }">${properties.occupancy_percentage}% occupancy</span></p>`;
+  }
+
+  vehicleText.innerHTML += `<p>${
+    properties.speed_mph != null
+      ? Math.round(properties.speed_mph)
+      : properties.speed_mph
+  } mph</p>`;
+
+  vehicleText.innerHTML += `<div class = "popup_footer">
+    <p>${properties.vehicle_id} @ ${
+    properties.route ? properties.route.route_name : "unknown"
+  }</p>
+    <p>${formatTimestamp(properties.timestamp)}</p>
+    </div>
+  `;
 
   // const header = document.createElement("div");
   // const headerAnchor = document.createElement("a");

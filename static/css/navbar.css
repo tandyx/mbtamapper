@@ -1,7 +1,6 @@
 :root {
   --navbar-height: 50px;
   --grey-accent: #525252;
-  --navbar-background-color: rgb(26, 26, 26);
 }
 
 * {
@@ -19,7 +18,7 @@ nav {
   color: var(--text-color);
   align-items: center;
   justify-content: space-between;
-  background-color: var(--navbar-background-color);
+  background-color: var(--dark-text-color);
   height: var(--navbar-height);
   padding: 1em;
   font-size: 12pt;

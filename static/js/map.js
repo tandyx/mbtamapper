@@ -118,7 +118,7 @@ function createControlLayers(tile_layers, ...layers) {
 function plotStops(url, layer) {
   const stopIcon = L.icon({
     iconUrl: "static/img/mbta.png",
-    iconSize: [15, 15],
+    iconSize: [12, 12],
   });
 
   const realtime = L.realtime(url, {

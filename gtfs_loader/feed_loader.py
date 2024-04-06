@@ -19,8 +19,8 @@ class FeedLoader(Scheduler, Feed):
     """Loads GTFS data into map
 
     Args:
-        url (str): URL of GTFS feed
-        keys (list[str], optional): List of keys to load. Defaults to None.
+        - `url (str)`: URL of GTFS feed
+        - `keys (list[str], optional)`: List of keys to load. Defaults to None.
     """
 
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")

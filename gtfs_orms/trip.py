@@ -38,7 +38,7 @@ class Trip(GTFSBase):
     shape_id: Mapped[Optional[str]] = mapped_column(
         ForeignKey("shapes.shape_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_accessible: Mapped[Optional[str]]
+    wheelchair_accessible: Mapped[Optional[int]]
     trip_route_type: Mapped[Optional[str]]
     route_pattern_id: Mapped[Optional[str]]
     bikes_allowed: Mapped[Optional[int]]

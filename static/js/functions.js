@@ -17,6 +17,63 @@ window.mobileCheck = function () {
   return check;
 };
 
+const strftimeIT = strftime.localize({
+  identifier: "it-IT",
+  days: [
+    "domenica",
+    "lunedi",
+    "martedi",
+    "mercoledi",
+    "giovedi",
+    "venerdi",
+    "sabato",
+  ],
+  shortDays: ["dom", "lun", "mar", "mer", "gio", "ven", "sab"],
+  months: [
+    "gennaio",
+    "febbraio",
+    "marzo",
+    "aprile",
+    "maggio",
+    "giugno",
+    "luglio",
+    "agosto",
+    "settembre",
+    "ottobre",
+    "novembre",
+    "dicembre",
+  ],
+  shortMonths: [
+    "gen",
+    "feb",
+    "mar",
+    "apr",
+    "mag",
+    "giu",
+    "lug",
+    "ago",
+    "set",
+    "ott",
+    "nov",
+    "dic",
+  ],
+  AM: "AM",
+  PM: "PM",
+  am: "am",
+  pm: "pm",
+  formats: {
+    D: "%m/%d/%y",
+    F: "%Y-%m-%d",
+    R: "%H:%M",
+    X: "%T",
+    c: "%a %b %d %X %Y",
+    r: "%I:%M:%S %p",
+    T: "%H:%M:%S",
+    v: "%e-%b-%Y",
+    x: "%D",
+  },
+});
+
 /** Title case a string
  * @param {string} str - string to title case
  * @param {string} split - character to split string on
@@ -103,4 +160,19 @@ function truncateString(str, num, tail = "...") {
     return str;
   }
   return str.slice(0, num) + tail;
+}
+
+/**
+ * formats a timestamp to a locale string
+ * @param {int} timestamp - The timestamp to format
+ * @param {string} strf - The format to format the timestamp to
+ * @returns
+ */
+
+function formatTimestamp(timestamp, strf = null) {
+  const datetime = new Date(timestamp * 1000);
+  if (strf) {
+    return strftimeIT(strf, datetime);
+  }
+  return datetime.toLocaleString();
 }
