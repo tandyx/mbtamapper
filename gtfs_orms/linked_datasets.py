@@ -82,7 +82,7 @@ class LinkedDataset(GTFSBase):
             as a dataframe.
             
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
 
         if self.trip_updates:
@@ -97,7 +97,7 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         feed_entity = FeedMessage()
         response = rq.get(self.url, timeout=10)
@@ -120,10 +120,10 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Args:
-            dataframe: The dataframe to post process.
-            rename_dict: The dictionary to rename the columns.
+            - `dataframe`: The dataframe to post process.
+            - `rename_dict`: The dictionary to rename the columns.\n
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         if not self.trip_updates:
             dataframe.drop_duplicates("id", inplace=True)
@@ -142,7 +142,7 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
         for col in (
@@ -165,7 +165,7 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
 
         dataframe = self._load_dataframe()
@@ -182,7 +182,7 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(
             self._load_dataframe(),

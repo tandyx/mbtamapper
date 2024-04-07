@@ -31,7 +31,11 @@ class ShapePoint(GTFSBase):
     shape: Mapped["Shape"] = relationship(back_populates="shape_points")
 
     def as_point(self) -> Point:
-        """Returns a shapely Point object of the shape point"""
+        """Returns a shapely Point object of the shape point
+
+        returns:
+            - `Point`: A shapely Point object.
+        """
         return Point(self.shape_pt_lon, self.shape_pt_lat)
 
     def as_feature(self, *include: str) -> Feature:

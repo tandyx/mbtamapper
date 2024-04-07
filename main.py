@@ -282,6 +282,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 
 if __name__ == "__main__":
+    # FEED_LOADER.get_stop_features("SUBWAY", Query("0", "1"))
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     if args.frontend:

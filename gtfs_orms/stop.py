@@ -75,11 +75,30 @@ class Stop(GTFSBase):
     )
 
     routes: Mapped[list["Route"]] = relationship(
-        primaryjoin="Stop.stop_id==StopTime.stop_id",
-        secondary="join(StopTime, Trip, StopTime.trip_id==Trip.trip_id)",
-        secondaryjoin="Trip.route_id==Route.route_id",
-        overlaps="trips,stop_times,route,stop",
+        primaryjoin="and_(Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id))",
+        viewonly=True,
     )
+
+    # all_routes: Mapped[list["Route"]] = relationship(
+    #     # remote_side=[stop_id],
+    #     # foreign_keys=[parent_station],
+    #     primaryjoin="and_(Stop.stop_id==remote(StopTime.stop_id), Stop.stop_id==remote(Stop.parent_station))",
+    #     secondary="stop_times",
+    #     secondaryjoin="and_(StopTime.trip_id==Trip.trip_id, Trip.route_id==Route.route_id)",
+    #     viewonly=True,
+    # )
+
+    # c_via_secondary = relationship("C", secondary="b",
+    #                     primaryjoin="A.b_id == B.id", secondaryjoin="C.id == B.c_id",
+    #                     viewonly=True)
+
+    # SELECT DISTINCT parent_stops.*, routes.* FROM stops as parent_stops
+    # 	INNER JOIN stops ON parent_stops.stop_id = stops.parent_station
+    # 	INNER JOIN stop_times ON stops.stop_id = stop_times.stop_id
+    # 	INNER JOIN trips ON stop_times.trip_id = trips.trip_id
+    # 	INNER JOIN routes ON trips.route_id = routes.route_id
+    # WHERE parent_stops.location_type = 1
+    # ORDER BY parent_stops.stop_id;
 
     @reconstructor
     def _init_on_load_(self):
@@ -90,19 +109,24 @@ class Stop(GTFSBase):
         )
 
     def as_point(self) -> Point:
-        """Returns a shapely Point object of the stop"""
+        """Returns a shapely Point object of the stop
+
+        returns:
+            - `Point`: A shapely Point object of the stop
+        """
         return Point(self.stop_lon, self.stop_lat)
 
-    def return_routes(self) -> set:
-        """Returns a list of routes that stop at this stop"""
-        return sorted(
-            {
-                r
-                for cs in (cs for cs in self.child_stops if cs.location_type == "0")
-                for r in cs.routes
-            },
-            key=lambda x: x.route_type,
-        )
+    def get_routes(self) -> set["Route"]:
+        """Returns a list of routes that stop at this stop
+
+        returns:
+            - `set[Route]`: A set of routes that stop at this stop
+        """
+        if self.location_type == "1":
+            routes = {r for cs in self.child_stops for r in cs.routes}
+        else:
+            routes = set(self.routes)
+        return routes
 
     def as_feature(self, *include: str) -> Feature:
         """Returns stop object as a feature.
@@ -112,7 +136,9 @@ class Stop(GTFSBase):
         Returns:
             - `Feature`: A GeoJSON feature object.
         """
-
+        # routes = self.all_routes
+        properties = self.as_json(*include)
+        properties["routes"] = [r.as_json() for r in self.get_routes()]
         return Feature(
             id=self.stop_id, geometry=self.as_point(), properties=self.as_json(*include)
         )

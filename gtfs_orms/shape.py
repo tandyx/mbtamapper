@@ -37,7 +37,11 @@ class Shape(GTFSBase):
         )
 
     def as_linestring(self) -> LineString:
-        """Return a shapely `LineString` object of the shape"""
+        """Return a shapely `LineString` object of the shape
+
+        returns:
+            - `LineString`: A shapely LineString object.
+        """
 
         return LineString([sp.as_point() for sp in self.sorted_points])
 

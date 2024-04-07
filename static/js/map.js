@@ -49,7 +49,7 @@ function createMap(id, route_type) {
   let parking_lots = L.layerGroup();
   parking_lots.name = "Parking Lots";
 
-  plotStops(`/${route_type.toLowerCase()}/api/stop`, stop_layer);
+  plotStops(`/static/geojsons/${route_type}/stops.json`, stop_layer);
   plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer);
   plotVehicles(
     `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
@@ -107,39 +107,6 @@ function createControlLayers(tile_layers, ...layers) {
   );
 
   return [locateControl, controlSearch, layerControl];
-}
-
-/** Plot stops on map in realtime, updating every hour
- * @param {string} url - url to geojson
- * @param {L.layerGroup} layer - layer to plot stops on
- * @returns {L.realtime} - realtime layer
- */
-
-function plotStops(url, layer) {
-  const stopIcon = L.icon({
-    iconUrl: "static/img/mbta.png",
-    iconSize: [12, 12],
-  });
-
-  const realtime = L.realtime(url, {
-    interval: 3600000,
-    type: "FeatureCollection",
-    container: layer,
-    cache: true,
-    removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
-    onEachFeature(f, l) {
-      l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-      l.bindTooltip(f.id);
-      l.setIcon(stopIcon);
-      l.setZIndexOffset(-100);
-    },
-  });
-
-  realtime.on("update", handleUpdateEvent);
-  return realtime;
 }
 /** Plot shapes on map in realtime, updating every hour
  * @param {string} url - url to geojson
@@ -205,38 +172,6 @@ function plotFacilities(url, layer) {
   });
   realtime.on("update", handleUpdateEvent);
   return realtime;
-}
-
-/** Handle update event for realtime layers
- * @param {L.realtime}
- * @returns {void}
- */
-function handleUpdateEvent(entity) {
-  Object.keys(entity.update).forEach(
-    function (id) {
-      const feature = entity.update[id];
-      updateLayer.call(this, id, feature);
-    }.bind(this)
-  );
-}
-
-/** Update layer
- * @param {string} id - id of layer to update
- * @param {L.feature}
- * @returns {void}
- */
-function updateLayer(id, feature) {
-  const layer = this.getLayer(id);
-  const wasOpen = layer.getPopup().isOpen();
-  layer.unbindPopup();
-
-  if (wasOpen) layer.closePopup();
-
-  layer.bindPopup(feature.properties.popupContent, {
-    maxWidth: "auto",
-  });
-
-  if (wasOpen) layer.openPopup();
 }
 
 /** Get base layer dictionary

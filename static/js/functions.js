@@ -168,11 +168,42 @@ function truncateString(str, num, tail = "...") {
  * @param {string} strf - The format to format the timestamp to
  * @returns
  */
-
 function formatTimestamp(timestamp, strf = null) {
   const datetime = new Date(timestamp * 1000);
   if (strf) {
     return strftimeIT(strf, datetime);
   }
   return datetime.toLocaleString();
+}
+
+/** Handle update event for realtime layers
+ * @param {L.realtime} entity - realtime layer to update
+ * @returns {void}
+ */
+function handleUpdateEvent(entity) {
+  Object.keys(entity.update).forEach(
+    function (id) {
+      const feature = entity.update[id];
+      updateLayer.call(this, id, feature);
+    }.bind(this)
+  );
+}
+
+/** Update layer
+ * @param {string} id - id of layer to update
+ * @param {L.feature}
+ * @returns {void}
+ */
+function updateLayer(id, feature) {
+  const layer = this.getLayer(id);
+  const wasOpen = layer.getPopup().isOpen();
+  layer.unbindPopup();
+
+  if (wasOpen) layer.closePopup();
+
+  layer.bindPopup(feature.properties.popupContent, {
+    maxWidth: "auto",
+  });
+
+  if (wasOpen) layer.openPopup();
 }
