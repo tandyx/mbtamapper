@@ -82,13 +82,21 @@ class StopTime(GTFSBase):
         return self.stop_sequence == other.stop_sequence
 
     def is_flag_stop(self) -> bool:
-        """Returns true if this StopTime is a flag stop"""
+        """Returns true if this StopTime is a flag stop
+
+        returns:
+            - `bool`: whether the stop is a flag stop
+        """
         return self.trip.route.route_type == "2" and (
             self.pickup_type == "3" or self.drop_off_type == "3"
         )
 
     def is_early_departure(self) -> bool:
-        """Returns true if this StopTime is an early departure stop"""
+        """Returns true if this StopTime is an early departure stop
+
+        returns:
+            - `bool`: whether the stop is an early departure stop
+        """
         return (
             self.trip.route.route_type == "2"
             and self.timepoint == "0"
@@ -96,14 +104,21 @@ class StopTime(GTFSBase):
         )
 
     def is_active(self, date: datetime) -> bool:
-        """Returns true if this StopTime is active on the given date and time"""
+        """Returns true if this StopTime is active on the given date and time
 
+        returns:
+            - `bool`: whether the stop is active on the given date and time
+        """
         return self.trip.calendar.operates_on_date(date) and self.departure_seconds > (
             get_current_time().timestamp() - get_date().timestamp()
         )
 
     def is_destination(self) -> bool:
-        """Returns true if this StopTime is the last stop in the trip"""
+        """Returns true if this StopTime is the last stop in the trip
+
+        returns:
+            - `bool`: whether the stop is the last stop in the trip
+        """
         return self.stop_sequence == max(
             st.stop_sequence for st in self.trip.stop_times
         )

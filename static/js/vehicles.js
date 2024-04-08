@@ -126,6 +126,7 @@ const DIRECTION_MAPPER = {
  */
 function getVehicleText(properties) {
   const vehicleText = document.createElement("div");
+  const formattedTimestamp = formatTimestamp(properties.timestamp, "%I:%M %P");
   vehicleText.innerHTML = `
   <p>
   <a href="${
@@ -150,12 +151,16 @@ function getVehicleText(properties) {
   }
   vehicleText.innerHTML += `</p>`;
   if (properties.stop_time) {
-    vehicleText.innerHTML += `<p>${almostTitleCase(
-      properties.current_status
-    )} ${properties.stop_time.stop_name} - ${formatTimestamp(
-      properties.timestamp,
-      "%I:%M %P"
-    )}</p>`;
+    if (properties.current_status != "STOPPED_AT") {
+      vehicleText.innerHTML += `<p>${almostTitleCase(
+        properties.current_status
+      )} ${properties.stop_time.stop_name} - ${formattedTimestamp}</p>`;
+    } else {
+      vehicleText.innerHTML += `<p>${almostTitleCase(
+        properties.current_status
+      )} ${properties.stop_time.stop_name}`;
+    }
+
     if (properties.next_stop && properties.next_stop.delay !== null) {
       const delay_minutes = Math.floor(properties.next_stop.delay / 60);
       if (properties.next_stop.delay >= 900) {
@@ -175,14 +180,17 @@ function getVehicleText(properties) {
       // vehicleText.innerHTML += `<p>delay: ${properties.next_stop.delay} minutes</p>`;
     }
   } else if (properties.next_stop) {
-    vehicleText.innerHTML += `<p>${almostTitleCase(
-      properties.current_status
-    )} ${properties.next_stop.stop_name} - ${formatTimestamp(
-      properties.timestamp,
-      "%I:%M %P"
-    )}</p>`;
+    if (properties.current_status != "STOPPED_AT") {
+      vehicleText.innerHTML += `<p>${almostTitleCase(
+        properties.current_status
+      )} ${properties.next_stop.stop_name} - ${formattedTimestamp}</p>`;
+    } else {
+      vehicleText.innerHTML += `<p>${almostTitleCase(
+        properties.current_status
+      )} ${properties.next_stop.stop_name}`;
+    }
   }
-  if (properties.occupancy_status) {
+  if (properties.occupancy_status != null) {
     vehicleText.innerHTML += `<p><span class="${
       properties.occupancy_percentage >= 80
         ? "severe-delay"
@@ -205,107 +213,5 @@ function getVehicleText(properties) {
     <p>${formatTimestamp(properties.timestamp)}</p>
     </div>
   `;
-
-  // const header = document.createElement("div");
-  // const headerAnchor = document.createElement("a");
-  // headerAnchor.href = properties.route.route_url;
-  // headerAnchor.target = "_blank";
-  // headerAnchor.classList.add("popup_header");
-  // headerAnchor.style.color = `#${properties.route_color}`;
-  // headerAnchor.textContent = properties.trip_short_name || properties.trip_id;
-  // header.appendChild(headerAnchor);
-  // vehicleText.appendChild(header);
-  // const subHeader = document.createElement("");
-
   return vehicleText;
-
-  // vehicleText.innerHTML = "";
-  // const occu = properties.occupancy_status;
-
-  // if (properties.bikes_allowed) {
-  //   vehicleText.innerHTML += `<p class='tooltip' data-tooltip='bikes allowed'>
-  //   <span class='fa'></span>
-
-  //   </p>`;
-  // }
-
-  // if (occu != null) {
-  //   vehicleText.innerHTML += `<p>Occupancy: <span style="color:${
-  //     occu >= 80 ? "red" : occu >= 40 ? "orange" : "var(--text-color)"
-  //   }">${properties.occupancy_percentage}%</span><p>`;
-  // }
 }
-
-// """Returns vehicle as html for a popup."""
-
-// predicted_html = "".join(p.as_html() for p in self.predictions if p.predicted)
-
-// occupancy = (
-//     f"""Occupancy: <span style="color:{self.__get_occupancy_color()}">{int(self.occupancy_percentage)}%</span></br>"""
-//     if self.occupancy_status
-//     else ""
-// )
-
-// bikes = (
-//     """<div class = "tooltip-mini_image" onmouseover="hoverImage('bikeImg')" onmouseleave="unhoverImage('bikeImg')">"""
-//     """<img src ="static/img/bike.png" alt="bike" class="mini_image" id="bikeImg" >"""
-//     """<span class="tooltiptext-mini_image" >Bikes allowed.</span></div>"""
-//     if self.trip and self.trip.bikes_allowed == 1
-//     else ""
-// )
-// alert = (
-//     """<div class = "popup" onclick="openMiniPopup('alertPopup')">"""
-//     """<span class = 'tooltip-mini_image' onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
-//     """<span class = 'tooltiptext-mini_image' >Show Alerts</span>"""
-//     """<img src ="static/img/alert.png" alt="alert" class="mini_image" id="alertImg" >"""
-//     "</span>"
-//     """<span class="popuptext" id="alertPopup">"""
-//     """<table class = "table">"""
-//     f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
-//     """<td>Alert</td><td>Updated</td></tr>"""
-//     f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
-//     """</span></div>"""
-//     if self.trip and self.trip.alerts
-//     else ""
-// )
-
-// prediction = (
-//     """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
-//     """<span class = 'tooltip-mini_image' onmouseover="hoverImage('predictionImg')" onmouseleave="unhoverImage('predictionImg')">"""
-//     """<span class = 'tooltiptext-mini_image' >Show Predictions</span>"""
-//     """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image" id="predictionImg">"""
-//     "</span>"
-//     """<span class="popuptext" id="predictionPopup" style="width:1850%;">"""
-//     """<table class = "table">"""
-//     f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
-//     """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
-//     f"""{predicted_html}</table>"""
-//     """</span></div>"""
-//     if predicted_html
-//     else ""
-// )
-
-// prd_status = (
-//     self.next_stop_prediction.status_as_html()
-//     if self.next_stop_prediction
-//     else ""
-// )
-
-// return (
-//     f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  class = 'popup_header' style="color:#{self.route.route_color if self.route else ""};">"""
-//     f"""{(self.trip.trip_short_name if self.trip else None) or shorten(self.trip_id)}</a></br>"""
-//     """<body style="color:#ffffff;text-align: left;">"""
-//     f"""{Vehicle.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""
-//     # """<hr/>"""
-//     """—————————————————————————————————</br>"""
-//     f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
-//     f"{self.return_current_status()}"
-//     f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
-//     f"""{occupancy}"""
-//     f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["0", "2"] else "Unknown"} mph</br>"""
-//     # f"""Bearing: {self.bearing}°</br>"""
-//     f"""<span class = "popup_footer">"""
-//     f"""Vehicle: {self.vehicle_id}</br>"""
-//     f"""Route: {f'({self.route.route_short_name}) ' if self.route and self.route.route_type == "3" else ""}{self.route.route_long_name if self.route else self.route_id}</br>"""
-//     f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br></span>"""
-// )
