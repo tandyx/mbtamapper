@@ -12,8 +12,6 @@ from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
 from sqlalchemy.orm import Mapped, mapped_column
 
-from helper_functions import df_unpack
-
 from .gtfs_base import GTFSBase
 
 ALERT_RENAME_DICT = {
@@ -203,3 +201,30 @@ class LinkedDataset(GTFSBase):
         )
         dataframe["timestamp"] = time.time()
         return self._post_process(dataframe, ALERT_RENAME_DICT)
+
+
+def df_unpack(
+    dataframe: pd.DataFrame, columns: list[str], prefix: bool = True
+) -> pd.DataFrame:
+    """Unpacks a column of a dataframe that contains a list of dictionaries. \
+        Returns a dataframe with the unpacked column and the original dataframe\
+        with the packed column removed.
+
+    Args:
+        - `dataframe (pd.DataFrame)`: dataframe to unpack
+        - `columns (list[str])`: columns to unpack.
+        - `prefix (bool, optional)`: whether to add prefix to unpacked columns. \
+            Defaults to True. \n
+    Returns:
+        - `pd.DataFrame`: dataframe with unpacked columns
+    """
+
+    for col in columns:
+        if col not in dataframe.columns:
+            continue
+        exploded = dataframe.explode(col)
+        series = exploded[col].apply(pd.Series)
+        if prefix:
+            series = series.add_prefix(col + "_")
+        dataframe = pd.concat([exploded.drop([col], axis=1), series], axis=1)
+    return dataframe

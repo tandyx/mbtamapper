@@ -19,6 +19,11 @@ window.addEventListener("load", function () {
  * @returns {L.map} map
  */
 function createMap(id, route_type) {
+  const textboxSize = {
+    maxWidth: 200,
+    minWidth: 300,
+  };
+
   const map = L.map(id, {
     minZoom: 9,
     maxZoom: 20,
@@ -49,13 +54,26 @@ function createMap(id, route_type) {
   let parking_lots = L.layerGroup();
   parking_lots.name = "Parking Lots";
 
-  plotStops(`/static/geojsons/${route_type}/stops.json`, stop_layer);
-  plotShapes(`/static/geojsons/${route_type}/shapes.json`, shape_layer);
+  plotStops(
+    `/static/geojsons/${route_type}/stops.json`,
+    stop_layer,
+    textboxSize
+  );
+  plotShapes(
+    `/static/geojsons/${route_type}/shapes.json`,
+    shape_layer,
+    textboxSize
+  );
   plotVehicles(
     `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
-    vehicle_layer
+    vehicle_layer,
+    textboxSize
   );
-  plotFacilities(`/static/geojsons/${route_type}/park.json`, parking_lots);
+  plotFacilities(
+    `/static/geojsons/${route_type}/park.json`,
+    parking_lots,
+    textboxSize
+  );
 
   createControlLayers(
     baseLayers,
@@ -111,11 +129,17 @@ function createControlLayers(tile_layers, ...layers) {
 /** Plot shapes on map in realtime, updating every hour
  * @param {string} url - url to geojson
  * @param {L.layerGroup} layer - layer to plot shapes on
- * @param {boolean} interactive - whether or not to make shapes interactive
+ * @param {object} textboxSize - size of textbox; default: {
+ *         minWidth: 200,
+ *         maxWidth: 300}
  * @returns {L.realtime} - realtime layer
  */
-function plotShapes(url, layer, interactive = true) {
+function plotShapes(url, layer, textboxSize = null) {
   const polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
+  textboxSize = textboxSize || {
+    minWidth: 200,
+    maxWidth: 300,
+  };
 
   const realtime = L.realtime(url, {
     interval: 3600000,
@@ -133,10 +157,8 @@ function plotShapes(url, layer, interactive = true) {
         weight: 1.3,
         renderer: polyLineRender,
       });
-      if (interactive) {
-        l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
-        l.bindTooltip(f.properties.name);
-      }
+      l.bindPopup(f.properties.popupContent, textboxSize);
+      l.bindTooltip(f.properties.name);
     },
   });
 
@@ -146,9 +168,16 @@ function plotShapes(url, layer, interactive = true) {
 /** Plot facilities on map in realtime, updating every hour
  * @param {string} url - url to geojson
  * @param {L.layerGroup} layer - layer to plot facilities on
+ * @param {object} textboxSize - size of textbox; default: {
+ *        minWidth: 200,
+ *        maxWidth: 300}
  * @returns {L.realtime} - realtime layer
  */
-function plotFacilities(url, layer) {
+function plotFacilities(url, layer, textboxSize = null) {
+  textboxSize = textboxSize || {
+    minWidth: 200,
+    maxWidth: 300,
+  };
   const facilityIcon = L.icon({
     iconUrl: "static/img/parking.png",
     iconSize: [15, 15],
@@ -164,7 +193,7 @@ function plotFacilities(url, layer) {
       return f.id;
     },
     onEachFeature(f, l) {
-      l.bindPopup(f.properties.popupContent, { maxWidth: "auto" });
+      l.bindPopup(f.properties.popupContent, textboxSize);
       l.bindTooltip(f.properties.name);
       l.setIcon(facilityIcon);
       l.setZIndexOffset(-150);

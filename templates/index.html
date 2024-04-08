@@ -12,21 +12,25 @@
       content="johan cho, johan, cho, northeastern, industrial engineering, data science, data, science, portfolio, projects, mbtamapper, mbta, mapper, mbta mapper, mbta map, mbta map generator, mbta map maker, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer, mbta map generator, mbta map generator, mbta map maker, mbta map maker, mbta map creator, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer, mbta map generator, mbta map generator, mbta map maker, mbta map maker, mbta map creator, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer, mbta map generator, mbta map generator, mbta map maker, mbta map maker, mbta map creator, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer"
     />
     <meta name="author" content="Johan Cho" />
-    <link rel="canonical" href="https://johan-cho.github.io" />
+    <link rel="canonical" href="https://mbtamapper.com" />
 
-    <meta
-      name="description"
-      content="Portfolio for a northeastern university industrial engineering student who's interested in data science"
+    <meta name="description" content="realtime mapping of the mbta" />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/all_routes.ico') }}"
+      type="image/x-icon"
     />
-    <link rel="icon" href="/static/img/all_routes.ico" type="image/x-icon" />
-    <title>Johan Cho</title>
+    <title>mbtamapper</title>
 
-    <meta property="og:url" content="https://johan-cho.github.io" />
-    <meta property="og:image" content="/static/img/mbta.png" />
-    <meta property="og:description" content="my portfolio" />
-    <meta property="og:title" content="Johan Cho" />
-    <!-- <meta property="og:site_name" content="johan cho's portfolio" /> -->
-    <meta property="og:see_also" content="https://johan-cho.github.io" />
+    <meta property="og:url" content="https://mbtamapper.com" />
+    <meta
+      property="og:image"
+      content="{{ url_for('static', filename='img/mbta.png') }}"
+    />
+    <meta property="og:description" content="realtime mapping of the mbta" />
+    <meta property="og:title" content="mbtamapper" />
+    <!-- <meta property="og:site_name" content="mbtamapper" /> -->
+    <meta property="og:see_also" content="https://mbtamapper.com" />
 
     <link
       rel="stylesheet"
@@ -48,9 +52,9 @@
         {% for key, value in content.items() if not key == "ALL_ROUTES" %}
         <tr>
           <td class="button_base {{ key | lower }}">
-            <a class="fa" href="/{{ key | lower }}">
-              &#{{ value.fa_unicode }}; &nbsp;
-              <span class="montserrat">{{ value.display_name }}</span></a
+            <a href="/{{ key | lower }}">
+              <span class="fa">{{ value.fa_unicode | safe }}</span>
+              &nbsp; {{ value.display_name }}</a
             >
           </td>
         </tr>
@@ -64,7 +68,7 @@
         </div>
         <div class="fa link-wrapper">
           <a
-            href="https://github.com/johan-cho"
+            href="https://github.com/johan-cho/mbtamapper"
             target="_blank"
             rel="noopener"
             class="tooltip"

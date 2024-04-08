@@ -1,7 +1,7 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Generator, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 from .gtfs_base import GTFSBase
 
 if TYPE_CHECKING:
+    from .alert import Alert
     from .prediction import Prediction
     from .route import Route
     from .stop import Stop
@@ -88,7 +89,11 @@ class Vehicle(GTFSBase):
         self.display_name = self._display_name
 
     def as_point(self) -> Point:
-        """Returns vehicle as point."""
+        """Returns vehicle as point.
+
+        returns:
+            - `Point`: vehicle as a point
+        """
         return Point(self.longitude, self.latitude)
 
     def as_feature(self, *include) -> Feature:
@@ -105,6 +110,22 @@ class Vehicle(GTFSBase):
             geometry=self.as_point(),
             properties=self.as_json(*include),
         )
+
+    def get_alerts(self, *orms) -> Generator["Alert", None, None]:
+        """Returns alerts as json.
+
+        args:
+            - `*orms`: list of orms to include in the json\n
+        returns:
+            - `list`: alerts as json
+        """
+
+        for attr in orms:
+            _alerts = getattr(self, attr, None)
+            if not _alerts:
+                continue
+            for al in getattr(_alerts, "alerts", []):
+                yield al
 
     @property
     def _speed_mph(self) -> float | None:

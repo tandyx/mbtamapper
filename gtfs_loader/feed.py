@@ -335,7 +335,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             self.SL_ROUTES if key == "RAPID_TRANSIT" else []
         )
         if key in ("BUS", "ALL_ROUTES"):
-            vehicles_query = vehicles_query.limit(75)
+            vehicles_query = vehicles_query.limit(150)
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
             try:

@@ -6,9 +6,17 @@ const stopIcon = L.icon({
 /** Plot stops on map in realtime, updating every hour
  * @param {string} url - url to geojson
  * @param {L.layerGroup} layer - layer to plot stops on
+ * @param {object} textboxSize - size of textbox; default: {
+         minWidth: 200,
+         maxWidth: 300,
+       }
  * @returns {L.realtime} - realtime layer
  */
-function plotStops(url, layer) {
+function plotStops(url, layer, textboxSize = null) {
+  textboxSize = textboxSize || {
+    minWidth: 200,
+    maxWidth: 300,
+  };
   const realtime = L.realtime(url, {
     interval: 3600000,
     type: "FeatureCollection",
@@ -19,7 +27,7 @@ function plotStops(url, layer) {
       return f.id;
     },
     onEachFeature(f, l) {
-      l.bindPopup(getStopText(f.properties), { maxWidth: "auto" });
+      l.bindPopup(getStopText(f.properties), textboxSize);
       l.bindTooltip(f.id);
       l.setIcon(stopIcon);
       l.setZIndexOffset(-100);
@@ -30,6 +38,11 @@ function plotStops(url, layer) {
   return realtime;
 }
 
+/**
+ *  Get the stop text for the popup
+ * @param {object} properties - properties of the stop
+ * @returns {HTMLElement} - HTML element with stop text
+ */
 function getStopText(properties) {
   const stopHtml = document.createElement("div");
   stopHtml.innerHTML = `<h4>${properties.name}</h4>`;

@@ -1,8 +1,8 @@
 """Main file for the project. Run this to start the backend of the project. \\
     User must produce the WSGI application using the create_default_app function."""
 
-import json
 import argparse
+import json
 import logging
 import os
 from typing import NoReturn

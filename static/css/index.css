@@ -282,19 +282,19 @@ h1 {
 }
 
 .severe-delay {
-  color: #da291c !important;
+  color: var(--rapid-transit-color) !important;
 }
 
 .moderate-delay {
-  color: #da7f00 !important;
+  color: var(--subway-color) !important;
 }
 
 .slight-delay {
-  color: #ffbe0b !important;
+  color: var(--bus-color) !important;
 }
 
 .on-time {
-  color: #007220 !important;
+  color: #00843d !important;
 }
 
 #subway:hover {

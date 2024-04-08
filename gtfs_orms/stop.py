@@ -1,6 +1,7 @@
 """File to hold the Stop class and its associated methods."""
 
 # pylint: disable=line-too-long
+import time
 from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
@@ -138,7 +139,8 @@ class Stop(GTFSBase):
         """
         # routes = self.all_routes
         properties = self.as_json(*include)
-        properties["routes"] = [r.as_json() for r in self.get_routes()]
-        return Feature(
-            id=self.stop_id, geometry=self.as_point(), properties=self.as_json(*include)
-        )
+        properties |= {
+            "routes": [r.as_json() for r in self.get_routes()],
+            "timestamp": time.time(),
+        }
+        return Feature(id=self.stop_id, geometry=self.as_point(), properties=properties)
