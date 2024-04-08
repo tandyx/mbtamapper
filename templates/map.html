@@ -97,7 +97,7 @@
         <div class="menu-button"></div>
       </label>
       <ul class="menu">
-        {% for key, value in navbar_content.items() %}
+        {% for key, value in navbar.items() if not key == "ALL_ROUTES" %}
         <li id="{{ key | lower }}">
           <a href="../{{ key | lower }}">{{ value.display_name }}</a>
         </li>

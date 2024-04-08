@@ -56,7 +56,7 @@
 }
 
 .montserrat {
-  font-family: "montserrat", "Helvetica", sans-serif;
+  font-family: "montserrat", "Helvetica", sans-serif !important;
 }
 
 html,
@@ -315,4 +315,13 @@ h1 {
 
 #ferry:hover {
   background-color: var(--ferry-color);
+}
+
+noscript {
+  color: var(--rapid-transit-color);
+  top: 0;
+  bottom: 0;
+  text-align: center;
+  height: 100%;
+  width: 100%;
 }

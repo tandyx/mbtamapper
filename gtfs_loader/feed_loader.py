@@ -29,8 +29,8 @@ class FeedLoader(Scheduler, Feed):
         """Initializes FeedLoader.
 
         Args:
-            url (str): URL of GTFS feed.
-            keys (list[str]): List of keys to load.
+            - `url (str)`: URL of GTFS feed.
+            - `keys (list[str])`: List of keys to load.
         """
         Scheduler.__init__(self)
         Feed.__init__(self, url)
@@ -47,7 +47,7 @@ class FeedLoader(Scheduler, Feed):
 
     @timeit
     def geojson_exports(self) -> None:
-        """Exports geojsons."""
+        """Exports geojsons all geojsons listed in `cls.keys_dict`"""
         for key, routes in self.keys_dict.items():
             self.export_geojsons(key, routes, __class__.GEOJSON_PATH)
 
@@ -55,7 +55,7 @@ class FeedLoader(Scheduler, Feed):
         """Schedules jobs.
 
         Args:
-            timezone (str, optional): Timezone. Defaults to "America/New_York".
+            - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
         """
         logging.info("Starting scheduler")
 
@@ -74,7 +74,7 @@ class FeedLoader(Scheduler, Feed):
         self.every(2).minutes.do(jobqueue.put, (self.import_realtime, Alert))
         self.every(12).seconds.do(jobqueue.put, (self.import_realtime, Vehicle))
         self.every().minute.do(jobqueue.put, (self.import_realtime, Prediction))
-        # self.every().day.at("03:45", tz=timezone).do(jobqueue.put, self.geojson_exports)
+        self.every().day.at("03:45", tz=timezone).do(jobqueue.put, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(jobqueue.put, self.nightly_import)
 
         worker_thread = threading.Thread(target=worker_main)

@@ -45,7 +45,7 @@
       <hr />
 
       <table>
-        {% for key, value in content.items() %}
+        {% for key, value in content.items() if not key == "ALL_ROUTES" %}
         <tr>
           <td class="button_base {{ key | lower }}">
             <a class="fa" href="/{{ key | lower }}">

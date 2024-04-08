@@ -45,11 +45,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
 
         returns:
             - `str`: map.html"""
-        return render_template(
-            "map.html",
-            navbar_content={k: v for k, v in CONTENT_DICT.items() if k != "ALL_ROUTES"},
-            **CONTENT_DICT[key],
-        )
+        return render_template("map.html", navbar=CONTENT_DICT, **CONTENT_DICT[key])
 
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
@@ -148,10 +144,7 @@ def create_default_app(proxies: int = 5) -> Flask:
     def index():
         """Returns index.html."""
 
-        return render_template(
-            "index.html",
-            content={k: v for k, v in CONTENT_DICT.items() if k != "ALL_ROUTES"},
-        )
+        return render_template("index.html", content=CONTENT_DICT)
 
     @timeit
     @_app.route("/api/<orm_name>")
