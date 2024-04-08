@@ -34,13 +34,12 @@ def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
             logging.error(
                 "Error in %s: %s %s", _func.__name__, err, traceback.format_exc()
             )
-        finally:
-            for arg in args:
-                for attr_name in dir(arg):
-                    attr = getattr(arg, attr_name)
-                    if isinstance(attr, scoped_session):
-                        attr.remove()
-                        break
+        for arg in args:
+            for attr_name in dir(arg):
+                attr = getattr(arg, attr_name)
+                if isinstance(attr, scoped_session):
+                    attr.remove()
+                    return res
         return res
 
     return _removes_session
