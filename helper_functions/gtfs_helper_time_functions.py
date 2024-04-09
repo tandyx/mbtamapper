@@ -11,7 +11,8 @@ def to_seconds(time: str) -> int:
     Args:
         - `time (str)`: A string in HH:MM:SS format
     Returns:
-        - `int`: The number of seconds past midnight"""
+        - `int`: The number of seconds past midnight
+    """
 
     hours, minutes, seconds = time.split(":")
     return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
@@ -21,10 +22,11 @@ def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
     """Returns the current date in the given timezone
 
     Args:
-        offset (int, optional): The number of hours to offset the date. Defaults to 0.
-        zone (str, optional): The timezone to return the date in. Defaults to "America/New_York".
+        - `offset (int, optional)`: The number of hours to offset the date. Defaults to 0.
+        - `zone (str, optional)`: The timezone. Defaults to "America/New_York".\n
     Returns:
-        datetime: The current date in the given timezone"""
+        - `datetime`: The current date in the given timezone
+    """
 
     return datetime.now(pytz.timezone(zone)).replace(
         hour=0, minute=0, second=0, microsecond=0
@@ -35,9 +37,10 @@ def get_current_time(offset: int = 0, zone: str = "America/New_York") -> datetim
     """Returns the current time in the given timezone
 
     Args:
-        offset (int, optional): The number of hours to offset the time. Defaults to 0.
-        zone (str, optional): The timezone to return the time in. Defaults to "America/New_York".
+        - `offset (int, optional)`: The number of hours to offset the time. Defaults to 0.
+        - `zone (str, optional)`: The timezone. Defaults to "America/New_York".\n
     Returns:
-        datetime: The current time in the given timezone"""
+        - `datetime`: The current time in the given timezone
+    """
 
     return datetime.now(pytz.timezone(zone)) + timedelta(hours=offset)

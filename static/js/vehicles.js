@@ -104,7 +104,7 @@ function getVehicleIcon(bearing, color, displayString = null) {
   div.classList.add("vehicle_wrapper");
 
   const img = document.createElement("img");
-  img.src = "/static/img/icon.png";
+  img.src = "static/img/icon.png";
   img.alt = "vehicle";
   img.width = 60;
   img.height = 60;

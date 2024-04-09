@@ -249,7 +249,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
     _argparse.add_argument(
         "--host",
-        default="127.0.0.1",
+        default="0.0.0.0",
         help="Host to run the server on.",
     )
 
@@ -281,4 +281,5 @@ if __name__ == "__main__":
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)
-    feed_loader(import_data=args.import_data)
+    else:
+        feed_loader(import_data=args.import_data)

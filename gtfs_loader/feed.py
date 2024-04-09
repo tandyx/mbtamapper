@@ -282,7 +282,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         if key == "RAPID_TRANSIT":
             shape_data += session.execute(
-                self.get_shapes_from_route_query(self.SL_ROUTES).where(
+                self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
@@ -306,11 +306,11 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         session = self.scoped_session()
         facilities: list[tuple[Facility]]
         facilities = session.execute(
-            query_obj.get_facilities_query(["parking-area"])
+            query_obj.get_facilities_query("parking-area")
         ).all()
         if key == "RAPID_TRANSIT":
             facilities += session.execute(
-                Query("3").get_facilities_query(["parking-area"])
+                Query("3").get_facilities_query("parking-area")
             ).all()
         if "4" in query_obj.route_types:
             facilities += session.execute(self.ferry_parking_query).all()
@@ -331,9 +331,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             - `FeatureCollection`: vehicles as FeatureCollection
         """
         session = self.scoped_session()
-        vehicles_query = query_obj.get_vehicles_query(
-            self.SL_ROUTES if key == "RAPID_TRANSIT" else []
-        )
+        if key == "RAPID_TRANSIT":
+            vehicles_query = query_obj.get_vehicles_query(*self.SL_ROUTES)
+        else:
+            vehicles_query = query_obj.get_vehicles_query()
         if key in ("BUS", "ALL_ROUTES"):
             vehicles_query = vehicles_query.limit(150)
         data: list[tuple[Vehicle]] = []

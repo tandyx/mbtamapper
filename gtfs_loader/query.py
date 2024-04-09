@@ -17,10 +17,10 @@ from helper_functions import classproperty
 class Query:
     """
     Class to hold and generate queries. \n
-    Called with Query(r1, r2, ...)
+    Called with `Query(r1, r2, ...)`
 
     Args:
-        route_types (list[str]): list of route_types to query
+        - `*route_types (str)`: list of route_types to query
     """
 
     @classproperty
@@ -29,7 +29,7 @@ class Query:
         Returns a query for ferry parking.
 
         Returns:
-            A query for ferry parking.
+            - `Select`: A query for ferry parking.
         """
         return (
             select(Facility)
@@ -44,10 +44,10 @@ class Query:
         Returns a generic select query for tables.
 
         Args:
-            *orms: tables to query
-            **kwargs: kwargs for select
+            - `*orms`: tables to query
+            - `**kwargs`: kwargs for select\n
         Returns:
-            A generic select query for tables.
+            - `Select`: A generic select query for tables.
         """
         return select(*orms, **kwargs)
 
@@ -56,10 +56,10 @@ class Query:
         """
         Returns a generic delete query for a table.
 
-        Args:
-            orm (DeclarativeMeta): table to query
+        args:
+            - `orm (DeclarativeMeta)`: table to query\n
         Returns:
-            A generic delete query for a table.
+            - `Delete`: A generic delete query for a table.
         """
         return delete(orm)
 
@@ -68,10 +68,10 @@ class Query:
         """
         Returns a generic update query for a table.
 
-        Args:
-            orm (DeclarativeMeta): table to query
-        Returns:
-            A generic update query for a table.
+        args:
+            - `orm (DeclarativeMeta)`: table to query\n
+        returns:
+            - `Update`: A generic update query for a table.
         """
         return update(orm)
 
@@ -83,12 +83,12 @@ class Query:
         Returns a query for active calendars on a date.
 
         Args:
-            date (datetime): date to query
-            specific (bool, optional): whether to query for specific date. \
+            - `date (datetime)`: date to query
+            - `specific (bool, optional)`: whether to query for specific date. \
                 Defaults to False (query for week)
-            days_ahead (int, optional): number of days ahead to query. Defaults to 7.
+            - `days_ahead (int, optional)`: number of days ahead to query. Defaults to 7.\n
         Returns:
-            A query for active calendars on a date.
+            - `Select`: A query for active calendars on a date.
         """
         if specific:
             return (
@@ -162,10 +162,10 @@ class Query:
         Returns a query to delete calendars.
 
         Args:
-            *args: args for get_active_calendars_query
-            **kwargs: kwargs for get_active_calendars_query
+            - `*args`: args for get_active_calendars_query
+            - `**kwargs`: kwargs for get_active_calendars_query \n
         Returns:
-            A query to delete calendars.
+            - `Select`: A query to delete calendars.
         """
 
         return delete(Calendar).where(
@@ -179,14 +179,14 @@ class Query:
         )
 
     @staticmethod
-    def delete_facilities_query(exclude: list[str] = None) -> Delete[DeclarativeMeta]:
+    def delete_facilities_query(*exclude: str) -> Delete[DeclarativeMeta]:
         """Returns a query to delete facilities.
 
         Args:
-            exclude (list[str], optional): list of facility types to exclude.\
-                Defaults to ["parking-area", "bike-storage"].
+            - `*exclude (str)`: list of facility types to exclude.\
+                Defaults to `["parking-area", "bike-storage"]`.
         Returns:
-            A query to delete facilities.
+            - `Select`: A query to delete facilities.
         """
 
         return delete(Facility).where(
@@ -201,15 +201,13 @@ class Query:
         )
 
     @staticmethod
-    def get_shapes_from_route_query(
-        routes: list[str] = None,
-    ) -> Select[DeclarativeMeta]:
+    def get_shapes_from_route_query(*routes: str) -> Select[DeclarativeMeta]:
         """Returns a query for shapes.
 
         Args:
-            routes (list[str], optional): list of routes to query. Defaults to None.
+            - `*routes (str)`: list of routes to query. Defaults to None.\n
         Returns:
-            A query for shapes.
+            - `Select`: A query for shapes.
         """
         base_query = (
             select(Shape)
@@ -225,9 +223,9 @@ class Query:
         """Returns a query for linked dataset.
 
         Args:
-            realtime_name (str): realtime name
+            - `realtime_name (str)`: realtime name\n
         Returns:
-            A query for linked dataset."""
+            - `Select`: A query for linked dataset."""
         return select(LinkedDataset).where(getattr(LinkedDataset, realtime_name))
 
     @staticmethod
@@ -237,9 +235,9 @@ class Query:
         """Returns a query for an item by id.
 
         Args:
-            orm (Type[DeclarativeMeta]): table to query
+            - `orm (Type[DeclarativeMeta])`: table to query \n
         Returns:
-            A query for an item by id.
+            - `Select`: A query for an item by id.
         """
         return select(orm).where(getattr(orm, param) == param_value)
 
@@ -247,7 +245,7 @@ class Query:
         """Initializes Query, called with Query(r1, r2, ...)
 
         Args:
-            route_types (list[str]): list of route_types to query
+            - `*route_types (str)`: list of route_types to query
         """
         self.route_types = route_types or tuple()
         self.trip_query = self.__get_trips_query()
@@ -263,7 +261,7 @@ class Query:
         """Returns a query for trips.
 
         Returns:
-            A query for trips."""
+            - `Select`: A query for trips."""
         return (
             select(Trip)
             .distinct()
@@ -286,7 +284,7 @@ class Query:
         """Returns a query for parent stops.
 
         Returns:
-            A query for parent stops.
+            - `Select`: A query for parent stops.
         """
 
         parent = aliased(Stop)
@@ -303,7 +301,7 @@ class Query:
         """Returns a query for shapes.
 
         Returns:
-            A query for shapes."""
+            - `Select`: A query for shapes."""
         return (
             select(Shape)
             .distinct()
@@ -315,7 +313,7 @@ class Query:
         """Returns a query for routes.
 
         Returns:
-            A query for routes."""
+            - `Select`: A query for routes."""
 
         return (
             select(Route)
@@ -323,16 +321,14 @@ class Query:
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
         )
 
-    def get_vehicles_query(
-        self, add_routes: list[str] = None
-    ) -> Select[DeclarativeMeta]:
+    def get_vehicles_query(self, *add_routes: str) -> Select[DeclarativeMeta]:
         """Returns a query for vehicles.
 
         Args:
-            add_routes (list[str], optional): list of routes to add to query for vehicles. \
-                Defaults to None.
+            - `*add_routes (str, optional)`: list of routes to add to query for vehicles. \
+                Defaults to `None`. \n
         Returns:
-            A query for vehicles.
+            - `Select`: A query for vehicles.
         """
 
         return (
@@ -345,19 +341,19 @@ class Query:
                         select(self.get_routes_query().columns.route_id)
                     ),
                     Vehicle.trip_id.in_(select(self.trip_query.columns.trip_id)),
-                    Vehicle.route_id.in_(add_routes or []),
+                    Vehicle.route_id.in_(add_routes or tuple()),
                 )
             )
         )
 
-    def get_facilities_query(self, types: list[str] = None) -> Select[DeclarativeMeta]:
+    def get_facilities_query(self, *types: str) -> Select[DeclarativeMeta]:
         """Returns a query for parking facilities.
 
         Args:
-            types (list[str]): list of facility types, \
-                default: ("parking-area", "bike-storage")
+            - `*types (str)`: list of facility types, \
+                default: `("parking-area", "bike-storage")`\n
         Returns:
-            A query for parking facilities.
+            - `Select`: A query for parking facilities.
         """
         return (
             select(Facility)

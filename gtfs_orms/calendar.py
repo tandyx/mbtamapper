@@ -58,9 +58,9 @@ class Calendar(GTFSBase):
         """Returns true if the calendar operates on the date
 
         Args:
-            date (datetime): The date to check
+            - `date (datetime)`: The date to check
         Returns:
-            bool: True if the calendar operates on the date
+            - `bool`: True if the calendar operates on the date
         """
         exception = next(
             (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None

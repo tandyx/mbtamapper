@@ -20,7 +20,7 @@ class FeedLoader(Scheduler, Feed):
 
     Args:
         - `url (str)`: URL of GTFS feed
-        - `keys (list[str], optional)`: List of keys to load. Defaults to None.
+        - `keys_dict (dict[str, tuple[str]])`: Dictionary of keys to load
     """
 
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
@@ -30,7 +30,7 @@ class FeedLoader(Scheduler, Feed):
 
         Args:
             - `url (str)`: URL of GTFS feed.
-            - `keys (list[str])`: List of keys to load.
+            - `keys_dict (dict[str, tuple[str]])`: Dictionary of keys to load.
         """
         Scheduler.__init__(self)
         Feed.__init__(self, url)
