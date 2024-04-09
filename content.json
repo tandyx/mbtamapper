@@ -13,7 +13,7 @@
         "icon": "static/img/rapid_transit.ico",
         "image": "static/img/rapid_transit.png",
         "fa_unicode": "&#xf239;",
-        "display_name": "\"rapid transit\""
+        "display_name": "\"rapid\" transit"
     },
     "COMMUTER_RAIL": {
         "title": "commuter rail | mbtamapper",
