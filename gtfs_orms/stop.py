@@ -9,7 +9,7 @@ from shapely.geometry import Point
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .alert import Alert
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from .vehicle import Vehicle
 
 
-class Stop(GTFSBase):
+class Stop(Base):
     """Stop"""
 
     __tablename__ = "stops"

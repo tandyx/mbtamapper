@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .route import Route
     from .trip import Trip
 
 
-class MultiRouteTrip(GTFSBase):  # pylint: disable=too-few-public-methods
+class MultiRouteTrip(Base):  # pylint: disable=too-few-public-methods
     """Multi Route Trip"""
 
     __tablename__ = "multi_route_trips"
@@ -29,3 +29,7 @@ class MultiRouteTrip(GTFSBase):  # pylint: disable=too-few-public-methods
 
     trip: Mapped["Trip"] = relationship(back_populates="multi_route_trips")
     route: Mapped["Route"] = relationship(back_populates="multi_route_trips")
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

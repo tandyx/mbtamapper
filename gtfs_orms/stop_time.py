@@ -11,14 +11,14 @@ from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from helper_functions import *
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .stop import Stop
     from .trip import Trip
 
 
-class StopTime(GTFSBase):
+class StopTime(Base):
     """Stop Times"""
 
     __tablename__ = "stop_times"
@@ -122,3 +122,7 @@ class StopTime(GTFSBase):
         return self.stop_sequence == max(
             st.stop_sequence for st in self.trip.stop_times
         )
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

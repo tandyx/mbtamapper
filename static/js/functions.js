@@ -1,3 +1,7 @@
+/**
+ * @file functions.js - misc utility functions
+ */
+
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
  */
@@ -76,7 +80,7 @@ const strftimeIT = strftime.localize({
 
 /** Title case a string
  * @param {string} str - string to title case
- * @param {string} split - character to split string on
+ * @param {string} split - character to split string on, default `_`
  * @returns {string} - title cased string
  */
 function titleCase(str, split = "_") {
@@ -206,4 +210,41 @@ function updateLayer(id, feature) {
   });
 
   if (wasOpen) layer.openPopup();
+}
+
+/**
+ * Gets the style of a selector from a stylesheet
+ * @param {string} style - The style to get
+ * @param {string} selector - The selector to get the style from
+ * @param {CSSStyleSheet} sheet - The stylesheet to get the style from
+ * @returns {string} - The value of the style
+ * @returns {null} - If the style was not found
+ */
+function getStyleRuleValue(style, selector, sheet = undefined) {
+  const sheets = typeof sheet !== "undefined" ? [sheet] : document.styleSheets;
+  for (const sheet of sheets) {
+    if (!sheet.cssRules) continue;
+    for (const rule of sheet.cssRules) {
+      if (rule.selectorText?.split(",").includes(selector)) {
+        return rule.style[style];
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Gets a stylesheet by name
+ * @param {string} sheetName - The name of the stylesheet to get
+ * @returns {CSSStyleSheet} - The stylesheet
+ * @returns {null} - If the stylesheet was not found
+ * @example getStylesheet("nav");
+ */
+function getStylesheet(sheetName) {
+  for (const sheet of document.styleSheets) {
+    if (sheet.href?.includes(sheetName)) {
+      return sheet;
+    }
+  }
+  return null;
 }

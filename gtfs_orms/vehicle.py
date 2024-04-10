@@ -1,13 +1,13 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING, Generator, Optional
+from typing import TYPE_CHECKING, Generator, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .alert import Alert
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .trip import Trip
 
 
-class Vehicle(GTFSBase):
+class Vehicle(Base):
     """Vehicle"""
 
     __tablename__ = "vehicles"
@@ -96,7 +96,8 @@ class Vehicle(GTFSBase):
         """
         return Point(self.longitude, self.latitude)
 
-    def as_feature(self, *include) -> Feature:
+    @override
+    def as_feature(self, *include: str) -> Feature:
         """Returns vehicle as feature.
 
         args:

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .route import Route
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from .vehicle import Vehicle
 
 
-class Prediction(GTFSBase):
+class Prediction(Base):
     """Prediction"""
 
     __tablename__ = "predictions"
@@ -107,3 +107,7 @@ class Prediction(GTFSBase):
         if self.arrival_time and self.stop_time.arrival_seconds:
             return self.arrival_time - self.stop_time.arrival_timestamp
         return 0
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

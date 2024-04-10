@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .calendar import Calendar
 
 
-class CalendarDate(GTFSBase):  # pylint: disable=too-few-public-methods
+class CalendarDate(Base):  # pylint: disable=too-few-public-methods
     """Calendar Dates"""
 
     __tablename__ = "calendar_dates"
@@ -26,3 +26,7 @@ class CalendarDate(GTFSBase):  # pylint: disable=too-few-public-methods
     holiday_name: Mapped[Optional[str]]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_dates")
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

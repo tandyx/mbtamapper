@@ -1,3 +1,10 @@
+/**
+ * @file vehicles.js - Plot vehicles on map in realtime, updating every 15 seconds
+ */
+
+// import * as L from "leaflet";
+// import * as Plotly from "plotly.js";
+
 const DIRECTION_MAPPER = {
   0: "Outbound",
   1: "Inbound",
@@ -29,20 +36,15 @@ const HEX_TO_CSS = {
 };
 
 /** Plot vehicles on map in realtime, updating every 15 seconds
- * @param {string} url - url to geojson
- * @param {L.layerGroup} layer - layer to plot vehicles on
- * @param {object} textboxSize - size of textbox; default: {
-          minWidth: 200,
-          maxWidth: 300,
-        }
- * @returns {L.realtime} - realtime layer
+ * @param {options} options - options object with the following properties:
+ * @param {string} options.url - url to geojson
+ * @param {L.layerGroup} options.layer - layer to plot vehicles on
+ * @param {object} options.textboxSize - size of textbox; default: {
+ * @param {L.Sidebar} options.sidebar - sidebar object
  */
-function plotVehicles(url, layer, textboxSize = null) {
-  textboxSize = textboxSize || {
-    minWidth: 200,
-    maxWidth: 300,
-  };
-
+// function plotVehicles(url, layer, textboxSize = null) {
+function plotVehicles(options) {
+  const { url, layer, textboxSize, sidebar } = options;
   const realtime = L.realtime(url, {
     // interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
     interval: 15000,
@@ -68,6 +70,7 @@ function plotVehicles(url, layer, textboxSize = null) {
   });
 
   realtime.on("update", function (e) {
+    setVehicleSideBarSummary(sidebar, e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
@@ -167,18 +170,15 @@ function getVehicleText(properties) {
     }
 
     if (properties.next_stop && properties.next_stop.delay !== null) {
-      const delay_minutes = Math.floor(properties.next_stop.delay / 60);
-      if (properties.next_stop.delay >= 900) {
-        vehicleText.innerHTML += `<i class='severe-delay'>${delay_minutes} minutes late</i>`;
-      } else if (properties.next_stop.delay >= 600) {
-        vehicleText.innerHTML += `<i class='moderate-delay'>${delay_minutes} minutes late</i>`;
-      } else if (properties.next_stop.delay >= 300) {
-        vehicleText.innerHTML += `<i class='slight-delay'>${delay_minutes} minutes late</i>`;
-      } else if (delay_minutes === 0) {
+      const delayMinutes = Math.floor(properties.next_stop.delay / 60);
+      const delayClass = getDelayClassName(properties.next_stop.delay);
+      if (delayClass !== "on-time") {
+        vehicleText.innerHTML += `<i class='${delayClass}'>${delayMinutes} minutes late</i>`;
+      } else if (delayMinutes === 0) {
         vehicleText.innerHTML += `<i>on time</i>`;
       } else {
         vehicleText.innerHTML += `<i class='on-time'>${Math.abs(
-          delay_minutes
+          delayMinutes
         )} minutes early</i>`;
       }
 
@@ -219,4 +219,124 @@ function getVehicleText(properties) {
     </div>
   `;
   return vehicleText;
+}
+
+/**
+ *  Set the vehicle sidebar summary
+ * @param {L.sidebar} sidebar - sidebar object
+ * @param {object} data - vehicle data
+ */
+
+function setVehicleSideBarSummary(sidebar, data) {
+  // const sidebar = addSidebar();
+  // const sidebar = addSidebar();
+  // sidebar.innerHTML = "";
+  const summary = document.createElement("div");
+
+  summary.id = "summary";
+  summary.innerHTML = `
+  <h1>Summary</h1>
+  <p>There are ${Object.keys(data).length} vehicles currently on the map.</p>
+  <div id="piechart"></div>
+  `;
+  // createDelayPiechart("piechart",
+  const delayCounts = Object.values(data)
+    .map((properties) => properties.properties.next_stop?.delay)
+    .filter((delay) => delay !== null)
+    .reduce((counts, delay) => {
+      counts[getDelayClassName(delay)] =
+        (counts[getDelayClassName(delay)] || 0) + 1;
+      return counts;
+    }, {});
+  sidebar.addPanel({
+    id: "summary_",
+    tab: "<i class='fa>&#xf05a;</i>",
+    pane: summary,
+  });
+  // sidebar.addPanel({
+  //   id: "ghlink",
+  //   tab: '<i class="fa fa-github"></i>',
+  //   button: "https://github.com/noerw/leaflet-sidebar-v2",
+  // });
+
+  createDelayPiechart("piechart", delayCounts);
+}
+
+/**
+ * gets the delay class name
+ * @param {int} delay - delay in seconds
+ */
+
+function getDelayClassName(delay) {
+  if (delay >= 900) {
+    return "severe-delay";
+  }
+  if (delay >= 600) {
+    return "moderate-delay";
+  }
+  if (delay >= 180) {
+    return "slight-delay";
+  }
+  return "on-time";
+}
+
+/**
+ * creates a pie chart for the delay
+ * @param {string} id - The id of the div to put the pie chart in
+ * @param {Object} properties - The delay properties
+ * @returns {void}
+ */
+function createDelayPiechart(id, properties) {
+  const font = getComputedStyle(document.body).getPropertyValue(
+    "--font-family"
+  );
+  const styleSheet = getStylesheet("index");
+  const data = [
+    {
+      values: Object.values(properties),
+      labels: Object.keys(properties).map((label) => titleCase(label, "-")),
+      textinfo: "label",
+      marker: {
+        colors: Object.keys(properties).map((label) => {
+          const color = getStyleRuleValue("color", `.${label}`, styleSheet);
+          if (color.startsWith("var")) {
+            return getComputedStyle(document.body).getPropertyValue(
+              color.replace("var(", "").replace(")", "") || "#f2f2f2"
+            );
+          }
+          return color;
+        }),
+      },
+      type: "pie",
+      hoverlabel: {
+        borderRadius: 10,
+        font: { family: font, size: 15 },
+      },
+      hovertemplate: "%{label}: %{percent} <extra></extra>",
+      outsidetextfont: { color: "transparent" },
+      responsive: true,
+    },
+  ];
+
+  const layout = {
+    autosize: true,
+    showlegend: false,
+    font: {
+      family: font,
+      size: 15,
+      color: "#f2f2f2",
+    },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    margin: {
+      l: 0,
+      r: 0,
+      b: 0,
+      t: 0,
+      pad: -30,
+    },
+    height: 300,
+  };
+
+  Plotly.newPlot(id, data, layout, { responsive: true });
 }

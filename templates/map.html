@@ -73,9 +73,18 @@
 
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='js/node_modules/leaflet-sidebar/src/L.Control.Sidebar.css' }}"
+      href="{{ url_for('static', filename='node_modules/leaflet-sidebar/src/L.Control.Sidebar.css') }}"
     />
-    <script src="{{ url_for('static', filename='js/node_modules/leaflet-sidebar/src/L.Control.Sidebar.js' }}"></script>
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet-sidebar-v2/js/leaflet-sidebar.min.js') }}"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules/leaflet-sidebar-v2/css/leaflet-sidebar.min.css') }}"
+    />
+
+    <!-- plotly -->
+
+    <script src="{{ url_for('static', filename='node_modules/plotly.js-dist-min/plotly.min.js') }}"></script>
 
     <!-- Custom CSS -->
     <link
@@ -112,6 +121,7 @@
       </ul>
     </nav>
     <div id="map"></div>
+    <div id="sidebar"></div>
     <noscript>This page requires Javascript to be enabled.</noscript>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   </body>

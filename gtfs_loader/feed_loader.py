@@ -51,6 +51,19 @@ class FeedLoader(Scheduler, Feed):
         for key, routes in self.keys_dict.items():
             self.export_geojsons(key, routes, __class__.GEOJSON_PATH)
 
+    def import_and_run(self, import_data: bool = False) -> NoReturn:
+        """this is the main entrypoint for the application.
+
+        Args:
+            - `import_data (bool, optional)`: Whether to import data. Defaults to False.
+        """
+
+        if import_data or not os.path.exists(self.db_path):
+            self.nightly_import()
+        if import_data or not os.path.exists(self.GEOJSON_PATH):
+            self.geojson_exports()
+        self.run()
+
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
 

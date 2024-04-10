@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 # pylint: disable=line-too-long
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .vehicle import Vehicle
 
 
-class Route(GTFSBase):
+class Route(Base):
     """Route"""
 
     __tablename__ = "routes"
@@ -80,3 +80,7 @@ class Route(GTFSBase):
             self.route_url or f"https://www.mbta.com/schedules/{self.route_id}"
         )
         self.route_name = self.route_short_name or self.route_long_name
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

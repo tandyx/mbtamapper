@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .route import Route
 
 
-class Agency(GTFSBase):
+class Agency(Base):
     """Agency"""
 
     __tablename__ = "agencies"
@@ -26,3 +26,7 @@ class Agency(GTFSBase):
     routes: Mapped[list["Route"]] = relationship(
         "Route", back_populates="agency", passive_deletes=True
     )
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

@@ -163,8 +163,8 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         # ------------------------------- Create Tables ------------------------------- #
         self._download_gtfs()
         if purge:
-            GTFSBase.metadata.drop_all(self.engine)
-            GTFSBase.metadata.create_all(self.engine)
+            Base.metadata.drop_all(self.engine)
+            Base.metadata.create_all(self.engine)
         # ------------------------------- Dump Data ------------------------------- #
         for orm in __class__.__schedule_orms__:
             with pd.read_csv(
@@ -352,15 +352,18 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @removes_session
     def to_sql(
-        self, data: pd.DataFrame, orm: Type[GTFSBase], purge: bool = False, **kwargs
+        self, data: pd.DataFrame, orm: Type[Base], purge: bool = False, **kwargs
     ) -> int:
         """Helper function to dump dataframe to sql.
 
         Args:
-            data (pd.DataFrame): dataframe to dump
-            orm (any): table to dump to
-            purge (bool, optional): whether to purge table before dumping. Defaults to False.
-            **kwargs: keyword args to pass to pd.to_sql
+            - `data (pd.DataFrame)`: dataframe to dump
+            - `orm (any)`: table to dump to
+            - `purge (bool, optional)`: whether to purge table before dumping. Defaults to False.
+            - `**kwargs`: keyword args to pass to pd.to_sql
+        returns:
+            - `int`: number of rows added
+
         """
 
         session = self.scoped_session()
@@ -389,8 +392,8 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
     @removes_session
     def get_orm_json(
-        self, _orm: type[GTFSBase], *include, geojson: bool = False, **kwargs
-    ) -> list[dict[str]] | FeatureCollection | None:
+        self, _orm: type[Base], *include, geojson: bool = False, **kwargs
+    ) -> list[dict[str]] | FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
         args:
@@ -403,7 +406,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         session = self.scoped_session()
         # pylint: disable=singleton-comparison
 
-        data = session.execute(
+        data: list[tuple[Base]] = session.execute(
             self.select(_orm).where(
                 *(
                     (

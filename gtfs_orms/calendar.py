@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytz
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .calendar_attribute import CalendarAttribute
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from .trip import Trip
 
 
-class Calendar(GTFSBase):
+class Calendar(Base):
     """Calendar"""
 
     __tablename__ = "calendars"
@@ -71,3 +71,7 @@ class Calendar(GTFSBase):
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

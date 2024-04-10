@@ -5,6 +5,7 @@
 # pylint: disable=unused-wildcard-import
 import logging
 import time
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import requests as rq
@@ -12,7 +13,7 @@ from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -63,7 +64,24 @@ PREDICTION_RENAME_DICT = {
 }
 
 
-class LinkedDataset(GTFSBase):
+if TYPE_CHECKING:
+
+    # pylint: disable=function-redefined
+    class FeedMessage:
+        """`FeedMessage` class for type hinting."""
+
+        # pylint: disable=unused-argument
+        # pylint: disable=too-few-public-methods
+        # pylint: disable=invalid-name
+
+        def __init__(self) -> None:
+            pass
+
+        def ParseFromString(self, data: bytes) -> None:
+            """parses a realtime `FeedMessage` from a byte string"""
+
+
+class LinkedDataset(Base):
     """LinkedDataset"""
 
     __tablename__ = "linked_datasets"
@@ -201,6 +219,10 @@ class LinkedDataset(GTFSBase):
         )
         dataframe["timestamp"] = time.time()
         return self._post_process(dataframe, ALERT_RENAME_DICT)
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 
 
 def df_unpack(

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .alert import Alert
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .vehicle import Vehicle
 
 
-class Trip(GTFSBase):
+class Trip(Base):
     """Trip"""
 
     __tablename__ = "trips"
@@ -73,3 +73,7 @@ class Trip(GTFSBase):
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
     )
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

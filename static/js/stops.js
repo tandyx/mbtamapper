@@ -1,3 +1,7 @@
+/**
+ * @file stops.js - Plot stops on map in realtime, updating every hour
+ */
+
 const stopIcon = L.icon({
   iconUrl: "static/img/mbta.png",
   iconSize: [12, 12],

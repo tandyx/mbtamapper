@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .route import Route
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .trip import Trip
 
 
-class Alert(GTFSBase):
+class Alert(Base):
     """Alerts"""
 
     __tablename__ = "alerts"
@@ -56,3 +56,7 @@ class Alert(GTFSBase):
         """Loads active_period_end and active_period_start as datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.url = self.url or "https://www.mbta.com/"
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

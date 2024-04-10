@@ -3,7 +3,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  overflow: hidden !important;
+  /* height: 100vh; */
   margin: 0;
   padding: 0;
   text-align: center;
@@ -122,6 +123,12 @@
   }
 }
 
+body,
+html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden !important;
+}
 /* body {
   margin: 0;
   padding: 0;
@@ -139,8 +146,13 @@
 
 @media screen and (max-width: 768px) {
   .titlepage {
+    /* top: -50%; */
+
     .mainContainer {
-      border: none;
+      transform: translate(0%, -10%);
+      width: 90%;
+      margin: 0;
+      padding: 0;
     }
   }
 }

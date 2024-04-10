@@ -1,13 +1,13 @@
 """File to hold the Facility class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .facility_property import FacilityProperty
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 # pylint: disable=line-too-long
 
 
-class Facility(GTFSBase):
+class Facility(Base):
     """Facilities"""
 
     __tablename__ = "facilities"
@@ -50,7 +50,8 @@ class Facility(GTFSBase):
         """
         return Point(self.facility_lon, self.facility_lat)
 
-    def as_feature(self, *include) -> Feature:
+    @override
+    def as_feature(self, *include: str) -> Feature:
         """Returns facility object as a feature.
 
         args:

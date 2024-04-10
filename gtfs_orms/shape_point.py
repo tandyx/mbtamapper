@@ -1,19 +1,19 @@
 """File to hold the Calendar class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .shape import Shape
 
 
-class ShapePoint(GTFSBase):
+class ShapePoint(Base):
     """Shape"""
 
     __tablename__ = "shape_points"
@@ -38,6 +38,7 @@ class ShapePoint(GTFSBase):
         """
         return Point(self.shape_pt_lon, self.shape_pt_lat)
 
+    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns shape point object as a feature.
 

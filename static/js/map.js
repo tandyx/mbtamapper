@@ -1,7 +1,9 @@
+/**
+ * @file map.js - main map script
+ */
+
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
-  createMap("map", ROUTE_TYPE);
-
   document.addEventListener("click", function (event) {
     // Check if the clicked element is not inside the navbar
     if (!event.target.closest(".nav")) {
@@ -12,6 +14,7 @@ window.addEventListener("load", function () {
       }
     }
   });
+  createMap("map", ROUTE_TYPE);
 });
 /** map factory function for map.html
  * @param {string} id - id of the map div
@@ -38,6 +41,8 @@ function createMap(id, route_type) {
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers["Dark"].addTo(map);
 
+  const sidebar = addSidebar(map, !window.mobileCheck(), { position: "right" });
+
   let stop_layer = L.layerGroup().addTo(map);
   stop_layer.name = "Stops";
 
@@ -62,11 +67,12 @@ function createMap(id, route_type) {
     shape_layer,
     textboxSize
   );
-  plotVehicles(
-    `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
-    vehicle_layer,
-    textboxSize
-  );
+  plotVehicles({
+    url: `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
+    layer: vehicle_layer,
+    textboxSize: textboxSize,
+    sidebar: sidebar,
+  });
   plotFacilities(
     `/static/geojsons/${route_type}/park.json`,
     parking_lots,
@@ -223,4 +229,15 @@ function getBaseLayerDict(
   }
 
   return baseLayers;
+}
+
+/**
+ * @param {L.map} map - Leaflet map object
+ * @param {boolean} show - Whether to show the sidebar
+ * @param {Object} options - Options for the sidebar
+ */
+function addSidebar(map, show = true, options = {}) {
+  const sidebar = L.control.sidebar(options);
+  if (show) sidebar.addTo(map);
+  return sidebar;
 }

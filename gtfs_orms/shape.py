@@ -1,19 +1,19 @@
 """File to hold the Shape class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from geojson import Feature
 from shapely.geometry import LineString
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
 
 if TYPE_CHECKING:
     from .shape_point import ShapePoint
     from .trip import Trip
 
 
-class Shape(GTFSBase):
+class Shape(Base):
     """Shape"""
 
     __tablename__ = "shapes"
@@ -45,7 +45,8 @@ class Shape(GTFSBase):
 
         return LineString([sp.as_point() for sp in self.sorted_points])
 
-    def as_feature(self, *include) -> Feature:  # pylint: disable=unused-argument
+    @override
+    def as_feature(self, *include: str) -> Feature:  # pylint: disable=unused-argument
         """Returns shape object as a feature.
 
         args:

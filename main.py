@@ -4,8 +4,6 @@
 import argparse
 import json
 import logging
-import os
-from typing import NoReturn
 
 from flask import Flask, jsonify, render_template, request
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -197,20 +195,6 @@ def create_default_app(proxies: int = 5) -> Flask:
     return _app
 
 
-def feed_loader(import_data: bool = False) -> NoReturn:
-    """Feed loader.
-
-    Args:
-        - `import_data (bool, optional)`: Whether to import data. Defaults to False.
-    """
-
-    if import_data or not os.path.exists(FEED_LOADER.db_path):
-        FEED_LOADER.nightly_import()
-    if import_data or not os.path.exists(FEED_LOADER.GEOJSON_PATH):
-        FEED_LOADER.geojson_exports()
-    FEED_LOADER.run()
-
-
 def get_args(**kwargs) -> argparse.ArgumentParser:
     """Add arguments to the parser.
 
@@ -275,11 +259,10 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 
 if __name__ == "__main__":
-    # FEED_LOADER.get_stop_features("SUBWAY", Query("0", "1"))
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)
     else:
-        feed_loader(import_data=args.import_data)
+        FEED_LOADER.import_and_run(import_data=args.import_data)

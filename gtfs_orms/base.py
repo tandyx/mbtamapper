@@ -1,8 +1,10 @@
 """Holds the base class for all GTFS elements"""
 
 import json
+from abc import abstractmethod
 from typing import Any, Self, Type
 
+from geojson import Feature
 from sqlalchemy import orm
 
 from helper_functions import classproperty
@@ -10,14 +12,14 @@ from helper_functions import classproperty
 # pylint: disable=unused-argument
 
 
-class GTFSBase(orm.DeclarativeBase):
+class Base(orm.DeclarativeBase):
     """Base class for all GTFS elements
 
     Attributes:
-        __tablename__ (str): name of the table
-        __table_args__ (dict[str, Any]): table arguments
-        __filename__ (str): name of the associated txt file, if applicable
-        __realtime_name__ (str): name of the realtime operation in LinkedDatasets, if applicable
+        `__tablename__ (str)`: name of the table
+        `__table_args__ (dict[str, Any])`: table arguments
+        `__filename__ (str)`: name of the associated txt file, if applicable
+        `__realtime_name__ (str)`: name of the realtime operation in LinkedDatasets, if applicable
     """
 
     __filename__: str
@@ -89,12 +91,11 @@ class GTFSBase(orm.DeclarativeBase):
             the object as opposed to Base.as_dict() which returns a dict.
             
         Args:
-            *args: unused, but can be used in overriden methods to \
-                pass in additional arguments
-            **kwargs: unused, but can be used in overriden methods to \
-                pass in additional arguments
+            - `*include`: other orm attars to include within the dict
+            - `**kwargs`: unused, but can be used in overriden methods to \
+                pass in additional arguments \n
         Returns:
-            dict[str, Any]: json searizable representation of the object
+            - `dict[str, Any]`: json searizable representation of the object
         """
 
         return {
@@ -103,7 +104,7 @@ class GTFSBase(orm.DeclarativeBase):
             if not k.startswith("_") and _is_json_searializable(v)
         }
 
-    def as_json_dict(self) -> dict[str, Any]:
+    def _as_json_dict(self) -> dict[str, Any]:
         """Returns a dict representation of the object
         
         args:
@@ -131,6 +132,7 @@ class GTFSBase(orm.DeclarativeBase):
         Returns:
             - `dict[str, Any]`: dict representation of the object
         """
+        # pylint: disable=protected-access
 
         new_dict = self.__dict__.copy()
         if "_sa_instance_state" in new_dict:
@@ -139,14 +141,20 @@ class GTFSBase(orm.DeclarativeBase):
             if not hasattr(self, attr):
                 continue
             attar_val = getattr(self, attr)
-            if isinstance(attar_val, GTFSBase):
-                new_dict[attr] = attar_val.as_json_dict()
+            if isinstance(attar_val, Base):
+                new_dict[attr] = attar_val._as_json_dict()
             if isinstance(attar_val, list):
                 new_dict[attr] = [
-                    d.as_json_dict() if isinstance(d, GTFSBase) else d
-                    for d in attar_val
+                    d._as_json_dict() if isinstance(d, Base) else d for d in attar_val
                 ]
         return new_dict
+
+    @abstractmethod
+    def as_feature(self, *include: str) -> Feature | None:
+        """Returns the object as a geojson feature.\
+        only implemented in some classes, such as `Stop`.
+        """
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 
 
 def _is_json_searializable(obj: Any) -> bool:
