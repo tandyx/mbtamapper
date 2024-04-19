@@ -1,6 +1,7 @@
 """File to hold the Facility class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional, override
+import time
+from typing import TYPE_CHECKING, Any, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -51,6 +52,24 @@ class Facility(Base):
         return Point(self.facility_lon, self.facility_lat)
 
     @override
+    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+        """Returns facility object as a dictionary.\
+            same as `as_dict` but with the facility properties included.
+        
+        args:
+            - `*include`: A list of properties to include in the dictionary.
+            - `**kwargs`: A dictionary of additional properties to include in the dictionary.\n
+        Returns:
+            - `dict[str, Any]`: facility as a dictionary.\n
+        """
+
+        return (
+            super().as_json(*include, **kwargs)
+            | {k: v for fp in self.facility_properties for k, v in fp.as_dict().items()}
+            | {"timestamp": time.time()}
+        )
+
+    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns facility object as a feature.
 
@@ -64,10 +83,5 @@ class Facility(Base):
         if point == self.stop.as_point():
             point = Point(self.facility_lon + 0.002, self.facility_lat + 0.002)
         return Feature(
-            id=self.facility_id,
-            geometry=point,
-            properties=self.as_json(*include)
-            | {
-                k: v for fp in self.facility_properties for k, v in fp.as_dict().items()
-            },
+            id=self.facility_id, geometry=point, properties=self.as_json(*include)
         )

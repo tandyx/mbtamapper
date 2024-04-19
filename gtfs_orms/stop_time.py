@@ -16,6 +16,7 @@ from .base import Base
 if TYPE_CHECKING:
     from .stop import Stop
     from .trip import Trip
+    from .prediction import Prediction
 
 
 class StopTime(Base):
@@ -44,6 +45,14 @@ class StopTime(Base):
 
     stop: Mapped["Stop"] = relationship(back_populates="stop_times")
     trip: Mapped["Trip"] = relationship(back_populates="stop_times")
+    prediction: Mapped["Prediction"] = relationship(
+        primaryjoin="""and_(
+            foreign(StopTime.trip_id)==Prediction.trip_id, 
+            foreign(StopTime.stop_sequence)==Prediction.stop_sequence
+        )""",
+        uselist=False,
+        viewonly=True,
+    )
 
     @reconstructor
     def _init_on_load_(self):
@@ -81,6 +90,7 @@ class StopTime(Base):
             )
         return self.stop_sequence == other.stop_sequence
 
+    @property
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop
 
@@ -91,6 +101,7 @@ class StopTime(Base):
             self.pickup_type == "3" or self.drop_off_type == "3"
         )
 
+    @property
     def is_early_departure(self) -> bool:
         """Returns true if this StopTime is an early departure stop
 
@@ -113,6 +124,7 @@ class StopTime(Base):
             get_current_time().timestamp() - get_date().timestamp()
         )
 
+    @property
     def is_destination(self) -> bool:
         """Returns true if this StopTime is the last stop in the trip
 

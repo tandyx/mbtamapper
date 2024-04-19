@@ -2,6 +2,8 @@
  * @file functions.js - misc utility functions
  */
 
+// import { strftime } from "strftime";
+
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
  */

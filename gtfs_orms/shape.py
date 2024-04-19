@@ -1,5 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
+import time
 from typing import TYPE_CHECKING, override
 
 from geojson import Feature
@@ -58,7 +59,10 @@ class Shape(Base):
         feature = Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_json(*include),
+            properties=self.trips[0].route.as_json(*include)
+            | {
+                "timestamp": time.time(),
+            },
         )
 
         return feature

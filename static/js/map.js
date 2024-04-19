@@ -23,8 +23,8 @@ window.addEventListener("load", function () {
  */
 function createMap(id, route_type) {
   const textboxSize = {
-    maxWidth: 200,
-    minWidth: 300,
+    maxWidth: 375,
+    minWidth: 250,
   };
 
   const map = L.map(id, {
@@ -39,9 +39,9 @@ function createMap(id, route_type) {
   }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
   const baseLayers = getBaseLayerDict(...Array(2));
-  baseLayers["Dark"].addTo(map);
+  baseLayers["Light"].addTo(map);
 
-  const sidebar = addSidebar(map, !window.mobileCheck(), { position: "right" });
+  // const sidebar = addSidebar(map, !window.mobileCheck(), { position: "right" });
 
   let stop_layer = L.layerGroup().addTo(map);
   stop_layer.name = "Stops";
@@ -57,27 +57,30 @@ function createMap(id, route_type) {
   let parking_lots = L.layerGroup();
   parking_lots.name = "Parking Lots";
 
-  plotStops(
-    `/static/geojsons/${route_type}/stops.json`,
-    stop_layer,
-    textboxSize
-  );
-  plotShapes(
-    `/static/geojsons/${route_type}/shapes.json`,
-    shape_layer,
-    textboxSize
-  );
+  plotStops({
+    url: `/static/geojsons/${route_type}/stops.json`,
+    layer: stop_layer,
+    textboxSize: textboxSize,
+  });
+  plotShapes({
+    url: `/static/geojsons/${route_type}/shapes.json`,
+    layer: shape_layer,
+    textboxSize: {
+      maxWidth: textboxSize.maxWidth + 175,
+      minWidth: textboxSize.minWidth,
+    },
+  });
   plotVehicles({
     url: `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
     layer: vehicle_layer,
     textboxSize: textboxSize,
-    sidebar: sidebar,
+    // sidebar: sidebar,
   });
-  plotFacilities(
-    `/static/geojsons/${route_type}/park.json`,
-    parking_lots,
-    textboxSize
-  );
+  plotFacilities({
+    url: `/static/geojsons/${route_type}/park.json`,
+    layer: parking_lots,
+    textboxSize: textboxSize,
+  });
 
   createControlLayers(
     baseLayers,
@@ -87,12 +90,16 @@ function createMap(id, route_type) {
     parking_lots
   ).forEach((control) => control.addTo(map));
 
-  map.on("zoomend", function () {
-    if (map.getZoom() < 16) map.removeLayer(parking_lots);
-    if (map.getZoom() >= 16) map.addLayer(parking_lots);
-  });
+  // map.on("zoomend", function () {
+  //   if (map.getZoom() < 16) map.removeLayer(parking_lots);
+  //   if (map.getZoom() >= 16) map.addLayer(parking_lots);
+  // });
 
-  if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
+  // if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
+
+  // setTimeout(() => {
+  //   sidebar.open("summary_");
+  // }, 2000);
 
   return map;
 }
@@ -129,82 +136,6 @@ function createControlLayers(tile_layers, ...layers) {
   );
 
   return [locateControl, controlSearch, layerControl];
-}
-/** Plot shapes on map in realtime, updating every hour
- * @param {string} url - url to geojson
- * @param {L.layerGroup} layer - layer to plot shapes on
- * @param {object} textboxSize - size of textbox; default: {
- *         minWidth: 200,
- *         maxWidth: 300}
- * @returns {L.realtime} - realtime layer
- */
-function plotShapes(url, layer, textboxSize = null) {
-  const polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
-  textboxSize = textboxSize || {
-    minWidth: 200,
-    maxWidth: 300,
-  };
-
-  const realtime = L.realtime(url, {
-    interval: 3600000,
-    type: "FeatureCollection",
-    container: layer,
-    cache: true,
-    removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
-    onEachFeature(f, l) {
-      l.setStyle({
-        color: `#${f.properties.route_color}`,
-        opacity: f.properties.opacity,
-        weight: 1.3,
-        renderer: polyLineRender,
-      });
-      l.bindPopup(f.properties.popupContent, textboxSize);
-      l.bindTooltip(f.properties.name);
-    },
-  });
-
-  realtime.on("update", handleUpdateEvent);
-  return realtime;
-}
-/** Plot facilities on map in realtime, updating every hour
- * @param {string} url - url to geojson
- * @param {L.layerGroup} layer - layer to plot facilities on
- * @param {object} textboxSize - size of textbox; default: {
- *        minWidth: 200,
- *        maxWidth: 300}
- * @returns {L.realtime} - realtime layer
- */
-function plotFacilities(url, layer, textboxSize = null) {
-  textboxSize = textboxSize || {
-    minWidth: 200,
-    maxWidth: 300,
-  };
-  const facilityIcon = L.icon({
-    iconUrl: "static/img/parking.png",
-    iconSize: [15, 15],
-  });
-
-  const realtime = L.realtime(url, {
-    interval: 3600000,
-    type: "FeatureCollection",
-    container: layer,
-    cache: true,
-    removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
-    onEachFeature(f, l) {
-      l.bindPopup(f.properties.popupContent, textboxSize);
-      l.bindTooltip(f.properties.name);
-      l.setIcon(facilityIcon);
-      l.setZIndexOffset(-150);
-    },
-  });
-  realtime.on("update", handleUpdateEvent);
-  return realtime;
 }
 
 /** Get base layer dictionary

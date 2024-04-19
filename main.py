@@ -212,7 +212,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--import_data",
         "-i",
         action="store_true",
-        help="only has effect if --load is set. Import data from GTFS feed.",
+        help="Import data from GTFS feed.",
     )
 
     _argparse.add_argument(
@@ -261,6 +261,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
+    # FEED_LOADER.geojson_exports()
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)

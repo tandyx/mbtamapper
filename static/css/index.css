@@ -2,6 +2,7 @@
   --font-family: "montserrat", "Helvetica", sans-serif;
   --text-color: #f2f2f2;
   --dark-text-color: #060606;
+  --dark-background: #1a1a1a;
   --accent-color: #00acff;
   --backdrop-blur: 15px;
   --border-radius: 5px;
@@ -11,6 +12,7 @@
   --bus-color: #ffc72c;
   --ferry-color: #008eaa;
   --all-routes-color: #7c878e;
+  --nav-border-height: 1px;
 }
 
 @font-face {
@@ -173,7 +175,7 @@ body,
 }
 
 .popup_footer {
-  color: rgb(64, 64, 64);
+  color: rgb(123, 123, 123);
   font-size: 9pt;
 }
 
@@ -315,6 +317,46 @@ h1 {
 
 #ferry:hover {
   background-color: var(--ferry-color);
+}
+
+.color-subway {
+  color: var(--subway-color) !important;
+}
+
+.color-rapid_transit {
+  color: var(--rapid-transit-color) !important;
+}
+
+.color-commuter_rail {
+  color: var(--commuter-rail-color) !important;
+}
+
+.color-bus {
+  color: var(--bus-color) !important;
+}
+
+.color-ferry {
+  color: var(--ferry-color) !important;
+}
+
+.border-bottom-subway {
+  border-bottom: var(--nav-border-height) solid var(--subway-color);
+}
+
+.border-bottom-rapid_transit {
+  border-bottom: var(--nav-border-height) solid var(--rapid-transit-color);
+}
+
+.border-bottom-commuter_rail {
+  border-bottom: var(--nav-border-height) solid var(--commuter-rail-color);
+}
+
+.border-bottom-bus {
+  border-bottom: var(--nav-border-height) solid var(--bus-color);
+}
+
+.border-bottom-ferry {
+  border-bottom: var(--nav-border-height) solid var(--ferry-color);
 }
 
 noscript {

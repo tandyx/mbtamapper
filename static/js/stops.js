@@ -8,19 +8,14 @@ const stopIcon = L.icon({
 });
 
 /** Plot stops on map in realtime, updating every hour
- * @param {string} url - url to geojson
- * @param {L.layerGroup} layer - layer to plot stops on
- * @param {object} textboxSize - size of textbox; default: {
-         minWidth: 200,
-         maxWidth: 300,
-       }
+ * @param {Object} options - options for plotting stops
+ * @param {string} options.url - url to geojson
+ * @param {L.layerGroup} options.layer - layer to plot stops on
+ * @param {object} options.textboxSize
  * @returns {L.realtime} - realtime layer
  */
-function plotStops(url, layer, textboxSize = null) {
-  textboxSize = textboxSize || {
-    minWidth: 200,
-    maxWidth: 300,
-  };
+function plotStops(options) {
+  const { url, layer, textboxSize } = options;
   const realtime = L.realtime(url, {
     interval: 3600000,
     type: "FeatureCollection",
@@ -32,7 +27,7 @@ function plotStops(url, layer, textboxSize = null) {
     },
     onEachFeature(f, l) {
       l.bindPopup(getStopText(f.properties), textboxSize);
-      l.bindTooltip(f.id);
+      l.bindTooltip(f.properties.stop_name);
       l.setIcon(stopIcon);
       l.setZIndexOffset(-100);
     },
@@ -49,6 +44,34 @@ function plotStops(url, layer, textboxSize = null) {
  */
 function getStopText(properties) {
   const stopHtml = document.createElement("div");
-  stopHtml.innerHTML = `<h4>${properties.name}</h4>`;
+  stopHtml.innerHTML += `<p>
+  <a href="${
+    properties.stop_url
+  }" rel="noopener" target="_blank" style="color:#${
+    properties.routes.sort((a, b) => a.route_type - b.route_type)[0].route_color
+  }"  class="popup_header">${properties.stop_name}</a>
+  </p>`;
+  stopHtml.innerHTML += `<p class="popup_subheader">${
+    properties.zone_id || "zone-1A"
+  }</p>`;
+  stopHtml.innerHTML += "<hr /><p>";
+  if (properties.wheelchair_boarding === "0") {
+    stopHtml.innerHTML += `<p><span class='fa tooltip slight-delay' data-tooltip='wheelchair accessible w/ caveats'>&#xf193;</span>`;
+  } else if (properties.wheelchair_boarding === "1") {
+    stopHtml.innerHTML += `<p><span class='fa tooltip' data-tooltip='wheelchair accessible'>&#xf193;</span>`;
+  }
+  stopHtml.innerHTML += "</p>";
+  stopHtml.innerHTML += `<p>${properties.routes
+    .map(
+      (r) =>
+        `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name}</a>`
+    )
+    .join(", ")}</p>`;
+
+  stopHtml.innerHTML += `<div class="popup_footer">
+      <p>${properties.stop_address}</p>
+      <p>${formatTimestamp(properties.timestamp)}</p>
+    </div>`;
+
   return stopHtml;
 }

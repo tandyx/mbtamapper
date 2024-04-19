@@ -71,16 +71,16 @@
 
     <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
 
-    <link
+    <!-- <link
       rel="stylesheet"
       href="{{ url_for('static', filename='node_modules/leaflet-sidebar/src/L.Control.Sidebar.css') }}"
-    />
-
+    /> -->
+    <!-- 
     <script src="{{ url_for('static', filename='node_modules/leaflet-sidebar-v2/js/leaflet-sidebar.min.js') }}"></script>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='node_modules/leaflet-sidebar-v2/css/leaflet-sidebar.min.css') }}"
-    />
+    /> -->
 
     <!-- plotly -->
 
@@ -103,21 +103,30 @@
     <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
     <script src="{{ url_for('static', filename='js/vehicles.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stops.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/shapes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/facilities.js') }}"></script>
   </head>
 
   <body>
-    <nav class="nav" id="navbar">
+    <nav class="nav border-bottom-{{ _key | lower }}" id="navbar">
       <div class="titleLogo" id="titleLogo"><a href="../">mbtamapper</a></div>
       <input id="menu-toggle" type="checkbox" title="menutoggle" />
       <label class="menu-button-container" for="menu-toggle">
         <div class="menu-button"></div>
       </label>
       <ul class="menu">
-        {% for key, value in navbar.items() if not key == "ALL_ROUTES" %}
+        {% for key, value in navbar.items() if not key == "ALL_ROUTES" %} {% if
+        key == _key %}
+        <li>
+          <a href="#" class="color-{{ key | lower }}"
+            >{{ value.display_name }}</a
+          >
+        </li>
+        {% else %}
         <li id="{{ key | lower }}">
           <a href="../{{ key | lower }}">{{ value.display_name }}</a>
         </li>
-        {% endfor %}
+        {% endif %} {% endfor %}
       </ul>
     </nav>
     <div id="map"></div>

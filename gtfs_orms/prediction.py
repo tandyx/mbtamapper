@@ -66,7 +66,7 @@ class Prediction(Base):
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.stop_sequence = self.stop_sequence or 0
-        self.stop_name = self.stop.stop_name
+        self.stop_name = self.stop.stop_name if self.stop else None
         self.delay = self._delay
 
     def __lt__(self, other: "Prediction") -> bool:

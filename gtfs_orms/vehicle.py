@@ -178,11 +178,13 @@ class Vehicle(Base):
             - `str`: headsign
         """
 
+        # self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"
+
         if self.trip:
             return self.trip.trip_headsign
         if self.predictions:
             return max(self.predictions).stop.stop_name
-        return ""
+        return "unknown"
 
     @property
     def _trip_short_name(self) -> str:

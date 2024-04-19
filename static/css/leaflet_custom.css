@@ -1,12 +1,20 @@
 .leaflet-popup-content-wrapper {
-  color: var(--dark-text-color) !important;
-  font-family: var(--font-family) !important;
   border-radius: var(--border-radius) !important;
-  text-align: left !important;
-  background: var(--text-color) !important;
   p {
     margin: 0 !important;
   }
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-tooltip,
+.leaflet-popup-tip,
+.leaflet-popup-content-wrapper::after,
+.leaflet-tooltip::after,
+.leaflet-popup-content::after {
+  background: var(--dark-background) !important;
+  color: var(--text-color) !important;
+  font-family: var(--font-family) !important;
+  text-align: left !important;
 }
 
 .leaflet-popup-content {
@@ -17,20 +25,15 @@
 .leaflet-popup-close-button {
   display: block !important;
 }
-.leaflet-popup-tip {
-  background: var(--text-color) !important;
-}
 
 .leaflet-popup-content-wrapper::after {
   border-radius: var(--border-radius) !important;
 }
 
 .leaflet-tooltip {
-  font-family: var(--font-family) !important;
-  color: var(--dark-text-color);
   font-size: 12pt !important;
-  background: var(--text-color) !important;
   border-radius: var(--border-radius) !important;
+  border: none;
   opacity: 1 !important;
 }
 
@@ -42,13 +45,13 @@
 .leaflet-tooltip-right:before {
   left: 0 !important;
   margin-left: -12px !important;
-  border-right-color: var(--text-color) !important;
+  border-right-color: var(--dark-background) !important;
 }
 
 .leaflet-tooltip-left:before {
   right: 0 !important;
   margin-right: -12px !important;
-  border-left-color: var(--text-color) !important;
+  border-left-color: var(--dark-background) !important;
 }
 
 .leaflet-center {
@@ -83,13 +86,13 @@
 }
 
 .leaflet-control-layers-expanded {
-  color: var(--dark-text-color) !important;
+  color: var(--text-color) !important;
   font-family: var(--font-family) !important;
   font-size: 8pt !important;
 }
 
 .leaflet-container a {
-  color: var(--dark-text-color);
+  color: var(--text-color);
   text-decoration: none;
 }
 
@@ -144,6 +147,16 @@
 
 .leaflet-control-locate-location circle {
   animation: leaflet-control-locate-throb 10s ease infinite;
+}
+
+.inner-sidebar-content {
+  background: var(--text-color);
+  color: var(--dark-text-color);
+  /* font-family: var(--font-family); */
+  border-radius: var(--border-radius);
+  padding-top: -20px;
+  padding-left: 20px;
+  width: 100%;
 }
 
 @keyframes leaflet-control-locate-throb {

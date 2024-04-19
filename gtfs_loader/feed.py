@@ -119,7 +119,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
-        self.db_path = os.path.join(tempfile.gettempdir(), f"{self.gtfs_name}.db")
+        self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
         self.session = self.sessionmkr()
@@ -132,13 +132,15 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         return self.__repr__()
 
     @timeit
-    def _download_gtfs(self) -> None:
-        """Downloads the GTFS feed zip file into a temporary directory."""
-        source = req.get(self.url, timeout=10)
+    def _download_gtfs(self, **kwargs) -> None:
+        """Downloads the GTFS feed zip file into a temporary directory.
+
+        args:
+            - `**kwargs`: keyword arguments to pass to requests
+        """
+        source = req.get(self.url, timeout=10, **kwargs)
         if not source.ok:
-            raise req.exceptions.HTTPError(
-                f"couldn't download {self.url}: {source.status_code}"
-            )
+            raise req.exceptions.HTTPError(f"download {self.url}: {source.status_code}")
         with ZipFile(io.BytesIO(source.content)) as zipfile_bytes:
             zipfile_bytes.extractall(self.zip_path)
         logging.info("Downloaded zip from %s to %s", self.url, self.zip_path)
@@ -156,9 +158,9 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """Dumps GTFS data into a SQLite database.
 
         Args:
-            *args: args to pass to pd.read_csv
-            purge (bool): whether to purge the database before loading (default: False)
-            **kwargs: keyword args for pd.read_csv
+            - `*args`: args to pass to pd.read_csv
+            - `purge (bool)`: whether to purge the database before loading (default: True)
+            - `**kwargs`: keyword args for pd.read_csv
         """
         # ------------------------------- Create Tables ------------------------------- #
         self._download_gtfs()
@@ -188,11 +190,11 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         if orm not in __class__.__realtime_orms__:
             raise ValueError(f"{orm} is not a realtime ORM")
         session = self.scoped_session()
-
         dataset: list[LinkedDataset] = session.execute(
             self.get_dataset_query(orm.__realtime_name__)
         ).first()
-
+        if not dataset:
+            return
         self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
 
     @timeit
@@ -232,7 +234,12 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         with open(
             os.path.join(file_subpath, "shapes.json"), "w", encoding="utf-8"
         ) as file:
-            dump(self.get_shape_features(key, query_obj), file)
+            dump(self.get_shape_features(key, query_obj, "agency"), file)
+            logging.info("Exported %s", file.name)
+        with open(
+            os.path.join(file_subpath, "parking.json"), "w", encoding="utf-8"
+        ) as file:
+            dump(self.get_parking_features(key, query_obj), file)
             logging.info("Exported %s", file.name)
         with open(
             os.path.join(file_subpath, "stops.json"), "w", encoding="utf-8"
@@ -247,6 +254,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
             - `query_obj (Query)`: Query object
+            - `*include (str)`: other orms to include\n
         returns:
             - `FeatureCollection`: stops as FeatureCollection
         """
@@ -269,8 +277,8 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            -
-            - \n
+            - `query_obj (Query)`: Query object
+            - `*include (str)`: other orms to include\n
         returns:
             - `FeatureCollection`: shapes as FeatureCollection
         """
@@ -299,6 +307,8 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
 
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            - `query_obj (Query)`: Query object
+            - `*include (str)`: other orms to include \n
         returns:
             - `FeatureCollection`: facilities as FeatureCollection
         """
@@ -360,14 +370,11 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             - `data (pd.DataFrame)`: dataframe to dump
             - `orm (any)`: table to dump to
             - `purge (bool, optional)`: whether to purge table before dumping. Defaults to False.
-            - `**kwargs`: keyword args to pass to pd.to_sql
+            - `**kwargs`: keyword args to pass to pd.to_sql \n
         returns:
             - `int`: number of rows added
-
         """
-
         session = self.scoped_session()
-
         if purge:
             while True:
                 try:
@@ -399,7 +406,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         args:
             - `_orm (str)`: ORM to return.
             - `*include`: other orms to include
-            - `geojson (bool)`: use `geojson` rather than `json`
+            - `geojson (bool)`: use `geojson` rather than `json`\n
         Returns:
             - `list[dict[str]`: dictionary of the ORM names and their corresponding JSON names.
         """

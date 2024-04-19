@@ -40,11 +40,10 @@ const HEX_TO_CSS = {
  * @param {string} options.url - url to geojson
  * @param {L.layerGroup} options.layer - layer to plot vehicles on
  * @param {object} options.textboxSize - size of textbox; default: {
- * @param {L.Sidebar} options.sidebar - sidebar object
  */
 // function plotVehicles(url, layer, textboxSize = null) {
 function plotVehicles(options) {
-  const { url, layer, textboxSize, sidebar } = options;
+  const { url, layer, textboxSize } = options;
   const realtime = L.realtime(url, {
     // interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
     interval: 15000,
@@ -66,11 +65,17 @@ function plotVehicles(options) {
         )
       );
       l.setZIndexOffset(100);
+      // l.on("click", function () {
+      //   l.openPopup();
+      // });
     },
   });
 
+  // realtime.on("enter", function (e) {
+  //   setVehicleSideBarSummary(sidebar, e.features);
+  // });
+
   realtime.on("update", function (e) {
-    setVehicleSideBarSummary(sidebar, e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
@@ -90,6 +95,8 @@ function plotVehicles(options) {
       }.bind(this)
     );
   });
+
+  // setVehicleSideBarSummary(sidebar, e.features);
 
   return realtime;
 }
@@ -151,12 +158,7 @@ function getVehicleText(properties) {
   if (properties.bikes_allowed) {
     vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>`;
   }
-  if (properties.wheelchair_accessible) {
-    if (properties.bikes_allowed) {
-      vehicleText.innerHTML += `&nbsp;&nbsp;&nbsp;`;
-    }
-    vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='wheelchair accessible'>&#xf193;</span>`;
-  }
+  vehicleText.innerHTML += `<span id="prediction-${properties.vehicle_id}"></span>`;
   vehicleText.innerHTML += `</p>`;
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
@@ -232,11 +234,13 @@ function setVehicleSideBarSummary(sidebar, data) {
   // const sidebar = addSidebar();
   // sidebar.innerHTML = "";
   const summary = document.createElement("div");
-
+  summary.classList.add("inner-sidebar-content");
   summary.id = "summary";
   summary.innerHTML = `
   <h1>Summary</h1>
-  <p>There are ${Object.keys(data).length} vehicles currently on the map.</p>
+  <p>There are ${
+    Object.keys(data).length
+  } vehicles currently on the mapdasdasdasdasudhasjhdkjashdjkashdjkashdksah dkjahsgdsagdsahdgsgakdjksa.</p>
   <div id="piechart"></div>
   `;
   // createDelayPiechart("piechart",
@@ -248,11 +252,16 @@ function setVehicleSideBarSummary(sidebar, data) {
         (counts[getDelayClassName(delay)] || 0) + 1;
       return counts;
     }, {});
-  sidebar.addPanel({
-    id: "summary_",
-    tab: "<i class='fa>&#xf05a;</i>",
-    pane: summary,
-  });
+  if (!document.getElementById("summary_")) {
+    setTimeout(() => {
+      sidebar.addPanel({
+        id: "summary_",
+        tab: "<i class='fa>&#xf05a;</i>",
+        pane: summary,
+      });
+    }, 2000);
+  }
+
   // sidebar.addPanel({
   //   id: "ghlink",
   //   tab: '<i class="fa fa-github"></i>',
