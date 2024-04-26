@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Alert(Base):
-    """Alerts"""
+    """realtime class for the `service_alerts` feed."""
 
     __tablename__ = "alerts"
     __realtime_name__ = "service_alerts"

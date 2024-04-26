@@ -3,10 +3,11 @@
  * @param {string} options.url - url to geojson
  * @param {L.layerGroup} options.layer - layer to plot shapes on
  * @param {object} options.textboxSize - size of textbox
+ * @param {boolean} options.isMobile - is the device mobile
  * @returns {L.realtime} - realtime layer
  */
 function plotShapes(options) {
-  const { url, layer, textboxSize } = options;
+  const { url, layer, textboxSize, isMobile } = options;
   const polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
   const realtime = L.realtime(url, {
     interval: 3600000,
@@ -24,7 +25,11 @@ function plotShapes(options) {
         renderer: polyLineRender,
       });
       l.bindPopup(getShapeText(f.properties), textboxSize);
-      l.bindTooltip(f.properties.name);
+
+      if (!isMobile) l.bindTooltip(f.properties.route_name);
+      l.on("click", function () {
+        fillAlertShapeData(f.properties.route_id);
+      });
     },
   });
 
@@ -43,10 +48,59 @@ function getShapeText(properties) {
   </p>`;
   shapeHtml.innerHTML += `<p class="popup_subheader">${properties.route_desc}</p>`;
   shapeHtml.innerHTML += "<hr />";
+  // vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;</span>&nbsp;&nbsp;&nbsp;`;
+  shapeHtml.innerHTML += `<span name="alert-shape-${properties.route_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>`;
   shapeHtml.innerHTML += `<p>${properties.route_id} @ <a href="${properties.agency.agency_url}" rel="noopener" target="_blank">${properties.agency.agency_name}</a><p>`;
   shapeHtml.innerHTML += `<p>${properties.agency.agency_phone}</p>`;
   shapeHtml.innerHTML += `<div class="popup_footer"> 
         <p>${formatTimestamp(properties.timestamp)}</p>
     </div>`;
   return shapeHtml;
+}
+
+/**
+ * fill alert shape data
+ * @param {string} route_id
+ * @returns
+ */
+async function fillAlertShapeData(route_id) {
+  for (const alertEl of document.getElementsByName(`alert-shape-${route_id}`)) {
+    const popupId = `popup-alert-${route_id}`;
+    alertEl.onclick = function () {
+      togglePopup(popupId);
+    };
+    const popupText = document.createElement("span");
+    popupText.classList.add("popuptext");
+    popupText.style.minWidth = "350px";
+    popupText.id = popupId;
+    popupText.innerHTML = "...";
+    const _data = await (
+      await fetch(`/api/alert?route_id=${route_id}&stop_id=null`)
+    ).json();
+    if (!_data.length) return;
+    alertEl.classList.remove("hidden");
+    popupText.innerHTML =
+      "<table class='data-table'><tr><th>alert</th><th style='width:40%;'>period</th></tr>" +
+      _data
+        .map(function (d) {
+          const strf = "%m-%d";
+          const start = d.active_period_start
+            ? formatTimestamp(d.active_period_start, strf)
+            : null;
+          const end = d.active_period_end
+            ? formatTimestamp(d.active_period_end, strf)
+            : null;
+
+          return `<tr>
+            <td>${d.header}</td>
+            <td>${start} to ${end}</td>
+          </tr>`;
+        })
+        .join("") +
+      "</table>";
+    alertEl.appendChild(popupText);
+    setTimeout(() => {
+      if (openPopups.includes(popupId)) togglePopup(popupId, true);
+    }, 500);
+  }
 }

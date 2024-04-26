@@ -10,7 +10,7 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader, Query
-from helper_functions import timeit
+from helper_functions import limit_content_length
 
 KEY_DICT: dict[str, tuple[str]] = {
     "SUBWAY": ("0", "1"),
@@ -144,7 +144,7 @@ def create_default_app(proxies: int = 5) -> Flask:
 
         return render_template("index.html", content=CONTENT_DICT)
 
-    @timeit
+    @limit_content_length(1024 * 1024)
     @_app.route("/api/<orm_name>")
     def get_orm(orm_name: str) -> str:
         """Returns the ORM for a given key.
@@ -168,15 +168,16 @@ def create_default_app(proxies: int = 5) -> Flask:
         params = request.args.to_dict()
         include = params.pop("include", "").split(",")
         as_geojson = bool(params.pop("geojson", False))
-        error_msg = {
-            "error": "unknown/invalid filtering arguments provided",
-            f"potentnial args for {orm_name}": orm.__table__.columns.keys(),
-        }
-        if not params:
-            return jsonify(error_msg), 400
-        data = FEED_LOADER.get_orm_json(orm, *include, geojson=as_geojson, **params)
+        cols = orm.__table__.columns.keys()
+        try:
+            data = FEED_LOADER.get_orm_json(orm, *include, geojson=as_geojson, **params)
+        except TimeoutError as error:
+            logging.error(error)
+            return jsonify({"error": str(error), f"args for {orm_name}": cols}), 408
+        except Exception as error:  # pylint: disable=broad-except
+            return jsonify({"error": str(error), f"args for {orm_name}": cols}), 400
         if data is None:
-            return jsonify(error_msg), 404
+            return jsonify({"error": "no data", f"args for {orm_name}": cols}), 404
         return jsonify(data)
 
     if proxies:
@@ -258,12 +259,14 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
     return _argparse
 
 
+# from gtfs_orms import Alert, Vehicle
+
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
-    # FEED_LOADER.geojson_exports()
-    if args.frontend:
-        app = create_default_app(args.proxies)
-        app.run(debug=True, port=args.port, host=args.host)
-    else:
-        FEED_LOADER.import_and_run(import_data=args.import_data)
+    # FEED_LOADER.get_stops_feature("SUBWAY", Query("0", "1"))
+    # if args.frontend:
+    app = create_default_app(args.proxies)
+    app.run(debug=True, port=args.port, host=args.host)
+    # else:
+    #     FEED_LOADER.import_and_run(import_data=args.import_data)

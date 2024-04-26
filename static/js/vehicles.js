@@ -39,11 +39,12 @@ const HEX_TO_CSS = {
  * @param {options} options - options object with the following properties:
  * @param {string} options.url - url to geojson
  * @param {L.layerGroup} options.layer - layer to plot vehicles on
- * @param {object} options.textboxSize - size of textbox; default: {
+ * @param {object} options.textboxSize - size of textbox
+ * @param {boolean} options.isMobile - is the device mobile
  */
 // function plotVehicles(url, layer, textboxSize = null) {
 function plotVehicles(options) {
-  const { url, layer, textboxSize } = options;
+  const { url, layer, textboxSize, isMobile } = options;
   const realtime = L.realtime(url, {
     // interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
     interval: 15000,
@@ -56,7 +57,9 @@ function plotVehicles(options) {
     },
     onEachFeature(f, l) {
       l.bindPopup(getVehicleText(f.properties), textboxSize);
-      l.bindTooltip(f.properties.trip_name || f.id);
+      if (!isMobile) {
+        l.bindTooltip(f.properties.trip_short_name || f.id);
+      }
       l.setIcon(
         getVehicleIcon(
           f.properties.bearing,
@@ -65,9 +68,10 @@ function plotVehicles(options) {
         )
       );
       l.setZIndexOffset(100);
-      // l.on("click", function () {
-      //   l.openPopup();
-      // });
+      l.on("click", function () {
+        fillPredictionVehicleData(f.properties.trip_id);
+        fillAlertVehicleData(f.properties.trip_id);
+      });
     },
   });
 
@@ -91,7 +95,15 @@ function plotVehicles(options) {
             feature.properties.display_name
           )
         );
-        if (wasOpen) layer.openPopup();
+        if (wasOpen) {
+          layer.openPopup();
+          fillPredictionVehicleData(feature.properties.trip_id);
+          fillAlertVehicleData(feature.properties.trip_id);
+        }
+        layer.on("click", function () {
+          fillPredictionVehicleData(feature.properties.trip_id);
+          fillAlertVehicleData(feature.properties.trip_id);
+        });
       }.bind(this)
     );
   });
@@ -99,6 +111,102 @@ function plotVehicles(options) {
   // setVehicleSideBarSummary(sidebar, e.features);
 
   return realtime;
+}
+
+/**
+ * fill prediction data in for `pred-veh-{trip_id}` element
+ * this appears as a popup on the map
+ * @param {string} trip_id - vehicle id
+ * @param {boolean} popup - whether to show the popup
+ * @returns {void}
+ */
+async function fillPredictionVehicleData(trip_id) {
+  for (const predEl of document.getElementsByName(`pred-veh-${trip_id}`)) {
+    const popupId = `popup-pred-${trip_id}`;
+    predEl.onclick = function () {
+      togglePopup(popupId);
+    };
+
+    const popupText = document.createElement("span");
+
+    popupText.classList.add("popuptext");
+    popupText.id = popupId;
+    popupText.innerHTML = "...";
+    const _data = await (
+      await fetch(`/api/prediction?trip_id=${trip_id}`)
+    ).json();
+    if (!_data.length) return;
+    predEl.classList.remove("hidden");
+    popupText.innerHTML =
+      "<table class='data-table'><tr><th>stop</th><th>estimate</th></tr>" +
+      _data
+        .map(function (d) {
+          const realDeparture = d.departure_time || d.arrival_time;
+          if (!realDeparture || realDeparture < Date().valueOf()) return "";
+          let delayText = d.delay ? `${Math.floor(d.delay / 60)}` : "";
+          if (delayText === "0") {
+            delayText = "";
+          } else if (d.delay > 0) {
+            delayText = `+${delayText}`;
+          }
+          if (delayText) {
+            delayText += " min";
+          }
+          return `<tr>
+            <td>${d.stop_name}</td>
+            <td>
+              ${formatTimestamp(realDeparture, "%I:%M %P")}
+              <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+            </td>
+          </tr>
+          `;
+        })
+        .join("") +
+      "</table>";
+    predEl.appendChild(popupText);
+    setTimeout(() => {
+      if (openPopups.includes(popupId)) togglePopup(popupId, true);
+    }, 500);
+  }
+}
+
+/**
+ *  fill alert prediction data
+ * @param {string} trip_id - vehicle id
+ */
+
+async function fillAlertVehicleData(trip_id) {
+  for (const alertEl of document.getElementsByName(`alert-veh-${trip_id}`)) {
+    const popupId = `popup-alert-${trip_id}`;
+    alertEl.onclick = function () {
+      togglePopup(popupId);
+    };
+
+    const popupText = document.createElement("span");
+
+    popupText.classList.add("popuptext");
+    popupText.id = popupId;
+    popupText.innerHTML = "...";
+    const _data = await (await fetch(`/api/alert?trip_id=${trip_id}`)).json();
+    if (!_data.length) return;
+    alertEl.classList.remove("hidden");
+    popupText.innerHTML =
+      "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
+      _data
+        .map(function (d) {
+          return `<tr>
+            <td>${d.header}</td>
+            <td>${formatTimestamp(d.timestamp)}</td>
+          </tr>
+          `;
+        })
+        .join("") +
+      "</table>";
+    alertEl.appendChild(popupText);
+    setTimeout(() => {
+      if (openPopups.includes(popupId)) togglePopup(popupId, true);
+    }, 500);
+  }
 }
 
 /**
@@ -154,12 +262,13 @@ function getVehicleText(properties) {
     DIRECTION_MAPPER[properties.direction_id]
   } to ${properties.headsign}</p>
   `;
-  vehicleText.innerHTML += `<hr><p>`;
+  vehicleText.innerHTML += `<hr>`;
   if (properties.bikes_allowed) {
-    vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>`;
+    vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>&nbsp;&nbsp;&nbsp;`;
   }
-  vehicleText.innerHTML += `<span id="prediction-${properties.vehicle_id}"></span>`;
-  vehicleText.innerHTML += `</p>`;
+  vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;</span>&nbsp;&nbsp;&nbsp;`;
+  vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>&nbsp;&nbsp;&nbsp;`;
+  // vehicleText.innerHTML += `</p>`;
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
       vehicleText.innerHTML += `<p>${almostTitleCase(
@@ -274,6 +383,7 @@ function setVehicleSideBarSummary(sidebar, data) {
 /**
  * gets the delay class name
  * @param {int} delay - delay in seconds
+ * @returns {string} - delay class name
  */
 
 function getDelayClassName(delay) {
@@ -283,7 +393,7 @@ function getDelayClassName(delay) {
   if (delay >= 600) {
     return "moderate-delay";
   }
-  if (delay >= 180) {
+  if (delay > 60) {
     return "slight-delay";
   }
   return "on-time";

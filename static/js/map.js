@@ -1,7 +1,6 @@
 /**
  * @file map.js - main map script
  */
-
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
   document.addEventListener("click", function (event) {
@@ -22,6 +21,7 @@ window.addEventListener("load", function () {
  * @returns {L.map} map
  */
 function createMap(id, route_type) {
+  const isMobile = isLikeMobile();
   const textboxSize = {
     maxWidth: 375,
     minWidth: 250,
@@ -39,28 +39,26 @@ function createMap(id, route_type) {
   }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
 
   const baseLayers = getBaseLayerDict(...Array(2));
-  baseLayers["Light"].addTo(map);
-
-  // const sidebar = addSidebar(map, !window.mobileCheck(), { position: "right" });
-
+  baseLayers[getDefaultCookie("darkMode", "light")].addTo(map);
   let stop_layer = L.layerGroup().addTo(map);
-  stop_layer.name = "Stops";
+  stop_layer.name = "stops";
 
   let shape_layer = L.layerGroup().addTo(map);
-  shape_layer.name = "Shapes";
+  shape_layer.name = "shapes";
 
   let vehicle_layer = L.markerClusterGroup({
     disableClusteringAtZoom: route_type == "COMMUTER_RAIL" ? 10 : 12,
   }).addTo(map);
-  vehicle_layer.name = "Vehicles";
+  vehicle_layer.name = "vehicles";
 
   let parking_lots = L.layerGroup();
-  parking_lots.name = "Parking Lots";
+  parking_lots.name = "parking";
 
   plotStops({
     url: `/static/geojsons/${route_type}/stops.json`,
     layer: stop_layer,
     textboxSize: textboxSize,
+    isMobile: isMobile,
   });
   plotShapes({
     url: `/static/geojsons/${route_type}/shapes.json`,
@@ -69,17 +67,20 @@ function createMap(id, route_type) {
       maxWidth: textboxSize.maxWidth + 175,
       minWidth: textboxSize.minWidth,
     },
+    isMobile: isMobile,
   });
   plotVehicles({
     url: `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
     layer: vehicle_layer,
     textboxSize: textboxSize,
+    isMobile: isMobile,
     // sidebar: sidebar,
   });
   plotFacilities({
     url: `/static/geojsons/${route_type}/park.json`,
     layer: parking_lots,
     textboxSize: textboxSize,
+    isMobile: isMobile,
   });
 
   createControlLayers(
@@ -90,12 +91,16 @@ function createMap(id, route_type) {
     parking_lots
   ).forEach((control) => control.addTo(map));
 
-  // map.on("zoomend", function () {
-  //   if (map.getZoom() < 16) map.removeLayer(parking_lots);
-  //   if (map.getZoom() >= 16) map.addLayer(parking_lots);
-  // });
+  map.on("zoomend", function () {
+    if (map.getZoom() < 16) map.removeLayer(parking_lots);
+    if (map.getZoom() >= 16) map.addLayer(parking_lots);
+  });
 
-  // if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
+  map.on("baselayerchange", function (event) {
+    setCookie("darkMode", event.name);
+  });
+
+  if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
 
   // setTimeout(() => {
   //   sidebar.open("summary_");
@@ -151,8 +156,8 @@ function getBaseLayerDict(
   additionalLayers = {}
 ) {
   const baseLayers = {
-    Light: L.tileLayer.provider(lightId),
-    Dark: L.tileLayer.provider(darkId),
+    light: L.tileLayer.provider(lightId),
+    dark: L.tileLayer.provider(darkId),
   };
 
   for (const [key, value] of Object.entries(additionalLayers)) {
@@ -166,9 +171,33 @@ function getBaseLayerDict(
  * @param {L.map} map - Leaflet map object
  * @param {boolean} show - Whether to show the sidebar
  * @param {Object} options - Options for the sidebar
+ * @returns {L.control.sidebar} sidebar
  */
 function addSidebar(map, show = true, options = {}) {
   const sidebar = L.control.sidebar(options);
   if (show) sidebar.addTo(map);
   return sidebar;
 }
+
+// document.getElementById("edit2").addEventListener("click", function () {
+//   document.getElementById("edit2").classList.add("hidden");
+//   document.getElementById("check2").classList.remove("hidden");
+//   document.getElementById("move2").classList.remove("hidden");
+//   document.getElementById("move2").classList.add("visible");
+// });
+
+// document.getElementById("check2").addEventListener("click", function () {
+//   document.getElementById("check2").classList.add("hidden");
+//   document.getElementById("edit2").classList.remove("hidden");
+//   document.getElementById("move2").classList.add("hidden");
+//   document.getElementById("move2").classList.remove("visible");
+// });
+
+// for (const element of document.querySelectorAll(".edit")) {
+//   element.addEventListener("click", function () {
+//     element.classList.add("hidden");
+//     element.nextElementSibling.classList.remove("hidden");
+//     element.nextElementSibling.nextElementSibling.classList.remove("hidden");
+//     element.nextElementSibling.nextElementSibling.classList.add("visible");
+//   });
+// }

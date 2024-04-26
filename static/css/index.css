@@ -3,6 +3,7 @@
   --text-color: #f2f2f2;
   --dark-text-color: #060606;
   --dark-background: #1a1a1a;
+  --tooltip-background: #333;
   --accent-color: #00acff;
   --backdrop-blur: 15px;
   --border-radius: 5px;
@@ -12,7 +13,8 @@
   --bus-color: #ffc72c;
   --ferry-color: #008eaa;
   --all-routes-color: #7c878e;
-  --nav-border-height: 1px;
+  --nav-border-height: 2px;
+  --mobile-threshold: 768px;
 }
 
 @font-face {
@@ -227,7 +229,7 @@ h1 {
   width: 10px;
   background: none;
   opacity: 0.2;
-  border-radius: 15px;
+  border-radius: var(--border-radius);
   width: 5px;
 }
 
@@ -235,13 +237,13 @@ h1 {
 ::-webkit-scrollbar-track {
   background: none;
 
-  border-radius: 15px;
+  border-radius: var(--border-radius);
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background-color: #424242;
-  border-radius: 15px;
+  border-radius: var(--border-radius);
   opacity: 0.6;
 }
 
@@ -254,8 +256,8 @@ h1 {
   content: attr(data-tooltip);
   position: absolute;
   z-index: 1;
-  background: #333;
-  transform: translate(1%, -10%);
+  background: var(--tooltip-background);
+  transform: translate(5%, -20%);
   color: #fff;
   padding: 5px;
   font-size: 10pt;
@@ -366,4 +368,74 @@ noscript {
   text-align: center;
   height: 100%;
   width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.mobile-hidden {
+  display: none;
+}
+
+.data-table {
+  border: 1px solid var(--text-color) !important  ;
+  width: 100%;
+  border-collapse: collapse;
+
+  text-align: left;
+  tbody,
+  thead,
+  tr,
+  td,
+  th {
+    border: 1px solid var(--text-color) !important;
+    padding: 10px;
+  }
+}
+
+@-webkit-keyframes spin {
+  100% {
+    /* margin-left: 400px; */
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  100% {
+    /* margin-left: 400px; */
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  margin: 20px;
+  width: 100px;
+  height: 100px;
+  z-index: 10000;
+  -webkit-animation: myanimation 5s;
+  animation: myanimation 5s;
+  /* background: #f00;
+  -webkit-animation-name: spin;
+  -webkit-animation-duration: 4000ms;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  -moz-animation-name: spin;
+  -moz-animation-duration: 4000ms;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
+  -ms-animation-name: spin;
+  -ms-animation-duration: 4000ms;
+  -ms-animation-iteration-count: infinite;
+  -ms-animation-timing-function: linear;
+
+  animation-name: spin;
+  animation-duration: 4000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear; */
+}
+
+@media (max-width: 786px) {
+  .mobile-hidden {
+    display: block;
+  }
 }

@@ -1,6 +1,5 @@
 """File to hold the Facility class and its associated methods."""
 
-import time
 from typing import TYPE_CHECKING, Any, Optional, override
 
 from geojson import Feature
@@ -63,11 +62,9 @@ class Facility(Base):
             - `dict[str, Any]`: facility as a dictionary.\n
         """
 
-        return (
-            super().as_json(*include, **kwargs)
-            | {k: v for fp in self.facility_properties for k, v in fp.as_dict().items()}
-            | {"timestamp": time.time()}
-        )
+        return super().as_json(*include, **kwargs) | {
+            k: v for fp in self.facility_properties for k, v in fp.as_dict().items()
+        }
 
     @override
     def as_feature(self, *include: str) -> Feature:

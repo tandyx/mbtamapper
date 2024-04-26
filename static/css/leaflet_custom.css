@@ -86,7 +86,7 @@
 }
 
 .leaflet-control-layers-expanded {
-  color: var(--text-color) !important;
+  color: var(--dark-text-color) !important;
   font-family: var(--font-family) !important;
   font-size: 8pt !important;
 }

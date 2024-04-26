@@ -54,7 +54,7 @@ class Calendar(Base):
             datetime.strptime(self.end_date, "%Y%m%d")
         )
 
-    def operates_on_date(self, date: datetime) -> bool:
+    def operates_on(self, date: datetime) -> bool:
         """Returns true if the calendar operates on the date
 
         Args:

@@ -1,0 +1,68 @@
+.popup {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* The actual popup */
+.popup .popuptext {
+  visibility: hidden;
+  background: var(--tooltip-background) !important;
+  /* max-width: 100000%; */
+  min-width: 300px;
+  text-align: center;
+  border-radius: var(--border-radius);
+  padding: 8px 8px;
+  position: absolute;
+  z-index: 10000;
+  top: -5px;
+  height: auto;
+  left: 135%;
+  color: var(--text-color) !important;
+  overflow-y: auto;
+  transform: none;
+  overflow-x: hidden;
+  max-height: 250px;
+  /* text-rendering: optimizelegibility; */
+  /* position: absolute; */
+  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-family) !important;
+}
+
+/* .popuptext::before {
+    content: "";
+    -webkit-backdrop-filter: blur(var(--backdrop-blur));
+    backdrop-filter: blur(var(--backdrop-blur));
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    width: inherit;
+    height: inherit;
+    z-index: -1;
+  } */
+
+/* Popup arrow */
+/* .popup .popuptext::after {
+    content: "";
+    position: absolute;
+    top: 4%;
+    left: -3%;
+    margin-top: -5px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent #f2f2f2 transparent transparent;
+    z-index: 10000;
+  } */
+
+/* Toggle this class - hide and show the popup */
+.popup .show {
+  visibility: visible;
+  -webkit-animation: fadeIn 250ms;
+  animation: fadeIn 250ms;
+}

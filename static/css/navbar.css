@@ -130,7 +130,7 @@ nav a:visited:hover {
   transform: rotate(-45deg);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 786px) {
   .menu-button-container {
     display: flex;
   }

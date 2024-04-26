@@ -2,10 +2,11 @@
  * @param {string} options.url - url to geojson
  * @param {L.layerGroup} options.layer - layer to plot facilities on
  * @param {object} options.textboxSize - size of textbox;
+ * @param {boolean} options.isMobile - is the device mobile
  * @returns {L.realtime} - realtime layer
  */
 function plotFacilities(options) {
-  const { url, layer, textboxSize } = options;
+  const { url, layer, textboxSize, isMobile } = options;
   const facilityIcon = L.icon({
     iconUrl: "static/img/parking.png",
     iconSize: [15, 15],
@@ -22,7 +23,9 @@ function plotFacilities(options) {
     },
     onEachFeature(f, l) {
       l.bindPopup(getFacilityText(f.properties), textboxSize);
-      l.bindTooltip(f.properties.facility_long_name);
+      if (!isMobile) {
+        l.bindTooltip(f.properties.facility_long_name);
+      }
       l.setIcon(facilityIcon);
       l.setZIndexOffset(-150);
     },

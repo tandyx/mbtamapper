@@ -1,8 +1,7 @@
 """File to hold the Stop class and its associated methods."""
 
 # pylint: disable=line-too-long
-import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Generator, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -79,13 +78,21 @@ class Stop(Base):
         primaryjoin="and_(Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id))",
         viewonly=True,
     )
+    # routes: Mapped[list["Route"]] = relationship(
+    #     primaryjoin="""or_(
+    #         and_(Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id)),
+    #         and_(Stop.parent_station==Stop.stop_id, Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id))
+    #     )""",
+    #     viewonly=True,
+    # )
 
     # all_routes: Mapped[list["Route"]] = relationship(
     #     # remote_side=[stop_id],
-    #     # foreign_keys=[parent_station],
-    #     primaryjoin="and_(Stop.stop_id==remote(StopTime.stop_id), Stop.stop_id==remote(Stop.parent_station))",
+    #     foreign_keys=[parent_station],
+    #     primaryjoin="Stop.parent_stop",
+    #     secondaryjoin="and_(StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id))",
     #     secondary="stop_times",
-    #     secondaryjoin="and_(StopTime.trip_id==Trip.trip_id, Trip.route_id==Route.route_id)",
+    #     # primaryjoin="and_(Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id))",
     #     viewonly=True,
     # )
 
@@ -117,17 +124,68 @@ class Stop(Base):
         """
         return Point(self.stop_lon, self.stop_lat)
 
-    def get_routes(self) -> set["Route"]:
-        """Returns a list of routes that stop at this stop
+    def get_routes(self) -> Generator["Route", None, None]:
+        """yields a list of routes that stop @ this stop & children
 
-        returns:
-            - `set[Route]`: A set of routes that stop at this stop
+        yields:
+            - `Route`: A ***set*** of routes that stop at this stop
         """
         if self.location_type == "1":
-            routes = {r for cs in self.child_stops for r in cs.routes}
+            yield from {r for cs in self.child_stops for r in cs.routes}
         else:
-            routes = set(self.routes)
-        return routes
+            yield from self.routes
+
+    def get_stop_times(self) -> Generator["StopTime", None, None]:
+        """yields a list of `StopTime` objects for this stop || children
+
+        yields:
+            - `StopTime`: stop times for this stop
+        """
+        if self.location_type == "1":
+            yield from (st for cs in self.child_stops for st in cs.stop_times)
+        else:
+            yield from self.stop_times
+
+    def get_alerts(self) -> Generator["Alert", None, None]:
+        """yields a list of `Alert` objects for this stop & children
+
+        yields:
+            - `Alert`: A set of alerts for this stop
+        """
+        yield from self.alerts
+        yield from (a for cs in self.child_stops for a in cs.alerts)
+
+    def get_predictions(self) -> Generator["Prediction", None, None]:
+        """yields a list of `Prediction` objects\
+            for this stop and its children
+        
+        yields:
+            - `Prediction`: predictions for this stop"""
+        if self.location_type == "1":
+            yield from (p for cs in self.child_stops for p in cs.predictions)
+        else:
+            yield from self.predictions
+
+    @override
+    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+        """returns `Stop(...)` as a json serializable object:
+
+        args:
+            - `*include`: other orms/attars to include
+            - `*kwargs`: unused \n
+        returns:
+            - `dict[str, Any]`: json object of stop
+        """
+        json_dict = super().as_json(*include, **kwargs)
+        if "alerts" in include:
+            json_dict["alerts"] = [a.as_json() for a in self.get_alerts()]
+        if "routes" in include:
+            json_dict["routes"] = [r.as_json() for r in self.get_routes()]
+        if "stop_times" in include:
+            json_dict["stop_times"] = [st.as_json() for st in self.get_stop_times()]
+        if "predictions" in include:
+            json_dict["predictions"] = [p.as_json() for p in self.get_predictions()]
+        return json_dict
 
     def as_feature(self, *include: str) -> Feature:
         """Returns stop object as a feature.
@@ -137,10 +195,6 @@ class Stop(Base):
         Returns:
             - `Feature`: A GeoJSON feature object.
         """
-        # routes = self.all_routes
-        properties = self.as_json(*include)
-        properties |= {
-            "routes": [r.as_json() for r in self.get_routes()],
-            "timestamp": time.time(),
-        }
-        return Feature(id=self.stop_id, geometry=self.as_point(), properties=properties)
+        return Feature(
+            id=self.stop_id, geometry=self.as_point(), properties=self.as_json(*include)
+        )

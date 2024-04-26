@@ -14,9 +14,9 @@ from helper_functions import *
 from .base import Base
 
 if TYPE_CHECKING:
+    from .prediction import Prediction
     from .stop import Stop
     from .trip import Trip
-    from .prediction import Prediction
 
 
 class StopTime(Base):
@@ -120,7 +120,7 @@ class StopTime(Base):
         returns:
             - `bool`: whether the stop is active on the given date and time
         """
-        return self.trip.calendar.operates_on_date(date) and self.departure_seconds > (
+        return self.trip.calendar.operates_on(date) and self.departure_seconds > (
             get_current_time().timestamp() - get_date().timestamp()
         )
 

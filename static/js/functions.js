@@ -104,7 +104,6 @@ function almostTitleCase(str, split = "_") {
   const _str = str.toLowerCase().split(split).join(" ");
   return _str.charAt(0).toUpperCase() + _str.slice(1);
 }
-
 /** Set images to route type
  * @param {string} base_url - base url to set images to
  * @param {string} route_type - route type to set images to
@@ -249,4 +248,108 @@ function getStylesheet(sheetName) {
     }
   }
   return null;
+}
+
+/**
+ * sets a cookie to a value
+ * @param {string} name - The name of the cookie
+ * @param {string} value - The value of the cookie
+ * @param {number | null} exdays - The number of days until the cookie expires or null if it never expires
+ * @returns {void}
+ * @example setCookie("username", "johan", 10);
+ */
+
+function setCookie(name, value, exdays = null) {
+  if (!exdays) {
+    document.cookie = `${name}=${value};path=/`;
+    return;
+  }
+  const d = new Date();
+  d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};${"expires=" + d.toUTCString()};path=/`;
+}
+
+/**
+ * fetches a cookie
+ * @param {string} name - the name of the cookie to fetch
+ * @returns {string} - the value of the cookie
+ * @example let user = getCookie("username");
+ */
+function getCookie(name) {
+  name += "=";
+  for (let cookie of decodeURIComponent(document.cookie).split(";")) {
+    while (cookie.charAt(0) == " ") {
+      cookie = cookie.substring(1);
+    }
+    if (cookie.indexOf(name) == 0) {
+      return cookie.substring(name.length, cookie.length);
+    }
+  }
+  return "";
+}
+
+/**
+ * gets a default cookie value, sets the cookie if it does not exist
+ * @param {string} name
+ * @param {string} value
+ * @returns {string} - the value of the cookie
+ */
+function getDefaultCookie(name, value = "") {
+  let cookie = getCookie(name);
+  if (!cookie) {
+    cookie = value;
+    setCookie(name, value);
+  }
+  return cookie;
+}
+
+/**
+ * gets the value (style) of a css var
+ * @param {string} name - the name of the css variable
+ * @returns {string} - the value of the css variable
+ */
+
+function getCssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name);
+}
+
+/**
+ *  Check if the device is like a mobile device
+ * @returns {boolean} - whether or not the device is a mobile device
+ */
+function isLikeMobile(threshold = null) {
+  if (threshold === null) {
+    threshold = getCssVar("--mobile-threshold");
+  }
+  return window.innerWidth <= 768;
+}
+
+const openPopups = [];
+/**
+ * Toggles a popup
+ * @param {string | HTMLElement} id - the id of the popup or the popup element
+ * @param {boolean | "auto"} show - whether or not to show the popup
+ * @returns {void}
+ */
+function togglePopup(id, show = "auto") {
+  const popup = typeof id === "string" ? document.getElementById(id) : id;
+  // console.log(popup);
+  if (!popup) return;
+  const identifier = popup.id || popup.name;
+  if (!popup.classList.contains("show")) {
+    openPopups.push(identifier);
+  } else {
+    openPopups.splice(openPopups.indexOf(identifier), 1);
+  }
+  if (show === "auto") {
+    popup.classList.toggle("show");
+    return;
+  }
+  if (show) {
+    popup.classList.add("show");
+    if (!popup.classList.contains("show")) openPopups.push(identifier);
+    return;
+  }
+  popup.classList.remove("show");
+  openPopups.splice(openPopups.indexOf(identifier), 1);
 }

@@ -1,7 +1,7 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING, Generator, Optional, override
+from typing import TYPE_CHECKING, Generator, Iterable, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -80,13 +80,7 @@ class Vehicle(Base):
         # pylint: disable=attribute-defined-outside-init
         self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
-        self.route_color = self.route.route_color if self.route else None
-        self.bikes_allowed = self.trip.bikes_allowed == 1 if self.trip else False
-        self.speed_mph = self._speed_mph
-        self.trip_short_name = self._trip_short_name
-        self.headsign = self._headsign
-        self.wheelchair_accessible = self._wheelchair_accessible
-        self.display_name = self._display_name
+        self.trip_short_name = self._trip_short_name()
 
     def as_point(self) -> Point:
         """Returns vehicle as point.
@@ -95,6 +89,24 @@ class Vehicle(Base):
             - `Point`: vehicle as a point
         """
         return Point(self.longitude, self.latitude)
+
+    @override
+    def as_json(self, *include: str, **kwargs) -> dict:
+        """Returns vehicle as json.
+
+        args:
+            - `*include`: list of strings to include in the json\n
+        returns:
+            - `dict`: vehicle as a json
+        """
+        return super().as_json(*include, **kwargs) | {
+            "route_color": self.route.route_color if self.route else None,
+            "bikes_allowed": self.trip.bikes_allowed == 1 if self.trip else False,
+            "speed_mph": self._speed_mph(),
+            "headsign": self._headsign(),
+            "wheelchair_accessible": self._wheelchair_accessible(),
+            "display_name": self._display_name(),
+        }
 
     @override
     def as_feature(self, *include: str) -> Feature:
@@ -120,15 +132,24 @@ class Vehicle(Base):
         returns:
             - `list`: alerts as json
         """
+        from .alert import Alert  # pylint: disable=import-outside-toplevel
 
+        columns = self.__table__.columns.keys()
         for attr in orms:
-            _alerts = getattr(self, attr, None)
-            if not _alerts:
-                continue
-            for al in getattr(_alerts, "alerts", []):
-                yield al
+            orm_list: Base | Iterable[Base] = getattr(self, attr, None)
+            orm_list = [orm_list] if isinstance(orm_list, Base) else orm_list
+            for orm in orm_list:
+                for sub_attar_name in dir(orm):
+                    if sub_attar_name.startswith("_") or sub_attar_name in columns:
+                        continue
+                    object_attr = getattr(orm, sub_attar_name)
+                    if isinstance(object_attr, Alert):
+                        yield object_attr
+                    if isinstance(object_attr, Iterable):
+                        for a in object_attr:
+                            if isinstance(a, Alert):
+                                yield a
 
-    @property
     def _speed_mph(self) -> float | None:
         """Returns speed.
 
@@ -141,7 +162,6 @@ class Vehicle(Base):
             return self.speed
         return self.speed * 2.23694
 
-    @property
     def _display_name(self) -> str:
         """Returns display name.
 
@@ -159,7 +179,6 @@ class Vehicle(Base):
             return self.route.route_short_name
         return ""
 
-    @property
     def _wheelchair_accessible(self) -> bool:
         """Returns wheelchair accessible.
 
@@ -168,9 +187,8 @@ class Vehicle(Base):
         """
         if self.trip:
             return bool(self.trip.wheelchair_accessible)
-        return any(x.stop.wheelchair_boarding for x in self.predictions)
+        return any(x.stop.wheelchair_boarding for x in self.predictions if x.stop)
 
-    @property
     def _headsign(self) -> str:
         """Returns headsign.
 
@@ -186,7 +204,6 @@ class Vehicle(Base):
             return max(self.predictions).stop.stop_name
         return "unknown"
 
-    @property
     def _trip_short_name(self) -> str:
         """Returns trip short name.
 

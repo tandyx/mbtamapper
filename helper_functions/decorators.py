@@ -3,12 +3,14 @@
 import logging
 import time
 import traceback
+from functools import wraps
 from typing import Any, Callable
 
+from flask import abort, request
 from sqlalchemy.orm import scoped_session
 
 
-def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
+def removes_session(_func: Callable[..., Any]):
     """Decorator to remove a scroped session from a Feed object after function call. \
     This decorator also removes the session from the object if an exception is raised.
 
@@ -18,7 +20,7 @@ def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
         - `function`: Wrapped function.
     """
 
-    def _removes_session(*args, **kwargs) -> Any:
+    def _removes_session(*args, **kwargs):
         """Wrapper for decorator. Removes session from Feed object after function call.
 
         Args:
@@ -45,7 +47,7 @@ def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
     return _removes_session
 
 
-def timeit(_func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
+def timeit(_func: Callable[..., Any], round_to: int = 3):
     """Decorator to time a function and log it.
 
     Args:
@@ -67,6 +69,37 @@ def timeit(_func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
         return res
 
     return _timeit
+
+
+def limit_content_length(max_length: int):
+    """Decorator to limit the content length of a request.
+
+    args:
+        - `max_length (int)`: Maximum length of request. \n
+    returns:
+        - `function`: Wrapped function.
+    """
+
+    def decorator(f):
+        """Wrapper for decorator."""
+
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            """Wrapper for decorator."""
+            # cl =
+            if request.method == "GET":
+                data = f(*args, **kwargs)
+                if len(data) > max_length:
+                    abort(413)
+                return data
+            cl = request.content_length
+            if cl is not None and cl > max_length:
+                abort(413)
+            return f(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class classproperty(property):  # pylint: disable=invalid-name

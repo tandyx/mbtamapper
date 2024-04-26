@@ -16,7 +16,8 @@ from .feed import Feed
 
 
 class FeedLoader(Scheduler, Feed):
-    """Loads GTFS data into map
+    """Loads GTFS data into map \
+        and schedules jobs to import realtime data.
 
     Args:
         - `url (str)`: URL of GTFS feed
@@ -49,13 +50,14 @@ class FeedLoader(Scheduler, Feed):
     def geojson_exports(self) -> None:
         """Exports geojsons all geojsons listed in `cls.keys_dict`"""
         for key, routes in self.keys_dict.items():
-            self.export_geojsons(key, routes, __class__.GEOJSON_PATH)
+            self.export_geojsons(key, *routes, file_path=__class__.GEOJSON_PATH)
 
     def import_and_run(self, import_data: bool = False) -> NoReturn:
         """this is the main entrypoint for the application.
 
         Args:
-            - `import_data (bool, optional)`: Whether to import data. Defaults to False.
+            - `import_data (bool, optional)`: reloads the database and geojsons.\
+                Defaults to False.
         """
 
         if import_data or not os.path.exists(self.db_path):

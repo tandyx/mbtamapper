@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Agency(Base):
-    """Agency"""
+    """Agency class for the `agency.txt` file."""
 
     __tablename__ = "agencies"
     __filename__ = "agency.txt"

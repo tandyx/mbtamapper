@@ -1,6 +1,7 @@
 """Holds the base class for all GTFS elements"""
 
 import json
+import time
 from abc import abstractmethod
 from typing import Any, Self, Type
 
@@ -102,7 +103,7 @@ class Base(orm.DeclarativeBase):
             k: v
             for k, v in self.as_dict(*include).items()
             if not k.startswith("_") and _is_json_searializable(v)
-        }
+        } | {"timestamp": getattr(self, "timestamp", time.time())}
 
     def _as_json_dict(self) -> dict[str, Any]:
         """Returns a dict representation of the object
@@ -153,6 +154,12 @@ class Base(orm.DeclarativeBase):
     def as_feature(self, *include: str) -> Feature | None:
         """Returns the object as a geojson feature.\
         only implemented in some classes, such as `Stop`.
+        
+        args:
+            - `*include`: other orm attars to \
+                include within the properties of the feature \n
+        returns:
+            - `Feature`: a geojson feature object
         """
         raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 

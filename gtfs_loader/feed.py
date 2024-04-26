@@ -14,12 +14,13 @@ from datetime import datetime
 from typing import Type
 from zipfile import ZipFile
 
+import asteval
+import geojson as gj
 import pandas as pd
 import requests as req
-from geojson import FeatureCollection, dump
-from sqlalchemy import CursorResult, Engine, create_engine, event, exc, pool
-from sqlalchemy.exc import IllegalStateChangeError, IntegrityError
-from sqlalchemy.orm import scoped_session, sessionmaker
+import sqlalchemy as sa
+from sqlalchemy import event, exc
+from sqlalchemy import orm as saorm
 
 from gtfs_orms import *
 from helper_functions import removes_session, timeit
@@ -60,10 +61,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     __realtime_orms__ = (Alert, Vehicle, Prediction)
 
     @staticmethod
-    @event.listens_for(Engine, "connect")
+    @event.listens_for(sa.Engine, "connect")
     def _on_connect(
         dbapi_connection: sqlite3.Connection,
-        connection_record: pool.ConnectionPoolEntry,
+        connection_record: sa.pool.ConnectionPoolEntry,
     ) -> None:
         """Sets sqlite pragma for each connection,\
             automitcally called when a connection is created.
@@ -86,10 +87,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         cursor.close()
 
     @staticmethod
-    @event.listens_for(Engine, "close")
+    @event.listens_for(sa.Engine, "close")
     def _on_close(
         dbapi_connection: sqlite3.Connection,
-        connection_record: pool.ConnectionPoolEntry,
+        connection_record: sa.pool.ConnectionPoolEntry,
     ) -> None:
         """Sets sqlite pragma on close automatically.
 
@@ -97,13 +98,15 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             dbapi_connection (sqlite3.Connection): connection to sqlite database
             connection_record (ConnectionRecord, optional): connection record
         """
-        if isinstance(dbapi_connection, sqlite3.Connection):
-            cursor = dbapi_connection.cursor()
-            try:
-                cursor.execute("PRAGMA optimize")
-            except sqlite3.OperationalError:
-                logging.warning("PRAGMA optimize failed")
-            cursor.close()
+        if not isinstance(dbapi_connection, sqlite3.Connection):
+            logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
+            return
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("PRAGMA optimize")
+        except sqlite3.OperationalError:
+            logging.warning("PRAGMA optimize failed")
+        cursor.close()
 
     def __init__(self, url: str) -> None:
         """
@@ -112,7 +115,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         Parses url to get GTFS name and create db path in temp dir.
 
         Args:
-            url (str): url of GTFS feed
+            - `url (str)`: url of GTFS feed
         """
         super().__init__()
         self.url = url
@@ -120,13 +123,13 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
-        self.engine = create_engine(f"sqlite:///{self.db_path}")
-        self.sessionmkr = sessionmaker(self.engine, expire_on_commit=False)
+        self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
+        self.sessionmkr = saorm.sessionmaker(self.engine, expire_on_commit=False)
         self.session = self.sessionmkr()
-        self.scoped_session = scoped_session(self.sessionmkr)
+        self.scoped_session = saorm.scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(url={self.url})>"
+        return f"<{self.__class__.__name__}({self.url}@{self.db_path})>"
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -206,45 +209,38 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         """
 
         for stmt in (self.delete_calendars_query(date), self.delete_facilities_query()):
-            res: CursorResult = self.session.execute(stmt)
+            res: sa.CursorResult = self.session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
         self.session.commit()
 
     @timeit
-    def export_geojsons(
-        self, key: str, route_types: tuple[str], file_path: str
-    ) -> None:
+    def export_geojsons(self, key: str, *route_types: str, file_path: str) -> None:
         """Generates geojsons for stops and shapes.
 
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `route_types (list[str])`: route types to export
+            - `*route_types (str)`: route types to export
             - `file_path (str)`: path to export files to
         """
+        #pylint:disable=unspecified-encoding
         query_obj = Query(*route_types)
         file_subpath = os.path.join(file_path, key)
+        def_kwargs = {"mode": "w","encoding": "utf-8"}
         for path in (file_path, file_subpath):
             if not os.path.exists(path):
                 os.mkdir(path)
-        with open(
-            os.path.join(file_subpath, "park.json"), "w", encoding="utf-8"
-        ) as file:
-            dump(self.get_parking_features(key, query_obj), file)
+        file: io.TextIOWrapper
+        with open(os.path.join(file_subpath, "park.json"), **def_kwargs) as file:
+            gj.dump(self.get_parking_features(key, query_obj), file)
             logging.info("Exported %s", file.name)
-        with open(
-            os.path.join(file_subpath, "shapes.json"), "w", encoding="utf-8"
-        ) as file:
-            dump(self.get_shape_features(key, query_obj, "agency"), file)
+        with open(os.path.join(file_subpath, "shapes.json"), **def_kwargs) as file:
+            gj.dump(self.get_shape_features(key, query_obj, "agency"), file)
             logging.info("Exported %s", file.name)
-        with open(
-            os.path.join(file_subpath, "parking.json"), "w", encoding="utf-8"
-        ) as file:
-            dump(self.get_parking_features(key, query_obj), file)
+        with open(os.path.join(file_subpath, "parking.json"), **def_kwargs) as file:
+            gj.dump(self.get_parking_features(key, query_obj), file)
             logging.info("Exported %s", file.name)
-        with open(
-            os.path.join(file_subpath, "stops.json"), "w", encoding="utf-8"
-        ) as file:
-            dump(self.get_stop_features(key, query_obj), file)
+        with open(os.path.join(file_subpath, "stops.json"), **def_kwargs) as file:
+            gj.dump(self.get_stop_features(key, query_obj, "child_stops", "routes"), file)
             logging.info("Exported %s", file.name)
 
     @removes_session
@@ -267,12 +263,12 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             stops_data += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
-        return FeatureCollection([s[0].as_feature(*include) for s in stops_data])
+        return gj.FeatureCollection([s[0].as_feature(*include) for s in stops_data])
 
     @removes_session
     def get_shape_features(
         self, key: str, query_obj: Query, *include: str
-    ) -> FeatureCollection:
+    ) -> gj.FeatureCollection:
         """Generates geojsons for shapes.
 
         Args:
@@ -295,14 +291,14 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                 )
             ).all()
 
-        return FeatureCollection(
+        return gj.FeatureCollection(
             [s[0].as_feature(*include) for s in sorted(shape_data, reverse=True)]
         )
 
     @removes_session
     def get_parking_features(
         self, key: str, query_obj: Query, *include: str
-    ) -> FeatureCollection:
+    ) -> gj.FeatureCollection:
         """Generates geojsons for facilities.
 
         Args:
@@ -324,18 +320,17 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             ).all()
         if "4" in query_obj.route_types:
             facilities += session.execute(self.ferry_parking_query).all()
-        return FeatureCollection([f[0].as_feature(*include) for f in facilities])
+        return gj.FeatureCollection([f[0].as_feature(*include) for f in facilities])
 
     @removes_session
     def get_vehicles_feature(
         self, key: str, query_obj: Query, *include: str
-    ) -> FeatureCollection:
+    ) -> gj.FeatureCollection:
         """Returns vehicles as FeatureCollection.
 
         Args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `route_types (str)`: route types to export
-            - `max_tries (int)`: maximum number of tries to get data (default: 5)
+            - `query_obj (Query)`: Query object
             - `*include (str)`: other orms to include \n
         Returns:
             - `FeatureCollection`: vehicles as FeatureCollection
@@ -358,7 +353,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             time.sleep(0.5)
         if not data:
             logging.error("No data returned in %s attemps", attempt + 1)
-        return FeatureCollection([v[0].as_feature(*include) for v in data])
+        return gj.FeatureCollection([v[0].as_feature(*include) for v in data])
 
     @removes_session
     def to_sql(
@@ -381,7 +376,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                     session.execute(self.delete(orm))
                     session.commit()
                     break
-                except IllegalStateChangeError:
+                except exc.IllegalStateChangeError:
                     time.sleep(1)
 
         try:
@@ -392,42 +387,96 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                 index=False,
                 **kwargs,
             )
-        except IntegrityError:
+        except exc.IntegrityError:
             res = self.to_sql(data.iloc[1:], orm, **kwargs)
         logging.info("Added %s rows to %s", res, orm.__tablename__)
         return res
 
     @removes_session
     def get_orm_json(
-        self, _orm: type[Base], *include, geojson: bool = False, **kwargs
-    ) -> list[dict[str]] | FeatureCollection:
+        self, _orm: type[Base], *include, geojson: bool = False, **params
+    ) -> list[dict[str]] | gj.FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
         args:
             - `_orm (str)`: ORM to return.
-            - `*include`: other orms to include
+            - `*include (str)`: other orms to include
             - `geojson (bool)`: use `geojson` rather than `json`\n
+            - `**params`: keyword arguments to pass to the query\n
         Returns:
-            - `list[dict[str]`: dictionary of the ORM names and their corresponding JSON names.
+            - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
         """
         session = self.scoped_session()
-        # pylint: disable=singleton-comparison
-
-        data: list[tuple[Base]] = session.execute(
-            self.select(_orm).where(
+        # pylint: disable=eval-used
+        cols = _orm.__table__.columns.keys()
+        comp_ops = ["<", ">", "!"]
+        # non_cols, param_list = []
+        param_list = []
+        non_cols = []
+        for key, value in params.items():
+            if value in {"null", "None", "none"}:
+                p_item = {"key": key, "action": "IS", "value": "NULL"}
+            else:
+                op_index = next((key.find(op) for op in comp_ops if key.find(op) > 0), None)
+                if op_index is None:
+                    p_item = {"key": key, "action": "=", "value": value}
+                elif not value and not key[op_index] == "!":
+                    p_item = {
+                            "key": key[:op_index],
+                            "action": key[op_index],
+                            "value": key[op_index + 1 :]
+                        }
+                else:
+                    p_item = {"key": key[:op_index], "action": f"{key[op_index]}=", "value": value}
+            if p_item["key"] in cols:
+                param_list.append(p_item)
+            else:
+                non_cols.append(p_item)
+        stmt = self.select(_orm).where(
                 *(
-                    (
-                        getattr(_orm, k) == v
-                        if v not in {"null", "None"}
-                        else getattr(_orm, k) == None
-                    )
-                    for k, v in kwargs.items()
+                    sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} '{v['value']}'")
+                    for v in param_list
                 )
             )
-        ).all()
-        try:
-            if geojson:
-                return FeatureCollection([d[0].as_feature(*include) for d in data])
-            return [d[0].as_json(*include) for d in data]
-        except AttributeError:
-            return []
+        if non_cols:
+            data = []
+            _eval = asteval.Interpreter()
+            for d in session.execute(stmt).all():
+                for c in non_cols:
+                    if not hasattr(d[0], c["key"]):
+                        continue
+                    if _eval(f"{getattr(d[0], c["key"])} {c["action"]} {c['value']}"):
+                        data.append(d)
+        else:
+            data: list[tuple[Base]] = session.execute(stmt).all()
+        if geojson:
+            return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
+        return [d[0].as_json(*include) for d in data]
+
+        # data: list[tuple[Base]] = session.execute(
+        #     self.select(_orm).where(
+        #         *(
+        #             (
+        #                 getattr(_orm, k) == None
+        #                 if v in {"null", "None", "none"}
+        #                 else (
+        #                     text(
+        #                         f"{_orm.__tablename__}.{k.split(k[next(k.find(op) for op in compare_ops if k.find(op) > 0)])[0]}"
+        #                         + f"{k[next(k.find(op) for op in compare_ops if k.find(op) > 0)]}"
+        #                         + f"{k.split(k[next(k.find(op) for op in compare_ops if k.find(op) > 0)])[-1]}"
+        #                     )
+        #                     if not v and any(op in k for op in compare_ops)
+        #                     else (
+        #                         text(
+        #                             f"{_orm.__tablename__}.{k.replace(k[next(k.find(op) for op in compare_ops_eq if k.find(op) > 0)], "")}"
+        #                             + f"{k[next(k.find(op) for op in compare_ops_eq if k.find(op) > 0)]}={v}"
+        #                         )
+        #                         if v and any(op in k for op in compare_ops_eq)
+        #                         else getattr(_orm, k) == v
+        #                     )
+        #                 )
+        #             )
+        #             for k, v in params.items()
+        #         )
+        #     )
+        # ).all()
