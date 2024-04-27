@@ -20,9 +20,16 @@ FEED_LOADER = FeedLoader(
 )
 
 
+# putting this within a function causes an asteriod error
 @timeout_function_decorator.timeout(15)
 def _timeout_get_orm_json(*_args, **kwargs):
-    """times out the `Feed.get_orm_json` function."""
+    """times out the `Feed.get_orm_json` function.
+
+    args:
+        - `*_args`: positional arguments to pass to `Feed.get_orm_json`.
+        - `**kwargs`: keyword arguments to pass to `Feed.get_orm_json`.\n
+    returns:
+        - `dict`: json of the orm."""
     return FEED_LOADER.get_orm_json(*_args, **kwargs)
 
 

@@ -4,13 +4,9 @@
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   document.addEventListener("click", function (event) {
-    // Check if the clicked element is not inside the navbar
     if (!event.target.closest(".nav")) {
-      // Close the hamburger menu
       let menuToggle = document.getElementById("menu-toggle");
-      if (menuToggle.checked) {
-        menuToggle.checked = false;
-      }
+      if (menuToggle.checked) menuToggle.checked = false;
     }
   });
   createMap("map", ROUTE_TYPE);
@@ -178,26 +174,3 @@ function addSidebar(map, show = true, options = {}) {
   if (show) sidebar.addTo(map);
   return sidebar;
 }
-
-// document.getElementById("edit2").addEventListener("click", function () {
-//   document.getElementById("edit2").classList.add("hidden");
-//   document.getElementById("check2").classList.remove("hidden");
-//   document.getElementById("move2").classList.remove("hidden");
-//   document.getElementById("move2").classList.add("visible");
-// });
-
-// document.getElementById("check2").addEventListener("click", function () {
-//   document.getElementById("check2").classList.add("hidden");
-//   document.getElementById("edit2").classList.remove("hidden");
-//   document.getElementById("move2").classList.add("hidden");
-//   document.getElementById("move2").classList.remove("visible");
-// });
-
-// for (const element of document.querySelectorAll(".edit")) {
-//   element.addEventListener("click", function () {
-//     element.classList.add("hidden");
-//     element.nextElementSibling.classList.remove("hidden");
-//     element.nextElementSibling.nextElementSibling.classList.remove("hidden");
-//     element.nextElementSibling.nextElementSibling.classList.add("visible");
-//   });
-// }
