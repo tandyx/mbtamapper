@@ -4,7 +4,7 @@
 # pylint: disable=unused-wildcard-import
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import Any, override, TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
@@ -90,7 +90,6 @@ class StopTime(Base):
             )
         return self.stop_sequence == other.stop_sequence
 
-    @property
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop
 
@@ -101,7 +100,6 @@ class StopTime(Base):
             self.pickup_type == "3" or self.drop_off_type == "3"
         )
 
-    @property
     def is_early_departure(self) -> bool:
         """Returns true if this StopTime is an early departure stop
 
@@ -124,7 +122,6 @@ class StopTime(Base):
             get_current_time().timestamp() - get_date().timestamp()
         )
 
-    @property
     def is_destination(self) -> bool:
         """Returns true if this StopTime is the last stop in the trip
 
@@ -138,3 +135,19 @@ class StopTime(Base):
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""
         raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
+
+    @override
+    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+        """returns the object as a dictionary
+
+        args:
+            - `include`: fields to include in the json
+            - `kwargs`: additional arguments \n
+        returns:
+            - `dict`: the object as a dictionary
+        """
+
+        return super().as_json(*include, **kwargs) | {
+            "flag_stop": self.is_flag_stop(),
+            "early_departure": self.is_early_departure(),
+        }

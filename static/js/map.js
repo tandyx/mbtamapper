@@ -21,7 +21,7 @@ window.addEventListener("load", function () {
  * @returns {L.map} map
  */
 function createMap(id, route_type) {
-  const isMobile = isLikeMobile();
+  const isMobile = window.mobileCheck();
   const textboxSize = {
     maxWidth: 375,
     minWidth: 250,

@@ -35,7 +35,7 @@ function plotStops(options) {
       l.setZIndexOffset(-100);
       l.on("click", function () {
         fillAlertStopData(f.properties.stop_id);
-        fillPredictionsStopData(f.properties.stop_id, f.properties.stop_times);
+        fillPredictionsStopData(f.properties.stop_id, f.properties.child_stops);
       });
     },
   });
@@ -55,14 +55,14 @@ function plotStops(options) {
           fillAlertStopData(feature.properties.stop_id);
           fillPredictionsStopData(
             feature.properties.stop_id,
-            feature.properties.stop_times
+            feature.properties.child_stops
           );
         }
         layer.on("click", function () {
           fillAlertStopData(feature.properties.stop_id);
           fillPredictionsStopData(
             feature.properties.stop_id,
-            feature.properties.stop_times
+            feature.properties.child_stops
           );
         });
       }.bind(this)
@@ -79,11 +79,14 @@ function plotStops(options) {
  */
 function getStopText(properties) {
   const stopHtml = document.createElement("div");
+  const primaryRoute = properties.routes.sort(
+    (a, b) => a.route_type - b.route_type
+  )[0];
   stopHtml.innerHTML += `<p>
   <a href="${
     properties.stop_url
   }" rel="noopener" target="_blank" style="color:#${
-    properties.routes.sort((a, b) => a.route_type - b.route_type)[0].route_color
+    primaryRoute ? primaryRoute.route_color : "var(--text-color)"
   }"  class="popup_header">${properties.stop_name}</a>
   </p>`;
   stopHtml.innerHTML += `<p class="popup_subheader">${
@@ -95,7 +98,7 @@ function getStopText(properties) {
   } else if (properties.wheelchair_boarding === "1") {
     stopHtml.innerHTML += `<span class='fa tooltip' data-tooltip='wheelchair accessible'>&#xf193;</span>&nbsp;&nbsp;&nbsp;`;
   }
-  stopHtml.innerHTML += `<span name="predictions-stop-${properties.stop_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;</span>&nbsp;&nbsp;&nbsp;`;
+  stopHtml.innerHTML += `<span name="predictions-stop-${properties.stop_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
   stopHtml.innerHTML += `<span name="alert-stop-${properties.stop_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>`;
 
   stopHtml.innerHTML += `<p>${properties.routes
@@ -106,7 +109,7 @@ function getStopText(properties) {
     .join(" ")}</p>`;
 
   stopHtml.innerHTML += `<div class="popup_footer">
-      <p>${properties.stop_address}</p>
+      <p>${properties.stop_id} @ ${properties.stop_address}</p>
       <p>${formatTimestamp(properties.timestamp)}</p>
     </div>`;
 
@@ -130,30 +133,16 @@ async function fillAlertStopData(stop_id) {
     popupText.style.minWidth = "350px";
     popupText.id = popupId;
     // alertEl.setAttribute("data-tooltip", "loading...");
-    const _data = (
-      await (await fetch(`/api/stop?stop_id=${stop_id}include=alerts`)).json()
-    ).alerts;
-    // const _data = await (await fetch(`/api/alert?stop_id=${stop_id}`)).json();
-    // for (const stop of await (
-    //   await fetch(`/api/stop?stop_id=${stop_id}&include=child_stops`)
-    // ).json()) {
-    //   for (const child of stop.child_stops.filter(
-    //     (s) => s.location_type == 0
-    //   )) {
-    //     _data.push(
-    //       ...(await (await fetch(`/api/alert?stop_id=${child.stop_id}`)).json())
-    //     );
-    //   }
-    // }
-    if (!_data || _data.length) {
-      // alertEl.classList.add("hidden");
-      return;
-    }
+    const _data = await (
+      await fetch(`/api/stop?stop_id=${stop_id}&include=alerts`)
+    ).json();
+    if (!_data || !_data.length || !_data[0].alerts.length) return;
     alertEl.classList.remove("hidden");
     // alertEl.setAttribute("data-tooltip", oldTooltip);
     popupText.innerHTML =
       "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
-      _data
+      _data[0].alerts
+        .sort((a, b) => b.timestamp || 0 - a.timestamp || 0)
         .map(function (d) {
           return `<tr>
           <td>${d.header}</td>
@@ -172,15 +161,16 @@ async function fillAlertStopData(stop_id) {
 
 /**
  * fill stop predictions data
- * @param {string} stop_id
- * @param {Object[]} stop_times
+ * @param {string} stop_id - stop id
+ * @param {Object[]} child_stops - child stops
  * @returns {void}
  */
-async function fillPredictionsStopData(stop_id, stop_times = []) {
+async function fillPredictionsStopData(stop_id, child_stops) {
   for (const alertEl of document.getElementsByName(
     `predictions-stop-${stop_id}`
   )) {
     const popupId = `popup-predictions-${stop_id}`;
+    const currTime = new Date().getTime() / 1000;
     alertEl.onclick = function () {
       togglePopup(popupId);
     };
@@ -188,32 +178,58 @@ async function fillPredictionsStopData(stop_id, stop_times = []) {
     popupText.classList.add("popuptext");
     popupText.id = popupId;
     popupText.innerHTML = "...";
-    const _data = await (
-      await fetch(`/api/prediction?stop_id=${stop_id}`)
-    ).json();
-    for (const stop of await (
-      await fetch(`/api/stop?stop_id=${stop_id}&include=child_stops`)
-    ).json()) {
-      for (const child of stop.child_stops.filter(
-        (s) => s.location_type == 0
-      )) {
-        _data.push(
-          ...(await (
-            await fetch(`/api/prediction?stop_id=${child.stop_id}`)
-          ).json())
-        );
-      }
+    const _data = [];
+    for (const child of child_stops.filter((s) => s.location_type == 0)) {
+      _data.push(
+        ...(await (
+          await fetch(
+            `/api/prediction?stop_id=${child.stop_id}&departure_time>${currTime}&include=route,stop_time,trip`
+          )
+        ).json())
+      );
     }
+    // const currTimeThres = new Date().getTime() / 10000 - 15 * 60;
+    // const stopTimeData = [];
+    // for (const child of child_stops.filter((s) => s.location_type == 0)) {
+    //   stopTimeData.push(
+    //     ...(await (
+    //       await fetch(
+    //         `/api/stoptime?stop_id=${child.stop_id}&departure_timestamp>${currTimeThres}&include=route`
+    //       )
+    //     ).json())
+    //   );
+    // }
+
     if (!_data.length) return;
     alertEl.classList.remove("hidden");
     popupText.innerHTML =
-      "<table class='data-table'><tr><th>route</th><th>direction</th><th>arrival</th></tr>" +
-      stop_times
+      "<table class='data-table' style='min-width:400px'><tr><th>route</th><th>trip</th><th>dest</th><th>est</th></tr>" +
+      _data
+        .sort(
+          (a, b) =>
+            (a.departure_time || a.arrival_time) -
+            (b.departure_time || b.arrival_time)
+        )
         .map(function (d) {
+          const realDeparture = d.departure_time || d.arrival_time;
+          let delayText = d.delay ? `${Math.floor(d.delay / 60)}` : "";
+          if (delayText === "0") {
+            delayText = "";
+          } else if (d.delay > 0) {
+            delayText = `+${delayText}`;
+          }
+          if (delayText) {
+            delayText += " min";
+          }
+          // const realTime = d.departure_time || d.arrival_time;
           return `<tr>
-          <td>${d.route_id}</td>
-          <td>${d.direction_id}</td>
-          <td>${formatTimestamp(d.timestamp)}</td>
+          <td style='color:#${d.route.route_color}'>${d.route.route_name}</td>
+          <td>${d.trip ? d.trip.trip_short_name || d.trip_id : d.trip_id}</td>
+          <td>${d.headsign}</td>
+          <td>
+            ${formatTimestamp(realDeparture, "%I:%M %P")}
+            <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+          </td>
         </tr>
         `;
         })

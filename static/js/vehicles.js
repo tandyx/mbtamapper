@@ -35,6 +35,15 @@ const HEX_TO_CSS = {
     "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
 };
 
+/**
+ * wrapper for `fillPredictionVehicleData` and `fillAlertVehicleData`
+ * @param {string} trip_id  - stop id
+ */
+function fillVehicleDataWrapper(trip_id) {
+  fillPredictionVehicleData(trip_id);
+  fillAlertVehicleData(trip_id);
+}
+
 /** Plot vehicles on map in realtime, updating every 15 seconds
  * @param {options} options - options object with the following properties:
  * @param {string} options.url - url to geojson
@@ -69,8 +78,7 @@ function plotVehicles(options) {
       );
       l.setZIndexOffset(100);
       l.on("click", function () {
-        fillPredictionVehicleData(f.properties.trip_id);
-        fillAlertVehicleData(f.properties.trip_id);
+        fillVehicleDataWrapper(f.properties.trip_id);
       });
     },
   });
@@ -97,12 +105,10 @@ function plotVehicles(options) {
         );
         if (wasOpen) {
           layer.openPopup();
-          fillPredictionVehicleData(feature.properties.trip_id);
-          fillAlertVehicleData(feature.properties.trip_id);
+          setTimeout(fillVehicleDataWrapper, 50, feature.properties.trip_id);
         }
         layer.on("click", function () {
-          fillPredictionVehicleData(feature.properties.trip_id);
-          fillAlertVehicleData(feature.properties.trip_id);
+          setTimeout(fillVehicleDataWrapper, 50, feature.properties.trip_id);
         });
       }.bind(this)
     );
@@ -133,13 +139,18 @@ async function fillPredictionVehicleData(trip_id) {
     popupText.id = popupId;
     popupText.innerHTML = "...";
     const _data = await (
-      await fetch(`/api/prediction?trip_id=${trip_id}`)
+      await fetch(`/api/prediction?trip_id=${trip_id}&include=stop_time`)
     ).json();
     if (!_data.length) return;
     predEl.classList.remove("hidden");
     popupText.innerHTML =
       "<table class='data-table'><tr><th>stop</th><th>estimate</th></tr>" +
       _data
+        .sort(
+          (a, b) =>
+            (a.departure_time || a.arrival_time) -
+            (b.departure_time || b.arrival_time)
+        )
         .map(function (d) {
           const realDeparture = d.departure_time || d.arrival_time;
           if (!realDeparture || realDeparture < Date().valueOf()) return "";
@@ -152,8 +163,16 @@ async function fillPredictionVehicleData(trip_id) {
           if (delayText) {
             delayText += " min";
           }
+
+          const stopTimeClass =
+            d.stop_time && d.stop_time.flag_stop
+              ? "flag_stop"
+              : d.stop_time && d.stop_time.early_departure
+              ? "early_departure"
+              : "";
+
           return `<tr>
-            <td>${d.stop_name}</td>
+            <td class=${stopTimeClass}>${d.stop_name}</td>
             <td>
               ${formatTimestamp(realDeparture, "%I:%M %P")}
               <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
@@ -166,7 +185,7 @@ async function fillPredictionVehicleData(trip_id) {
     predEl.appendChild(popupText);
     setTimeout(() => {
       if (openPopups.includes(popupId)) togglePopup(popupId, true);
-    }, 500);
+    }, 400);
   }
 }
 
@@ -193,6 +212,7 @@ async function fillAlertVehicleData(trip_id) {
     popupText.innerHTML =
       "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
       _data
+        .sort((a, b) => b.timestamp || 0 - a.timestamp || 0)
         .map(function (d) {
           return `<tr>
             <td>${d.header}</td>
@@ -266,8 +286,8 @@ function getVehicleText(properties) {
   if (properties.bikes_allowed) {
     vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>&nbsp;&nbsp;&nbsp;`;
   }
-  vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;</span>&nbsp;&nbsp;&nbsp;`;
-  vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>&nbsp;&nbsp;&nbsp;`;
+  vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
+  vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;&nbsp;&nbsp;&nbsp;</span>`;
   // vehicleText.innerHTML += `</p>`;
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {

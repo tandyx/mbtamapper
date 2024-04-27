@@ -24,6 +24,11 @@ function plotShapes(options) {
         weight: 1.3,
         renderer: polyLineRender,
       });
+      if (f.properties.route_id === "741") {
+        console.log(f);
+        console.log(l);
+      }
+
       l.bindPopup(getShapeText(f.properties), textboxSize);
 
       if (!isMobile) l.bindTooltip(f.properties.route_name);
@@ -50,7 +55,7 @@ function getShapeText(properties) {
   shapeHtml.innerHTML += "<hr />";
   // vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;</span>&nbsp;&nbsp;&nbsp;`;
   shapeHtml.innerHTML += `<span name="alert-shape-${properties.route_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>`;
-  shapeHtml.innerHTML += `<p>${properties.route_id} @ <a href="${properties.agency.agency_url}" rel="noopener" target="_blank">${properties.agency.agency_name}</a><p>`;
+  shapeHtml.innerHTML += `<p>${properties.route_id} @ <a href="${properties.agency.agency_url}" rel="noopener" target="_blank">${properties.agency.agency_name}</a></p>`;
   shapeHtml.innerHTML += `<p>${properties.agency.agency_phone}</p>`;
   shapeHtml.innerHTML += `<div class="popup_footer"> 
         <p>${formatTimestamp(properties.timestamp)}</p>

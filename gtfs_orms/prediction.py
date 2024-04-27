@@ -2,7 +2,7 @@
 
 # pylint: disable=line-too-long
 
-from typing import TYPE_CHECKING, Optional
+from typing import Any, TYPE_CHECKING, Optional, override
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
@@ -67,7 +67,7 @@ class Prediction(Base):
         # pylint: disable=attribute-defined-outside-init
         self.stop_sequence = self.stop_sequence or 0
         self.stop_name = self.stop.stop_name if self.stop else None
-        self.delay = self._delay
+        self.delay = self._get_delay()
 
     def __lt__(self, other: "Prediction") -> bool:
         """Implements less than operator.
@@ -79,7 +79,13 @@ class Prediction(Base):
             raise NotImplementedError(
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
-        return self.stop_sequence < other.stop_sequence
+        if self.trip_id == other.trip_id:
+            return self.stop_sequence < other.stop_sequence
+        return (
+            self.departure_time
+            or self.arrival_time < other.departure_time
+            or other.arrival_time
+        )
 
     def __eq__(self, other: "Prediction") -> bool:
         """Implements equality operator.
@@ -91,10 +97,16 @@ class Prediction(Base):
             raise NotImplementedError(
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
-        return self.stop_sequence == other.stop_sequence
 
-    @property
-    def _delay(self) -> int:
+        if self.trip_id == other.trip_id:
+            return self.stop_sequence == other.stop_sequence
+        return (
+            self.vehicle_id == other.vehicle_id
+            and self.stop_id == other.stop_id
+            and self.stop_sequence == other.stop_sequence
+        )
+
+    def _get_delay(self) -> int:
         """Returns the delay of the prediction.
 
         Returns:
@@ -107,6 +119,22 @@ class Prediction(Base):
         if self.arrival_time and self.stop_time.arrival_seconds:
             return self.arrival_time - self.stop_time.arrival_timestamp
         return 0
+
+    def get_headsign(self) -> str:
+        """Returns the headsign of the prediction.
+
+        Returns:
+            - `str`: the headsign of the prediction
+        """
+        if self.stop_time:
+            return self.stop_time.destination_label
+        if self.vehicle:
+            return max(self.vehicle.predictions).stop.stop_name
+        return ""
+
+    @override
+    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+        return super().as_json(*include, **kwargs) | {"headsign": self.get_headsign()}
 
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""

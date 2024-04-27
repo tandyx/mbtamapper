@@ -289,10 +289,9 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
-            ).all()
-
+            ).all()        
         return gj.FeatureCollection(
-            [s[0].as_feature(*include) for s in sorted(shape_data, reverse=True)]
+            [s[0].as_feature(*include) for s in sorted(set(shape_data), reverse=True)]
         )
 
     @removes_session
@@ -434,7 +433,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                 non_cols.append(p_item)
         stmt = self.select(_orm).where(
                 *(
-                    sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} '{v['value']}'")
+                    sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} '{v['value']}'") if not v["value"] == "NULL" else sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} {v['value']}")
                     for v in param_list
                 )
             )

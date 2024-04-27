@@ -1,7 +1,7 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING, Generator, Iterable, Optional, override
+from typing import Any, TYPE_CHECKING, Generator, Iterable, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -91,7 +91,7 @@ class Vehicle(Base):
         return Point(self.longitude, self.latitude)
 
     @override
-    def as_json(self, *include: str, **kwargs) -> dict:
+    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
         """Returns vehicle as json.
 
         args:

@@ -220,7 +220,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--frontend",
         "-f",
         action="store_true",
-        # default=True,
+        default=True,
         help="Run flask ONLY - overrides --import_data.",
     )
 
@@ -234,7 +234,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
     _argparse.add_argument(
         "--host",
-        default="0.0.0.0",
+        default="127.0.0.1",
         help="Host to run the server on.",
     )
 
@@ -264,9 +264,9 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
-    # FEED_LOADER.get_stops_feature("SUBWAY", Query("0", "1"))
-    # if args.frontend:
-    app = create_default_app(args.proxies)
-    app.run(debug=True, port=args.port, host=args.host)
-    # else:
-    #     FEED_LOADER.import_and_run(import_data=args.import_data)
+    # FEED_LOADER.get_stop_features("COMMUTER_RAIL", Query("2", "4"))
+    if args.frontend:
+        app = create_default_app(args.proxies)
+        app.run(debug=True, port=args.port, host=args.host)
+    else:
+        FEED_LOADER.import_and_run(import_data=args.import_data)
