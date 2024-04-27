@@ -132,6 +132,7 @@ class Vehicle(Base):
         returns:
             - `list`: alerts as json
         """
+        # pylint: disable=too-many-nested-blocks
         from .alert import Alert  # pylint: disable=import-outside-toplevel
 
         columns = self.__table__.columns.keys()

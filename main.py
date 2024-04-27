@@ -1,16 +1,16 @@
-"""Main file for the project. Run this to start the backend of the project. \\
+"""Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function."""
 
 import argparse
 import json
 import logging
 
+import timeout_decorator
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader, Query
-from helper_functions import limit_content_length
 
 with open("route_keys.json", "r", encoding="utf-8") as file:
     KEY_DICT: dict[str, dict[str, str]] = json.load(file)
@@ -18,6 +18,12 @@ FEED_LOADER = FeedLoader(
     "https://cdn.mbta.com/MBTA_GTFS.zip",
     {k: v["route_types"] for k, v in KEY_DICT.items()},
 )
+
+
+@timeout_decorator.timeout(15)
+def _timeout_get_orm_json(*_args, **kwargs):
+    """times out the `FEED_LOADER.get_orm_json` function."""
+    return FEED_LOADER.get_orm_json(*_args, **kwargs)
 
 
 def create_app(key: str, proxies: int = 5) -> Flask:
@@ -143,7 +149,6 @@ def create_default_app(proxies: int = 5) -> Flask:
 
         return render_template("index.html", content=KEY_DICT)
 
-    @limit_content_length(1024 * 1024)
     @_app.route("/api/<orm_name>")
     def get_orm(orm_name: str) -> str:
         """Returns the ORM for a given key.
@@ -153,6 +158,7 @@ def create_default_app(proxies: int = 5) -> Flask:
         Returns:
             - `str`: ORM for the key.
         """
+
         orm_name = orm_name.lower()
         orm = next(
             (
@@ -169,10 +175,10 @@ def create_default_app(proxies: int = 5) -> Flask:
         as_geojson = bool(params.pop("geojson", False))
         cols = orm.__table__.columns.keys()
         try:
-            data = FEED_LOADER.get_orm_json(orm, *include, geojson=as_geojson, **params)
+            data = _timeout_get_orm_json(orm, *include, geojson=as_geojson, **params)
         except TimeoutError as error:
             logging.error(error)
-            return jsonify({"error": str(error), f"args for {orm_name}": cols}), 408
+            return jsonify({"error": str(error), "timed_out": True}), 408
         except Exception as error:  # pylint: disable=broad-except
             return jsonify({"error": str(error), f"args for {orm_name}": cols}), 400
         if data is None:

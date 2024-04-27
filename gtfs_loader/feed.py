@@ -3,6 +3,10 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=unused-argument
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=line-too-long
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-branches
 import io
 import logging
 import os
@@ -28,7 +32,7 @@ from helper_functions import removes_session, timeit
 from .query import Query
 
 
-class Feed(Query):  # pylint: disable=too-many-instance-attributes
+class Feed(Query):
     """Loads GTFS data into a route_type specific SQLite database. \
         This class also contains methods to query the database. \
         inherits from Query class, which contains queries. \
@@ -63,7 +67,6 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     PARKING_FILE = "parking.json"
     STOPS_FILE = "stops.json"
     SHAPES_FILE = "shapes.json"
-    
 
     @staticmethod
     @event.listens_for(sa.Engine, "connect")
@@ -227,10 +230,10 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             - `*route_types (str)`: route types to export
             - `file_path (str)`: path to export files to
         """
-        #pylint:disable=unspecified-encoding
+        # pylint:disable=unspecified-encoding
         query_obj = Query(*route_types)
         file_subpath = os.path.join(file_path, key)
-        def_kwargs = {"mode": "w","encoding": "utf-8"}
+        def_kwargs = {"mode": "w", "encoding": "utf-8"}
         for path in (file_path, file_subpath):
             if not os.path.exists(path):
                 os.mkdir(path)
@@ -243,7 +246,9 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             gj.dump(self.get_parking_features(key, query_obj), file)
             logging.info("Exported %s", file.name)
         with open(os.path.join(file_subpath, self.STOPS_FILE), **def_kwargs) as file:
-            gj.dump(self.get_stop_features(key, query_obj, "child_stops", "routes"), file)
+            gj.dump(
+                self.get_stop_features(key, query_obj, "child_stops", "routes"), file
+            )
             logging.info("Exported %s", file.name)
 
     @removes_session
@@ -292,7 +297,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
-            ).all()        
+            ).all()
         return gj.FeatureCollection(
             [s[0].as_feature(*include) for s in sorted(set(shape_data), reverse=True)]
         )
@@ -419,27 +424,41 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             if value in {"null", "None", "none"}:
                 p_item = {"key": key, "action": "IS", "value": "NULL"}
             else:
-                op_index = next((key.find(op) for op in comp_ops if key.find(op) > 0), None)
+                op_index = next(
+                    (key.find(op) for op in comp_ops if key.find(op) > 0), None
+                )
                 if op_index is None:
                     p_item = {"key": key, "action": "=", "value": value}
                 elif not value and not key[op_index] == "!":
                     p_item = {
-                            "key": key[:op_index],
-                            "action": key[op_index],
-                            "value": key[op_index + 1 :]
-                        }
+                        "key": key[:op_index],
+                        "action": key[op_index],
+                        "value": key[op_index + 1 :],
+                    }
                 else:
-                    p_item = {"key": key[:op_index], "action": f"{key[op_index]}=", "value": value}
+                    p_item = {
+                        "key": key[:op_index],
+                        "action": f"{key[op_index]}=",
+                        "value": value,
+                    }
             if p_item["key"] in cols:
                 param_list.append(p_item)
             else:
                 non_cols.append(p_item)
         stmt = self.select(_orm).where(
-                *(
-                    sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} '{v['value']}'") if not v["value"] == "NULL" else sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} {v['value']}")
-                    for v in param_list
+            *(
+                (
+                    sa.text(
+                        f"{_orm.__tablename__}.{v['key']} {v['action']} '{v['value']}'"
+                    )
+                    if not v["value"] == "NULL"
+                    else sa.text(
+                        f"{_orm.__tablename__}.{v['key']} {v['action']} {v['value']}"
+                    )
                 )
+                for v in param_list
             )
+        )
         if non_cols:
             data = []
             _eval = asteval.Interpreter()
