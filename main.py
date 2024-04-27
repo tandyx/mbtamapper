@@ -1,61 +1,128 @@
-"""Main file for the project. Run this to start the backend of the project. \\
+"""Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function."""
 
 import argparse
+import json
 import logging
-import os
-from typing import NoReturn
 
-from flask import Flask, jsonify, render_template
+import timeout_function_decorator
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from gtfs_loader import FeedLoader
+from gtfs_loader import FeedLoader, Query
 
-KEY_DICT: dict[str, tuple[str]] = {
-    "SUBWAY": ("0", "1"),
-    "RAPID_TRANSIT": ("0", "1", "4"),
-    "COMMUTER_RAIL": ("2",),
-    "BUS": ("3",),
-    "FERRY": ("4",),
-    "ALL_ROUTES": ("0", "1", "2", "4"),
-}
-FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
+with open("route_keys.json", "r", encoding="utf-8") as file:
+    KEY_DICT: dict[str, dict[str, str]] = json.load(file)
+FEED_LOADER = FeedLoader(
+    "https://cdn.mbta.com/MBTA_GTFS.zip",
+    {k: v["route_types"] for k, v in KEY_DICT.items()},
+)
 
-ARGPARSE = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")
+
+# putting this within a function causes an asteriod error
+@timeout_function_decorator.timeout(15)
+def _timeout_get_orm_json(*_args, **kwargs):
+    """times out the `Feed.get_orm_json` function.
+
+    args:
+        - `*_args`: positional arguments to pass to `Feed.get_orm_json`.
+        - `**kwargs`: keyword arguments to pass to `Feed.get_orm_json`.\n
+    returns:
+        - `dict`: json of the orm."""
+    return FEED_LOADER.get_orm_json(*_args, **kwargs)
 
 
 def create_app(key: str, proxies: int = 5) -> Flask:
     """Create app for a given key
 
     Args:
-        key (str): Key for the app. Defaults to None.
-        proxies (int, optional): Number of proxies to allow on connection, default 10.
+        `key (str)`: Key for the app. Defaults to None.
+        `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
-        Flask: app for the key."""
+        `Flask`: app for the key."""
     _app = Flask(__name__)
 
     @_app.route("/")
     def render_map() -> str:
-        """Returns map.html."""
-        return render_template("map.html")
+        """Returns map.html.
+
+        returns:
+            - `str`: map.html"""
+        return render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/vehicles")
+    @_app.route("/api/vehicle")
     def get_vehicles() -> str:
         """Returns vehicles as geojson in the context of the route type AND \
             flask, exported to /vehicles as an api.
             
         Returns:
-            str: geojson of vehicles.
+            - `str`: geojson of vehicles.
         """
-        return jsonify(FEED_LOADER.get_vehicles_feature(key, *KEY_DICT[key]))
+        return jsonify(
+            FEED_LOADER.get_vehicles_feature(
+                key,
+                Query(*KEY_DICT[key]["route_types"]),
+                *request.args.get("include", "").split(","),
+            )
+        )
+
+    @_app.route("/stops")
+    @_app.route("/api/stop")
+    def get_stops() -> str:
+        """Returns stops as geojson in the context of the route type AND \
+            flask, exported to /stops as an api.
+        returns:
+            - `str`: geojson of stops.
+        """
+        return redirect(
+            url_for(
+                "static",
+                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.STOPS_FILE}",
+            )
+        )
+
+    @_app.route("/parking")
+    @_app.route("/facilities")
+    @_app.route("/api/parking")
+    def get_parking() -> str:
+        """Returns parking as geojson in the context of the route type AND \
+            flask, exported to /parking as an api.
+        returns:
+            - `str`: geojson of parking.
+        """
+        return redirect(
+            url_for(
+                "static",
+                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.PARKING_FILE}",
+            )
+        )
+
+    @_app.route("/routes")
+    @_app.route("/shapes")
+    @_app.route("/api/route")
+    @_app.route("/api/shape")
+    def get_routes() -> str:
+        """Returns routes as geojson in the context of the route type AND \
+            flask, exported to /routes as an api.
+        returns:
+            - `str`: geojson of routes.
+        """
+
+        return redirect(
+            url_for(
+                "static",
+                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.SHAPES_FILE}",
+            )
+        )
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
         """Tears down database session.
 
         Args:
-            exception (Exception, optional): Exception to log. Defaults to None.
+            - `exception (Exception, optional)`: Exception to log. Defaults to None.
         """
         FEED_LOADER.scoped_session.remove()
         if exception:
@@ -76,9 +143,9 @@ def create_default_app(proxies: int = 5) -> Flask:
     """Creates the default Flask object
 
     Args:
-        proxies (int, optional): Number of proxies to allow on connection, default 10.
+        - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
-        Flask: default app.
+        - `Flask`: default app.
     """
 
     _app = Flask(__name__)
@@ -86,7 +153,44 @@ def create_default_app(proxies: int = 5) -> Flask:
     @_app.route("/")
     def index():
         """Returns index.html."""
-        return render_template("index.html")
+
+        return render_template("index.html", content=KEY_DICT)
+
+    @_app.route("/api/<orm_name>")
+    def get_orm(orm_name: str) -> str:
+        """Returns the ORM for a given key.
+
+        Args:
+            - `orm (str)`: ORM to return.
+        Returns:
+            - `str`: ORM for the key.
+        """
+
+        orm_name = orm_name.lower()
+        orm = next(
+            (
+                o
+                for o in FEED_LOADER.REALTIME_ORMS + FEED_LOADER.SCHEDULE_ORMS
+                if o.__name__.lower() == orm_name
+            ),
+            None,
+        )
+        if not orm:
+            return jsonify({"error": f"{orm_name} not found."}), 404
+        params = request.args.to_dict()
+        include = params.pop("include", "").split(",")
+        as_geojson = bool(params.pop("geojson", False))
+        cols = orm.__table__.columns.keys()
+        try:
+            data = _timeout_get_orm_json(orm, *include, geojson=as_geojson, **params)
+        except TimeoutError as error:
+            logging.error(error)
+            return jsonify({"error": str(error), "timed_out": True}), 408
+        except Exception as error:  # pylint: disable=broad-except
+            return jsonify({"error": str(error), f"args for {orm_name}": cols}), 400
+        if data is None:
+            return jsonify({"error": "no data", f"args for {orm_name}": cols}), 404
+        return jsonify(data)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -98,54 +202,83 @@ def create_default_app(proxies: int = 5) -> Flask:
         )
     _app.wsgi_app = DispatcherMiddleware(
         _app.wsgi_app,
-        {f"/{key.lower()}": create_app(key).wsgi_app for key in KEY_DICT},
+        {f"/{key}": create_app(key).wsgi_app for key in KEY_DICT},
     )
 
     return _app
 
 
-def feed_loader(import_data: bool = False) -> NoReturn:
-    """Feed loader.
+def get_args(**kwargs) -> argparse.ArgumentParser:
+    """Add arguments to the parser.
 
-    Args:
-        import_data (bool, optional): Whether to import data. Defaults to False.
+    args:
+        - `**kwargs`: key value pairs of arguments to add to the parser.
+            The key is the argument name and the value
+            is a dictionary of arguments to pass to `add_argument`.\n
+    returns:
+        - `argparse.ArgumentParser`: parser with added arguments.
     """
 
-    if import_data or not os.path.exists(FEED_LOADER.db_path):
-        FEED_LOADER.nightly_import()
-    if import_data or not os.path.exists(FEED_LOADER.GEOJSON_PATH):
-        FEED_LOADER.geojson_exports()
-    FEED_LOADER.run()
+    _argparse = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")
 
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.INFO)
-
-    ARGPARSE.add_argument(
+    _argparse.add_argument(
         "--import_data",
         "-i",
         action="store_true",
-        help="only has effect if --load is set. Import data from GTFS feed.",
+        help="Import data from GTFS feed.",
     )
 
-    ARGPARSE.add_argument(
+    _argparse.add_argument(
         "--frontend",
         "-f",
         action="store_true",
+        # default=True,
         help="Run flask ONLY - overrides --import_data.",
     )
-    args = ARGPARSE.parse_args()
+
+    _argparse.add_argument(
+        "--port",
+        "-p",
+        type=int,
+        default=80,
+        help="Port to run the server on.",
+    )
+
+    _argparse.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host to run the server on.",
+    )
+
+    _argparse.add_argument(
+        "--proxies",
+        "-x",
+        type=int,
+        default=5,
+        help="Number of proxies to allow on connection.",
+    )
+
+    _argparse.add_argument(
+        "--log_level",
+        "-l",
+        default="INFO",
+        help="Logging level \\ (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
+    )
+
+    for key, value in kwargs.items():
+        _argparse.add_argument(key, **value)
+
+    return _argparse
+
+
+# from gtfs_orms import Alert, Vehicle
+
+if __name__ == "__main__":
+    args = get_args().parse_args()
+    logging.getLogger().setLevel(getattr(logging, args.log_level))
+    # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
     if args.frontend:
-        app = create_default_app()
-        app.run(debug=True, port=80, host="0.0.0.0")
-    feed_loader(import_data=args.import_data)
-    # app = create_default_app()
-    # app.run(debug=True)
-
-    # FEED_LOADER.session.execute(
-    #     FEED_LOADER.select(FEED_LOADER.get_vehicles_query("2"))
-    # ).all()
-    # app = create_default_app()
-    # app.run(debug=True)
-
-    # x = LinkedDataset(url="https://cdn.mbta.com/realtime/Alerts.pb")
+        app = create_default_app(args.proxies)
+        app.run(debug=True, port=args.port, host=args.host)
+    else:
+        FEED_LOADER.import_and_run(import_data=args.import_data)

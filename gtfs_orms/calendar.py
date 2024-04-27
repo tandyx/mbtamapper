@@ -1,38 +1,45 @@
 """File to hold the Calendar class and its associated methods."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pytz
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from .gtfs_base import GTFSBase
+from .base import Base
+
+if TYPE_CHECKING:
+    from .calendar_attribute import CalendarAttribute
+    from .calendar_date import CalendarDate
+    from .trip import Trip
 
 
-class Calendar(GTFSBase):
+class Calendar(Base):
     """Calendar"""
 
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
-    service_id = mapped_column(String, primary_key=True)
-    monday = mapped_column(Integer)
-    tuesday = mapped_column(Integer)
-    wednesday = mapped_column(Integer)
-    thursday = mapped_column(Integer)
-    friday = mapped_column(Integer)
-    saturday = mapped_column(Integer)
-    sunday = mapped_column(Integer)
-    start_date = mapped_column(String)
-    end_date = mapped_column(String)
+    service_id: Mapped[str] = mapped_column(primary_key=True)
+    monday: Mapped[int]
+    tuesday: Mapped[int]
+    wednesday: Mapped[int]
+    thursday: Mapped[int]
+    friday: Mapped[int]
+    saturday: Mapped[int]
+    sunday: Mapped[int]
+    start_date: Mapped[str]
+    end_date: Mapped[str]
 
-    calendar_dates = relationship(
-        "CalendarDate", back_populates="calendar", passive_deletes=True
+    calendar_dates: Mapped[list["CalendarDate"]] = relationship(
+        back_populates="calendar", passive_deletes=True
     )
-    calendar_attributes = relationship(
-        "CalendarAttribute", back_populates="calendar", passive_deletes=True
+    calendar_attributes: Mapped[list["CalendarAttribute"]] = relationship(
+        back_populates="calendar", passive_deletes=True
     )
-    trips = relationship("Trip", back_populates="calendar", passive_deletes=True)
+    trips: Mapped[list["Trip"]] = relationship(
+        back_populates="calendar", passive_deletes=True
+    )
 
     @reconstructor
     def _init_on_load_(self) -> None:
@@ -47,13 +54,13 @@ class Calendar(GTFSBase):
             datetime.strptime(self.end_date, "%Y%m%d")
         )
 
-    def operates_on_date(self, date: datetime) -> bool:
+    def operates_on(self, date: datetime) -> bool:
         """Returns true if the calendar operates on the date
 
         Args:
-            date (datetime): The date to check
+            - `date (datetime)`: The date to check
         Returns:
-            bool: True if the calendar operates on the date
+            - `bool`: True if the calendar operates on the date
         """
         exception = next(
             (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
@@ -64,3 +71,7 @@ class Calendar(GTFSBase):
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

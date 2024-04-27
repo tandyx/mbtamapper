@@ -1,228 +1,217 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
+from typing import TYPE_CHECKING, Any, Generator, Iterable, Optional, override
 
-from dateutil.parser import isoparse
 from geojson import Feature
 from shapely.geometry import Point
-from sqlalchemy import Float, Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from helper_functions import shorten
+from .base import Base
 
-from .gtfs_base import GTFSBase
+if TYPE_CHECKING:
+    from .alert import Alert
+    from .prediction import Prediction
+    from .route import Route
+    from .stop import Stop
+    from .stop_time import StopTime
+    from .trip import Trip
 
 
-class Vehicle(GTFSBase):
+class Vehicle(Base):
     """Vehicle"""
 
     __tablename__ = "vehicles"
     __realtime_name__ = "vehicle_positions"
 
-    vehicle_id = mapped_column(String)
-    trip_id = mapped_column(String)
-    route_id = mapped_column(String)
-    direction_id = mapped_column(String)
-    latitude = mapped_column(Float)
-    longitude = mapped_column(Float)
-    bearing = mapped_column(Float)
-    current_stop_sequence = mapped_column(Integer)
-    current_status = mapped_column(String)
-    timestamp = mapped_column(String)
-    stop_id = mapped_column(String)
-    label = mapped_column(String)
-    occupancy_status = mapped_column(String)
-    occupancy_percentage = mapped_column(Integer)
-    speed = mapped_column(Float)
-    index = mapped_column(Integer, primary_key=True)
+    vehicle_id: Mapped[str] = mapped_column(primary_key=True)
+    trip_id: Mapped[Optional[str]]
+    route_id: Mapped[Optional[str]]
+    direction_id: Mapped[Optional[int]]
+    latitude: Mapped[Optional[float]]
+    longitude: Mapped[Optional[float]]
+    bearing: Mapped[Optional[float]]
+    current_stop_sequence: Mapped[Optional[int]]
+    current_status: Mapped[Optional[str]]
+    timestamp: Mapped[Optional[int]]
+    stop_id: Mapped[Optional[str]]
+    label: Mapped[Optional[str]]
+    occupancy_status: Mapped[Optional[str]]
+    occupancy_percentage: Mapped[Optional[int]]
+    speed: Mapped[Optional[float]]
 
-    predictions = relationship(
-        "Prediction",
+    predictions: Mapped[list["Prediction"]] = relationship(
         back_populates="vehicle",
         primaryjoin="Vehicle.trip_id==foreign(Prediction.trip_id)",
         viewonly=True,
     )
-    route = relationship(
-        "Route",
+    route: Mapped["Route"] = relationship(
         back_populates="vehicles",
         primaryjoin="foreign(Vehicle.route_id)==Route.route_id",
         viewonly=True,
     )
-    stop = relationship(
-        "Stop",
+    stop: Mapped["Stop"] = relationship(
         back_populates="vehicles",
         primaryjoin="foreign(Vehicle.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-    trip = relationship(
-        "Trip",
+    trip: Mapped["Trip"] = relationship(
         back_populates="vehicle",
         primaryjoin="foreign(Vehicle.trip_id)==Trip.trip_id",
         viewonly=True,
     )
 
-    next_stop_prediction = relationship(
-        "Prediction",
+    stop_time: Mapped["StopTime"] = relationship(
+        primaryjoin="""and_(foreign(Vehicle.trip_id)==StopTime.trip_id,
+                            foreign(Vehicle.stop_id)==StopTime.stop_id,)""",
+        viewonly=True,
+        uselist=False,
+    )
+
+    next_stop: Mapped[list["Prediction"]] = relationship(
         primaryjoin="""and_(foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
                             foreign(Vehicle.stop_id)==Prediction.stop_id)""",
         viewonly=True,
     )
 
-    DIRECTION_MAPPER = {
-        "0": "Outbound",
-        "1": "Inbound",
-        "1.0": "Inbound",
-        "0.0": "Outbound",
-    }
-
-    STATUS_MAPPER = {
-        "0": "Incoming at ",
-        "1": "Stopped at ",
-        "2": "In transit to ",
-    }
-
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
-        self.updated_at_datetime = isoparse(self.timestamp)
         self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
-        self.speed = self.speed if not self.speed else self.speed * 2.23694
-
-    def return_current_status(self) -> str:
-        """Returns current status of vehicle."""
-
-        if self.stop:
-            current_status = (
-                f"""<span>{Vehicle.STATUS_MAPPER.get(self.current_status, "In transit to ")} </span>"""
-                f"""<a href={self.stop.stop_url} target="_blank">{self.stop.stop_name}{(' - ' + self.stop.platform_name) if self.stop.platform_code else ''}</a>  """
-                f"""{("— " + self.next_stop_prediction.predicted.strftime("%I:%M %p")) if self.next_stop_prediction and self.next_stop_prediction.predicted and self.current_status != "1" else ""}"""
-            )
-        else:
-            current_status = ""
-
-        return f"<span>{current_status}</span>" + ("</br>" if current_status else "")
+        self.trip_short_name = self._trip_short_name()
 
     def as_point(self) -> Point:
-        """Returns vehicle as point."""
+        """Returns vehicle as point.
+
+        returns:
+            - `Point`: vehicle as a point
+        """
         return Point(self.longitude, self.latitude)
 
-    def as_feature(self) -> Feature:
-        """Returns vehicle as feature."""
+    @override
+    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+        """Returns vehicle as json.
+
+        args:
+            - `*include`: list of strings to include in the json\n
+        returns:
+            - `dict`: vehicle as a json
+        """
+        return super().as_json(*include, **kwargs) | {
+            "route_color": self.route.route_color if self.route else None,
+            "bikes_allowed": self.trip.bikes_allowed == 1 if self.trip else False,
+            "speed_mph": self._speed_mph(),
+            "headsign": self._headsign(),
+            "wheelchair_accessible": self._wheelchair_accessible(),
+            "display_name": self._display_name(),
+        }
+
+    @override
+    def as_feature(self, *include: str) -> Feature:
+        """Returns vehicle as feature.
+
+        args:
+            - `*include`: list of strings to include in the feature\n
+        returns:
+            - `Feature`: vehicle as a geojson feature
+        """
 
         return Feature(
             id=self.vehicle_id,
             geometry=self.as_point(),
-            properties={
-                "popupContent": self.as_html_popup(),
-                "icon": self.as_html_icon(),
-                "name": shorten(
-                    self.trip.trip_short_name or self.trip_id
-                    if self.trip
-                    else self.trip_id
-                ),
-            },
+            properties=self.as_json(*include),
         )
 
-    def __get_occupancy_color(self) -> str:
-        """Returns a color based on the occupancy.
+    def get_alerts(self, *orms) -> Generator["Alert", None, None]:
+        """Returns alerts as json.
 
-        Args:
-            occupancy (int): occupancy percentage"""
+        args:
+            - `*orms`: list of orms to include in the json\n
+        returns:
+            - `list`: alerts as json
+        """
+        # pylint: disable=too-many-nested-blocks
+        from .alert import Alert  # pylint: disable=import-outside-toplevel
 
-        occupancy_dict = {
-            "#ffffff": self.occupancy_percentage < 40,  # white
-            "#ffff00": 40 <= self.occupancy_percentage < 60,
-            "#ff8000": 60 <= self.occupancy_percentage < 80,
-            "#ff0000": self.occupancy_percentage >= 80,
-        }
+        columns = self.__table__.columns.keys()
+        for attr in orms:
+            orm_list: Base | Iterable[Base] = getattr(self, attr, None)
+            orm_list = [orm_list] if isinstance(orm_list, Base) else orm_list
+            for orm in orm_list:
+                for sub_attar_name in dir(orm):
+                    if sub_attar_name.startswith("_") or sub_attar_name in columns:
+                        continue
+                    object_attr = getattr(orm, sub_attar_name)
+                    if isinstance(object_attr, Alert):
+                        yield object_attr
+                    if isinstance(object_attr, Iterable):
+                        for a in object_attr:
+                            if isinstance(a, Alert):
+                                yield a
 
-        for color, condition in occupancy_dict.items():
-            if condition:
-                return color
-        return "#ffffff"
+    def _speed_mph(self) -> float | None:
+        """Returns speed.
 
-    def as_html_popup(self) -> str:
-        """Returns vehicle as html for a popup."""
+        returns:
+            - `float`: speed
+        """
+        if not self.speed and self.current_status == "STOPPED_AT":
+            return 0
+        if not self.speed:
+            return self.speed
+        return self.speed * 2.23694
 
-        predicted_html = "".join(p.as_html() for p in self.predictions if p.predicted)
+    def _display_name(self) -> str:
+        """Returns display name.
 
-        occupancy = (
-            f"""Occupancy: <span style="color:{self.__get_occupancy_color()}">{int(self.occupancy_percentage)}%</span></br>"""
-            if self.occupancy_status
-            else ""
-        )
+        returns:
+            - `str`: display name
+        """
 
-        bikes = (
-            """<div class = "tooltip-mini_image" onmouseover="hoverImage('bikeImg')" onmouseleave="unhoverImage('bikeImg')">"""
-            """<img src ="static/img/bike.png" alt="bike" class="mini_image" id="bikeImg" >"""
-            """<span class="tooltiptext-mini_image" >Bikes allowed.</span></div>"""
-            if self.trip and self.trip.bikes_allowed == 1
-            else ""
-        )
-        alert = (
-            """<div class = "popup" onclick="openMiniPopup('alertPopup')">"""
-            """<span class = 'tooltip-mini_image' onmouseover="hoverImage('alertImg')" onmouseleave="unhoverImage('alertImg')">"""
-            """<span class = 'tooltiptext-mini_image' >Show Alerts</span>"""
-            """<img src ="static/img/alert.png" alt="alert" class="mini_image" id="alertImg" >"""
-            "</span>"
-            """<span class="popuptext" id="alertPopup">"""
-            """<table class = "table">"""
-            f"""<tr style="background-color:#ff0000;font-weight:bold;">"""
-            """<td>Alert</td><td>Updated</td></tr>"""
-            f"""{"".join(set(a.as_html() for a in self.trip.alerts)) if self.trip else ""}</table>"""
-            """</span></div>"""
-            if self.trip and self.trip.alerts
-            else ""
-        )
+        if self.trip and self.trip.trip_short_name:
+            return self.trip.trip_short_name
+        if (
+            self.route
+            and (self.route.route_type == "3" or self.route_id.startswith("Green"))
+            and self.route.route_short_name
+        ):
+            return self.route.route_short_name
+        return ""
 
-        prediction = (
-            """<div class = "popup" onclick="openMiniPopup('predictionPopup')">"""
-            """<span class = 'tooltip-mini_image' onmouseover="hoverImage('predictionImg')" onmouseleave="unhoverImage('predictionImg')">"""
-            """<span class = 'tooltiptext-mini_image' >Show Predictions</span>"""
-            """<img src ="static/img/train_icon.png" alt="prediction" class="mini_image" id="predictionImg">"""
-            "</span>"
-            """<span class="popuptext" id="predictionPopup" style="width:1850%;">"""
-            """<table class = "table">"""
-            f"""<tr style="background-color:#{self.route.route_color if self.route else "000000"};font-weight:bold;">"""
-            """<td>Stop</td><td>Platform</td><td>Predicted</td></tr>"""
-            f"""{predicted_html}</table>"""
-            """</span></div>"""
-            if predicted_html
-            else ""
-        )
+    def _wheelchair_accessible(self) -> bool:
+        """Returns wheelchair accessible.
 
-        prd_status = (
-            self.next_stop_prediction.status_as_html()
-            if self.next_stop_prediction
-            else ""
-        )
+        returns:
+            - `bool`: wheelchair accessible
+        """
+        if self.trip:
+            return bool(self.trip.wheelchair_accessible)
+        return any(x.stop.wheelchair_boarding for x in self.predictions if x.stop)
 
-        return (
-            f"""<a href = {self.route.route_url if self.route else ""} target="_blank"  class = 'popup_header' style="color:#{self.route.route_color if self.route else ""};">"""
-            f"""{(self.trip.trip_short_name if self.trip else None) or shorten(self.trip_id)}</a></br>"""
-            """<body style="color:#ffffff;text-align: left;">"""
-            f"""{Vehicle.DIRECTION_MAPPER.get(self.direction_id, "Unknown")} to {self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"}</body></br>"""
-            # """<hr/>"""
-            """—————————————————————————————————</br>"""
-            f"""{alert} {prediction} {bikes} {"</br>" if any([alert, prediction, bikes]) else ""}"""
-            f"{self.return_current_status()}"
-            f"""{("Delay: " if prd_status else "") + prd_status}{"</br>" if prd_status else ""}"""
-            f"""{occupancy}"""
-            f"""Speed: {int(self.speed or 0) if self.speed is not None or self.current_status == "1" or self.route.route_type in ["0", "2"] else "Unknown"} mph</br>"""
-            # f"""Bearing: {self.bearing}°</br>"""
-            f"""<span class = "popup_footer">"""
-            f"""Vehicle: {self.vehicle_id}</br>"""
-            f"""Route: {f'({self.route.route_short_name}) ' if self.route and self.route.route_type == "3" else ""}{self.route.route_long_name if self.route else self.route_id}</br>"""
-            f"""Timestamp: {self.updated_at_datetime.strftime("%m/%d/%Y %I:%M %p")}</br></span>"""
-        )
+    def _headsign(self) -> str:
+        """Returns headsign.
 
-    def as_html_icon(self) -> str:
-        """Returns vehicle as html for an icon."""
-        return (
-            """<span class="vehicle_wrapper">"""
-            f"""<img src ="static/img/icon.png" alt="vehicle" width=65 height=65 style="transform:rotate({self.bearing}deg);{self.route.filter}">"""
-            """<span class="vehicle_text">"""
-            f"""{self.trip.trip_short_name if self.trip and self.trip.trip_short_name else self.route.route_short_name if self.route and (self.route.route_type == "3" or self.route_id.startswith("Green")) and self.route.route_short_name else ""}</span></span>"""
-        )
+        returns:
+            - `str`: headsign
+        """
+
+        # self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"
+
+        if self.trip:
+            return self.trip.trip_headsign
+        if self.predictions:
+            return max(self.predictions).stop.stop_name
+        return "unknown"
+
+    def _trip_short_name(self) -> str:
+        """Returns trip short name.
+
+        returns:
+            - `str`: trip short name
+        """
+
+        if self.trip and self.trip.trip_short_name:
+            return self.trip.trip_short_name
+        return self.trip_id

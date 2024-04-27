@@ -1,151 +1,145 @@
 """File to hold the Prediction class and its associated methods."""
 
 # pylint: disable=line-too-long
-from datetime import datetime
 
-from dateutil.parser import isoparse
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import mapped_column, reconstructor, relationship
+from typing import TYPE_CHECKING, Any, Optional, override
 
-from .gtfs_base import GTFSBase
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
+
+from .base import Base
+
+if TYPE_CHECKING:
+    from .route import Route
+    from .stop import Stop
+    from .stop_time import StopTime
+    from .trip import Trip
+    from .vehicle import Vehicle
 
 
-class Prediction(GTFSBase):
+class Prediction(Base):
     """Prediction"""
 
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
 
-    prediction_id = mapped_column(String)
-    arrival_time = mapped_column(String)
-    departure_time = mapped_column(String)
-    direction_id = mapped_column(String)
-    schedule_relationship = mapped_column(String)
-    stop_sequence = mapped_column(Integer)
-    route_id = mapped_column(String)
-    stop_id = mapped_column(String)
-    trip_id = mapped_column(String)
-    vehicle_id = mapped_column(String)
-    index = mapped_column(Integer, primary_key=True)
+    prediction_id: Mapped[str]
+    arrival_time: Mapped[Optional[int]]
+    departure_time: Mapped[Optional[int]]
+    direction_id: Mapped[Optional[int]]
+    stop_sequence: Mapped[Optional[int]]
+    route_id: Mapped[Optional[str]]
+    stop_id: Mapped[Optional[str]]
+    trip_id: Mapped[Optional[str]]
+    vehicle_id: Mapped[Optional[str]]
+    index: Mapped[int] = mapped_column(primary_key=True)
 
-    route = relationship(
-        "Route",
+    route: Mapped["Route"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.route_id)==Route.route_id",
         viewonly=True,
     )
-    stop = relationship(
-        "Stop",
+    stop: Mapped["Stop"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.stop_id)==Stop.stop_id",
         viewonly=True,
     )
-    trip = relationship(
-        "Trip",
+    trip: Mapped["Trip"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.trip_id)==Trip.trip_id",
         viewonly=True,
     )
-    vehicle = relationship(
-        "Vehicle",
+    vehicle: Mapped["Vehicle"] = relationship(
         back_populates="predictions",
         primaryjoin="foreign(Prediction.vehicle_id)==Vehicle.vehicle_id",
         viewonly=True,
     )
 
-    stop_time = relationship(
-        "StopTime",
+    stop_time: Mapped["StopTime"] = relationship(
         primaryjoin="""and_(foreign(Prediction.trip_id)==StopTime.trip_id,
-                            foreign(Prediction.stop_id)==StopTime.stop_id,)""",
+        foreign(Prediction.stop_id)==StopTime.stop_id,)""",
         viewonly=True,
         uselist=False,
     )
-
-    DATETIME_MAPPER = {
-        "arrival_time": "arrival_datetime",
-        "departure_time": "departure_datetime",
-    }
 
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
         # pylint: disable=attribute-defined-outside-init
-        self.predicted = self.__predict()
         self.stop_sequence = self.stop_sequence or 0
+        self.stop_name = self.stop.stop_name if self.stop else None
+        self.delay = self._get_delay()
 
-    def __predict(self) -> datetime | None:
-        return (
-            isoparse(self.arrival_time)
-            if self.arrival_time
-            else isoparse(self.departure_time) if self.departure_time else None
-        )
+    def __lt__(self, other: "Prediction") -> bool:
+        """Implements less than operator.
 
-    def status_as_html(self) -> str:
-        """Returns status as html."""
-        self.stop_sequence = self.stop_sequence or 0
-        scheduled = self.stop_time.departure_datetime if self.stop_time else None
-        delay = (
-            int((self.predicted - scheduled).total_seconds() / 60)
-            if (self.predicted and scheduled)
-            else 0
-        )
-        if delay < -1400:
-            delay += 1440
-        if delay <= 2:
-            return ""
-
-        return f"""<span style="color:{self.__color(delay)};">{f"{str(delay)} minutes late"}</span>"""
-
-    def as_html(self) -> str:
-        """Returns prediction as html."""
-
-        stop_name = (
-            self.stop.parent_stop.stop_name
-            if self.stop and self.stop.parent_stop
-            else self.stop.stop_name if self.stop else ""
-        )
-
-        flag_stop = (
-            "<div class = 'tooltip'>"
-            f"<span class='flag_stop'>{stop_name}</span>"
-            "<span class='tooltiptext'>Flag stop.</span></div>"
-            if self.stop_time and self.stop_time.is_flag_stop()
-            else ""
-        )
-
-        early_departure = (
-            "<div class = 'tooltip'>"
-            f"<span class='early_departure'>{stop_name}</span>"
-            "<span class='tooltiptext'>Early departure stop.</span></div>"
-            if self.stop_time and self.stop_time.is_early_departure()
-            else ""
-        )
-
-        return (
-            """<tr>"""
-            f"""<td>{flag_stop or early_departure or stop_name}</td>"""
-            f"""<td>{(self.stop.platform_name  if self.stop else "") or ""}</td>"""
-            f"""<td>{self.predicted.strftime("%I:%M %p") if self.predicted else "Unknown"} {"—" if self.status_as_html() else ""} {self.status_as_html()}</td>"""
-            """</tr>"""
-        )
-
-    def __color(self, delay: int) -> str:
-        """Returns a color based on the delay.
-
-        Args:
-            delay (int): delay in minutes
         Returns:
-            str: color
+            - `bool`: whether the object is less than the other
         """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+        if self.trip_id == other.trip_id:
+            return self.stop_sequence < other.stop_sequence
+        return (
+            self.departure_time
+            or self.arrival_time < other.departure_time
+            or other.arrival_time
+        )
 
-        delay_dict = {
-            "#ffffff": delay < 5,  # white
-            "#ffff00": 5 <= delay < 10,
-            "#ff8000": 10 <= delay < 15,
-            "#ff0000": delay >= 15,
-        }
+    def __eq__(self, other: "Prediction") -> bool:
+        """Implements equality operator.
 
-        for color, condition in delay_dict.items():
-            if condition:
-                return color
-        return "#ffffff"
+        Returns:
+            - `bool`: whether the objects are equal
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
+
+        if self.trip_id == other.trip_id:
+            return self.stop_sequence == other.stop_sequence
+        return (
+            self.vehicle_id == other.vehicle_id
+            and self.stop_id == other.stop_id
+            and self.stop_sequence == other.stop_sequence
+        )
+
+    def _get_delay(self) -> int:
+        """Returns the delay of the prediction.
+
+        Returns:
+            - `int`: the delay of the prediction
+        """
+        if not self.stop_time:
+            delay = 0
+        elif self.departure_time and self.stop_time.departure_timestamp:
+            delay = self.departure_time - self.stop_time.departure_timestamp
+        elif self.arrival_time and self.stop_time.arrival_seconds:
+            delay = self.arrival_time - self.stop_time.arrival_timestamp
+        else:
+            delay = 0
+        if delay <= -85000:
+            delay += 86400
+        return delay
+
+    def get_headsign(self) -> str:
+        """Returns the headsign of the prediction.
+
+        Returns:
+            - `str`: the headsign of the prediction
+        """
+        if self.stop_time:
+            return self.stop_time.destination_label
+        if self.vehicle:
+            return max(self.vehicle.predictions).stop.stop_name
+        return ""
+
+    @override
+    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+        return super().as_json(*include, **kwargs) | {"headsign": self.get_headsign()}
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

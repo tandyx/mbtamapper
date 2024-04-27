@@ -53,7 +53,6 @@ docs/_build/
 .env
 *.pyc
 *.pyo
-launch.json
 
 *.csv
 *.db
@@ -68,8 +67,6 @@ static/secrets.json
 static/secrets.html
 venv/
 /static/node_modules
-/.vscode
-.vscode
 *.dockerignore
 /.dockerignore
 /static/.eslintrc.yml

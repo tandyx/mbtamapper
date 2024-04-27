@@ -1,13 +1,32 @@
 :root {
   --font-family: "montserrat", "Helvetica", sans-serif;
   --text-color: #f2f2f2;
-  --background-color: rgb(0, 0, 0, 0.8);
+  --dark-text-color: #060606;
+  --dark-background: #1a1a1a;
+  --tooltip-background: #333;
+  --accent-color: #00acff;
   --backdrop-blur: 15px;
+  --border-radius: 5px;
+  --subway-color: #ed8b00;
+  --rapid-transit-color: #da291c;
+  --commuter-rail-color: #80276c;
+  --bus-color: #ffc72c;
+  --ferry-color: #008eaa;
+  --all-routes-color: #7c878e;
+  --nav-border-height: 2px;
+  --mobile-threshold: 768px;
 }
 
 @font-face {
   font-family: "montserrat";
   src: url("../fonts/montserrat.ttf");
+}
+
+@font-face {
+  font-family: "FontAwesome";
+  src: url("../fonts/fontawesome-webfont.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
 }
 
 /* Add animation (fade in the popup) */
@@ -29,6 +48,19 @@
   to {
     opacity: 0.9;
   }
+}
+
+.fa {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.montserrat {
+  font-family: "montserrat", "Helvetica", sans-serif !important;
 }
 
 html,
@@ -55,19 +87,6 @@ noscript {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
-.subway {
-  background-color: #00843d;
-}
-
-/* const ROUTE_COLOR_DICT = {
-  subway: "#00843D",
-  rapid_transit: "#DA291C",
-  commuter_rail: "#80276C",
-  bus: "#FFC72C",
-  ferry: "#008EAA",
-  all_routes: "#7C878E",
-}; */
 
 h4 {
   color: rgb(85, 85, 85);
@@ -115,7 +134,6 @@ h4 {
 
 input {
   font-family: var(--font-family);
-  background-color: rgb(0, 0, 0, 0.7);
   color: #ffffff;
 }
 
@@ -159,7 +177,7 @@ body,
 }
 
 .popup_footer {
-  color: grey;
+  color: rgb(123, 123, 123);
   font-size: 9pt;
 }
 
@@ -197,41 +215,6 @@ h1 {
   margin-left: -2px !important;
 }
 
-.table,
-.table tr,
-.table td,
-.table th {
-  border: 1px;
-  width: 100%;
-  text-align: left;
-  border-radius: 0px;
-  border-color: var(--text-color);
-  border-style: solid;
-  /* table-layout: fixed; */
-  max-height: 150px;
-  font-family: var(--font-family) !important;
-  /* width: 1000% */
-  position: relative;
-  border-collapse: collapse;
-  isolation: isolate;
-}
-
-.table td,
-.table th {
-  margin-right: 5px;
-  padding: 10px;
-  background-clip: padding-box;
-
-  /* width: 10px; */
-  /* text-wrap: balance; */
-  overflow-wrap: break-word;
-}
-
-.table th {
-  position: sticky;
-  top: 0;
-}
-
 .homepage {
   margin-left: auto;
   margin-right: auto;
@@ -246,7 +229,7 @@ h1 {
   width: 10px;
   background: none;
   opacity: 0.2;
-  border-radius: 15px;
+  border-radius: var(--border-radius);
   width: 5px;
 }
 
@@ -254,13 +237,13 @@ h1 {
 ::-webkit-scrollbar-track {
   background: none;
 
-  border-radius: 15px;
+  border-radius: var(--border-radius);
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background-color: #424242;
-  border-radius: 15px;
+  border-radius: var(--border-radius);
   opacity: 0.6;
 }
 
@@ -268,4 +251,191 @@ h1 {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #636363;
   opacity: 1;
+}
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  z-index: 1;
+  background: var(--tooltip-background);
+  transform: translate(5%, -20%);
+  color: #fff;
+  padding: 5px;
+  font-size: 10pt;
+  border-radius: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+  white-space: nowrap;
+  font-family: var(--font-family);
+}
+
+/* .tooltip::before {
+  content: "";
+  opacity: 0;
+  position: absolute;
+  z-index: 1;
+  transform: translate(100%, 50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #333 transparent transparent;
+} */
+
+.tooltip:hover::after,
+.tooltip:hover::before {
+  opacity: 1;
+}
+
+.severe-delay {
+  color: var(--rapid-transit-color) !important;
+}
+
+.moderate-delay {
+  color: var(--subway-color) !important;
+}
+
+.slight-delay {
+  color: var(--bus-color) !important;
+}
+
+.on-time {
+  color: #00843d !important;
+}
+
+#subway:hover {
+  background-color: var(--subway-color);
+}
+
+#rapid_transit:hover {
+  background-color: var(--rapid-transit-color);
+}
+
+#commuter_rail:hover {
+  background-color: var(--commuter-rail-color);
+}
+
+#bus:hover {
+  background-color: var(--bus-color);
+}
+
+#ferry:hover {
+  background-color: var(--ferry-color);
+}
+
+.color-subway {
+  color: var(--subway-color) !important;
+}
+
+.color-rapid_transit {
+  color: var(--rapid-transit-color) !important;
+}
+
+.color-commuter_rail {
+  color: var(--commuter-rail-color) !important;
+}
+
+.color-bus {
+  color: var(--bus-color) !important;
+}
+
+.color-ferry {
+  color: var(--ferry-color) !important;
+}
+
+.border-bottom-subway {
+  border-bottom: var(--nav-border-height) solid var(--subway-color);
+}
+
+.border-bottom-rapid_transit {
+  border-bottom: var(--nav-border-height) solid var(--rapid-transit-color);
+}
+
+.border-bottom-commuter_rail {
+  border-bottom: var(--nav-border-height) solid var(--commuter-rail-color);
+}
+
+.border-bottom-bus {
+  border-bottom: var(--nav-border-height) solid var(--bus-color);
+}
+
+.border-bottom-ferry {
+  border-bottom: var(--nav-border-height) solid var(--ferry-color);
+}
+
+noscript {
+  color: var(--rapid-transit-color);
+  top: 0;
+  bottom: 0;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.mobile-hidden {
+  display: none;
+}
+
+.data-table {
+  border: 1px solid var(--text-color) !important  ;
+  width: 100%;
+  border-collapse: collapse;
+
+  text-align: left;
+  tbody,
+  thead,
+  tr,
+  td,
+  th {
+    border: 1px solid var(--text-color) !important;
+    padding: 10px;
+  }
+}
+
+@-webkit-keyframes spin {
+  100% {
+    /* margin-left: 400px; */
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  100% {
+    /* margin-left: 400px; */
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  margin: 20px;
+  width: 100px;
+  height: 100px;
+  z-index: 10000;
+  -webkit-animation: myanimation 5s;
+  animation: myanimation 5s;
+  /* background: #f00;
+  -webkit-animation-name: spin;
+  -webkit-animation-duration: 4000ms;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  -moz-animation-name: spin;
+  -moz-animation-duration: 4000ms;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
+  -ms-animation-name: spin;
+  -ms-animation-duration: 4000ms;
+  -ms-animation-iteration-count: infinite;
+  -ms-animation-timing-function: linear;
+
+  animation-name: spin;
+  animation-duration: 4000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear; */
+}
+
+@media (max-width: 786px) {
+  .mobile-hidden {
+    display: block;
+  }
 }

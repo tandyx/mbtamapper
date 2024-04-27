@@ -5,8 +5,11 @@
     "leaflet-providers": "^2.0.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
+    "leaflet-sidebar": "^0.2.4",
     "leaflet.locatecontrol": "^0.79.0",
-    "leaflet.markercluster": "^1.5.3"
+    "leaflet.markercluster": "^1.5.3",
+    "plotly.js-dist-min": "^2.31.0",
+    "strftime": "^0.10.2"
   },
   "devDependencies": {
     "eslint": "^8.53.0",

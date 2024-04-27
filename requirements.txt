@@ -11,3 +11,5 @@ gtfs-realtime-bindings
 waitress
 werkzeug
 protobuf
+asteval
+timeout-function-decorator

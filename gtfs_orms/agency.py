@@ -1,32 +1,32 @@
 """File to hold the Agency class and its associated methods."""
 
-from sqlalchemy import String
-from sqlalchemy.orm import mapped_column, relationship
+from typing import TYPE_CHECKING
 
-from .gtfs_base import GTFSBase
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+
+if TYPE_CHECKING:
+    from .route import Route
 
 
-class Agency(GTFSBase):
-    """Agency"""
+class Agency(Base):
+    """Agency class for the `agency.txt` file."""
 
     __tablename__ = "agencies"
     __filename__ = "agency.txt"
 
-    agency_id = mapped_column(String, primary_key=True)
-    agency_name = mapped_column(String)
-    agency_url = mapped_column(String)
-    agency_timezone = mapped_column(String)
-    agency_lang = mapped_column(String)
-    agency_phone = mapped_column(String)
+    agency_id: Mapped[str] = mapped_column(primary_key=True)
+    agency_name: Mapped[str]
+    agency_url: Mapped[str]
+    agency_timezone: Mapped[str]
+    agency_lang: Mapped[str]
+    agency_phone: Mapped[str]
 
-    routes = relationship("Route", back_populates="agency", passive_deletes=True)
+    routes: Mapped[list["Route"]] = relationship(
+        "Route", back_populates="agency", passive_deletes=True
+    )
 
-    def as_html(self) -> str:
-        """Return the agency as HTML
-
-        Returns:
-            str: agency as HTML"""
-        return (
-            f"<a href = {self.agency_url} target='_blank'>"
-            f"{self.agency_name}</a> ({self.agency_phone})"
-        )
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

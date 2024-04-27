@@ -1,28 +1,36 @@
 """File to hold the CalendarAttribute class and its associated methods."""
 
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import mapped_column, relationship
+from typing import TYPE_CHECKING, Optional
 
-from .gtfs_base import GTFSBase
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+
+if TYPE_CHECKING:
+    from .calendar import Calendar
 
 
-class CalendarAttribute(GTFSBase):  # pylint: disable=too-few-public-methods
+class CalendarAttribute(Base):  # pylint: disable=too-few-public-methods
     """Calendar Attributes"""
 
     __tablename__ = "calendar_attributes"
     __filename__ = "calendar_attributes.txt"
 
-    service_id = mapped_column(
-        String,
+    service_id: Mapped[str] = mapped_column(
         ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    service_description = mapped_column(String)
-    service_schedule_name = mapped_column(String)
-    service_schedule_type = mapped_column(String)
-    service_schedule_typicality = mapped_column(String)
-    rating_start_date = mapped_column(String)
-    rating_end_date = mapped_column(String)
-    rating_description = mapped_column(String)
+    service_description: Mapped[Optional[str]]
+    service_schedule_name: Mapped[Optional[str]]
+    service_schedule_type: Mapped[Optional[str]]
+    service_schedule_typicality: Mapped[Optional[str]]
+    rating_start_date: Mapped[Optional[str]]
+    rating_end_date: Mapped[Optional[str]]
+    rating_description: Mapped[Optional[str]]
 
-    calendar = relationship("Calendar", back_populates="calendar_attributes")
+    calendar: Mapped["Calendar"] = relationship(back_populates="calendar_attributes")
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

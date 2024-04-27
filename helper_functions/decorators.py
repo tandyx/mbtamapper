@@ -8,7 +8,7 @@ from typing import Any, Callable
 from sqlalchemy.orm import scoped_session
 
 
-def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
+def removes_session(_func: Callable[..., Any]):
     """Decorator to remove a scroped session from a Feed object after function call. \
     This decorator also removes the session from the object if an exception is raised.
 
@@ -18,7 +18,7 @@ def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
         - `function`: Wrapped function.
     """
 
-    def _removes_session(*args, **kwargs) -> Any:
+    def _removes_session(*args, **kwargs):
         """Wrapper for decorator. Removes session from Feed object after function call.
 
         Args:
@@ -34,18 +34,18 @@ def removes_session(_func: Callable[..., Any]) -> Callable[..., Any]:
             logging.error(
                 "Error in %s: %s %s", _func.__name__, err, traceback.format_exc()
             )
-
         for arg in args:
             for attr_name in dir(arg):
                 attr = getattr(arg, attr_name)
                 if isinstance(attr, scoped_session):
                     attr.remove()
+                    return res
         return res
 
     return _removes_session
 
 
-def timeit(_func: Callable[..., Any], round_to: int = 3) -> Callable[..., Any]:
+def timeit(_func: Callable[..., Any], round_to: int = 3):
     """Decorator to time a function and log it.
 
     Args:
@@ -75,7 +75,15 @@ class classproperty(property):  # pylint: disable=invalid-name
     Args:
         - `property (property)`: property to wrap. \n
     Returns:
-        `property`: Wrapped property."""
+        - `property`: Wrapped property."""
 
     def __get__(self, owner_self: object, owner_cls: object):
+        """Gets the property.
+
+        Args:
+            - `owner_self (object)`: Owner object.
+            - `owner_cls (object)`: Owner class. \n
+        Returns:
+            - `object`: Value of property.
+        """
         return self.fget(owner_cls)

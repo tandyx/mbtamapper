@@ -5,17 +5,15 @@
 # pylint: disable=unused-wildcard-import
 import logging
 import time
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import requests as rq
 from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
-from helper_functions import *
-
-from .gtfs_base import GTFSBase
+from .base import Base
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -66,24 +64,41 @@ PREDICTION_RENAME_DICT = {
 }
 
 
-class LinkedDataset(GTFSBase):
+if TYPE_CHECKING:
+
+    # pylint: disable=function-redefined
+    class FeedMessage:
+        """`FeedMessage` class for type hinting."""
+
+        # pylint: disable=unused-argument
+        # pylint: disable=too-few-public-methods
+        # pylint: disable=invalid-name
+
+        def __init__(self) -> None:
+            pass
+
+        def ParseFromString(self, data: bytes) -> None:
+            """parses a realtime `FeedMessage` from a byte string"""
+
+
+class LinkedDataset(Base):
     """LinkedDataset"""
 
     __tablename__ = "linked_datasets"
     __filename__ = "linked_datasets.txt"
 
-    url = mapped_column(String, primary_key=True)
-    trip_updates = mapped_column(Integer)
-    vehicle_positions = mapped_column(Integer)
-    service_alerts = mapped_column(Integer)
-    authentication_type = mapped_column(String)
+    url: Mapped[str] = mapped_column(primary_key=True)
+    trip_updates: Mapped[int]
+    vehicle_positions: Mapped[int]
+    service_alerts: Mapped[int]
+    authentication_type: Mapped[str]
 
     def as_dataframe(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\
             as a dataframe.
             
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
 
         if self.trip_updates:
@@ -98,7 +113,7 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         feed_entity = FeedMessage()
         response = rq.get(self.url, timeout=10)
@@ -121,49 +136,52 @@ class LinkedDataset(GTFSBase):
         """Returns realtime data from the linked dataset.
 
         Args:
-            dataframe: The dataframe to post process.
-            rename_dict: The dictionary to rename the columns.
+            - `dataframe`: The dataframe to post process.
+            - `rename_dict`: The dictionary to rename the columns.\n
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
-
-        dataframe = (
-            dataframe.reset_index(drop=True)
-            .drop(
-                columns=[col for col in dataframe.columns if col not in rename_dict],
-                axis=1,
-            )
-            .rename(columns=rename_dict)
+        if not self.trip_updates:
+            dataframe.drop_duplicates("id", inplace=True)
+        dataframe.reset_index(drop=True, inplace=True)
+        dataframe.drop(
+            columns=[col for col in dataframe.columns if col not in rename_dict],
+            axis=1,
+            inplace=True,
         )
-        dataframe["index"] = dataframe.index
-
+        dataframe.rename(columns=rename_dict, inplace=True)
+        if self.trip_updates:
+            dataframe["index"] = dataframe.index
         return dataframe
 
     def _process_trip_updates(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
         for col in (
             "trip_update_stop_time_update_departure",
             "trip_update_stop_time_update_arrival",
         ):
-            dataframe[col] = timestamp_col_to_iso(dataframe, col)
+            dataframe[col] = dataframe[col].apply(
+                lambda x: (int(x.get("time")) if isinstance(x, dict) else x)
+            )
 
         dataframe["trip_update_stop_time_update_stop_sequence"] = (
             dataframe["trip_update_stop_time_update_stop_sequence"]
             .fillna(0)
             .astype(int)
         )
+
         return self._post_process(dataframe, PREDICTION_RENAME_DICT)
 
     def _process_vehicle_positions(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
 
         dataframe = self._load_dataframe()
@@ -174,17 +192,13 @@ class LinkedDataset(GTFSBase):
                 else True
             )
         ]
-        dataframe["vehicle_timestamp"] = timestamp_col_to_iso(
-            dataframe, "vehicle_timestamp"
-        )
-
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
     def _process_service_alerts(self) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
         Returns:
-            pd.DataFrame: Realtime data from the linked dataset.
+            - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(
             self._load_dataframe(),
@@ -203,9 +217,36 @@ class LinkedDataset(GTFSBase):
             if "alert_informed_entity_trip" in dataframe.columns
             else None
         )
-        dataframe["timestamp"] = get_current_time().isoformat()
-
-        for col in ("alert_active_period_start", "alert_active_period_end"):
-            dataframe[col] = timestamp_col_to_iso(dataframe, col)
-
+        dataframe["timestamp"] = time.time()
         return self._post_process(dataframe, ALERT_RENAME_DICT)
+
+    def as_feature(self, *include: str) -> None:
+        """raises `NotImplementedError`"""
+        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
+
+
+def df_unpack(
+    dataframe: pd.DataFrame, columns: list[str], prefix: bool = True
+) -> pd.DataFrame:
+    """Unpacks a column of a dataframe that contains a list of dictionaries. \
+        Returns a dataframe with the unpacked column and the original dataframe\
+        with the packed column removed.
+
+    Args:
+        - `dataframe (pd.DataFrame)`: dataframe to unpack
+        - `columns (list[str])`: columns to unpack.
+        - `prefix (bool, optional)`: whether to add prefix to unpacked columns. \
+            Defaults to True. \n
+    Returns:
+        - `pd.DataFrame`: dataframe with unpacked columns
+    """
+
+    for col in columns:
+        if col not in dataframe.columns:
+            continue
+        exploded = dataframe.explode(col)
+        series = exploded[col].apply(pd.Series)
+        if prefix:
+            series = series.add_prefix(col + "_")
+        dataframe = pd.concat([exploded.drop([col], axis=1), series], axis=1)
+    return dataframe

@@ -2,35 +2,36 @@
 
 import logging
 import os
-import queue
-import threading
 import time
-from typing import NoReturn
+from threading import Thread
+from typing import Callable, NoReturn
 
 from schedule import Scheduler
 
 from gtfs_orms import Alert, Prediction, Vehicle
-from helper_functions import get_current_time, get_date, timeit
+from helper_functions import get_date, timeit
 
 from .feed import Feed
 
 
 class FeedLoader(Scheduler, Feed):
-    """Loads GTFS data into map
+    """Loads GTFS data into map \
+        and schedules jobs to import realtime data.
 
     Args:
-        url (str): URL of GTFS feed
-        keys (list[str], optional): List of keys to load. Defaults to None.
+        - `url (str)`: URL of GTFS feed
+        - `keys_dict (dict[str, list[str]])`: Dictionary of keys to load
     """
 
-    GEOJSON_PATH = os.path.join(os.getcwd(), "static", "geojsons")
+    GEOJSON_FOLDER_NAME = "geojsons"
+    GEOJSON_PATH = os.path.join(os.getcwd(), "static", GEOJSON_FOLDER_NAME)
 
-    def __init__(self, url: str, keys_dict: dict[str, tuple[str]]) -> None:
+    def __init__(self, url: str, keys_dict: dict[str, list[str]]) -> None:
         """Initializes FeedLoader.
 
         Args:
-            url (str): URL of GTFS feed.
-            keys (list[str]): List of keys to load.
+            - `url (str)`: URL of GTFS feed.
+            - `keys_dict (dict[str, list[str]])`: Dictionary of keys to load.
         """
         Scheduler.__init__(self)
         Feed.__init__(self, url)
@@ -41,47 +42,59 @@ class FeedLoader(Scheduler, Feed):
     def nightly_import(self) -> None:
         """Runs the nightly import."""
         self.import_gtfs(chunksize=100000, dtype=object)
-        for orm in self.__class__.__realtime_orms__:
+        for orm in self.__class__.REALTIME_ORMS:
             self.import_realtime(orm)
         self.purge_and_filter(date=get_date())
 
     @timeit
     def geojson_exports(self) -> None:
-        """Exports geojsons."""
+        """Exports geojsons all geojsons listed in `cls.keys_dict`"""
         for key, routes in self.keys_dict.items():
-            self.export_geojsons(
-                key, routes, __class__.GEOJSON_PATH, get_current_time()
-            )
+            self.export_geojsons(key, *routes, file_path=__class__.GEOJSON_PATH)
+
+    def import_and_run(self, import_data: bool = False) -> NoReturn:
+        """this is the main entrypoint for the application.
+
+        Args:
+            - `import_data (bool, optional)`: reloads the database and geojsons.\
+                Defaults to False.
+        """
+
+        if import_data or not os.path.exists(self.db_path):
+            self.nightly_import()
+        if import_data or not os.path.exists(self.GEOJSON_PATH):
+            self.geojson_exports()
+        self.run()
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
 
         Args:
-            timezone (str, optional): Timezone. Defaults to "America/New_York".
+            - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
         """
+
         logging.info("Starting scheduler")
-
-        def worker_main():
-            """Worker main function."""
-            while True:
-                job_func = jobqueue.get()
-                if isinstance(job_func, tuple):
-                    job_func[0](*job_func[1:])
-                else:
-                    job_func()
-                jobqueue.task_done()
-
-        jobqueue = queue.Queue()
-
-        self.every(2).minutes.do(jobqueue.put, (self.import_realtime, Alert))
-        self.every(12).seconds.do(jobqueue.put, (self.import_realtime, Vehicle))
-        self.every().minute.do(jobqueue.put, (self.import_realtime, Prediction))
-        self.every().day.at("03:45", tz=timezone).do(jobqueue.put, self.geojson_exports)
-        self.every().day.at("03:30", tz=timezone).do(jobqueue.put, self.nightly_import)
-
-        worker_thread = threading.Thread(target=worker_main)
-        worker_thread.start()
-
+        self.every(2).minutes.do(threader, self.import_realtime, Alert, join=True)
+        self.every(12).seconds.do(threader, self.import_realtime, Vehicle, join=True)
+        self.every().minute.do(threader, self.import_realtime, Prediction, join=True)
+        self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
+        self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
         while True:
             self.run_pending()
             time.sleep(1)
+
+
+def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:
+    """threads a function.
+
+    Args:
+        func (Callable): Function to thread.
+        *args: Arguments for func.
+        join (bool, optional): Whether to join thread. Defaults to True.
+        **kwargs: Keyword arguments for func.
+    """
+
+    job_thread = Thread(target=func, args=args, kwargs=kwargs)
+    job_thread.start()
+    if join:
+        job_thread.join()
