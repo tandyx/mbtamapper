@@ -5,7 +5,7 @@ import argparse
 import json
 import logging
 
-import timeout_decorator
+import timeout_function_decorator
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -20,9 +20,9 @@ FEED_LOADER = FeedLoader(
 )
 
 
-@timeout_decorator.timeout(15)
+@timeout_function_decorator.timeout(15)
 def _timeout_get_orm_json(*_args, **kwargs):
-    """times out the `FEED_LOADER.get_orm_json` function."""
+    """times out the `Feed.get_orm_json` function."""
     return FEED_LOADER.get_orm_json(*_args, **kwargs)
 
 

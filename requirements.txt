@@ -12,4 +12,4 @@ waitress
 werkzeug
 protobuf
 asteval
-timeout-decorator
+timeout-function-decorator
