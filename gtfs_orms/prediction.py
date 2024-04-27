@@ -2,7 +2,7 @@
 
 # pylint: disable=line-too-long
 
-from typing import Any, TYPE_CHECKING, Optional, override
+from typing import TYPE_CHECKING, Any, Optional, override
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
@@ -113,12 +113,16 @@ class Prediction(Base):
             - `int`: the delay of the prediction
         """
         if not self.stop_time:
-            return 0
-        if self.departure_time and self.stop_time.departure_timestamp:
-            return self.departure_time - self.stop_time.departure_timestamp
-        if self.arrival_time and self.stop_time.arrival_seconds:
-            return self.arrival_time - self.stop_time.arrival_timestamp
-        return 0
+            delay = 0
+        elif self.departure_time and self.stop_time.departure_timestamp:
+            delay = self.departure_time - self.stop_time.departure_timestamp
+        elif self.arrival_time and self.stop_time.arrival_seconds:
+            delay = self.arrival_time - self.stop_time.arrival_timestamp
+        else:
+            delay = 0
+        if delay <= -85000:
+            delay += 86400
+        return delay
 
     def get_headsign(self) -> str:
         """Returns the headsign of the prediction.

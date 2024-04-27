@@ -2,7 +2,7 @@
  * @file map.js - main map script
  */
 window.addEventListener("load", function () {
-  const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0].toUpperCase();
+  const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   document.addEventListener("click", function (event) {
     // Check if the clicked element is not inside the navbar
     if (!event.target.closest(".nav")) {
@@ -36,7 +36,7 @@ function createMap(id, route_type) {
       position: "topleft",
     },
     attributionControl: true,
-  }).setView([42.3519, -71.0552], route_type == "COMMUTER_RAIL" ? 10 : 13);
+  }).setView([42.3519, -71.0552], route_type == "commuter_rail" ? 10 : 13);
 
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers[getDefaultCookie("darkMode", "light")].addTo(map);
@@ -47,7 +47,7 @@ function createMap(id, route_type) {
   shape_layer.name = "shapes";
 
   let vehicle_layer = L.markerClusterGroup({
-    disableClusteringAtZoom: route_type == "COMMUTER_RAIL" ? 10 : 12,
+    disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
   }).addTo(map);
   vehicle_layer.name = "vehicles";
 
@@ -55,13 +55,13 @@ function createMap(id, route_type) {
   parking_lots.name = "parking";
 
   plotStops({
-    url: `/static/geojsons/${route_type}/stops.json`,
+    url: "stops",
     layer: stop_layer,
     textboxSize: textboxSize,
     isMobile: isMobile,
   });
   plotShapes({
-    url: `/static/geojsons/${route_type}/shapes.json`,
+    url: "shapes",
     layer: shape_layer,
     textboxSize: {
       maxWidth: textboxSize.maxWidth + 175,
@@ -70,14 +70,14 @@ function createMap(id, route_type) {
     isMobile: isMobile,
   });
   plotVehicles({
-    url: `/${route_type.toLowerCase()}/vehicles?include=route,next_stop,stop_time`,
+    url: "vehicles?include=route,next_stop,stop_time",
     layer: vehicle_layer,
     textboxSize: textboxSize,
     isMobile: isMobile,
     // sidebar: sidebar,
   });
   plotFacilities({
-    url: `/static/geojsons/${route_type}/park.json`,
+    url: `parking`,
     layer: parking_lots,
     textboxSize: textboxSize,
     isMobile: isMobile,

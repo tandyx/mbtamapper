@@ -1,7 +1,7 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import Any, TYPE_CHECKING, Generator, Iterable, Optional, override
+from typing import TYPE_CHECKING, Any, Generator, Iterable, Optional, override
 
 from geojson import Feature
 from shapely.geometry import Point

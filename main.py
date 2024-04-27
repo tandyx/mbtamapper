@@ -5,26 +5,19 @@ import argparse
 import json
 import logging
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader, Query
 from helper_functions import limit_content_length
 
-KEY_DICT: dict[str, tuple[str]] = {
-    "SUBWAY": ("0", "1"),
-    "RAPID_TRANSIT": ("0", "1", "4"),
-    "COMMUTER_RAIL": ("2",),
-    "BUS": ("3",),
-    "FERRY": ("4",),
-    "ALL_ROUTES": ("0", "1", "2", "4"),
-}
-
-with open("content.json", "r", encoding="utf-8") as file:
-    CONTENT_DICT: dict[str, dict[str, str]] = json.load(file)
-
-FEED_LOADER = FeedLoader("https://cdn.mbta.com/MBTA_GTFS.zip", KEY_DICT)
+with open("route_keys.json", "r", encoding="utf-8") as file:
+    KEY_DICT: dict[str, dict[str, str]] = json.load(file)
+FEED_LOADER = FeedLoader(
+    "https://cdn.mbta.com/MBTA_GTFS.zip",
+    {k: v["route_types"] for k, v in KEY_DICT.items()},
+)
 
 
 def create_app(key: str, proxies: int = 5) -> Flask:
@@ -43,7 +36,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
 
         returns:
             - `str`: map.html"""
-        return render_template("map.html", navbar=CONTENT_DICT, **CONTENT_DICT[key])
+        return render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
@@ -56,7 +49,9 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         """
         return jsonify(
             FEED_LOADER.get_vehicles_feature(
-                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+                key,
+                Query(*KEY_DICT[key]["route_types"]),
+                *request.args.get("include", "").split(","),
             )
         )
 
@@ -68,12 +63,14 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         returns:
             - `str`: geojson of stops.
         """
-        return jsonify(
-            FEED_LOADER.get_stop_features(
-                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+        return redirect(
+            url_for(
+                "static",
+                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.STOPS_FILE}",
             )
         )
 
+    @_app.route("/parking")
     @_app.route("/facilities")
     @_app.route("/api/parking")
     def get_parking() -> str:
@@ -82,9 +79,10 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         returns:
             - `str`: geojson of parking.
         """
-        return jsonify(
-            FEED_LOADER.get_parking_features(
-                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+        return redirect(
+            url_for(
+                "static",
+                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.PARKING_FILE}",
             )
         )
 
@@ -99,9 +97,10 @@ def create_app(key: str, proxies: int = 5) -> Flask:
             - `str`: geojson of routes.
         """
 
-        return jsonify(
-            FEED_LOADER.get_shape_features(
-                key, Query(*KEY_DICT[key]), *request.args.get("include", "").split(",")
+        return redirect(
+            url_for(
+                "static",
+                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.SHAPES_FILE}",
             )
         )
 
@@ -142,7 +141,7 @@ def create_default_app(proxies: int = 5) -> Flask:
     def index():
         """Returns index.html."""
 
-        return render_template("index.html", content=CONTENT_DICT)
+        return render_template("index.html", content=KEY_DICT)
 
     @limit_content_length(1024 * 1024)
     @_app.route("/api/<orm_name>")
@@ -158,7 +157,7 @@ def create_default_app(proxies: int = 5) -> Flask:
         orm = next(
             (
                 o
-                for o in FEED_LOADER.__realtime_orms__ + FEED_LOADER.__schedule_orms__
+                for o in FEED_LOADER.REALTIME_ORMS + FEED_LOADER.SCHEDULE_ORMS
                 if o.__name__.lower() == orm_name
             ),
             None,
@@ -190,7 +189,7 @@ def create_default_app(proxies: int = 5) -> Flask:
         )
     _app.wsgi_app = DispatcherMiddleware(
         _app.wsgi_app,
-        {f"/{key.lower()}": create_app(key).wsgi_app for key in KEY_DICT},
+        {f"/{key}": create_app(key).wsgi_app for key in KEY_DICT},
     )
 
     return _app
@@ -220,7 +219,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--frontend",
         "-f",
         action="store_true",
-        default=True,
+        # default=True,
         help="Run flask ONLY - overrides --import_data.",
     )
 
@@ -264,7 +263,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
-    # FEED_LOADER.get_stop_features("COMMUTER_RAIL", Query("2", "4"))
+    # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)

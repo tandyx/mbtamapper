@@ -55,7 +55,7 @@ function fillVehicleDataWrapper(trip_id) {
 function plotVehicles(options) {
   const { url, layer, textboxSize, isMobile } = options;
   const realtime = L.realtime(url, {
-    // interval: !["BUS", "ALL_ROUTES"].includes(ROUTE_TYPE) ? 15000 : 45000,
+    // interval: !["bus", "all_routes"].includes(ROUTE_TYPE) ? 15000 : 45000,
     interval: 15000,
     type: "FeatureCollection",
     container: layer,

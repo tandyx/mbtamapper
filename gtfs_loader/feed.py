@@ -42,7 +42,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
 
     # note that the order of these tables matters; avoids foreign key errors
-    __schedule_orms__ = (
+    SCHEDULE_ORMS = (
         Agency,
         Calendar,
         CalendarDate,
@@ -58,7 +58,12 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         FacilityProperty,
     )
 
-    __realtime_orms__ = (Alert, Vehicle, Prediction)
+    REALTIME_ORMS = (Alert, Vehicle, Prediction)
+
+    PARKING_FILE = "parking.json"
+    STOPS_FILE = "stops.json"
+    SHAPES_FILE = "shapes.json"
+    
 
     @staticmethod
     @event.listens_for(sa.Engine, "connect")
@@ -171,7 +176,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             Base.metadata.drop_all(self.engine)
             Base.metadata.create_all(self.engine)
         # ------------------------------- Dump Data ------------------------------- #
-        for orm in __class__.__schedule_orms__:
+        for orm in __class__.SCHEDULE_ORMS:
             with pd.read_csv(
                 os.path.join(self.zip_path, orm.__filename__), *args, **kwargs
             ) as read:
@@ -190,7 +195,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         Args:
             - `orm (Type[Alert | Vehicle | Prediction])`: realtime ORM type.
         """
-        if orm not in __class__.__realtime_orms__:
+        if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
         session = self.scoped_session()
         dataset: list[LinkedDataset] = session.execute(
@@ -230,16 +235,14 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             if not os.path.exists(path):
                 os.mkdir(path)
         file: io.TextIOWrapper
-        with open(os.path.join(file_subpath, "park.json"), **def_kwargs) as file:
-            gj.dump(self.get_parking_features(key, query_obj), file)
-            logging.info("Exported %s", file.name)
-        with open(os.path.join(file_subpath, "shapes.json"), **def_kwargs) as file:
+
+        with open(os.path.join(file_subpath, self.SHAPES_FILE), **def_kwargs) as file:
             gj.dump(self.get_shape_features(key, query_obj, "agency"), file)
             logging.info("Exported %s", file.name)
-        with open(os.path.join(file_subpath, "parking.json"), **def_kwargs) as file:
+        with open(os.path.join(file_subpath, self.PARKING_FILE), **def_kwargs) as file:
             gj.dump(self.get_parking_features(key, query_obj), file)
             logging.info("Exported %s", file.name)
-        with open(os.path.join(file_subpath, "stops.json"), **def_kwargs) as file:
+        with open(os.path.join(file_subpath, self.STOPS_FILE), **def_kwargs) as file:
             gj.dump(self.get_stop_features(key, query_obj, "child_stops", "routes"), file)
             logging.info("Exported %s", file.name)
 
@@ -257,7 +260,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         session = self.scoped_session()
         stops_data: list[tuple[Stop]]
         stops_data = session.execute(query_obj.parent_stops_query).all()
-        if key == "RAPID_TRANSIT":
+        if key == "rapid_transit":
             stops_data += session.execute(Query("3").parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops_data += session.execute(
@@ -284,7 +287,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             query_obj.get_shapes_query()
         ).all()
 
-        if key == "RAPID_TRANSIT":
+        if key == "rapid_transit":
             shape_data += session.execute(
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
@@ -313,7 +316,7 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         facilities = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
-        if key == "RAPID_TRANSIT":
+        if key == "rapid_transit":
             facilities += session.execute(
                 Query("3").get_facilities_query("parking-area")
             ).all()
@@ -335,11 +338,11 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
             - `FeatureCollection`: vehicles as FeatureCollection
         """
         session = self.scoped_session()
-        if key == "RAPID_TRANSIT":
+        if key == "rapid_transit":
             vehicles_query = query_obj.get_vehicles_query(*self.SL_ROUTES)
         else:
             vehicles_query = query_obj.get_vehicles_query()
-        if key in ("BUS", "ALL_ROUTES"):
+        if key in ("bus", "all_routes"):
             vehicles_query = vehicles_query.limit(150)
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
@@ -451,31 +454,3 @@ class Feed(Query):  # pylint: disable=too-many-instance-attributes
         if geojson:
             return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
         return [d[0].as_json(*include) for d in data]
-
-        # data: list[tuple[Base]] = session.execute(
-        #     self.select(_orm).where(
-        #         *(
-        #             (
-        #                 getattr(_orm, k) == None
-        #                 if v in {"null", "None", "none"}
-        #                 else (
-        #                     text(
-        #                         f"{_orm.__tablename__}.{k.split(k[next(k.find(op) for op in compare_ops if k.find(op) > 0)])[0]}"
-        #                         + f"{k[next(k.find(op) for op in compare_ops if k.find(op) > 0)]}"
-        #                         + f"{k.split(k[next(k.find(op) for op in compare_ops if k.find(op) > 0)])[-1]}"
-        #                     )
-        #                     if not v and any(op in k for op in compare_ops)
-        #                     else (
-        #                         text(
-        #                             f"{_orm.__tablename__}.{k.replace(k[next(k.find(op) for op in compare_ops_eq if k.find(op) > 0)], "")}"
-        #                             + f"{k[next(k.find(op) for op in compare_ops_eq if k.find(op) > 0)]}={v}"
-        #                         )
-        #                         if v and any(op in k for op in compare_ops_eq)
-        #                         else getattr(_orm, k) == v
-        #                     )
-        #                 )
-        #             )
-        #             for k, v in params.items()
-        #         )
-        #     )
-        # ).all()

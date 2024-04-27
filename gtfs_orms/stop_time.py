@@ -4,7 +4,7 @@
 # pylint: disable=unused-wildcard-import
 
 from datetime import datetime
-from typing import Any, override, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional, override
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
