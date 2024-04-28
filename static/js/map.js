@@ -59,10 +59,7 @@ function createMap(id, route_type) {
   plotShapes({
     url: "shapes",
     layer: shape_layer,
-    textboxSize: {
-      maxWidth: textboxSize.maxWidth + 175,
-      minWidth: textboxSize.minWidth,
-    },
+    textboxSize: textboxSize,
     isMobile: isMobile,
   });
   plotVehicles({
