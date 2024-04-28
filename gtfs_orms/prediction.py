@@ -120,8 +120,8 @@ class Prediction(Base):
             delay = self.arrival_time - self.stop_time.arrival_timestamp
         else:
             delay = 0
-        if delay <= -85000:
-            delay += 86400
+        if delay <= -60_000:
+            delay += 86_400
         return delay
 
     def get_headsign(self) -> str:
