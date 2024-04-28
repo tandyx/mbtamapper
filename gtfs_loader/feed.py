@@ -238,7 +238,6 @@ class Feed(Query):
             if not os.path.exists(path):
                 os.mkdir(path)
         file: io.TextIOWrapper
-
         with open(os.path.join(file_subpath, self.SHAPES_FILE), **def_kwargs) as file:
             gj.dump(self.get_shape_features(key, query_obj, "agency"), file)
             logging.info("Exported %s", file.name)
@@ -418,8 +417,8 @@ class Feed(Query):
         cols = _orm.__table__.columns.keys()
         comp_ops = ["<", ">", "!"]
         # non_cols, param_list = []
-        param_list = []
-        non_cols = []
+        param_list: list[dict[str, str]] = []
+        non_cols: list[dict[str, str]] = []
         for key, value in params.items():
             if value in {"null", "None", "none"}:
                 p_item = {"key": key, "action": "IS", "value": "NULL"}
@@ -447,15 +446,7 @@ class Feed(Query):
                 non_cols.append(p_item)
         stmt = self.select(_orm).where(
             *(
-                (
-                    sa.text(
-                        f"{_orm.__tablename__}.{v['key']} {v['action']} '{v['value']}'"
-                    )
-                    if not v["value"] == "NULL"
-                    else sa.text(
-                        f"{_orm.__tablename__}.{v['key']} {v['action']} {v['value']}"
-                    )
-                )
+                sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} {v['value'] if v['value'] == 'NULL' else f'\'{v["value"]}\''}") #pylint: disable=line-too-long
                 for v in param_list
             )
         )
@@ -464,9 +455,7 @@ class Feed(Query):
             _eval = asteval.Interpreter()
             for d in session.execute(stmt).all():
                 for c in non_cols:
-                    if not hasattr(d[0], c["key"]):
-                        continue
-                    if _eval(f"{getattr(d[0], c["key"])} {c["action"]} {c['value']}"):
+                    if hasattr(d[0], c["key"]) and _eval(f"{getattr(d[0], c["key"])} {c["action"].lower()} {c['value'].replace("NULL", 'None')}"): #pylint: disable=line-too-long
                         data.append(d)
         else:
             data: list[tuple[Base]] = session.execute(stmt).all()

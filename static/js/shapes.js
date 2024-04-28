@@ -49,7 +49,11 @@ function plotShapes(options) {
 function getShapeText(properties) {
   const shapeHtml = document.createElement("div");
   shapeHtml.innerHTML += `<p>
-  <a href="${properties.route_url}" rel="noopener" target="_blank" style="color:#${properties.route_color}" class="popup_header">${properties.route_name}</a>
+  <a href="${
+    properties.route_url
+  }" rel="noopener" target="_blank" style="color:#${
+    properties.route_color
+  }" class="popup_header">${properties.route_name.replace("/", " / ")}</a>
   </p>`;
   shapeHtml.innerHTML += `<p class="popup_subheader">${properties.route_desc}</p>`;
   shapeHtml.innerHTML += "<hr />";

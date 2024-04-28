@@ -1,12 +1,13 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function."""
 
+import os
 import argparse
 import json
 import logging
 
 import timeout_function_decorator
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+import flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -20,7 +21,7 @@ FEED_LOADER = FeedLoader(
 )
 
 
-# putting this within a function causes an asteriod error
+# causes a pylint astriod error
 @timeout_function_decorator.timeout(15)
 def _timeout_get_orm_json(*_args, **kwargs):
     """times out the `Feed.get_orm_json` function.
@@ -33,7 +34,7 @@ def _timeout_get_orm_json(*_args, **kwargs):
     return FEED_LOADER.get_orm_json(*_args, **kwargs)
 
 
-def create_app(key: str, proxies: int = 5) -> Flask:
+def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     """Create app for a given key
 
     Args:
@@ -41,7 +42,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
         `Flask`: app for the key."""
-    _app = Flask(__name__)
+    _app = flask.Flask(__name__)
 
     @_app.route("/")
     def render_map() -> str:
@@ -49,7 +50,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
 
         returns:
             - `str`: map.html"""
-        return render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
+        return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
@@ -60,11 +61,11 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         Returns:
             - `str`: geojson of vehicles.
         """
-        return jsonify(
+        return flask.jsonify(
             FEED_LOADER.get_vehicles_feature(
                 key,
                 Query(*KEY_DICT[key]["route_types"]),
-                *request.args.get("include", "").split(","),
+                *flask.request.args.get("include", "").split(","),
             )
         )
 
@@ -76,8 +77,8 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         returns:
             - `str`: geojson of stops.
         """
-        return redirect(
-            url_for(
+        return flask.redirect(
+            flask.url_for(
                 "static",
                 filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.STOPS_FILE}",
             )
@@ -92,8 +93,8 @@ def create_app(key: str, proxies: int = 5) -> Flask:
         returns:
             - `str`: geojson of parking.
         """
-        return redirect(
-            url_for(
+        return flask.redirect(
+            flask.url_for(
                 "static",
                 filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.PARKING_FILE}",
             )
@@ -110,8 +111,8 @@ def create_app(key: str, proxies: int = 5) -> Flask:
             - `str`: geojson of routes.
         """
 
-        return redirect(
-            url_for(
+        return flask.redirect(
+            flask.url_for(
                 "static",
                 filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.SHAPES_FILE}",
             )
@@ -139,7 +140,7 @@ def create_app(key: str, proxies: int = 5) -> Flask:
     return _app
 
 
-def create_default_app(proxies: int = 5) -> Flask:
+def create_default_app(proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
     Args:
@@ -148,13 +149,20 @@ def create_default_app(proxies: int = 5) -> Flask:
         - `Flask`: default app.
     """
 
-    _app = Flask(__name__)
+    _app = flask.Flask(__name__)
 
     @_app.route("/")
     def index():
         """Returns index.html."""
 
-        return render_template("index.html", content=KEY_DICT)
+        return flask.render_template("index.html", content=KEY_DICT)
+
+    @_app.route("/favicon.ico")
+    def favicon() -> str:
+        """Returns favicon.ico."""
+        return flask.send_from_directory(
+            os.path.join(_app.root_path, "static", "img"), "all_routes.ico"
+        )
 
     @_app.route("/api/<orm_name>")
     def get_orm(orm_name: str) -> str:
@@ -176,8 +184,8 @@ def create_default_app(proxies: int = 5) -> Flask:
             None,
         )
         if not orm:
-            return jsonify({"error": f"{orm_name} not found."}), 404
-        params = request.args.to_dict()
+            return flask.jsonify({"error": f"{orm_name} not found."}), 404
+        params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         as_geojson = bool(params.pop("geojson", False))
         cols = orm.__table__.columns.keys()
@@ -185,12 +193,18 @@ def create_default_app(proxies: int = 5) -> Flask:
             data = _timeout_get_orm_json(orm, *include, geojson=as_geojson, **params)
         except TimeoutError as error:
             logging.error(error)
-            return jsonify({"error": str(error), "timed_out": True}), 408
+            return flask.jsonify({"error": str(error), "timed_out": True}), 408
         except Exception as error:  # pylint: disable=broad-except
-            return jsonify({"error": str(error), f"args for {orm_name}": cols}), 400
+            return (
+                flask.jsonify({"error": str(error), f"args for {orm_name}": cols}),
+                400,
+            )
         if data is None:
-            return jsonify({"error": "no data", f"args for {orm_name}": cols}), 404
-        return jsonify(data)
+            return (
+                flask.jsonify({"error": "no data", f"args for {orm_name}": cols}),
+                404,
+            )
+        return flask.jsonify(data)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -202,7 +216,7 @@ def create_default_app(proxies: int = 5) -> Flask:
         )
     _app.wsgi_app = DispatcherMiddleware(
         _app.wsgi_app,
-        {f"/{key}": create_app(key).wsgi_app for key in KEY_DICT},
+        {f"/{key}": create_key_app(key, proxies).wsgi_app for key in KEY_DICT},
     )
 
     return _app

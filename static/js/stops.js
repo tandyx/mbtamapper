@@ -87,7 +87,7 @@ function getStopText(properties) {
     properties.stop_url
   }" rel="noopener" target="_blank" style="color:#${
     primaryRoute ? primaryRoute.route_color : "var(--text-color)"
-  }"  class="popup_header">${properties.stop_name}</a>
+  }"  class="popup_header">${properties.stop_name.replace("/", " / ")}</a>
   </p>`;
   stopHtml.innerHTML += `<p class="popup_subheader">${
     properties.zone_id || "zone-1A"
