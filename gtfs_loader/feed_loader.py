@@ -83,6 +83,16 @@ class FeedLoader(Scheduler, Feed):
             self.run_pending()
             time.sleep(1)
 
+    def stop(self, full: bool = False) -> None:
+        """Stops the scheduler.
+
+        args:
+            - `full (bool, optional)`: Whether to close db connection. Defaults to False.
+        """
+        self.clear()
+        if full:
+            self.close()
+
 
 def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:
     """threads a function.

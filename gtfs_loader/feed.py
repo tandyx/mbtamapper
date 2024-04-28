@@ -346,8 +346,6 @@ class Feed(Query):
             vehicles_query = query_obj.get_vehicles_query(*self.SL_ROUTES)
         else:
             vehicles_query = query_obj.get_vehicles_query()
-        if key in ("bus", "all_routes"):
-            vehicles_query = vehicles_query.limit(150)
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
             try:
@@ -462,3 +460,7 @@ class Feed(Query):
         if geojson:
             return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
         return [d[0].as_json(*include) for d in data]
+
+    def close(self) -> None:
+        """Closes the connection to the database."""
+        self.engine.dispose()

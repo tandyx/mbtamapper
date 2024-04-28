@@ -247,7 +247,7 @@ class Query:
         Args:
             - `*route_types (str)`: list of route_types to query
         """
-        self.route_types = route_types or tuple()
+        self.route_types = route_types
         self.trip_query = self.__get_trips_query()
         self.parent_stops_query = self.__get_parent_stops_query()
 
