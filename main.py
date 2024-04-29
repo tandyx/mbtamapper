@@ -5,6 +5,7 @@ import os
 import argparse
 import json
 import logging
+import difflib
 
 import timeout_function_decorator
 import flask
@@ -129,6 +130,28 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         if exception:
             logging.error(exception)
 
+    @_app.errorhandler(404)
+    def page_not_found(error: Exception = None) -> str:
+        """Returns 404.html.
+
+        Args:
+            - `error (Exception)`: Error to log.
+        Returns:
+            - `str`: 404.html.
+        """
+        if error:
+            logging.error(error)
+        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+        for rule in _app.url_map.iter_rules():
+            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+                continue
+            url_for = flask.url_for(rule.endpoint)
+            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+                url_dict["possible_url"] = url_for
+                break
+        url_dict["possible_url"] = url_dict.get("possible_url", "/")
+        return (flask.render_template("404.html", **url_dict), 404)
+
     if proxies:
         _app.wsgi_app = ProxyFix(
             _app.wsgi_app,
@@ -184,7 +207,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
             None,
         )
         if not orm:
-            return flask.jsonify({"error": f"{orm_name} not found."}), 404
+            return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         as_geojson = bool(params.pop("geojson", False))
@@ -202,9 +225,31 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         if data is None:
             return (
                 flask.jsonify({"error": "no data", f"args for {orm_name}": cols}),
-                404,
+                400,
             )
         return flask.jsonify(data)
+
+    @_app.errorhandler(404)
+    def page_not_found(error: Exception = None) -> str:
+        """Returns 404.html.
+
+        Args:
+            - `error (Exception)`: Error to log.
+        Returns:
+            - `str`: 404.html.
+        """
+        if error:
+            logging.error(error)
+        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+        for rule in _app.url_map.iter_rules():
+            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+                continue
+            url_for = flask.url_for(rule.endpoint)
+            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+                url_dict["possible_url"] = url_for
+                break
+        url_dict["possible_url"] = url_dict.get("possible_url", "/")
+        return (flask.render_template("404.html", **url_dict), 404)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -295,4 +340,4 @@ if __name__ == "__main__":
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)
     else:
-        FEED_LOADER.import_and_run(import_data=args.import_data)
+        FEED_LOADER.import_and_run(args.import_data, chunksize=100000, dtype=object)

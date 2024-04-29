@@ -40,7 +40,7 @@ class Feed(Query):
         
 
     Args:
-        url (str): url of GTFS feed
+        - `url (str)`: url of GTFS feed
     """
 
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
@@ -137,17 +137,17 @@ class Feed(Query):
         self.scoped_session = saorm.scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self.url}@{self.db_path})>"
+        return f"<{self.__class__.__name__}({self.url}@{self.engine.url})>"
 
     def __str__(self) -> str:
         return self.__repr__()
 
     @timeit
-    def _download_gtfs(self, **kwargs) -> None:
+    def download_gtfs(self, **kwargs) -> None:
         """Downloads the GTFS feed zip file into a temporary directory.
 
         args:
-            - `**kwargs`: keyword arguments to pass to requests
+            - `**kwargs`: keyword arguments to pass to `requests.get()`
         """
         source = req.get(self.url, timeout=10, **kwargs)
         if not source.ok:
@@ -156,7 +156,7 @@ class Feed(Query):
             zipfile_bytes.extractall(self.zip_path)
         logging.info("Downloaded zip from %s to %s", self.url, self.zip_path)
 
-    def _remove_zip(self) -> None:
+    def remove_zip(self) -> None:
         """Removes the GTFS zip file."""
         if not os.path.exists(self.zip_path):
             logging.warning("%s does not exist", self.zip_path)
@@ -174,7 +174,7 @@ class Feed(Query):
             - `**kwargs`: keyword args for pd.read_csv
         """
         # ------------------------------- Create Tables ------------------------------- #
-        self._download_gtfs()
+        self.download_gtfs()
         if purge:
             Base.metadata.drop_all(self.engine)
             Base.metadata.create_all(self.engine)
@@ -187,7 +187,7 @@ class Feed(Query):
                     if orm.__filename__ == "shapes.txt":
                         self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
                     self.to_sql(chunk, orm)
-        self._remove_zip()
+        self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
 
     @timeit
@@ -213,7 +213,7 @@ class Feed(Query):
         """Purges and filters the database.
 
         Args:
-            date (datetime): date to filter on
+            - `date (datetime)`: date to filter on
         """
 
         for stmt in (self.delete_calendars_query(date), self.delete_facilities_query()):

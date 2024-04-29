@@ -19,14 +19,6 @@ def removes_session(_func: Callable[..., Any]):
     """
 
     def _removes_session(*args, **kwargs):
-        """Wrapper for decorator. Removes session from Feed object after function call.
-
-        Args:
-            - `*args`: Positional arguments.
-            - `**kwargs`: Keyword arguments. \n
-        Returns:
-            - `Any`: Result of function call.
-        """
         res = None
         try:
             res = _func(*args, **kwargs)
@@ -56,7 +48,6 @@ def timeit(_func: Callable[..., Any], round_to: int = 3):
     """
 
     def _timeit(*args, **kwargs) -> Any:
-        """Wrapper for decorator."""
         start = time.perf_counter()
         res = _func(*args, **kwargs)
         logging.info(

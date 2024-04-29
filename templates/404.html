@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="upgrade-insecure-requests"
+    />
+    <meta
+      name="keywords"
+      content="johan cho, johan, cho, northeastern, industrial engineering, data science, data, science, portfolio, projects, mbtamapper, mbta, mapper, mbta mapper, mbta map, mbta map generator, mbta map maker, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer, mbta map generator, mbta map generator, mbta map maker, mbta map maker, mbta map creator, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer, mbta map generator, mbta map generator, mbta map maker, mbta map maker, mbta map creator, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer, mbta map generator, mbta map generator, mbta map maker, mbta map maker, mbta map creator, mbta map creator, mbta map builder, mbta map builder, mbta map editor, mbta map editor, mbta map designer, mbta map designer"
+    />
+    <meta name="author" content="Johan Cho" />
+    <link rel="canonical" href="https://mbtamapper.com" />
+
+    <meta name="description" content="realtime mapping of the mbta" />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/all_routes.ico') }}"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='img/all_routes.ico') }}"
+      type="image/x-icon"
+    />
+    <title>404 | mbtamapper</title>
+
+    <meta property="og:url" content="https://mbtamapper.com" />
+    <meta
+      property="og:image"
+      content="{{ url_for('static', filename='img/mbta.png') }}"
+    />
+    <meta property="og:description" content="realtime mapping of the mbta" />
+    <meta property="og:title" content="mbtamapper" />
+    <!-- <meta property="og:site_name" content="mbtamapper" /> -->
+    <meta property="og:see_also" content="https://mbtamapper.com" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/titlepage.css') }}"
+    />
+  </head>
+  <body class="titlepage">
+    <main class="mainContainer no-highlight">
+      <h1><span class="severe-delay">404</span> - page not found</h1>
+      <p class="subheader margin-top-neg-30">{{ url }} doesn't exist</p>
+      <hr />
+      <div>
+        <p class="subheader">
+          the page you are looking for might have been removed, had its name
+          changed, or is temporarily unavailable
+        </p>
+        <p>
+          <a href="{{ possible_url }}" class="anchor-accent">possible link</a>
+        </p>
+        <p><a href="/" class="anchor-accent">home</a></p>
+      </div>
+      <div class="footer">
+        <div class="fa link-wrapper">
+          <a
+            href="https://github.com/johan-cho/mbtamapper"
+            target="_blank"
+            rel="noopener"
+            class="tooltip"
+            data-tooltip="github"
+            >&#xf09b;</a
+          ><a
+            href="https://johan-cho.github.io/"
+            target="_blank"
+            rel="noopener"
+            class="tooltip"
+            data-tooltip="about me"
+          >
+            &#xf2bd;
+          </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

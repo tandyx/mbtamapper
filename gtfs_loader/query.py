@@ -184,7 +184,7 @@ class Query:
 
         Args:
             - `*exclude (str)`: list of facility types to exclude.\
-                Defaults to `["parking-area", "bike-storage"]`.
+                Defaults to `["parking-area", "bike-storage"]`. \n
         Returns:
             - `Select`: A query to delete facilities.
         """

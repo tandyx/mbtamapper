@@ -106,15 +106,15 @@ class Prediction(Base):
             and self.stop_sequence == other.stop_sequence
         )
 
-    def _get_delay(self) -> int:
+    def _get_delay(self) -> int | None:
         """Returns the delay of the prediction.
 
         Returns:
             - `int`: the delay of the prediction
         """
         if not self.stop_time:
-            delay = 0
-        elif self.departure_time and self.stop_time.departure_timestamp:
+            return None
+        if self.departure_time and self.stop_time.departure_timestamp:
             delay = self.departure_time - self.stop_time.departure_timestamp
         elif self.arrival_time and self.stop_time.arrival_seconds:
             delay = self.arrival_time - self.stop_time.arrival_timestamp

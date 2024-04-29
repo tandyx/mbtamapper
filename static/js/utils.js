@@ -1,5 +1,5 @@
 /**
- * @file functions.js - misc utility functions
+ * @file utils.js - misc utility functions
  */
 
 // import { strftime } from "strftime";
