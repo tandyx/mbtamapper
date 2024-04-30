@@ -69,7 +69,7 @@ class FeedLoader(Scheduler, Feed):
         """
 
         if import_data or not os.path.exists(self.db_path):
-            self.nightly_import(**kwargs)
+            self.nightly_import(chunksize=100000, dtype=object, **kwargs)
         if import_data or not os.path.exists(self.GEOJSON_PATH):
             self.geojson_exports()
         self.run(timezone=timezone)

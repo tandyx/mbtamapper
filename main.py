@@ -340,4 +340,4 @@ if __name__ == "__main__":
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)
     else:
-        FEED_LOADER.import_and_run(args.import_data, chunksize=100000, dtype=object)
+        FEED_LOADER.import_and_run(args.import_data)
