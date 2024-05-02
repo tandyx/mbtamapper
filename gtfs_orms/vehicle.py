@@ -135,13 +135,12 @@ class Vehicle(Base):
         # pylint: disable=too-many-nested-blocks
         from .alert import Alert  # pylint: disable=import-outside-toplevel
 
-        columns = self.__table__.columns.keys()
         for attr in orms:
             orm_list: Base | Iterable[Base] = getattr(self, attr, None)
             orm_list = [orm_list] if isinstance(orm_list, Base) else orm_list
             for orm in orm_list:
                 for sub_attar_name in dir(orm):
-                    if sub_attar_name.startswith("_") or sub_attar_name in columns:
+                    if sub_attar_name.startswith("_") or sub_attar_name in self.cols:
                         continue
                     object_attr = getattr(orm, sub_attar_name)
                     if isinstance(object_attr, Alert):

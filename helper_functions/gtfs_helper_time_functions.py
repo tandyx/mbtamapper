@@ -22,7 +22,7 @@ def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
     """Returns the current date in the given timezone
 
     Args:
-        - `offset (int, optional)`: The number of hours to offset the date. Defaults to 0.
+        - `offset (int, optional)`: The number of days to offset. Defaults to 0.
         - `zone (str, optional)`: The timezone. Defaults to "America/New_York".\n
     Returns:
         - `datetime`: The current date in the given timezone
@@ -30,7 +30,7 @@ def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
 
     return datetime.now(pytz.timezone(zone)).replace(
         hour=0, minute=0, second=0, microsecond=0
-    ) + timedelta(hours=offset)
+    ) + timedelta(days=offset)
 
 
 def get_current_time(offset: int = 0, zone: str = "America/New_York") -> datetime:

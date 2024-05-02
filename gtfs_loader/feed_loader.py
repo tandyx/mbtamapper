@@ -45,7 +45,7 @@ class FeedLoader(Scheduler, Feed):
         args:
             - `**kwargs`: keyword arguments to pass to `import_gtfs`.\n
         """
-        self.import_gtfs(**kwargs)
+        self.import_gtfs(chunksize=100000, dtype=object, **kwargs)
         for orm in self.__class__.REALTIME_ORMS:
             self.import_realtime(orm)
         self.purge_and_filter(date=get_date())
@@ -69,7 +69,7 @@ class FeedLoader(Scheduler, Feed):
         """
 
         if import_data or not os.path.exists(self.db_path):
-            self.nightly_import(chunksize=100000, dtype=object, **kwargs)
+            self.nightly_import(**kwargs)
         if import_data or not os.path.exists(self.GEOJSON_PATH):
             self.geojson_exports()
         self.run(timezone=timezone)

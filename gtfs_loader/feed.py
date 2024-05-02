@@ -133,7 +133,6 @@ class Feed(Query):
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = saorm.sessionmaker(self.engine, expire_on_commit=False)
-        self.session = self.sessionmkr()
         self.scoped_session = saorm.scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
@@ -192,15 +191,17 @@ class Feed(Query):
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction]) -> None:
+    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction] | str) -> None:
         """Imports realtime data into the database.
 
         Args:
-            - `orm (Type[Alert | Vehicle | Prediction])`: realtime ORM type.
+            - `orm (Type[Alert | Vehicle | Prediction] | str)`: realtime ORM.
         """
+        session = self.scoped_session()
+        if isinstance(orm, str):
+            orm = __class__.find_orm(orm)
         if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
-        session = self.scoped_session()
         dataset: list[LinkedDataset] = session.execute(
             self.get_dataset_query(orm.__realtime_name__)
         ).first()
@@ -209,17 +210,18 @@ class Feed(Query):
         self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
 
     @timeit
+    @removes_session
     def purge_and_filter(self, date: datetime) -> None:
         """Purges and filters the database.
 
         Args:
             - `date (datetime)`: date to filter on
         """
-
-        for stmt in (self.delete_calendars_query(date), self.delete_facilities_query()):
-            res: sa.CursorResult = self.session.execute(stmt)
+        session = self.scoped_session()
+        for stmt in [self.delete_calendars_query(date), self.delete_facilities_query()]:
+            res: sa.CursorResult = session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
-        self.session.commit()
+        session.commit()
 
     @timeit
     def export_geojsons(self, key: str, *route_types: str, file_path: str) -> None:
@@ -291,7 +293,7 @@ class Feed(Query):
             query_obj.get_shapes_query()
         ).all()
 
-        if key == "rapid_transit":
+        if key in ["rapid_transit", "all_routes"]:
             shape_data += session.execute(
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
@@ -316,8 +318,7 @@ class Feed(Query):
         """
 
         session = self.scoped_session()
-        facilities: list[tuple[Facility]]
-        facilities = session.execute(
+        facilities: list[tuple[Facility]] = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
         if key == "rapid_transit":
@@ -398,7 +399,7 @@ class Feed(Query):
 
     @removes_session
     def get_orm_json(
-        self, _orm: type[Base], *include, geojson: bool = False, **params
+        self, _orm: type[Base] | str, *include, geojson: bool = False, **params
     ) -> list[dict[str]] | gj.FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
@@ -411,10 +412,11 @@ class Feed(Query):
             - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
         """
         session = self.scoped_session()
-        # pylint: disable=eval-used
-        cols = _orm.__table__.columns.keys()
+        if isinstance(_orm, str):
+            _orm = __class__.find_orm(_orm)
+        if not _orm:
+            return []
         comp_ops = ["<", ">", "!"]
-        # non_cols, param_list = []
         param_list: list[dict[str, str]] = []
         non_cols: list[dict[str, str]] = []
         for key, value in params.items():
@@ -438,7 +440,7 @@ class Feed(Query):
                         "action": f"{key[op_index]}=",
                         "value": value,
                     }
-            if p_item["key"] in cols:
+            if p_item["key"] in _orm.cols:
                 param_list.append(p_item)
             else:
                 non_cols.append(p_item)

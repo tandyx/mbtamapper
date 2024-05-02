@@ -197,36 +197,22 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
             - `str`: ORM for the key.
         """
 
-        orm_name = orm_name.lower()
-        orm = next(
-            (
-                o
-                for o in FEED_LOADER.REALTIME_ORMS + FEED_LOADER.SCHEDULE_ORMS
-                if o.__name__.lower() == orm_name
-            ),
-            None,
-        )
-        if not orm:
+        if not (orm := FeedLoader.find_orm(orm_name)):
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         as_geojson = bool(params.pop("geojson", False))
-        cols = orm.__table__.columns.keys()
         try:
             data = _timeout_get_orm_json(orm, *include, geojson=as_geojson, **params)
         except TimeoutError as error:
-            logging.error(error)
             return flask.jsonify({"error": str(error), "timed_out": True}), 408
         except Exception as error:  # pylint: disable=broad-except
             return (
-                flask.jsonify({"error": str(error), f"args for {orm_name}": cols}),
+                flask.jsonify({"error": str(error), f"{orm_name} args": orm.cols}),
                 400,
             )
         if data is None:
-            return (
-                flask.jsonify({"error": "no data", f"args for {orm_name}": cols}),
-                400,
-            )
+            return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
         return flask.jsonify(data)
 
     @_app.errorhandler(404)
@@ -336,8 +322,9 @@ if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
+    # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)
     else:
-        FEED_LOADER.import_and_run(args.import_data)
+        FEED_LOADER.import_and_run(import_data=args.import_data)

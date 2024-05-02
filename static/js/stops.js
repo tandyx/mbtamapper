@@ -93,9 +93,9 @@ function getStopText(properties) {
     properties.zone_id || "zone-1A"
   }</p>`;
   stopHtml.innerHTML += "<hr />";
-  if (properties.wheelchair_boarding === "0") {
+  if (properties.wheelchair_boarding == "0") {
     stopHtml.innerHTML += `<span class='fa tooltip slight-delay' data-tooltip='wheelchair accessible w/ caveats'>&#xf193;</span>&nbsp;&nbsp;&nbsp;`;
-  } else if (properties.wheelchair_boarding === "1") {
+  } else if (properties.wheelchair_boarding == "1") {
     stopHtml.innerHTML += `<span class='fa tooltip' data-tooltip='wheelchair accessible'>&#xf193;</span>&nbsp;&nbsp;&nbsp;`;
   }
   stopHtml.innerHTML += `<span name="predictions-stop-${properties.stop_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
