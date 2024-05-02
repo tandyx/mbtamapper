@@ -1,14 +1,14 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function."""
 
-import os
 import argparse
+import difflib
 import json
 import logging
-import difflib
+import os
 
-import timeout_function_decorator
 import flask
+import timeout_function_decorator
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
