@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from .prediction import Prediction
     from .route import Route
     from .shape import Shape
+    from .stop import Stop
     from .stop_time import StopTime
     from .vehicle import Vehicle
 
@@ -73,6 +74,13 @@ class Trip(Base):
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
     )
+
+    @property
+    def destination(self) -> "Stop" | None:
+        """the destination of the trip as a `stop`"""
+        if not (dest := max(self.stop_times, default=None)):
+            return None
+        return dest.stop
 
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""

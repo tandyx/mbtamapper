@@ -40,7 +40,7 @@ class Feed(Query):
         
 
     Args:
-        url (str): url of GTFS feed
+        - `url (str)`: url of GTFS feed
     """
 
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
@@ -133,21 +133,20 @@ class Feed(Query):
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = saorm.sessionmaker(self.engine, expire_on_commit=False)
-        self.session = self.sessionmkr()
         self.scoped_session = saorm.scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self.url}@{self.db_path})>"
+        return f"<{self.__class__.__name__}({self.url}@{self.engine.url})>"
 
     def __str__(self) -> str:
         return self.__repr__()
 
     @timeit
-    def _download_gtfs(self, **kwargs) -> None:
+    def download_gtfs(self, **kwargs) -> None:
         """Downloads the GTFS feed zip file into a temporary directory.
 
         args:
-            - `**kwargs`: keyword arguments to pass to requests
+            - `**kwargs`: keyword arguments to pass to `requests.get()`
         """
         source = req.get(self.url, timeout=10, **kwargs)
         if not source.ok:
@@ -156,7 +155,7 @@ class Feed(Query):
             zipfile_bytes.extractall(self.zip_path)
         logging.info("Downloaded zip from %s to %s", self.url, self.zip_path)
 
-    def _remove_zip(self) -> None:
+    def remove_zip(self) -> None:
         """Removes the GTFS zip file."""
         if not os.path.exists(self.zip_path):
             logging.warning("%s does not exist", self.zip_path)
@@ -174,7 +173,7 @@ class Feed(Query):
             - `**kwargs`: keyword args for pd.read_csv
         """
         # ------------------------------- Create Tables ------------------------------- #
-        self._download_gtfs()
+        self.download_gtfs()
         if purge:
             Base.metadata.drop_all(self.engine)
             Base.metadata.create_all(self.engine)
@@ -187,20 +186,22 @@ class Feed(Query):
                     if orm.__filename__ == "shapes.txt":
                         self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
                     self.to_sql(chunk, orm)
-        self._remove_zip()
+        self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction]) -> None:
+    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction] | str) -> None:
         """Imports realtime data into the database.
 
         Args:
-            - `orm (Type[Alert | Vehicle | Prediction])`: realtime ORM type.
+            - `orm (Type[Alert | Vehicle | Prediction] | str)`: realtime ORM.
         """
+        session = self.scoped_session()
+        if isinstance(orm, str):
+            orm = __class__.find_orm(orm)
         if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
-        session = self.scoped_session()
         dataset: list[LinkedDataset] = session.execute(
             self.get_dataset_query(orm.__realtime_name__)
         ).first()
@@ -209,17 +210,18 @@ class Feed(Query):
         self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
 
     @timeit
+    @removes_session
     def purge_and_filter(self, date: datetime) -> None:
         """Purges and filters the database.
 
         Args:
-            date (datetime): date to filter on
+            - `date (datetime)`: date to filter on
         """
-
-        for stmt in (self.delete_calendars_query(date), self.delete_facilities_query()):
-            res: sa.CursorResult = self.session.execute(stmt)
+        session = self.scoped_session()
+        for stmt in [self.delete_calendars_query(date), self.delete_facilities_query()]:
+            res: sa.CursorResult = session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
-        self.session.commit()
+        session.commit()
 
     @timeit
     def export_geojsons(self, key: str, *route_types: str, file_path: str) -> None:
@@ -291,7 +293,7 @@ class Feed(Query):
             query_obj.get_shapes_query()
         ).all()
 
-        if key == "rapid_transit":
+        if key in ["rapid_transit", "all_routes"]:
             shape_data += session.execute(
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
@@ -316,8 +318,7 @@ class Feed(Query):
         """
 
         session = self.scoped_session()
-        facilities: list[tuple[Facility]]
-        facilities = session.execute(
+        facilities: list[tuple[Facility]] = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
         if key == "rapid_transit":
@@ -346,8 +347,6 @@ class Feed(Query):
             vehicles_query = query_obj.get_vehicles_query(*self.SL_ROUTES)
         else:
             vehicles_query = query_obj.get_vehicles_query()
-        if key in ("bus", "all_routes"):
-            vehicles_query = vehicles_query.limit(150)
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
             try:
@@ -400,7 +399,7 @@ class Feed(Query):
 
     @removes_session
     def get_orm_json(
-        self, _orm: type[Base], *include, geojson: bool = False, **params
+        self, _orm: type[Base] | str, *include, geojson: bool = False, **params
     ) -> list[dict[str]] | gj.FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
@@ -413,10 +412,11 @@ class Feed(Query):
             - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
         """
         session = self.scoped_session()
-        # pylint: disable=eval-used
-        cols = _orm.__table__.columns.keys()
+        if isinstance(_orm, str):
+            _orm = __class__.find_orm(_orm)
+        if not _orm:
+            return []
         comp_ops = ["<", ">", "!"]
-        # non_cols, param_list = []
         param_list: list[dict[str, str]] = []
         non_cols: list[dict[str, str]] = []
         for key, value in params.items():
@@ -440,7 +440,7 @@ class Feed(Query):
                         "action": f"{key[op_index]}=",
                         "value": value,
                     }
-            if p_item["key"] in cols:
+            if p_item["key"] in _orm.cols:
                 param_list.append(p_item)
             else:
                 non_cols.append(p_item)
@@ -462,3 +462,7 @@ class Feed(Query):
         if geojson:
             return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
         return [d[0].as_json(*include) for d in data]
+
+    def close(self) -> None:
+        """Closes the connection to the database."""
+        self.engine.dispose()

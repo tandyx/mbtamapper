@@ -76,19 +76,10 @@ class StopTime(Base):
             raise NotImplementedError(
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
+
+        if not self.trip_id == other.trip_id:
+            return self.trip_id < other.trip_id
         return self.stop_sequence < other.stop_sequence
-
-    def __eq__(self, other: "StopTime") -> bool:
-        """Implements equality operator.
-
-        Returns:
-            - `bool`: whether the objects are equal
-        """
-        if not isinstance(other, self.__class__):
-            raise NotImplementedError(
-                f"Cannot compare {self.__class__} to {other.__class__}"
-            )
-        return self.stop_sequence == other.stop_sequence
 
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop
@@ -128,9 +119,9 @@ class StopTime(Base):
         returns:
             - `bool`: whether the stop is the last stop in the trip
         """
-        return self.stop_sequence == max(
-            st.stop_sequence for st in self.trip.stop_times
-        )
+        if dest := max(self.trip.stop_times, default=None):
+            return dest.stop_sequence == self.stop_sequence
+        return False
 
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""

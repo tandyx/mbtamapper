@@ -42,6 +42,18 @@ class Base(orm.DeclarativeBase):
 
         return [key.name for key in cls.__table__.columns if key.primary_key]
 
+    @classproperty
+    def cols(cls: Type[Self]) -> list[str]:
+        """Returns a list of string columns for the class as a property.
+
+        Args:
+            cls (Type[Self]): class to get columns from
+        Returns:
+            list[Column]: list of columns
+        """
+
+        return cls.__table__.columns.keys()
+
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}({', '.join(key + '=' + str(getattr(self, key, None)) for key in self.primary_keys)})>"  # pylint: disable=line-too-long
 

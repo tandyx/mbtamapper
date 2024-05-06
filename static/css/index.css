@@ -146,6 +146,10 @@ a:hover {
   text-decoration: underline dotted 1px;
 }
 
+.anchor-accent {
+  color: var(--accent-color) !important;
+}
+
 body {
   padding: 0;
   margin: 0;

@@ -25,7 +25,7 @@
       href="{{ url_for('static', filename='img/all_routes.ico') }}"
       type="image/x-icon"
     />
-    <title>mbtamapper</title>
+    <title>404 | mbtamapper</title>
 
     <meta property="og:url" content="https://mbtamapper.com" />
     <meta
@@ -46,35 +46,23 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/titlepage.css') }}"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/popup.css') }}"
-    />
   </head>
   <body class="titlepage">
     <main class="mainContainer no-highlight">
-      <h1>mbta mapper</h1>
-      <p class="subheader margin-top-neg-30">realtime maps of the mbta</p>
+      <h1><span class="severe-delay">404</span> - page not found</h1>
+      <p class="subheader margin-top-neg-30">{{ url }} doesn't exist</p>
       <hr />
-
-      <table>
-        {% for key, value in content.items() if not key == "all_routes" %}
-        <tr>
-          <td class="button_base {{ key | lower }}">
-            <a href="/{{ key | lower }}">
-              <span class="fa">{{ value.fa_unicode | safe }}</span>
-              &nbsp; {{ value.display_name }}</a
-            >
-          </td>
-        </tr>
-        {% endfor %}
-      </table>
-
+      <div>
+        <p class="subheader">
+          the page you are looking for might have been removed, had its name
+          changed, or is temporarily unavailable
+        </p>
+        <p>
+          <a href="{{ possible_url }}" class="anchor-accent">possible link</a>
+        </p>
+        <p><a href="/" class="anchor-accent">home</a></p>
+      </div>
       <div class="footer">
-        <div>
-          I have no relation to the mbta other than being a former keolis
-          employee.
-        </div>
         <div class="fa link-wrapper">
           <a
             href="https://github.com/johan-cho/mbtamapper"

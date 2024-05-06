@@ -23,6 +23,20 @@ class Query:
         - `*route_types (str)`: list of route_types to query
     """
 
+    @staticmethod
+    def find_orm(name: str) -> type[Base] | None:
+        """returns the `type` of the orm by name
+
+        returns:
+            - `type[Base]`: type of the orm
+        """
+        for cls in Base.__subclasses__():
+            if cls.__name__.lower() == name.lower():
+                return cls
+        return
+
+    get_orm = find_orm
+
     @classproperty
     def ferry_parking_query(cls: Type[Self]) -> Select[DeclarativeMeta]:
         """
@@ -184,7 +198,7 @@ class Query:
 
         Args:
             - `*exclude (str)`: list of facility types to exclude.\
-                Defaults to `["parking-area", "bike-storage"]`.
+                Defaults to `["parking-area", "bike-storage"]`. \n
         Returns:
             - `Select`: A query to delete facilities.
         """
@@ -247,9 +261,9 @@ class Query:
         Args:
             - `*route_types (str)`: list of route_types to query
         """
-        self.route_types = route_types or tuple()
-        self.trip_query = self.__get_trips_query()
-        self.parent_stops_query = self.__get_parent_stops_query()
+        self.route_types = route_types
+        self.trip_query = self._get_trips_query()
+        self.parent_stops_query = self._get_parent_stops_query()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(route_types={self.route_types})>"
@@ -257,7 +271,7 @@ class Query:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def __get_trips_query(self) -> Select[DeclarativeMeta]:
+    def _get_trips_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for trips.
 
         Returns:
@@ -280,7 +294,7 @@ class Query:
             )
         )
 
-    def __get_parent_stops_query(self) -> Select[DeclarativeMeta]:
+    def _get_parent_stops_query(self) -> Select[DeclarativeMeta]:
         """Returns a query for parent stops.
 
         Returns:

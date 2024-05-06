@@ -1,13 +1,14 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function."""
 
-import os
 import argparse
+import difflib
 import json
 import logging
+import os
 
-import timeout_function_decorator
 import flask
+import timeout_function_decorator
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -129,6 +130,28 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         if exception:
             logging.error(exception)
 
+    @_app.errorhandler(404)
+    def page_not_found(error: Exception = None) -> str:
+        """Returns 404.html.
+
+        Args:
+            - `error (Exception)`: Error to log.
+        Returns:
+            - `str`: 404.html.
+        """
+        if error:
+            logging.error(error)
+        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+        for rule in _app.url_map.iter_rules():
+            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+                continue
+            url_for = flask.url_for(rule.endpoint)
+            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+                url_dict["possible_url"] = url_for
+                break
+        url_dict["possible_url"] = url_dict.get("possible_url", "/")
+        return (flask.render_template("404.html", **url_dict), 404)
+
     if proxies:
         _app.wsgi_app = ProxyFix(
             _app.wsgi_app,
@@ -174,37 +197,45 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
             - `str`: ORM for the key.
         """
 
-        orm_name = orm_name.lower()
-        orm = next(
-            (
-                o
-                for o in FEED_LOADER.REALTIME_ORMS + FEED_LOADER.SCHEDULE_ORMS
-                if o.__name__.lower() == orm_name
-            ),
-            None,
-        )
-        if not orm:
-            return flask.jsonify({"error": f"{orm_name} not found."}), 404
+        if not (orm := FeedLoader.find_orm(orm_name)):
+            return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         as_geojson = bool(params.pop("geojson", False))
-        cols = orm.__table__.columns.keys()
         try:
             data = _timeout_get_orm_json(orm, *include, geojson=as_geojson, **params)
         except TimeoutError as error:
-            logging.error(error)
             return flask.jsonify({"error": str(error), "timed_out": True}), 408
         except Exception as error:  # pylint: disable=broad-except
             return (
-                flask.jsonify({"error": str(error), f"args for {orm_name}": cols}),
+                flask.jsonify({"error": str(error), f"{orm_name} args": orm.cols}),
                 400,
             )
         if data is None:
-            return (
-                flask.jsonify({"error": "no data", f"args for {orm_name}": cols}),
-                404,
-            )
+            return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
         return flask.jsonify(data)
+
+    @_app.errorhandler(404)
+    def page_not_found(error: Exception = None) -> str:
+        """Returns 404.html.
+
+        Args:
+            - `error (Exception)`: Error to log.
+        Returns:
+            - `str`: 404.html.
+        """
+        if error:
+            logging.error(error)
+        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+        for rule in _app.url_map.iter_rules():
+            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+                continue
+            url_for = flask.url_for(rule.endpoint)
+            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+                url_dict["possible_url"] = url_for
+                break
+        url_dict["possible_url"] = url_dict.get("possible_url", "/")
+        return (flask.render_template("404.html", **url_dict), 404)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -291,6 +322,7 @@ if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
+    # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)

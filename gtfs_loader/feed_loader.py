@@ -39,9 +39,13 @@ class FeedLoader(Scheduler, Feed):
         self.keys_dict = keys_dict
 
     @timeit
-    def nightly_import(self) -> None:
-        """Runs the nightly import."""
-        self.import_gtfs(chunksize=100000, dtype=object)
+    def nightly_import(self, **kwargs) -> None:
+        """Runs the nightly import.
+
+        args:
+            - `**kwargs`: keyword arguments to pass to `import_gtfs`.\n
+        """
+        self.import_gtfs(chunksize=100000, dtype=object, **kwargs)
         for orm in self.__class__.REALTIME_ORMS:
             self.import_realtime(orm)
         self.purge_and_filter(date=get_date())
@@ -52,19 +56,23 @@ class FeedLoader(Scheduler, Feed):
         for key, routes in self.keys_dict.items():
             self.export_geojsons(key, *routes, file_path=__class__.GEOJSON_PATH)
 
-    def import_and_run(self, import_data: bool = False) -> NoReturn:
+    def import_and_run(
+        self, import_data: bool = False, timezone: str = "America/New_York", **kwargs
+    ) -> NoReturn:
         """this is the main entrypoint for the application.
 
         Args:
             - `import_data (bool, optional)`: reloads the database and geojsons.\
                 Defaults to False.
+            - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
+            - `**kwargs`: Keyword arguments to pass to `nightly import`.
         """
 
         if import_data or not os.path.exists(self.db_path):
-            self.nightly_import()
+            self.nightly_import(**kwargs)
         if import_data or not os.path.exists(self.GEOJSON_PATH):
             self.geojson_exports()
-        self.run()
+        self.run(timezone=timezone)
 
     def run(self, timezone: str = "America/New_York") -> NoReturn:
         """Schedules jobs.
@@ -82,6 +90,16 @@ class FeedLoader(Scheduler, Feed):
         while True:
             self.run_pending()
             time.sleep(1)
+
+    def stop(self, full: bool = False) -> None:
+        """Stops the scheduler.
+
+        args:
+            - `full (bool, optional)`: Whether to close db connection. Defaults to False.
+        """
+        self.clear()
+        if full:
+            self.close()
 
 
 def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:

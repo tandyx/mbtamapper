@@ -293,7 +293,13 @@ function getVehicleText(properties) {
     if (properties.current_status != "STOPPED_AT") {
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
-      )} ${properties.stop_time.stop_name} - ${formattedTimestamp}</p>`;
+      )} ${properties.stop_time.stop_name} - ${formatTimestamp(
+        properties.next_stop
+          ? properties.next_stop.arrival_time ||
+              properties.next_stop.departure_time
+          : null,
+        "%I:%M %P"
+      )}</p>`;
     } else {
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
@@ -323,9 +329,13 @@ function getVehicleText(properties) {
     } else {
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
-      )} ${properties.next_stop.stop_name}`;
+      )} ${properties.next_stop.stop_name}</p>`;
+    }
+    if (properties.next_stop.delay === null) {
+      vehicleText.innerHTML += `<i>not scheduled</i>`;
     }
   }
+
   if (properties.occupancy_status != null) {
     vehicleText.innerHTML += `<p><span class="${
       properties.occupancy_percentage >= 80
