@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, override
 
 from geojson import Feature
 from shapely.geometry import LineString
-from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
@@ -27,15 +27,6 @@ class Shape(Base):
         back_populates="shape", passive_deletes=True
     )
 
-    @reconstructor
-    def _init_on_load_(self) -> None:
-        """Load the shape points into a list of ShapePoint objects."""
-        # pylint: disable=attribute-defined-outside-init
-
-        self.sorted_points: list["ShapePoint"] = sorted(
-            self.shape_points, key=lambda x: x.shape_pt_sequence
-        )
-
     def as_linestring(self) -> LineString:
         """Return a shapely `LineString` object of the shape
 
@@ -43,10 +34,10 @@ class Shape(Base):
             - `LineString`: A shapely LineString object.
         """
 
-        return LineString([sp.as_point() for sp in self.sorted_points])
+        return LineString([sp.as_point() for sp in sorted(self.shape_points)])
 
     @override
-    def as_feature(self, *include: str) -> Feature:  # pylint: disable=unused-argument
+    def as_feature(self, *include: str) -> Feature:
         """Returns shape object as a feature.
 
         args:
@@ -55,10 +46,8 @@ class Shape(Base):
             - `Feature`: A GeoJSON feature object.
         """
 
-        feature = Feature(
+        return Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
             properties=self.trips[0].route.as_json(*include) | self.as_json(*include),
         )
-
-        return feature

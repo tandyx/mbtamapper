@@ -331,9 +331,9 @@ function getVehicleText(properties) {
         properties.current_status
       )} ${properties.next_stop.stop_name}</p>`;
     }
-    if (properties.next_stop.delay === null) {
-      vehicleText.innerHTML += `<i>not scheduled</i>`;
-    }
+    // if (properties.next_stop.delay === null) {
+    //   vehicleText.innerHTML += `<i>not scheduled</i>`;
+    // }
   }
 
   if (properties.occupancy_status != null) {
