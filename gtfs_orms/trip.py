@@ -79,7 +79,7 @@ class Trip(Base):
     def destination(self) -> Union["Stop", None]:
         """the destination of the trip as a `stop`"""
         if not (dest := max(self.stop_times, default=None)):
-            return
+            return None
         return dest.stop
 
     def as_feature(self, *include: str) -> None:
