@@ -106,7 +106,7 @@ class Prediction(Base):
             and self.stop_sequence == other.stop_sequence
         )
 
-    def _get_delay(self) -> int | None:
+    def _get_delay(self) -> int | float | None:
         """Returns the delay of the prediction.
 
         Returns:
@@ -116,7 +116,7 @@ class Prediction(Base):
             return None
         if self.departure_time and self.stop_time.departure_timestamp:
             delay = self.departure_time - self.stop_time.departure_timestamp
-        elif self.arrival_time and self.stop_time.arrival_seconds:
+        elif self.arrival_time and self.stop_time.arrival_timestamp:
             delay = self.arrival_time - self.stop_time.arrival_timestamp
         else:
             delay = 0
@@ -138,6 +138,15 @@ class Prediction(Base):
 
     @override
     def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+        """returns `Prediction` as a dictionary.\
+            overrides `as_json` in `Base`.
+        
+        args:
+            - `*include`: A list of properties to include in the dictionary.
+            - `**kwargs`: unused\n
+        Returns:
+            - `dict[str, Any]`: `Prediction` as a dictionary.
+        """
         return super().as_json(*include, **kwargs) | {"headsign": self.get_headsign()}
 
     def as_feature(self, *include: str) -> None:

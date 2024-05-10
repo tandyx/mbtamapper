@@ -11,7 +11,7 @@
 /* The actual popup */
 .popup .popuptext {
   visibility: hidden;
-  background: var(--tooltip-background) !important;
+  background: var(--popup-background) !important;
   /* max-width: 100000%; */
   min-width: 300px;
   text-align: center;

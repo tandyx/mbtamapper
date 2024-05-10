@@ -33,7 +33,7 @@ class Query:
         for cls in Base.__subclasses__():
             if cls.__name__.lower() == name.lower():
                 return cls
-        return
+        return None
 
     get_orm = find_orm
 

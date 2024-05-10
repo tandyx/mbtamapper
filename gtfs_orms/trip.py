@@ -1,6 +1,6 @@
 """File to hold the Trip class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -76,10 +76,10 @@ class Trip(Base):
     )
 
     @property
-    def destination(self) -> "Stop" | None:
+    def destination(self) -> Union["Stop", None]:
         """the destination of the trip as a `stop`"""
-        if not (dest := max(self.stop_times, default=None)):
-            return None
+        if (dest := max(self.stop_times, default=None)) is None:
+            return dest
         return dest.stop
 
     def as_feature(self, *include: str) -> None:

@@ -8,7 +8,6 @@ import logging
 import os
 
 import flask
-import timeout_function_decorator
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -20,19 +19,6 @@ FEED_LOADER = FeedLoader(
     "https://cdn.mbta.com/MBTA_GTFS.zip",
     {k: v["route_types"] for k, v in KEY_DICT.items()},
 )
-
-
-# causes a pylint astriod error
-@timeout_function_decorator.timeout(15)
-def _timeout_get_orm_json(*_args, **kwargs):
-    """times out the `Feed.get_orm_json` function.
-
-    args:
-        - `*_args`: positional arguments to pass to `Feed.get_orm_json`.
-        - `**kwargs`: keyword arguments to pass to `Feed.get_orm_json`.\n
-    returns:
-        - `dict`: json of the orm."""
-    return FEED_LOADER.get_orm_json(*_args, **kwargs)
 
 
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
@@ -66,7 +52,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             FEED_LOADER.get_vehicles_feature(
                 key,
                 Query(*KEY_DICT[key]["route_types"]),
-                *flask.request.args.get("include", "").split(","),
+                *[s.strip() for s in flask.request.args.get("include", "").split(",")],
             )
         )
 
@@ -201,16 +187,15 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
-        as_geojson = bool(params.pop("geojson", False))
+        geojson = bool(params.pop("geojson", False))
         try:
-            data = _timeout_get_orm_json(orm, *include, geojson=as_geojson, **params)
-        except TimeoutError as error:
-            return flask.jsonify({"error": str(error), "timed_out": True}), 408
-        except Exception as error:  # pylint: disable=broad-except
-            return (
-                flask.jsonify({"error": str(error), f"{orm_name} args": orm.cols}),
-                400,
+            data = FEED_LOADER.timeout_get_orm_json(
+                orm, *include, geojson=geojson, **params
             )
+        except TimeoutError:
+            return flask.jsonify({"error": "response > 15s"}), 408
+        except Exception:  # pylint: disable=broad-except
+            return flask.jsonify({"error": "?", f"{orm_name} args": orm.cols}), 400
         if data is None:
             return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
         return flask.jsonify(data)
@@ -235,7 +220,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
                 url_dict["possible_url"] = url_for
                 break
         url_dict["possible_url"] = url_dict.get("possible_url", "/")
-        return (flask.render_template("404.html", **url_dict), 404)
+        return flask.render_template("404.html", **url_dict), 404
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -321,6 +306,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level))
+    # FEED_LOADER.get_shape_features("subway", Query("1", "0"))
     # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
     # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")
     if args.frontend:

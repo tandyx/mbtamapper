@@ -160,11 +160,11 @@ class LinkedDataset(Base):
         Returns:
             - `pd.DataFrame`: Realtime data from the linked dataset.
         """
-        dataframe = df_unpack(self._load_dataframe(), ["trip_update_stop_time_update"])
-        for col in (
+        dataframe = df_unpack(self._load_dataframe(), "trip_update_stop_time_update")
+        for col in [
             "trip_update_stop_time_update_departure",
             "trip_update_stop_time_update_arrival",
-        ):
+        ]:
             dataframe[col] = dataframe[col].apply(
                 lambda x: (int(x.get("time")) if isinstance(x, dict) else x)
             )
@@ -202,13 +202,11 @@ class LinkedDataset(Base):
         """
         dataframe = df_unpack(
             self._load_dataframe(),
-            [
-                "alert_informed_entity",
-                "alert_active_period",
-                "alert_header_text_translation",
-                "alert_description_text_translation",
-                "alert_url_translation",
-            ],
+            "alert_informed_entity",
+            "alert_active_period",
+            "alert_header_text_translation",
+            "alert_description_text_translation",
+            "alert_url_translation",
         )
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(
@@ -226,7 +224,7 @@ class LinkedDataset(Base):
 
 
 def df_unpack(
-    dataframe: pd.DataFrame, columns: list[str], prefix: bool = True
+    dataframe: pd.DataFrame, *columns: str, prefix: bool = True
 ) -> pd.DataFrame:
     """Unpacks a column of a dataframe that contains a list of dictionaries. \
         Returns a dataframe with the unpacked column and the original dataframe\
@@ -234,7 +232,7 @@ def df_unpack(
 
     Args:
         - `dataframe (pd.DataFrame)`: dataframe to unpack
-        - `columns (list[str])`: columns to unpack.
+        - `*columns (str)`: columns to unpack.
         - `prefix (bool, optional)`: whether to add prefix to unpacked columns. \
             Defaults to True. \n
     Returns:

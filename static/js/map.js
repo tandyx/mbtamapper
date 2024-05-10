@@ -148,9 +148,13 @@ function getBaseLayerDict(
   darkId = "CartoDB.DarkMatter",
   additionalLayers = {}
 ) {
+  const options = {
+    attribution:
+      "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
+  };
   const baseLayers = {
-    light: L.tileLayer.provider(lightId),
-    dark: L.tileLayer.provider(darkId),
+    light: L.tileLayer.provider(lightId, options),
+    dark: L.tileLayer.provider(darkId, options),
   };
 
   for (const [key, value] of Object.entries(additionalLayers)) {

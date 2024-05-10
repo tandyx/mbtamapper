@@ -57,13 +57,13 @@ class Facility(Base):
         
         args:
             - `*include`: A list of properties to include in the dictionary.
-            - `**kwargs`: A dictionary of additional properties to include in the dictionary.\n
+            - `**kwargs`: unused\n
         Returns:
             - `dict[str, Any]`: facility as a dictionary.\n
         """
 
         return super().as_json(*include, **kwargs) | {
-            k: v for fp in self.facility_properties for k, v in fp.as_dict().items()
+            fp.property_id: fp.value for fp in self.facility_properties
         }
 
     @override
@@ -76,9 +76,8 @@ class Facility(Base):
             - `Feature`: facility as a feature.\n
         """
 
-        point = self.as_point()
-        if point == self.stop.as_point():
-            point = Point(self.facility_lon + 0.002, self.facility_lat + 0.002)
+        if (point := self.as_point()) == self.stop.as_point():
+            point = Point(self.facility_lon + 0.003, self.facility_lat + 0.003)
         return Feature(
             id=self.facility_id, geometry=point, properties=self.as_json(*include)
         )
