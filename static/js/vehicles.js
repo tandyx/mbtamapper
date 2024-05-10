@@ -164,15 +164,24 @@ async function fillPredictionVehicleData(trip_id) {
             delayText += " min";
           }
 
-          const stopTimeClass =
-            d.stop_time && d.stop_time.flag_stop
-              ? "flag_stop"
-              : d.stop_time && d.stop_time.early_departure
-              ? "early_departure"
-              : "";
+          let stopTimeClass,
+            tooltipText = "";
+          if (d.stop_time) {
+            if (d.stop_time.flag_stop) {
+              stopTimeClass = "flag_stop tooltip";
+              tooltipText = "flag stop";
+              // d.stop_name += " <span class='fa'>&#xf024;</span>";
+              d.stop_name += "<i> f</i>";
+            } else if (d.stop_time.early_departure) {
+              stopTimeClass = "early_departure tooltip";
+              tooltipText = "early departure";
+              d.stop_name += "<i> L</i>";
+              // d.stop_name += " <span class='fa'>&#xf023;</span>";
+            }
+          }
 
           return `<tr>
-            <td class=${stopTimeClass}>${d.stop_name}</td>
+            <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${d.stop_name}</td>
             <td>
               ${formatTimestamp(realDeparture, "%I:%M %P")}
               <i class='${getDelayClassName(d.delay)}'>${delayText}</i>

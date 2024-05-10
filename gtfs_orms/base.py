@@ -32,26 +32,12 @@ class Base(orm.DeclarativeBase):
     # pylint: disable=no-self-argument
     @classproperty
     def primary_keys(cls: Type[Self]) -> list[str]:
-        """Returns a list of string columns as the primary keys for the class as a property.
-
-        Args:
-            cls (Type[Self]): class to get primary keys from
-        Returns:
-            list[Column]: list of primary keys
-        """
-
+        """list of string columns as the primary keys for the class."""
         return [key.name for key in cls.__table__.columns if key.primary_key]
 
     @classproperty
     def cols(cls: Type[Self]) -> list[str]:
-        """Returns a list of string columns for the class as a property.
-
-        Args:
-            cls (Type[Self]): class to get columns from
-        Returns:
-            list[Column]: list of columns
-        """
-
+        """list of string columns for the class."""
         return cls.__table__.columns.keys()
 
     def __repr__(self) -> str:

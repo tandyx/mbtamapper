@@ -137,7 +137,7 @@ class Feed(Query):
         self.scoped_session = saorm.scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self.url}@{self.engine.url})>"
+        return f"<{self.__class__.__name__}({self.url}@{self.gtfs_name}.db)>"
 
     def __str__(self) -> str:
         return self.__repr__()

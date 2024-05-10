@@ -116,7 +116,7 @@ class Prediction(Base):
             return None
         if self.departure_time and self.stop_time.departure_timestamp:
             delay = self.departure_time - self.stop_time.departure_timestamp
-        elif self.arrival_time and self.stop_time.arrival_seconds:
+        elif self.arrival_time and self.stop_time.arrival_timestamp:
             delay = self.arrival_time - self.stop_time.arrival_timestamp
         else:
             delay = 0
