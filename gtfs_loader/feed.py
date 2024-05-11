@@ -23,6 +23,7 @@ import geojson as gj
 import pandas as pd
 import requests as req
 import sqlalchemy as sa
+import timeout_function_decorator
 from sqlalchemy import event, exc
 from sqlalchemy import orm as saorm
 
@@ -133,11 +134,10 @@ class Feed(Query):
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
         self.sessionmkr = saorm.sessionmaker(self.engine, expire_on_commit=False)
-        self.session = self.sessionmkr()
         self.scoped_session = saorm.scoped_session(self.sessionmkr)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self.url}@{self.engine.url})>"
+        return f"<{self.__class__.__name__}({self.url}@{self.gtfs_name}.db)>"
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -192,15 +192,17 @@ class Feed(Query):
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction]) -> None:
+    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction] | str) -> None:
         """Imports realtime data into the database.
 
         Args:
-            - `orm (Type[Alert | Vehicle | Prediction])`: realtime ORM type.
+            - `orm (Type[Alert | Vehicle | Prediction] | str)`: realtime ORM.
         """
+        session = self.scoped_session()
+        if isinstance(orm, str):
+            orm = __class__.find_orm(orm)
         if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
-        session = self.scoped_session()
         dataset: list[LinkedDataset] = session.execute(
             self.get_dataset_query(orm.__realtime_name__)
         ).first()
@@ -209,17 +211,18 @@ class Feed(Query):
         self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
 
     @timeit
+    @removes_session
     def purge_and_filter(self, date: datetime) -> None:
         """Purges and filters the database.
 
         Args:
             - `date (datetime)`: date to filter on
         """
-
-        for stmt in (self.delete_calendars_query(date), self.delete_facilities_query()):
-            res: sa.CursorResult = self.session.execute(stmt)
+        session = self.scoped_session()
+        for stmt in [self.delete_calendars_query(date), self.delete_facilities_query()]:
+            res: sa.CursorResult = session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
-        self.session.commit()
+        session.commit()
 
     @timeit
     def export_geojsons(self, key: str, *route_types: str, file_path: str) -> None:
@@ -291,7 +294,7 @@ class Feed(Query):
             query_obj.get_shapes_query()
         ).all()
 
-        if key == "rapid_transit":
+        if key in ["rapid_transit", "all_routes"]:
             shape_data += session.execute(
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
@@ -316,8 +319,7 @@ class Feed(Query):
         """
 
         session = self.scoped_session()
-        facilities: list[tuple[Facility]]
-        facilities = session.execute(
+        facilities: list[tuple[Facility]] = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
         if key == "rapid_transit":
@@ -398,7 +400,7 @@ class Feed(Query):
 
     @removes_session
     def get_orm_json(
-        self, _orm: type[Base], *include, geojson: bool = False, **params
+        self, _orm: type[Base] | str, *include: str, geojson: bool = False, **params
     ) -> list[dict[str]] | gj.FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
@@ -410,16 +412,25 @@ class Feed(Query):
         Returns:
             - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
         """
+        # pylint: disable=line-too-long
         session = self.scoped_session()
-        # pylint: disable=eval-used
-        cols = _orm.__table__.columns.keys()
+        if isinstance(_orm, str):
+            _orm = self.find_orm(_orm)
+        if not _orm:
+            return []
         comp_ops = ["<", ">", "!"]
-        # non_cols, param_list = []
         param_list: list[dict[str, str]] = []
         non_cols: list[dict[str, str]] = []
         for key, value in params.items():
             if value in {"null", "None", "none"}:
-                p_item = {"key": key, "action": "IS", "value": "NULL"}
+                if "!" in key:
+                    p_item = {
+                        "key": key.replace("!", ""),
+                        "action": "IS NOT",
+                        "value": "NULL",
+                    }
+                else:
+                    p_item = {"key": key, "action": "IS", "value": "NULL"}
             else:
                 op_index = next(
                     (key.find(op) for op in comp_ops if key.find(op) > 0), None
@@ -438,13 +449,15 @@ class Feed(Query):
                         "action": f"{key[op_index]}=",
                         "value": value,
                     }
-            if p_item["key"] in cols:
+            if p_item["key"] in _orm.cols:
                 param_list.append(p_item)
             else:
                 non_cols.append(p_item)
         stmt = self.select(_orm).where(
             *(
-                sa.text(f"{_orm.__tablename__}.{v['key']} {v['action']} {v['value'] if v['value'] == 'NULL' else f'\'{v["value"]}\''}") #pylint: disable=line-too-long
+                sa.text(
+                    f"""{_orm.__tablename__}.{v['key']} {v['action']} {v['value'] if v['value'] == 'NULL' else f'\'{v["value"]}\''}"""
+                )
                 for v in param_list
             )
         )
@@ -453,13 +466,42 @@ class Feed(Query):
             _eval = asteval.Interpreter()
             for d in session.execute(stmt).all():
                 for c in non_cols:
-                    if hasattr(d[0], c["key"]) and _eval(f"{getattr(d[0], c["key"])} {c["action"].lower()} {c['value'].replace("NULL", 'None')}"): #pylint: disable=line-too-long
+                    if hasattr(d[0], c["key"]) and _eval(
+                        f"""{getattr(d[0], c["key"])} {c["action"].lower()} {c['value'].replace("NULL", 'None')}"""
+                    ):
                         data.append(d)
         else:
             data: list[tuple[Base]] = session.execute(stmt).all()
         if geojson:
             return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
         return [d[0].as_json(*include) for d in data]
+
+    def timeout_get_orm_json(
+        self,
+        _orm: type[Base] | str,
+        *include: str,
+        timeout=15,
+        geojson: bool = False,
+        **params,
+    ) -> list[dict[str]] | gj.FeatureCollection:
+        """timeout version of `Feed.get_orm_json`;\
+            to not specify a timeout, use that function
+            
+        args:
+            - `_orm (str)`: ORM to return.
+            - `*include (str)`: other orms to include
+            - `timeout (int)`: timeout for the function
+            - `geojson (bool)`: use `geojson` rather than `json`\n
+            - `**params`: keyword arguments to pass to the query\n
+        Returns:
+            - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
+        """
+
+        @timeout_function_decorator.timeout(timeout)
+        def _get_orm_json():
+            return self.get_orm_json(_orm, *include, geojson=geojson, **params)
+
+        return _get_orm_json()
 
     def close(self) -> None:
         """Closes the connection to the database."""

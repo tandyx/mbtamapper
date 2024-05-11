@@ -1,6 +1,6 @@
 """File to hold the Trip class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from .prediction import Prediction
     from .route import Route
     from .shape import Shape
+    from .stop import Stop
     from .stop_time import StopTime
     from .vehicle import Vehicle
 
@@ -73,6 +74,13 @@ class Trip(Base):
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
     )
+
+    @property
+    def destination(self) -> Union["Stop", None]:
+        """the destination of the trip as a `stop`"""
+        if (dest := max(self.stop_times, default=None)) is None:
+            return dest
+        return dest.stop
 
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""

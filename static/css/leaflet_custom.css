@@ -74,11 +74,17 @@
 .leaflet-control-attribution,
 .leaflet-control-scale-line {
   font-family: var(--font-family) !important;
+
   font-size: 8pt !important;
   /* backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px); */
+  background-color: var(--text-color) !important;
+  color: var(--dark-text-color) !important;
   border-top-left-radius: 2px !important;
   margin-top: 12px;
+  a {
+    color: var(--dark-text-color) !important;
+  }
 }
 
 .leaflet-container .leaflet-control-attribution a {

@@ -4,6 +4,7 @@
   --dark-text-color: #060606;
   --dark-background: #1a1a1a;
   --tooltip-background: #333;
+  --popup-background: #252525;
   --accent-color: #00acff;
   --backdrop-blur: 15px;
   --border-radius: 5px;
@@ -76,6 +77,7 @@ body,
 #map {
   position: absolute;
   z-index: 0;
+  height: calc(100% - var(--navbar-height));
 }
 
 noscript {

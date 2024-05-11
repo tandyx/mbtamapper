@@ -2,14 +2,14 @@
 
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
-
+import time
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional, override
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from helper_functions import *
+from helper_functions import get_date, to_seconds
 
 from .base import Base
 
@@ -59,12 +59,10 @@ class StopTime(Base):
         """Reconstructs the object on load from the database.
         executes after the object is loaded from the database and in init"""
         # pylint: disable=attribute-defined-outside-init
+        _unix_time = get_date().timestamp()
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
-        self.departure_seconds = to_seconds(self.departure_time)
-        self.arrival_seconds = to_seconds(self.arrival_time)
-        self.departure_timestamp = self.departure_seconds + get_date().timestamp()
-        self.arrival_timestamp = self.arrival_seconds + get_date().timestamp()
-        self.stop_name = self.stop.stop_name
+        self.departure_timestamp = to_seconds(self.departure_time) + _unix_time
+        self.arrival_timestamp = to_seconds(self.arrival_time) + _unix_time
 
     def __lt__(self, other: "StopTime") -> bool:
         """Implements less than operator.
@@ -76,19 +74,10 @@ class StopTime(Base):
             raise NotImplementedError(
                 f"Cannot compare {self.__class__} to {other.__class__}"
             )
+
+        if not self.trip_id == other.trip_id:
+            return super().__lt__(other)
         return self.stop_sequence < other.stop_sequence
-
-    def __eq__(self, other: "StopTime") -> bool:
-        """Implements equality operator.
-
-        Returns:
-            - `bool`: whether the objects are equal
-        """
-        if not isinstance(other, self.__class__):
-            raise NotImplementedError(
-                f"Cannot compare {self.__class__} to {other.__class__}"
-            )
-        return self.stop_sequence == other.stop_sequence
 
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop
@@ -112,14 +101,18 @@ class StopTime(Base):
             and not self.is_destination()
         )
 
-    def is_active(self, date: datetime) -> bool:
+    def is_active(self, date: datetime = None, **kwargs) -> bool:
         """Returns true if this StopTime is active on the given date and time
 
+        args:
+            - `date (datetime = None)`: the date to check <- defaults to the current date
+            - `kwargs`: additional arguments passed to `get_date` \n
         returns:
             - `bool`: whether the stop is active on the given date and time
         """
-        return self.trip.calendar.operates_on(date) and self.departure_seconds > (
-            get_current_time().timestamp() - get_date().timestamp()
+        return (
+            self.trip.calendar.operates_on(date or get_date(**kwargs))
+            and self.departure_timestamp > time.time()
         )
 
     def is_destination(self) -> bool:
@@ -128,26 +121,23 @@ class StopTime(Base):
         returns:
             - `bool`: whether the stop is the last stop in the trip
         """
-        return self.stop_sequence == max(
-            st.stop_sequence for st in self.trip.stop_times
-        )
+        if dest := max(self.trip.stop_times, default=None):
+            return dest.stop_sequence == self.stop_sequence
+        return False
 
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""
         raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 
     @override
-    def as_json(self, *include, **kwargs) -> dict[str, Any]:
-        """returns the object as a dictionary
+    def _as_json_dict(self) -> dict[str, Any]:
+        """Returns a dict representation of the object
 
-        args:
-            - `include`: fields to include in the json
-            - `kwargs`: additional arguments \n
         returns:
             - `dict`: the object as a dictionary
         """
-
-        return super().as_json(*include, **kwargs) | {
+        return super()._as_json_dict() | {
             "flag_stop": self.is_flag_stop(),
             "early_departure": self.is_early_departure(),
+            "stop_name": self.stop.stop_name,
         }

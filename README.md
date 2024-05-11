@@ -2,37 +2,54 @@
 
 sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
-## linting + formatting
-
-- `python`: Black, Pylint, isort
-- `js`: Prettier
-- `html/css`: Prettier, HTMLLint
+## setup
 
 ### building
 
 ```sh
-pip install --upgrade -r requirements.txt
-makedir -p ./static/node_modules
-npm install --prefix ./static
+git clone https://github.com/johan-cho/mbtamapper.git
+cd mbtamapper
+```
+
+```sh
+pip3 install --upgrade -r requirements.txt
+cd static && 
+  npm install && 
+  cd ..
 ```
 
 ### running
+
+debug
 
 ```sh
 python3 main.py -f & python3 main.py
 ```
 
-calling `main.py` with no arguments triggers a build process if there's no geojson data and the database doesn't exist. the `-i` flag forces a rebuild. other flags typically refer to testing the frontend locally, but this should be done with waitress (see [`start.sh`](start.sh)).
+production
+
+```sh
+python3 main.py &
+python3 -m waitress --listen=*:80 --threads=50 --call main:create_default_app &
+wait
+```
+
+calling `main.py` with no arguments triggers a build process if there's no geojson data and the database doesn't exist. the `-i` (--import-data) flag forces a rebuild. other flags typically refer to testing the frontend locally, but this should be done with waitress (see [`start.sh`](start.sh)).
 
 every night at 3am est, the database rebuilds. at 3:30am est, map layers are updated (this is the process that takes a while).
 
-### py libraries
+## linting + formatting
 
-see [`requirements.txt`](requirements.txt)
+check out [.github/workflows](.github/workflows)
 
-### js libraries
+- `python`: black, pylint, isort
+- `javascript`: prettier
+- `html/css`: prettier, webhint
 
-see [`/static/package.json`](static/package.json)
+### dependencies
+
+- python: [`requirements.txt`](requirements.txt)
+- javascript: [`/static/package.json`](static/package.json)
 
 ## api reference
 
@@ -41,15 +58,21 @@ you could query the database (please don't abuse it)
 `/api/<orm>?{param}&{param}&...` - query the orm name with parameters
 
 - `include`: comma separated list of relational fields to include
-- `kwargs`: coumns/attributes to filter by; supported: `=`, `<`, `>`, `<=`, `>=`, `!=`, `=null`
+- `geojson={Any}`: return data in geojson format (default: false); to switch to true, set to any value (e.g. geojson=1)
+- `kwargs`: columns/on-load-attrs to filter by; supported: `=`, `<`, `>`, `<=`, `>=`, `!=`, `=null`, `!=null`
 
-`/{route_type}/{vehicles|stops|shapes|parking}` - query actually used by the app on page load (geojson format)
+`/{route_type}/{vehicles|stops|shapes|parking}` - api used by each route (geojson format only)
 
-- doesn't accept parameters; `/stops`, `/shapes` and `/parking` redirects to a static `.geojson` file
+this data is already filtered out based on `route_type`; see [`route_keys.json`](route_keys.json).
+
+- `{vehicles}?include=...,...`: realtime vehicle data
+  
+  - `include`: optional comma separated list of relational fields to include
+- `{stops|shapes|parking}`; doesn't take params and redirects to a static `.geojson` file
 
 ### example
 
-`/api/stop?stop_id=place-NEC-2108&include=child_stops,routes` -->
+`/api/stop?stop_id=place-NEC-2108&include=child_stops,routes`
 
 ```json
    [
