@@ -105,10 +105,10 @@ function plotVehicles(options) {
         );
         if (wasOpen) {
           layer.openPopup();
-          setTimeout(fillVehicleDataWrapper, 50, feature.properties.trip_id);
+          setTimeout(fillVehicleDataWrapper, 200, feature.properties.trip_id);
         }
         layer.on("click", function () {
-          setTimeout(fillVehicleDataWrapper, 50, feature.properties.trip_id);
+          setTimeout(fillVehicleDataWrapper, 200, feature.properties.trip_id);
         });
       }.bind(this)
     );
@@ -234,7 +234,7 @@ async function fillAlertVehicleData(trip_id) {
     alertEl.appendChild(popupText);
     setTimeout(() => {
       if (openPopups.includes(popupId)) togglePopup(popupId, true);
-    }, 500);
+    }, 150);
   }
 }
 

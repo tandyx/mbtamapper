@@ -12,7 +12,10 @@ if TYPE_CHECKING:
 
 
 class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
-    """Facilities Properties"""
+    """Facilities Properties
+
+    this is an experimental table that holds additional facility attars
+    """
 
     __tablename__ = "facilities_properties"
     __filename__ = "facilities_properties.txt"

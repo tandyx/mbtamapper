@@ -15,6 +15,11 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
+if TYPE_CHECKING:
+    import google.protobuf.message as pbm
+
+    FeedMessage = pbm.Message
+
 ALERT_RENAME_DICT = {
     "id": "alert_id",
     "alert_cause": "cause",
@@ -62,23 +67,6 @@ PREDICTION_RENAME_DICT = {
     "trip_update_trip_trip_id": "trip_id",
     "trip_update_vehicle_id": "vehicle_id",
 }
-
-
-if TYPE_CHECKING:
-
-    # pylint: disable=function-redefined
-    class FeedMessage:
-        """`FeedMessage` class for type hinting."""
-
-        # pylint: disable=unused-argument
-        # pylint: disable=too-few-public-methods
-        # pylint: disable=invalid-name
-
-        def __init__(self) -> None:
-            pass
-
-        def ParseFromString(self, data: bytes) -> None:
-            """parses a realtime `FeedMessage` from a byte string"""
 
 
 class LinkedDataset(Base):

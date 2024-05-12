@@ -309,6 +309,7 @@ if __name__ == "__main__":
     # FEED_LOADER.get_shape_features("subway", Query("1", "0"))
     # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
     # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")
+    # args.frontend = True
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)

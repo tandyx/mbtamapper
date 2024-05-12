@@ -28,7 +28,6 @@ class Base(orm.DeclarativeBase):
     __realtime_name__: str
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
-    # primary_keys: list[str] = [key for key in __class__.__table__.columns if key.primary_key]
     # pylint: disable=no-self-argument
     @classproperty
     def primary_keys(cls: Type[Self]) -> list[str]:

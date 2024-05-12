@@ -12,7 +12,13 @@ if TYPE_CHECKING:
 
 
 class CalendarDate(Base):  # pylint: disable=too-few-public-methods
-    """Calendar Dates"""
+    """Calendar Dates
+
+    typically represents holidays or exceptions to the normal schedule.
+
+    - `exception_type = 1` service operates on `date`.
+    - `exception_type = 2` service doesn't operate on `date`.
+    """
 
     __tablename__ = "calendar_dates"
     __filename__ = "calendar_dates.txt"

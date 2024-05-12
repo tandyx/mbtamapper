@@ -2,7 +2,7 @@
 
 # pylint: disable=line-too-long
 
-from typing import TYPE_CHECKING, Any, Optional, override
+from typing import TYPE_CHECKING, Any, Optional, Union, override
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
@@ -61,6 +61,20 @@ class Prediction(Base):
         uselist=False,
     )
 
+    @property
+    def destination(self) -> Union["Stop", None]:
+        """Returns the destination of the prediction.
+
+        Returns:
+            - `str`: the destination of the prediction
+        """
+        if self.trip:
+            return self.trip.destination
+        try:
+            return max(s for s in self.vehicle.predictions if s.trip_id == self.trip_id)
+        except ValueError:
+            return None
+
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
@@ -81,11 +95,7 @@ class Prediction(Base):
             )
         if self.trip_id == other.trip_id:
             return self.stop_sequence < other.stop_sequence
-        return (
-            self.departure_time
-            or self.arrival_time < other.departure_time
-            or other.arrival_time
-        )
+        return super().__lt__(other)
 
     def __eq__(self, other: "Prediction") -> bool:
         """Implements equality operator.
@@ -100,11 +110,7 @@ class Prediction(Base):
 
         if self.trip_id == other.trip_id:
             return self.stop_sequence == other.stop_sequence
-        return (
-            self.vehicle_id == other.vehicle_id
-            and self.stop_id == other.stop_id
-            and self.stop_sequence == other.stop_sequence
-        )
+        return super().__eq__(other)
 
     def _get_delay(self) -> int | float | None:
         """Returns the delay of the prediction.
@@ -132,7 +138,7 @@ class Prediction(Base):
         """
         if self.stop_time:
             return self.stop_time.destination_label
-        if self.vehicle:
+        if self.vehicle and self.vehicle.predictions:
             return max(self.vehicle.predictions).stop.stop_name
         return ""
 

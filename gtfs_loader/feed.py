@@ -13,6 +13,7 @@ import os
 import shutil
 import sqlite3
 import tempfile
+import textwrap
 import time
 from datetime import datetime
 from typing import Type
@@ -42,6 +43,7 @@ class Feed(Query):
 
     Args:
         - `url (str)`: url of GTFS feed
+        - `gtfs_name (str, optional)`: name of GTFS feed. Defaults to auto-parsed from url.
     """
 
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
@@ -117,7 +119,7 @@ class Feed(Query):
             logging.warning("PRAGMA optimize failed")
         cursor.close()
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, gtfs_name: str | None = None) -> None:
         """
         Initializes Feed object with url.
 
@@ -125,11 +127,12 @@ class Feed(Query):
 
         Args:
             - `url (str)`: url of GTFS feed
+            - `gtfs_name (str, optional)`: name of GTFS feed. Defaults to auto-parsed from url.
         """
         super().__init__()
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
-        self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
+        self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
@@ -265,15 +268,14 @@ class Feed(Query):
             - `FeatureCollection`: stops as FeatureCollection
         """
         session = self.scoped_session()
-        stops_data: list[tuple[Stop]]
-        stops_data = session.execute(query_obj.parent_stops_query).all()
+        stops: list[tuple[Stop]] = session.execute(query_obj.parent_stops_query).all()
         if key == "rapid_transit":
-            stops_data += session.execute(Query("3").parent_stops_query).all()
+            stops += session.execute(Query("3").parent_stops_query).all()
         if "4" in query_obj.route_types:
-            stops_data += session.execute(
+            stops += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
-        return gj.FeatureCollection([s[0].as_feature(*include) for s in stops_data])
+        return gj.FeatureCollection([s[0].as_feature(*include) for s in stops])
 
     @removes_session
     def get_shape_features(
@@ -289,19 +291,15 @@ class Feed(Query):
             - `FeatureCollection`: shapes as FeatureCollection
         """
         session = self.scoped_session()
-
-        shape_data: list[tuple[Shape]] = session.execute(
-            query_obj.get_shapes_query()
-        ).all()
-
+        shapes: list[tuple[Shape]] = session.execute(query_obj.get_shapes_query()).all()
         if key in ["rapid_transit", "all_routes"]:
-            shape_data += session.execute(
+            shapes += session.execute(
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
         return gj.FeatureCollection(
-            [s[0].as_feature(*include) for s in sorted(set(shape_data), reverse=True)]
+            [s[0].as_feature(*include) for s in sorted(set(shapes), reverse=True)]
         )
 
     @removes_session
@@ -319,16 +317,16 @@ class Feed(Query):
         """
 
         session = self.scoped_session()
-        facilities: list[tuple[Facility]] = session.execute(
+        facils: list[tuple[Facility]] = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
         if key == "rapid_transit":
-            facilities += session.execute(
+            facils += session.execute(
                 Query("3").get_facilities_query("parking-area")
             ).all()
         if "4" in query_obj.route_types:
-            facilities += session.execute(self.ferry_parking_query).all()
-        return gj.FeatureCollection([f[0].as_feature(*include) for f in facilities])
+            facils += session.execute(self.ferry_parking_query).all()
+        return gj.FeatureCollection([f[0].as_feature(*include) for f in facils])
 
     @removes_session
     def get_vehicles_feature(
@@ -462,14 +460,19 @@ class Feed(Query):
             )
         )
         if non_cols:
-            data = []
             _eval = asteval.Interpreter()
+            data = []
             for d in session.execute(stmt).all():
                 for c in non_cols:
-                    if hasattr(d[0], c["key"]) and _eval(
-                        f"""{getattr(d[0], c["key"])} {c["action"].lower()} {c['value'].replace("NULL", 'None')}"""
-                    ):
-                        data.append(d)
+                    if hasattr(d[0], c["key"]):
+                        if _eval.eval(
+                            textwrap.dedent(
+                                f"""
+                                "{getattr(d[0], c['key'])}" {c['action'].lower() if c['action'] != '=' else '=='} "{c['value'].replace('NULL', 'None')}"
+                            """
+                            ).replace("\n", "")
+                        ):
+                            data.append(d)
         else:
             data: list[tuple[Base]] = session.execute(stmt).all()
         if geojson:

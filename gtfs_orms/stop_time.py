@@ -20,7 +20,11 @@ if TYPE_CHECKING:
 
 
 class StopTime(Base):
-    """Stop Times"""
+    """Stop Times
+
+    this can also be called a tripstop in keolis terms
+
+    """
 
     __tablename__ = "stop_times"
     __filename__ = "stop_times.txt"
@@ -121,9 +125,7 @@ class StopTime(Base):
         returns:
             - `bool`: whether the stop is the last stop in the trip
         """
-        if dest := max(self.trip.stop_times, default=None):
-            return dest.stop_sequence == self.stop_sequence
-        return False
+        return self.stop == self.trip.destination
 
     def as_feature(self, *include: str) -> None:
         """raises `NotImplementedError`"""

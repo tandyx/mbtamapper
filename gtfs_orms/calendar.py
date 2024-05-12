@@ -1,10 +1,11 @@
 """File to hold the Calendar class and its associated methods."""
 
-from datetime import datetime
+import datetime as dt
 from typing import TYPE_CHECKING
 
-import pytz
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
+
+from helper_functions import dt_from_str
 
 from .base import Base
 
@@ -15,19 +16,23 @@ if TYPE_CHECKING:
 
 
 class Calendar(Base):
-    """Calendar"""
+    """Calendar
+
+    represents when a service operates
+
+    """
 
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
     service_id: Mapped[str] = mapped_column(primary_key=True)
-    monday: Mapped[int]
-    tuesday: Mapped[int]
-    wednesday: Mapped[int]
-    thursday: Mapped[int]
-    friday: Mapped[int]
-    saturday: Mapped[int]
-    sunday: Mapped[int]
+    monday: Mapped[bool]
+    tuesday: Mapped[bool]
+    wednesday: Mapped[bool]
+    thursday: Mapped[bool]
+    friday: Mapped[bool]
+    saturday: Mapped[bool]
+    sunday: Mapped[bool]
     start_date: Mapped[str]
     end_date: Mapped[str]
 
@@ -45,29 +50,30 @@ class Calendar(Base):
     def _init_on_load_(self) -> None:
         """Initialize the calendar object on load"""
         # pylint: disable=attribute-defined-outside-init
+        self.start_datetime = dt_from_str(self.start_date)
+        self.end_datetime = dt_from_str(self.end_date)
 
-        self.start_datetime = pytz.timezone("America/New_York").localize(
-            datetime.strptime(self.start_date, "%Y%m%d")
-        )
-
-        self.end_datetime = pytz.timezone("America/New_York").localize(
-            datetime.strptime(self.end_date, "%Y%m%d")
-        )
-
-    def operates_on(self, date: datetime) -> bool:
+    def operates_on(self, date: dt.datetime | dt.date | str, **kwargs) -> bool:
         """Returns true if the calendar operates on the date
 
         Args:
-            - `date (datetime)`: The date to check
+            - `date (datetime|date|str)`: The date to check;\\
+                if `str` formated `YYYYMMDD`, but format can be changed\
+                    with `strf` kwarg
+            - `**kwargs`: Additional keyword arguments to pass to `dt_from_str` if date is str \n
         Returns:
             - `bool`: True if the calendar operates on the date
         """
+
+        if isinstance(date, dt.datetime):
+            date: dt.date = date.date()
+        if isinstance(date, str):
+            date = dt_from_str(date, **kwargs).date()
         exception = next(
             (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
         )
-
         return bool(
-            self.start_datetime.date() <= date.date() <= self.end_datetime.date()
+            self.start_datetime.date() <= date <= self.end_datetime.date()
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")

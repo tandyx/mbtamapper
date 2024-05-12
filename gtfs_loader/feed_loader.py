@@ -26,15 +26,16 @@ class FeedLoader(Scheduler, Feed):
     GEOJSON_FOLDER_NAME = "geojsons"
     GEOJSON_PATH = os.path.join(os.getcwd(), "static", GEOJSON_FOLDER_NAME)
 
-    def __init__(self, url: str, keys_dict: dict[str, list[str]]) -> None:
+    def __init__(self, url: str, keys_dict: dict[str, list[str]], **kwargs) -> None:
         """Initializes FeedLoader.
 
         Args:
             - `url (str)`: URL of GTFS feed.
             - `keys_dict (dict[str, list[str]])`: Dictionary of keys to load.
+            - `**kwargs`: Keyword arguments to pass to `Feed`, such as `gtfs_name`.
         """
         Scheduler.__init__(self)
-        Feed.__init__(self, url)
+        Feed.__init__(self, url, **kwargs)
         self.url = url
         self.keys_dict = keys_dict
 

@@ -223,7 +223,9 @@ async function fillPredictionsStopData(stop_id, child_stops) {
           }
           // const realTime = d.departure_time || d.arrival_time;
           return `<tr>
-          <td style='color:#${d.route.route_color}'>${d.route.route_name}</td>
+          <td style='color:#${
+            d.route.route_color
+          }'>${d.route.route_name.replace(" Line", "").replace("/", " / ")}</td>
           <td>${d.trip ? d.trip.trip_short_name || d.trip_id : d.trip_id}</td>
           <td>${d.headsign}</td>
           <td>

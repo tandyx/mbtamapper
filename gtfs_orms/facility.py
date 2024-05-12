@@ -17,7 +17,16 @@ if TYPE_CHECKING:
 
 
 class Facility(Base):
-    """Facilities"""
+    """Facility
+    
+    this class is the child of the `Stop` table.
+    
+    holds many different types of facilities, \
+        such as bike racks, parking, elevators, etc.
+        
+    for now, only `facility_type` = `"bike-parking"` and `"parking-area"` aren't purged.
+    
+    """
 
     __tablename__ = "facilities"
     __filename__ = "facilities.txt"
