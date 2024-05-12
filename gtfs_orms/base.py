@@ -133,8 +133,7 @@ class Base(orm.DeclarativeBase):
         # pylint: disable=protected-access
 
         new_dict = self.__dict__.copy()
-        if "_sa_instance_state" in new_dict:
-            del new_dict["_sa_instance_state"]
+        new_dict.pop("_sa_instance_state", None)
         for attr in include:
             if not hasattr(self, attr):
                 continue

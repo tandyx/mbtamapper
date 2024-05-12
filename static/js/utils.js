@@ -23,6 +23,9 @@ window.mobileCheck = function () {
   return check;
 };
 
+/*
+ * Check if user is on mobile
+ */
 const strftimeIT = strftime.localize({
   identifier: "it-IT",
   days: [
@@ -140,17 +143,15 @@ function inIframe() {
  */
 function getStyle(id, styleProp) {
   let x = document.getElementById(id);
-  let y;
   if (x.style[styleProp]) return x.style[styleProp];
-
   if (window.getComputedStyle) {
-    y = document.defaultView
+    return document.defaultView
       .getComputedStyle(x, null)
       .getPropertyValue(styleProp);
-  } else if (x.currentStyle) {
-    y = x.currentStyle[styleProp];
   }
-  return y;
+  if (x.currentStyle) return x.currentStyle[styleProp];
+
+  return;
 }
 
 /**
