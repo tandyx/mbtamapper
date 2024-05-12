@@ -53,7 +53,7 @@ class FeedLoader(Scheduler, Feed):
 
     @timeit
     def geojson_exports(self) -> None:
-        """Exports geojsons all geojsons listed in `cls.keys_dict`"""
+        """Exports geojsons all geojsons listed in `self.keys_dict`"""
         for key, routes in self.keys_dict.items():
             self.export_geojsons(key, *routes, file_path=__class__.GEOJSON_PATH)
 

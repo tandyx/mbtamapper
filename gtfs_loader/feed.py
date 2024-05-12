@@ -493,7 +493,7 @@ class Feed(Query):
         args:
             - `_orm (str)`: ORM to return.
             - `*include (str)`: other orms to include
-            - `timeout (int)`: timeout for the function
+            - `timeout (int)`: timeout for the function in seconds
             - `geojson (bool)`: use `geojson` rather than `json`\n
             - `**params`: keyword arguments to pass to the query\n
         Returns:

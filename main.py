@@ -21,6 +21,29 @@ FEED_LOADER = FeedLoader(
 )
 
 
+def _error404(_app: flask.Flask, error: Exception = None) -> str:
+    """Returns 404.html // should only be used in the\
+        context of a 404 error.
+
+    Args:
+        - `error (Exception)`: Error to log.
+    Returns:
+        - `str`: 404.html.
+    """
+    if error:
+        logging.error(error)
+    url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+    for rule in _app.url_map.iter_rules():
+        if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+            continue
+        url_for = flask.url_for(rule.endpoint)
+        if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+            url_dict["possible_url"] = url_for
+            break
+    url_dict["possible_url"] = url_dict.get("possible_url", "/")
+    return flask.render_template("404.html", **url_dict), 404
+
+
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     """Create app for a given key
 
@@ -125,18 +148,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         Returns:
             - `str`: 404.html.
         """
-        if error:
-            logging.error(error)
-        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
-        for rule in _app.url_map.iter_rules():
-            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
-                continue
-            url_for = flask.url_for(rule.endpoint)
-            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
-                url_dict["possible_url"] = url_for
-                break
-        url_dict["possible_url"] = url_dict.get("possible_url", "/")
-        return (flask.render_template("404.html", **url_dict), 404)
+        return _error404(_app, error)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -188,12 +200,13 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         geojson = bool(params.pop("geojson", False))
+        timeout = 15  # seconds
         try:
             data = FEED_LOADER.timeout_get_orm_json(
-                orm, *include, geojson=geojson, **params
+                orm, *include, timeout=timeout, geojson=geojson, **params
             )
         except TimeoutError:
-            return flask.jsonify({"error": "response > 15s"}), 408
+            return flask.jsonify({"error": f"response > {timeout}s"}), 408
         except Exception:  # pylint: disable=broad-except
             return flask.jsonify({"error": "?", f"{orm_name} args": orm.cols}), 400
         if data is None:
@@ -209,18 +222,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         Returns:
             - `str`: 404.html.
         """
-        if error:
-            logging.error(error)
-        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
-        for rule in _app.url_map.iter_rules():
-            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
-                continue
-            url_for = flask.url_for(rule.endpoint)
-            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
-                url_dict["possible_url"] = url_for
-                break
-        url_dict["possible_url"] = url_dict.get("possible_url", "/")
-        return flask.render_template("404.html", **url_dict), 404
+        return _error404(_app, error)
 
     if proxies:
         _app.wsgi_app = ProxyFix(

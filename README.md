@@ -34,13 +34,13 @@ python3 -m waitress --listen=*:80 --threads=50 --call main:create_default_app &
 wait
 ```
 
-calling `main.py` with no arguments triggers a build process if there's no geojson data and the database doesn't exist. the `-i` (--import-data) flag forces a rebuild. other flags typically refer to testing the frontend locally, but this should be done with waitress (see [`start.sh`](start.sh)).
+calling `main.py` with no arguments triggers a build process if there's no geojson data and the database doesn't exist. the `-i` (--import-data) flag forces a rebuild. other flags typically refer to testing the frontend locally, but this should be done with waitress (see [`/start.sh`](start.sh)).
 
 every night at 3am est, the database rebuilds. at 3:30am est, map layers are updated (this is the process that takes a while).
 
 ## linting + formatting
 
-check out [.github/workflows](.github/workflows)
+check out [`/.github/workflows`](.github/workflows)
 
 - `python`: black, pylint, isort
 - `javascript`: prettier
@@ -48,7 +48,7 @@ check out [.github/workflows](.github/workflows)
 
 ### dependencies
 
-- python: [`requirements.txt`](requirements.txt)
+- python: [`/requirements.txt`](requirements.txt)
 - javascript: [`/static/package.json`](static/package.json)
 
 ## api reference
@@ -63,7 +63,7 @@ you could query the database (please don't abuse it)
 
 `/{route_type}/{vehicles|stops|shapes|parking}` - api used by each route (geojson format only)
 
-this data is already filtered out based on `route_type`; see [`route_keys.json`](route_keys.json).
+this data is already filtered out based on `route_type`; see [`/route_keys.json`](route_keys.json).
 
 - `{vehicles}?include=...,...`: realtime vehicle data
   
