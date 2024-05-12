@@ -3,9 +3,7 @@
 import datetime as dt
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
-
-from helper_functions import dt_from_str
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
@@ -33,8 +31,8 @@ class Calendar(Base):
     friday: Mapped[bool]
     saturday: Mapped[bool]
     sunday: Mapped[bool]
-    start_date: Mapped[str]
-    end_date: Mapped[str]
+    start_date: Mapped[dt.datetime]
+    end_date: Mapped[dt.datetime]
 
     calendar_dates: Mapped[list["CalendarDate"]] = relationship(
         back_populates="calendar", passive_deletes=True
@@ -46,34 +44,20 @@ class Calendar(Base):
         back_populates="calendar", passive_deletes=True
     )
 
-    @reconstructor
-    def _init_on_load_(self) -> None:
-        """Initialize the calendar object on load"""
-        # pylint: disable=attribute-defined-outside-init
-        self.start_datetime = dt_from_str(self.start_date)
-        self.end_datetime = dt_from_str(self.end_date)
-
-    def operates_on(self, date: dt.datetime | dt.date | str, **kwargs) -> bool:
+    def operates_on(self, date: dt.datetime | dt.date) -> bool:
         """Returns true if the calendar operates on the date
 
         Args:
-            - `date (datetime|date|str)`: The date to check;\\
-                if `str` formated `YYYYMMDD`, but format can be changed\
-                    with `strf` kwarg
-            - `**kwargs`: Additional keyword arguments to pass to `dt_from_str` if date is str \n
+            - `date (datetime|date|str)`: The date to check\n
         Returns:
             - `bool`: True if the calendar operates on the date
         """
 
         if isinstance(date, dt.datetime):
             date: dt.date = date.date()
-        if isinstance(date, str):
-            date = dt_from_str(date, **kwargs).date()
-        exception = next(
-            (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
-        )
+        exception = next((s for s in self.calendar_dates if s.date == date), None)
         return bool(
-            self.start_datetime.date() <= date <= self.end_datetime.date()
+            self.start_date.date() <= date <= self.end_date.date()
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")

@@ -1,5 +1,6 @@
 """File to hold the CalendarDate class and its associated methods."""
 
+import datetime as dt
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey
@@ -27,7 +28,7 @@ class CalendarDate(Base):  # pylint: disable=too-few-public-methods
         ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    date: Mapped[str] = mapped_column(primary_key=True)
+    date: Mapped[dt.datetime] = mapped_column(primary_key=True)
     exception_type: Mapped[Optional[str]]
     holiday_name: Mapped[Optional[str]]
 
