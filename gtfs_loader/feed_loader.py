@@ -82,10 +82,25 @@ class FeedLoader(Scheduler, Feed):
             - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
         """
 
+        def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:
+            """threads a function.
+
+            Args:
+                func (Callable): Function to thread.
+                *args: Arguments for func.
+                join (bool, optional): Whether to join thread. Defaults to True.
+                **kwargs: Keyword arguments for func.
+            """
+
+            job_thread = Thread(target=func, args=args, kwargs=kwargs)
+            job_thread.start()
+            if join:
+                job_thread.join()
+
         logging.info("Starting scheduler")
         self.every(2).minutes.do(threader, self.import_realtime, Alert, join=True)
         self.every(12).seconds.do(threader, self.import_realtime, Vehicle, join=True)
-        self.every().minute.do(threader, self.import_realtime, Prediction, join=True)
+        self.every(30).seconds.do(threader, self.import_realtime, Prediction, join=True)
         self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
         while True:
@@ -101,19 +116,3 @@ class FeedLoader(Scheduler, Feed):
         self.clear()
         if full:
             self.close()
-
-
-def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:
-    """threads a function.
-
-    Args:
-        func (Callable): Function to thread.
-        *args: Arguments for func.
-        join (bool, optional): Whether to join thread. Defaults to True.
-        **kwargs: Keyword arguments for func.
-    """
-
-    job_thread = Thread(target=func, args=args, kwargs=kwargs)
-    job_thread.start()
-    if join:
-        job_thread.join()

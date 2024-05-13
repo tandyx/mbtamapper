@@ -17,7 +17,16 @@ if TYPE_CHECKING:
 
 
 class Prediction(Base):
-    """Prediction"""
+    """Prediction
+
+    mutated from the original GTFS spec
+
+    this table is realtime and thus violatile. all relationships are viewonly
+
+    this is better known as a TripUpdate,\
+        but i called it prediction way back then and never changed it :P
+
+    """
 
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
@@ -154,7 +163,3 @@ class Prediction(Base):
             - `dict[str, Any]`: `Prediction` as a dictionary.
         """
         return super().as_json(*include, **kwargs) | {"headsign": self.get_headsign()}
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

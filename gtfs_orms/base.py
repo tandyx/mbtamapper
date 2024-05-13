@@ -2,10 +2,8 @@
 
 import json
 import time
-from abc import abstractmethod
 from typing import Any, Self, Type
 
-from geojson import Feature
 from sqlalchemy import orm
 
 from helper_functions import classproperty
@@ -24,7 +22,6 @@ class Base(orm.DeclarativeBase):
     """
 
     __filename__: str
-    __realtime_name__: str
     __realtime_name__: str
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
@@ -145,19 +142,6 @@ class Base(orm.DeclarativeBase):
                     d._as_json_dict() if isinstance(d, Base) else d for d in attar_val
                 ]
         return new_dict
-
-    @abstractmethod
-    def as_feature(self, *include: str) -> Feature | None:
-        """Returns the object as a geojson feature.\
-        only implemented in some classes, such as `Stop`.
-        
-        args:
-            - `*include`: other orm attars to \
-                include within the properties of the feature \n
-        returns:
-            - `Feature`: a geojson feature object
-        """
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 
 
 def _is_json_searializable(obj: Any) -> bool:

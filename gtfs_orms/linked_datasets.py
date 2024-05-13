@@ -206,10 +206,6 @@ class LinkedDataset(Base):
         dataframe["timestamp"] = time.time()
         return self._post_process(dataframe, ALERT_RENAME_DICT)
 
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
-
 
 def df_unpack(
     dataframe: pd.DataFrame, *columns: str, prefix: bool = True

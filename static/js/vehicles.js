@@ -349,8 +349,10 @@ function getVehicleText(properties) {
     vehicleText.innerHTML += `<p><span class="${
       properties.occupancy_percentage >= 80
         ? "severe-delay"
-        : properties.occupancy_percentage >= 40
+        : properties.occupancy_percentage >= 60
         ? "moderate-delay"
+        : properties.occupancy_percentage >= 40
+        ? "slight-delay"
         : ""
     }">${properties.occupancy_percentage}% occupancy</span></p>`;
   }

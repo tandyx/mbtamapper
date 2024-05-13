@@ -75,7 +75,6 @@ class Facility(Base):
             fp.property_id: fp.value for fp in self.facility_properties
         }
 
-    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns facility object as a feature.
 

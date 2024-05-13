@@ -14,7 +14,12 @@ if TYPE_CHECKING:
 
 
 class Shape(Base):
-    """Shape"""
+    """Shape
+
+    this table isn't in the gtfs spec, but is used to \
+        group `ShapePoint`s together
+
+    """
 
     __tablename__ = "shapes"
 
@@ -36,7 +41,6 @@ class Shape(Base):
 
         return LineString([sp.as_point() for sp in sorted(self.shape_points)])
 
-    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns shape object as a feature.
 

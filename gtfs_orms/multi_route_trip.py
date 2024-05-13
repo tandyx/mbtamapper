@@ -29,7 +29,3 @@ class MultiRouteTrip(Base):  # pylint: disable=too-few-public-methods
 
     trip: Mapped["Trip"] = relationship(back_populates="multi_route_trips")
     route: Mapped["Route"] = relationship(back_populates="multi_route_trips")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

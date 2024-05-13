@@ -14,7 +14,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from gtfs_loader import FeedLoader, Query
 
 with open("route_keys.json", "r", encoding="utf-8") as file:
-    KEY_DICT: dict[str, dict[str, str]] = json.load(file)
+    KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(file)
 FEED_LOADER = FeedLoader(
     "https://cdn.mbta.com/MBTA_GTFS.zip",
     {k: v["route_types"] for k, v in KEY_DICT.items()},
@@ -294,6 +294,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--log_level",
         "-l",
         default="INFO",
+        type=str,
         help="Logging level \\ (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
     )
 
@@ -307,7 +308,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = get_args().parse_args()
-    logging.getLogger().setLevel(getattr(logging, args.log_level))
+    logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
     # FEED_LOADER.get_shape_features("subway", Query("1", "0"))
     # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
     # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")

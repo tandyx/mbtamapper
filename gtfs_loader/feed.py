@@ -222,7 +222,10 @@ class Feed(Query):
             - `date (datetime)`: date to filter on
         """
         session = self.scoped_session()
-        for stmt in [self.delete_calendars_query(date), self.delete_facilities_query()]:
+        for stmt in [
+            self.delete_calendars_query(date),
+            self.delete_facilities_query("parking-area", "bike-storage"),
+        ]:
             res: sa.CursorResult = session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
         session.commit()
@@ -476,7 +479,11 @@ class Feed(Query):
         else:
             data: list[tuple[Base]] = session.execute(stmt).all()
         if geojson:
-            return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
+            if not data:
+                return gj.FeatureCollection([])
+            if callable(getattr(data[0][0], "as_feature", None)):
+                return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
+            raise ValueError(f"{_orm} does not have an as_feature method")
         return [d[0].as_json(*include) for d in data]
 
     def timeout_get_orm_json(

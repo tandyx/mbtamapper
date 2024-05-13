@@ -61,7 +61,3 @@ class Calendar(Base):
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

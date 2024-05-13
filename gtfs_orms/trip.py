@@ -20,7 +20,13 @@ if TYPE_CHECKING:
 
 
 class Trip(Base):
-    """Trip"""
+    """Trip
+
+    each trip is the equivalent to a "train" (such as 808)
+
+    note that not all Predictions have a scheduled Trip
+
+    """
 
     __tablename__ = "trips"
     __filename__ = "trips.txt"
@@ -82,7 +88,3 @@ class Trip(Base):
             return max(self.stop_times).stop
         except (ValueError, TypeError, AttributeError):
             return None
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

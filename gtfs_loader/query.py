@@ -197,8 +197,7 @@ class Query:
         """Returns a query to delete facilities.
 
         Args:
-            - `*exclude (str)`: list of facility types to exclude.\
-                Defaults to `["parking-area", "bike-storage"]`. \n
+            - `*exclude (str)`: list of facility types to exclude.
         Returns:
             - `Select[tuple[DeclarativeMeta]]`: A query to delete facilities.
         """
@@ -206,10 +205,7 @@ class Query:
         return delete(Facility).where(
             Facility.facility_id.not_in(
                 select(Facility.facility_id).where(
-                    Facility.facility_type.in_(
-                        exclude or ("parking-area", "bike-storage")
-                    ),
-                    Facility.stop_id.isnot(None),
+                    Facility.facility_type.in_(exclude), Facility.stop_id.isnot(None)
                 )
             )
         )
@@ -364,8 +360,7 @@ class Query:
         """Returns a query for parking facilities.
 
         Args:
-            - `*types (str)`: list of facility types, \
-                default: `("parking-area", "bike-storage")`\n
+            - `*types (str)`: list of facility types, \n
         Returns:
             - `Select[tuple[DeclarativeMeta]]`: A query for parking facilities.
         """
@@ -374,6 +369,6 @@ class Query:
             .distinct()
             .where(
                 Facility.stop_id.in_(select(self.parent_stops_query.columns.stop_id)),
-                Facility.facility_type.in_(types or ("parking-area", "bike-storage")),
+                Facility.facility_type.in_(types),
             )
         )

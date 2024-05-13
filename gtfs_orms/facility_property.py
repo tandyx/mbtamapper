@@ -39,7 +39,3 @@ class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
         Returns:
             `dict`: facility property as a dictionary as {property_id: value}"""
         return {self.property_id: self.value}
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

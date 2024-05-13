@@ -133,7 +133,7 @@ function createControlLayers(tile_layers, ...layers) {
     Object.fromEntries(layers.map((layer) => [layer.name, layer]))
   );
 
-  return [locateControl, controlSearch, layerControl];
+  return [locateControl, layerControl];
 }
 
 /** Get base layer dictionary

@@ -2,8 +2,8 @@
 
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
+import datetime as dt
 import time
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional, override
 
 from sqlalchemy import ForeignKey
@@ -23,6 +23,8 @@ class StopTime(Base):
     """Stop Times
 
     this can also be called a tripstop in keolis terms
+
+    represents one trip @ one stop
 
     """
 
@@ -105,7 +107,7 @@ class StopTime(Base):
             and not self.is_destination()
         )
 
-    def is_active(self, date: datetime = None, **kwargs) -> bool:
+    def is_active(self, date: dt.datetime = None, **kwargs) -> bool:
         """Returns true if this StopTime is active on the given date and time
 
         args:
@@ -126,10 +128,6 @@ class StopTime(Base):
             - `bool`: whether the stop is the last stop in the trip
         """
         return self.stop == self.trip.destination
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 
     @override
     def _as_json_dict(self) -> dict[str, Any]:

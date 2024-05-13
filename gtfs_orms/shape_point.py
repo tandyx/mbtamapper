@@ -14,7 +14,13 @@ if TYPE_CHECKING:
 
 
 class ShapePoint(Base):
-    """Shape"""
+    """Shape
+
+    represents one point in a shape/line
+
+    most of the property data is kinda useless, so it comes from the route instead.
+
+    """
 
     __tablename__ = "shape_points"
     __filename__ = "shapes.txt"
@@ -38,7 +44,6 @@ class ShapePoint(Base):
         """
         return Point(self.shape_pt_lon, self.shape_pt_lat)
 
-    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns shape point object as a feature.
 

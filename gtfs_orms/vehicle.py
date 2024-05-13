@@ -19,7 +19,13 @@ if TYPE_CHECKING:
 
 
 class Vehicle(Base):
-    """Vehicle"""
+    """Vehicle
+
+    very mutated from the original GTFS spec
+
+    this table is realtime and thus violatile. all relationships are viewonly
+
+    """
 
     __tablename__ = "vehicles"
     __realtime_name__ = "vehicle_positions"
@@ -104,7 +110,6 @@ class Vehicle(Base):
             "bikes_allowed": self.trip.bikes_allowed == 1 if self.trip else False,
             "speed_mph": self._speed_mph(),
             "headsign": self._headsign(),
-            "wheelchair_accessible": self._wheelchair_accessible(),
             "display_name": self._display_name(),
         }
 
@@ -178,16 +183,6 @@ class Vehicle(Base):
         ):
             return self.route.route_short_name
         return ""
-
-    def _wheelchair_accessible(self) -> bool:
-        """Returns wheelchair accessible.
-
-        returns:
-            - `bool`: wheelchair accessible
-        """
-        if self.trip:
-            return bool(self.trip.wheelchair_accessible)
-        return any(x.stop.wheelchair_boarding for x in self.predictions if x.stop)
 
     def _headsign(self) -> str:
         """Returns headsign.

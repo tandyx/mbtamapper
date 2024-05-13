@@ -56,7 +56,3 @@ class Alert(Base):
         """Loads active_period_end and active_period_start as datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.url = self.url or "https://www.mbta.com/"
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

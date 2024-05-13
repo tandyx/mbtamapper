@@ -20,7 +20,17 @@ if TYPE_CHECKING:
 
 
 class Stop(Base):
-    """Stop"""
+    """Stop
+
+    this table contains the self-referential relationship of stops to parent stops
+
+    `location_type` == 1 -> parent stop
+
+    Stop(...).parent_stop -> Stop(...).child_stops
+
+    TODO:
+        - `Stop(...).get_routes()` is very slow
+    """
 
     __tablename__ = "stops"
     __filename__ = "stops.txt"

@@ -31,7 +31,3 @@ class CalendarAttribute(Base):  # pylint: disable=too-few-public-methods
     rating_description: Mapped[Optional[str]]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_attributes")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
