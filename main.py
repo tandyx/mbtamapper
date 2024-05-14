@@ -1,5 +1,9 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
-    User must produce the WSGI application using the create_default_app function."""
+    User must produce the WSGI application using the create_default_app function.
+    
+see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
+
+"""
 
 import argparse
 import difflib
