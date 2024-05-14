@@ -12,8 +12,15 @@ if TYPE_CHECKING:
     from .calendar import Calendar
 
 
-class CalendarAttribute(Base):  # pylint: disable=too-few-public-methods
-    """Calendar Attributes"""
+class CalendarAttribute(Base):
+    """CalendarAttribute
+    
+    details extra information about a `Calendar`, \
+        but only used to purge cannonical trips as of rn
+        
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#calendar_attributestxt
+    
+    """
 
     __tablename__ = "calendar_attributes"
     __filename__ = "calendar_attributes.txt"

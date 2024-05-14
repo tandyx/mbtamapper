@@ -12,9 +12,12 @@ if TYPE_CHECKING:
 
 
 class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
-    """Facilities Properties
+    """Facilitiy Properties
 
     this is an experimental table that holds additional facility attars
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#facilities_propertiestxt
+
     """
 
     __tablename__ = "facilities_properties"

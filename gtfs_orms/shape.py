@@ -1,6 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, override
 
 from geojson import Feature
 from shapely.geometry import LineString
@@ -53,5 +53,20 @@ class Shape(Base):
         return Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_json(*include) | self.as_json(*include),
+            properties=self.as_json(*include),
+        )
+
+    @override
+    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+        """Returns shape object as a dictionary.
+
+        args:
+            - `*include`: A list of properties to include in the dictionary.
+            - `**kwargs`: unused\n
+        Returns:
+            - `dict[str, Any]`: shape as a dictionary.\n
+        """
+
+        return super().as_json(*include, **kwargs) | self.trips[0].route.as_json(
+            *include
         )

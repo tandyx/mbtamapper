@@ -16,6 +16,7 @@ from .base import Base
 if TYPE_CHECKING:
     from .prediction import Prediction
     from .stop import Stop
+    from .transfer import Transfer
     from .trip import Trip
 
 
@@ -25,6 +26,8 @@ class StopTime(Base):
     this can also be called a tripstop in keolis terms
 
     represents one trip @ one stop
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#stop_timestxt
 
     """
 
@@ -57,6 +60,23 @@ class StopTime(Base):
             foreign(StopTime.stop_sequence)==Prediction.stop_sequence
         )""",
         uselist=False,
+        viewonly=True,
+    )
+    to_transfer: Mapped["Transfer"] = relationship(
+        "Transfer",
+        primaryjoin="""and_(
+            StopTime.trip_id==foreign(Transfer.to_trip_id),
+            StopTime.stop_id==foreign(Transfer.to_stop_id) 
+            )""",
+        viewonly=True,
+    )
+
+    from_transfer: Mapped["Transfer"] = relationship(
+        "Transfer",
+        primaryjoin="""and_(
+            StopTime.trip_id==foreign(Transfer.from_trip_id),
+            StopTime.stop_id==foreign(Transfer.from_stop_id)
+            )""",
         viewonly=True,
     )
 

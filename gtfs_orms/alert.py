@@ -13,7 +13,15 @@ if TYPE_CHECKING:
 
 
 class Alert(Base):
-    """realtime class for the `service_alerts` feed."""
+    """Alert
+
+    realtime class for the `service_alerts` feed.
+
+    `source`: https://cdn.mbta.com/realtime/Alerts.pb
+
+    https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-alert
+
+    """
 
     __tablename__ = "alerts"
     __realtime_name__ = "service_alerts"

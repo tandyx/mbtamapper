@@ -58,11 +58,13 @@ class Feed(Query):
         Route,
         ShapePoint,
         Trip,
+        TripProperty,
         MultiRouteTrip,
         StopTime,
         LinkedDataset,
         Facility,
         FacilityProperty,
+        Transfer,
     )
 
     REALTIME_ORMS = (Alert, Vehicle, Prediction)
@@ -186,9 +188,12 @@ class Feed(Query):
             with pd.read_csv(
                 os.path.join(self.zip_path, orm.__filename__), *args, **kwargs
             ) as read:
+                chunk: pd.DataFrame
                 for chunk in read:
                     if orm.__filename__ == "shapes.txt":
                         self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
+                    if hasattr(orm, "index"):  # what if this is chunked? it explodes.
+                        chunk["index"] = chunk.index
                     self.to_sql(chunk, orm)
         self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)

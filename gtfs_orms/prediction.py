@@ -25,6 +25,8 @@ class Prediction(Base):
 
     this is better known as a TripUpdate,\
         but i called it prediction way back then and never changed it :P
+    
+    https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-tripupdate
 
     """
 
@@ -91,6 +93,13 @@ class Prediction(Base):
         self.stop_sequence = self.stop_sequence or 0
         self.stop_name = self.stop.stop_name if self.stop else None
         self.delay = self._get_delay()
+
+    def __repr__(self) -> str:
+        """override for `Base.__repr__`"""
+
+        return (
+            f"<{self.__class__}({self.trip_id}, {self.stop_id}, {self.stop_sequence})>"
+        )
 
     def __lt__(self, other: "Prediction") -> bool:
         """Implements less than operator.

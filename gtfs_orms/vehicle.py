@@ -25,6 +25,8 @@ class Vehicle(Base):
 
     this table is realtime and thus violatile. all relationships are viewonly
 
+    https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-vehicleposition
+
     """
 
     __tablename__ = "vehicles"
@@ -105,13 +107,31 @@ class Vehicle(Base):
         returns:
             - `dict`: vehicle as a json
         """
-        return super().as_json(*include, **kwargs) | {
+
+        _dict = super().as_json(*include, **kwargs) | {
             "route_color": self.route.route_color if self.route else None,
             "bikes_allowed": self.trip.bikes_allowed == 1 if self.trip else False,
             "speed_mph": self._speed_mph(),
             "headsign": self._headsign(),
             "display_name": self._display_name(),
         }
+        if "trip_properties" in include:
+            _dict["trip_properties"] = (
+                [tp.as_json() for tp in self.trip.trip_properties] if self.trip else []
+            )
+        if "to_trip_transfers" in include:
+            _dict["to_trip_transfers"] = (
+                [tt.as_json() for tt in self.trip.to_trip_transfers]
+                if self.trip
+                else []
+            )
+        if "from_trip_transfers" in include:
+            _dict["from_trip_transfers"] = (
+                [ft.as_json() for ft in self.trip.from_trip_transfers]
+                if self.trip
+                else []
+            )
+        return _dict
 
     @override
     def as_feature(self, *include: str) -> Feature:

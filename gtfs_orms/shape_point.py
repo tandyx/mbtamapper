@@ -20,6 +20,8 @@ class ShapePoint(Base):
 
     most of the property data is kinda useless, so it comes from the route instead.
 
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#shapestxt
+
     """
 
     __tablename__ = "shape_points"
@@ -56,5 +58,6 @@ class ShapePoint(Base):
         return Feature(
             id=self.shape_id,
             geometry=self.as_point(),
-            properties=self.as_json(*include),
+            properties=self.as_json(*include)
+            | self.shape.trips[0].route.as_json(*include),
         )

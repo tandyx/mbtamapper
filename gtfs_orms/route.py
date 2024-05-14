@@ -24,6 +24,8 @@ class Route(Base):
     distinct from `Shape`, but mapped as such
 
     this is used to display stuff like "Red Line" or "1" with colors
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#routestxt
     """
 
     __tablename__ = "routes"

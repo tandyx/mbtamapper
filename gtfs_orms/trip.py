@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .shape import Shape
     from .stop import Stop
     from .stop_time import StopTime
+    from .transfer import Transfer
     from .trip_property import TripProperty
     from .vehicle import Vehicle
 
@@ -26,6 +27,8 @@ class Trip(Base):
     each trip is the equivalent to a "train" (such as 808)
 
     note that not all Predictions have a scheduled Trip
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#tripstxt
 
     """
 
@@ -85,6 +88,17 @@ class Trip(Base):
         back_populates="trip",
         primaryjoin="foreign(Alert.trip_id)==Trip.trip_id",
         viewonly=True,
+    )
+
+    to_trip_transfers: Mapped[list["Transfer"]] = relationship(
+        back_populates="to_trip",
+        foreign_keys="Transfer.to_trip_id",
+        passive_deletes=True,
+    )
+    from_trip_transfers: Mapped[list["Transfer"]] = relationship(
+        back_populates="from_trip",
+        foreign_keys="Transfer.from_trip_id",
+        passive_deletes=True,
     )
 
     @property

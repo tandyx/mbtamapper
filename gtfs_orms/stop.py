@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .prediction import Prediction
     from .route import Route
     from .stop_time import StopTime
+    from .transfer import Transfer
     from .vehicle import Vehicle
 
 
@@ -24,12 +25,15 @@ class Stop(Base):
 
     this table contains the self-referential relationship of stops to parent stops
 
-    `location_type` == 1 -> parent stop
+    `location_type` == 1: parent stop
 
     Stop(...).parent_stop -> Stop(...).child_stops
 
     TODO:
         - `Stop(...).get_routes()` is very slow
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#stop_timestxt
+
     """
 
     __tablename__ = "stops"
@@ -88,6 +92,18 @@ class Stop(Base):
         primaryjoin="and_(Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id))",
         viewonly=True,
     )
+
+    to_stop_transfers: Mapped[list["Transfer"]] = relationship(
+        back_populates="to_stop",
+        foreign_keys="Transfer.to_stop_id",
+        passive_deletes=True,
+    )
+    from_stop_transfers: Mapped[list["Transfer"]] = relationship(
+        back_populates="from_stop",
+        foreign_keys="Transfer.from_stop_id",
+        passive_deletes=True,
+    )
+
     # routes: Mapped[list["Route"]] = relationship(
     #     primaryjoin="""or_(
     #         and_(Stop.stop_id==remote(StopTime.stop_id), StopTime.trip_id==foreign(Trip.trip_id), Trip.route_id==foreign(Route.route_id)),

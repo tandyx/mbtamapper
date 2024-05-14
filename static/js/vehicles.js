@@ -298,6 +298,10 @@ function getVehicleText(properties) {
   vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
   vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;&nbsp;&nbsp;&nbsp;</span>`;
   // vehicleText.innerHTML += `</p>`;
+  if (properties.trip_properties.length) {
+    console.log();
+  }
+
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
       vehicleText.innerHTML += `<p>${almostTitleCase(

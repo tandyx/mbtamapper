@@ -26,6 +26,8 @@ class Facility(Base):
         
     for now, only `facility_type` = `"bike-parking"` and `"parking-area"` aren't purged.
     
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#facilitiestxt
+    
     """
 
     __tablename__ = "facilities"

@@ -18,6 +18,8 @@ class Calendar(Base):
 
     represents when a service operates
 
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#calendartxt
+
     """
 
     __tablename__ = "calendars"

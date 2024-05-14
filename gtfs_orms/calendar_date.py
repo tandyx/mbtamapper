@@ -13,12 +13,15 @@ if TYPE_CHECKING:
 
 
 class CalendarDate(Base):  # pylint: disable=too-few-public-methods
-    """Calendar Dates
+    """CalendarDate
 
     typically represents holidays or exceptions to the normal schedule.
 
-    - `exception_type = 1` service operates on `date`.
-    - `exception_type = 2` service doesn't operate on `date`.
+    - `exception_type = 1` service operates on `CalendarDate.date` (ADDED)
+    - `exception_type = 2` service doesn't operate on `CalendarDate.date` (REMOVED)
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#calendar_datestxt
+
     """
 
     __tablename__ = "calendar_dates"

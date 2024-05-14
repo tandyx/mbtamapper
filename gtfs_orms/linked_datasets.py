@@ -70,7 +70,13 @@ PREDICTION_RENAME_DICT = {
 
 
 class LinkedDataset(Base):
-    """LinkedDataset"""
+    """LinkedDataset
+
+    experimental, but useful to link and pull realtime info
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#linked_datasetstxt
+
+    """
 
     __tablename__ = "linked_datasets"
     __filename__ = "linked_datasets.txt"

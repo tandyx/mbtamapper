@@ -11,7 +11,13 @@ if TYPE_CHECKING:
 
 
 class Agency(Base):
-    """Agency class for the `agency.txt` file."""
+    """Agency
+
+    holds information about agancies within the system
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#agencytxt
+
+    """
 
     __tablename__ = "agencies"
     __filename__ = "agency.txt"
