@@ -1,6 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING
 
 from geojson import Feature
 from shapely.geometry import LineString

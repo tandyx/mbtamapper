@@ -1,6 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional, override
+from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point

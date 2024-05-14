@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .shape import Shape
     from .stop import Stop
     from .stop_time import StopTime
+    from .trip_property import TripProperty
     from .vehicle import Vehicle
 
 
@@ -59,6 +60,11 @@ class Trip(Base):
         back_populates="trip", passive_deletes=True
     )
     route: Mapped["Route"] = relationship(back_populates="trips")
+
+    trip_properties: Mapped[list["TripProperty"]] = relationship(
+        back_populates="trip", passive_deletes=True
+    )
+
     all_routes: Mapped[list["Route"]] = relationship(
         primaryjoin="""or_(Trip.route_id==foreign(Route.route_id),
                     and_(Trip.trip_id==remote(MultiRouteTrip.trip_id), 
