@@ -21,6 +21,7 @@ with open("route_keys.json", "r", encoding="utf-8") as file:
     KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(file)
 FEED_LOADER = FeedLoader(
     "https://cdn.mbta.com/MBTA_GTFS.zip",
+    os.path.join(os.getcwd(), "static", "geojson"),
     {k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
