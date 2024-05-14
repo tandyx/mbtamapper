@@ -1,6 +1,6 @@
 """File to hold the Calendar class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional, override
+from typing import TYPE_CHECKING, Optional
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -14,7 +14,15 @@ if TYPE_CHECKING:
 
 
 class ShapePoint(Base):
-    """Shape"""
+    """Shape
+
+    represents one point in a shape/line
+
+    most of the property data is kinda useless, so it comes from the route instead.
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#shapestxt
+
+    """
 
     __tablename__ = "shape_points"
     __filename__ = "shapes.txt"
@@ -38,7 +46,6 @@ class ShapePoint(Base):
         """
         return Point(self.shape_pt_lon, self.shape_pt_lat)
 
-    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns shape point object as a feature.
 
@@ -51,5 +58,6 @@ class ShapePoint(Base):
         return Feature(
             id=self.shape_id,
             geometry=self.as_point(),
-            properties=self.as_json(*include),
+            properties=self.as_json(*include)
+            | self.shape.trips[0].route.as_json(*include),
         )

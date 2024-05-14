@@ -13,7 +13,13 @@ if TYPE_CHECKING:
 
 
 class MultiRouteTrip(Base):  # pylint: disable=too-few-public-methods
-    """Multi Route Trip"""
+    """MultiRotueTrip
+
+    represents added trips
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#multi_route_tripstxt
+
+    """
 
     __tablename__ = "multi_route_trips"
     __filename__ = "multi_route_trips.txt"
@@ -29,7 +35,3 @@ class MultiRouteTrip(Base):  # pylint: disable=too-few-public-methods
 
     trip: Mapped["Trip"] = relationship(back_populates="multi_route_trips")
     route: Mapped["Route"] = relationship(back_populates="multi_route_trips")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

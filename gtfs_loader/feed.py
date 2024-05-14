@@ -13,6 +13,7 @@ import os
 import shutil
 import sqlite3
 import tempfile
+import textwrap
 import time
 from datetime import datetime
 from typing import Type
@@ -42,6 +43,7 @@ class Feed(Query):
 
     Args:
         - `url (str)`: url of GTFS feed
+        - `gtfs_name (str, optional)`: name of GTFS feed. Defaults to auto-parsed from url.
     """
 
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
@@ -56,11 +58,13 @@ class Feed(Query):
         Route,
         ShapePoint,
         Trip,
+        TripProperty,
         MultiRouteTrip,
         StopTime,
         LinkedDataset,
         Facility,
         FacilityProperty,
+        Transfer,
     )
 
     REALTIME_ORMS = (Alert, Vehicle, Prediction)
@@ -117,7 +121,7 @@ class Feed(Query):
             logging.warning("PRAGMA optimize failed")
         cursor.close()
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, gtfs_name: str | None = None) -> None:
         """
         Initializes Feed object with url.
 
@@ -125,11 +129,12 @@ class Feed(Query):
 
         Args:
             - `url (str)`: url of GTFS feed
+            - `gtfs_name (str, optional)`: name of GTFS feed. Defaults to auto-parsed from url.
         """
         super().__init__()
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
-        self.gtfs_name = url.rsplit("/", maxsplit=1)[-1].split(".")[0]
+        self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
         self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
@@ -183,9 +188,12 @@ class Feed(Query):
             with pd.read_csv(
                 os.path.join(self.zip_path, orm.__filename__), *args, **kwargs
             ) as read:
+                chunk: pd.DataFrame
                 for chunk in read:
                     if orm.__filename__ == "shapes.txt":
                         self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
+                    if hasattr(orm, "index"):  # what if this is chunked? it explodes.
+                        chunk["index"] = chunk.index
                     self.to_sql(chunk, orm)
         self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
@@ -219,7 +227,10 @@ class Feed(Query):
             - `date (datetime)`: date to filter on
         """
         session = self.scoped_session()
-        for stmt in [self.delete_calendars_query(date), self.delete_facilities_query()]:
+        for stmt in [
+            self.delete_calendars_query(date),
+            self.delete_facilities_query("parking-area", "bike-storage"),
+        ]:
             res: sa.CursorResult = session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
         session.commit()
@@ -265,15 +276,14 @@ class Feed(Query):
             - `FeatureCollection`: stops as FeatureCollection
         """
         session = self.scoped_session()
-        stops_data: list[tuple[Stop]]
-        stops_data = session.execute(query_obj.parent_stops_query).all()
+        stops: list[tuple[Stop]] = session.execute(query_obj.parent_stops_query).all()
         if key == "rapid_transit":
-            stops_data += session.execute(Query("3").parent_stops_query).all()
+            stops += session.execute(Query("3").parent_stops_query).all()
         if "4" in query_obj.route_types:
-            stops_data += session.execute(
+            stops += session.execute(
                 self.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
-        return gj.FeatureCollection([s[0].as_feature(*include) for s in stops_data])
+        return gj.FeatureCollection([s[0].as_feature(*include) for s in stops])
 
     @removes_session
     def get_shape_features(
@@ -289,19 +299,15 @@ class Feed(Query):
             - `FeatureCollection`: shapes as FeatureCollection
         """
         session = self.scoped_session()
-
-        shape_data: list[tuple[Shape]] = session.execute(
-            query_obj.get_shapes_query()
-        ).all()
-
+        shapes: list[tuple[Shape]] = session.execute(query_obj.get_shapes_query()).all()
         if key in ["rapid_transit", "all_routes"]:
-            shape_data += session.execute(
+            shapes += session.execute(
                 self.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
         return gj.FeatureCollection(
-            [s[0].as_feature(*include) for s in sorted(set(shape_data), reverse=True)]
+            [s[0].as_feature(*include) for s in sorted(set(shapes), reverse=True)]
         )
 
     @removes_session
@@ -319,16 +325,16 @@ class Feed(Query):
         """
 
         session = self.scoped_session()
-        facilities: list[tuple[Facility]] = session.execute(
+        facils: list[tuple[Facility]] = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
         if key == "rapid_transit":
-            facilities += session.execute(
+            facils += session.execute(
                 Query("3").get_facilities_query("parking-area")
             ).all()
         if "4" in query_obj.route_types:
-            facilities += session.execute(self.ferry_parking_query).all()
-        return gj.FeatureCollection([f[0].as_feature(*include) for f in facilities])
+            facils += session.execute(self.ferry_parking_query).all()
+        return gj.FeatureCollection([f[0].as_feature(*include) for f in facils])
 
     @removes_session
     def get_vehicles_feature(
@@ -462,18 +468,27 @@ class Feed(Query):
             )
         )
         if non_cols:
-            data = []
             _eval = asteval.Interpreter()
+            data = []
             for d in session.execute(stmt).all():
                 for c in non_cols:
-                    if hasattr(d[0], c["key"]) and _eval(
-                        f"""{getattr(d[0], c["key"])} {c["action"].lower()} {c['value'].replace("NULL", 'None')}"""
-                    ):
-                        data.append(d)
+                    if hasattr(d[0], c["key"]):
+                        if _eval.eval(
+                            textwrap.dedent(
+                                f"""
+                                "{getattr(d[0], c['key'])}" {c['action'].lower() if c['action'] != '=' else '=='} "{c['value'].replace('NULL', 'None')}"
+                            """
+                            ).replace("\n", "")
+                        ):
+                            data.append(d)
         else:
             data: list[tuple[Base]] = session.execute(stmt).all()
         if geojson:
-            return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
+            if not data:
+                return gj.FeatureCollection([])
+            if callable(getattr(data[0][0], "as_feature", None)):
+                return gj.FeatureCollection([d[0].as_feature(*include) for d in data])
+            raise ValueError(f"{_orm} does not have an as_feature method")
         return [d[0].as_json(*include) for d in data]
 
     def timeout_get_orm_json(
@@ -490,7 +505,7 @@ class Feed(Query):
         args:
             - `_orm (str)`: ORM to return.
             - `*include (str)`: other orms to include
-            - `timeout (int)`: timeout for the function
+            - `timeout (int)`: timeout for the function in seconds
             - `geojson (bool)`: use `geojson` rather than `json`\n
             - `**params`: keyword arguments to pass to the query\n
         Returns:

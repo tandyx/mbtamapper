@@ -17,7 +17,18 @@ if TYPE_CHECKING:
 
 
 class Facility(Base):
-    """Facilities"""
+    """Facility
+    
+    this class is the child of the `Stop` table.
+    
+    holds many different types of facilities, \
+        such as bike racks, parking, elevators, etc.
+        
+    for now, only `facility_type` = `"bike-parking"` and `"parking-area"` aren't purged.
+    
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#facilitiestxt
+    
+    """
 
     __tablename__ = "facilities"
     __filename__ = "facilities.txt"
@@ -66,7 +77,6 @@ class Facility(Base):
             fp.property_id: fp.value for fp in self.facility_properties
         }
 
-    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns facility object as a feature.
 

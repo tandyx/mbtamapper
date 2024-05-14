@@ -1,5 +1,6 @@
 """File to hold the CalendarDate class and its associated methods."""
 
+import datetime as dt
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey
@@ -12,7 +13,16 @@ if TYPE_CHECKING:
 
 
 class CalendarDate(Base):  # pylint: disable=too-few-public-methods
-    """Calendar Dates"""
+    """CalendarDate
+
+    typically represents holidays or exceptions to the normal schedule.
+
+    - `exception_type = 1` service operates on `CalendarDate.date` (ADDED)
+    - `exception_type = 2` service doesn't operate on `CalendarDate.date` (REMOVED)
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#calendar_datestxt
+
+    """
 
     __tablename__ = "calendar_dates"
     __filename__ = "calendar_dates.txt"
@@ -21,12 +31,8 @@ class CalendarDate(Base):  # pylint: disable=too-few-public-methods
         ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    date: Mapped[str] = mapped_column(primary_key=True)
+    date: Mapped[dt.datetime] = mapped_column(primary_key=True)
     exception_type: Mapped[Optional[str]]
     holiday_name: Mapped[Optional[str]]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_dates")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

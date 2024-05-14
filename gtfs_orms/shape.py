@@ -1,6 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Any, override
 
 from geojson import Feature
 from shapely.geometry import LineString
@@ -14,7 +14,12 @@ if TYPE_CHECKING:
 
 
 class Shape(Base):
-    """Shape"""
+    """Shape
+
+    this table isn't in the gtfs spec, but is used to \
+        group `ShapePoint`s together
+
+    """
 
     __tablename__ = "shapes"
 
@@ -36,7 +41,6 @@ class Shape(Base):
 
         return LineString([sp.as_point() for sp in sorted(self.shape_points)])
 
-    @override
     def as_feature(self, *include: str) -> Feature:
         """Returns shape object as a feature.
 
@@ -49,5 +53,20 @@ class Shape(Base):
         return Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.trips[0].route.as_json(*include) | self.as_json(*include),
+            properties=self.as_json(*include),
+        )
+
+    @override
+    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+        """Returns shape object as a dictionary.
+
+        args:
+            - `*include`: A list of properties to include in the dictionary.
+            - `**kwargs`: unused\n
+        Returns:
+            - `dict[str, Any]`: shape as a dictionary.\n
+        """
+
+        return super().as_json(*include, **kwargs) | self.trips[0].route.as_json(
+            *include
         )

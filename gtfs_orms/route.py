@@ -19,7 +19,14 @@ if TYPE_CHECKING:
 
 
 class Route(Base):
-    """Route"""
+    """Route
+
+    distinct from `Shape`, but mapped as such
+
+    this is used to display stuff like "Red Line" or "1" with colors
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#routestxt
+    """
 
     __tablename__ = "routes"
     __filename__ = "routes.txt"
@@ -80,7 +87,3 @@ class Route(Base):
             self.route_url or f"https://www.mbta.com/schedules/{self.route_id}"
         )
         self.route_name = self.route_short_name or self.route_long_name
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

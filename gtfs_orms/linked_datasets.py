@@ -15,6 +15,11 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
+if TYPE_CHECKING:
+    import google.protobuf.message as pbm
+
+    FeedMessage = pbm.Message
+
 ALERT_RENAME_DICT = {
     "id": "alert_id",
     "alert_cause": "cause",
@@ -64,25 +69,14 @@ PREDICTION_RENAME_DICT = {
 }
 
 
-if TYPE_CHECKING:
-
-    # pylint: disable=function-redefined
-    class FeedMessage:
-        """`FeedMessage` class for type hinting."""
-
-        # pylint: disable=unused-argument
-        # pylint: disable=too-few-public-methods
-        # pylint: disable=invalid-name
-
-        def __init__(self) -> None:
-            pass
-
-        def ParseFromString(self, data: bytes) -> None:
-            """parses a realtime `FeedMessage` from a byte string"""
-
-
 class LinkedDataset(Base):
-    """LinkedDataset"""
+    """LinkedDataset
+
+    experimental, but useful to link and pull realtime info
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#linked_datasetstxt
+
+    """
 
     __tablename__ = "linked_datasets"
     __filename__ = "linked_datasets.txt"
@@ -217,10 +211,6 @@ class LinkedDataset(Base):
         )
         dataframe["timestamp"] = time.time()
         return self._post_process(dataframe, ALERT_RENAME_DICT)
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
 
 
 def df_unpack(

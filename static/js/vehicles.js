@@ -105,10 +105,10 @@ function plotVehicles(options) {
         );
         if (wasOpen) {
           layer.openPopup();
-          setTimeout(fillVehicleDataWrapper, 50, feature.properties.trip_id);
+          setTimeout(fillVehicleDataWrapper, 200, feature.properties.trip_id);
         }
         layer.on("click", function () {
-          setTimeout(fillVehicleDataWrapper, 50, feature.properties.trip_id);
+          setTimeout(fillVehicleDataWrapper, 200, feature.properties.trip_id);
         });
       }.bind(this)
     );
@@ -234,7 +234,7 @@ async function fillAlertVehicleData(trip_id) {
     alertEl.appendChild(popupText);
     setTimeout(() => {
       if (openPopups.includes(popupId)) togglePopup(popupId, true);
-    }, 500);
+    }, 150);
   }
 }
 
@@ -298,6 +298,10 @@ function getVehicleText(properties) {
   vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
   vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;&nbsp;&nbsp;&nbsp;</span>`;
   // vehicleText.innerHTML += `</p>`;
+  if (properties.trip_properties.length) {
+    console.log();
+  }
+
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
       vehicleText.innerHTML += `<p>${almostTitleCase(
@@ -349,8 +353,10 @@ function getVehicleText(properties) {
     vehicleText.innerHTML += `<p><span class="${
       properties.occupancy_percentage >= 80
         ? "severe-delay"
-        : properties.occupancy_percentage >= 40
+        : properties.occupancy_percentage >= 60
         ? "moderate-delay"
+        : properties.occupancy_percentage >= 40
+        ? "slight-delay"
         : ""
     }">${properties.occupancy_percentage}% occupancy</span></p>`;
   }

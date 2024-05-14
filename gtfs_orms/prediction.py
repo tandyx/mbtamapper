@@ -2,7 +2,7 @@
 
 # pylint: disable=line-too-long
 
-from typing import TYPE_CHECKING, Any, Optional, override
+from typing import TYPE_CHECKING, Any, Optional, Union, override
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
@@ -17,7 +17,18 @@ if TYPE_CHECKING:
 
 
 class Prediction(Base):
-    """Prediction"""
+    """Prediction
+
+    mutated from the original GTFS spec
+
+    this table is realtime and thus violatile. all relationships are viewonly
+
+    this is better known as a TripUpdate,\
+        but i called it prediction way back then and never changed it :P
+    
+    https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-tripupdate
+
+    """
 
     __tablename__ = "predictions"
     __realtime_name__ = "trip_updates"
@@ -61,6 +72,20 @@ class Prediction(Base):
         uselist=False,
     )
 
+    @property
+    def destination(self) -> Union["Stop", None]:
+        """Returns the destination of the prediction.
+
+        Returns:
+            - `str`: the destination of the prediction
+        """
+        if self.trip:
+            return self.trip.destination
+        try:
+            return max(s for s in self.vehicle.predictions if s.trip_id == self.trip_id)
+        except ValueError:
+            return None
+
     @reconstructor
     def _init_on_load_(self) -> None:
         """Converts arrival_time and departure_time to datetime objects."""
@@ -68,6 +93,13 @@ class Prediction(Base):
         self.stop_sequence = self.stop_sequence or 0
         self.stop_name = self.stop.stop_name if self.stop else None
         self.delay = self._get_delay()
+
+    def __repr__(self) -> str:
+        """override for `Base.__repr__`"""
+
+        return (
+            f"<{self.__class__}({self.trip_id}, {self.stop_id}, {self.stop_sequence})>"
+        )
 
     def __lt__(self, other: "Prediction") -> bool:
         """Implements less than operator.
@@ -81,11 +113,7 @@ class Prediction(Base):
             )
         if self.trip_id == other.trip_id:
             return self.stop_sequence < other.stop_sequence
-        return (
-            self.departure_time
-            or self.arrival_time < other.departure_time
-            or other.arrival_time
-        )
+        return super().__lt__(other)
 
     def __eq__(self, other: "Prediction") -> bool:
         """Implements equality operator.
@@ -100,11 +128,7 @@ class Prediction(Base):
 
         if self.trip_id == other.trip_id:
             return self.stop_sequence == other.stop_sequence
-        return (
-            self.vehicle_id == other.vehicle_id
-            and self.stop_id == other.stop_id
-            and self.stop_sequence == other.stop_sequence
-        )
+        return super().__eq__(other)
 
     def _get_delay(self) -> int | float | None:
         """Returns the delay of the prediction.
@@ -132,7 +156,7 @@ class Prediction(Base):
         """
         if self.stop_time:
             return self.stop_time.destination_label
-        if self.vehicle:
+        if self.vehicle and self.vehicle.predictions:
             return max(self.vehicle.predictions).stop.stop_name
         return ""
 
@@ -148,7 +172,3 @@ class Prediction(Base):
             - `dict[str, Any]`: `Prediction` as a dictionary.
         """
         return super().as_json(*include, **kwargs) | {"headsign": self.get_headsign()}
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

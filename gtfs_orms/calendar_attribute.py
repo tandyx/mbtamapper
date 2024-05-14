@@ -1,5 +1,6 @@
 """File to hold the CalendarAttribute class and its associated methods."""
 
+import datetime as dt
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey
@@ -11,8 +12,15 @@ if TYPE_CHECKING:
     from .calendar import Calendar
 
 
-class CalendarAttribute(Base):  # pylint: disable=too-few-public-methods
-    """Calendar Attributes"""
+class CalendarAttribute(Base):
+    """CalendarAttribute
+    
+    details extra information about a `Calendar`, \
+        but only used to purge cannonical trips as of rn
+        
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#calendar_attributestxt
+    
+    """
 
     __tablename__ = "calendar_attributes"
     __filename__ = "calendar_attributes.txt"
@@ -25,12 +33,8 @@ class CalendarAttribute(Base):  # pylint: disable=too-few-public-methods
     service_schedule_name: Mapped[Optional[str]]
     service_schedule_type: Mapped[Optional[str]]
     service_schedule_typicality: Mapped[Optional[str]]
-    rating_start_date: Mapped[Optional[str]]
-    rating_end_date: Mapped[Optional[str]]
+    rating_start_date: Mapped[Optional[dt.datetime]]
+    rating_end_date: Mapped[Optional[dt.datetime]]
     rating_description: Mapped[Optional[str]]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_attributes")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

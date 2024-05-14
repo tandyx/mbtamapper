@@ -12,7 +12,13 @@ if TYPE_CHECKING:
 
 
 class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
-    """Facilities Properties"""
+    """Facilitiy Properties
+
+    this is an experimental table that holds additional facility attars
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#facilities_propertiestxt
+
+    """
 
     __tablename__ = "facilities_properties"
     __filename__ = "facilities_properties.txt"
@@ -36,7 +42,3 @@ class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
         Returns:
             `dict`: facility property as a dictionary as {property_id: value}"""
         return {self.property_id: self.value}
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

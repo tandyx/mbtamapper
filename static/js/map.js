@@ -63,7 +63,7 @@ function createMap(id, route_type) {
     isMobile: isMobile,
   });
   plotVehicles({
-    url: "vehicles?include=route,next_stop,stop_time",
+    url: "vehicles?include=route,next_stop,stop_time,trip_properties",
     layer: vehicle_layer,
     textboxSize: textboxSize,
     isMobile: isMobile,
@@ -133,7 +133,7 @@ function createControlLayers(tile_layers, ...layers) {
     Object.fromEntries(layers.map((layer) => [layer.name, layer]))
   );
 
-  return [locateControl, controlSearch, layerControl];
+  return [locateControl, layerControl];
 }
 
 /** Get base layer dictionary

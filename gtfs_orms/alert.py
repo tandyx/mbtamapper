@@ -13,7 +13,15 @@ if TYPE_CHECKING:
 
 
 class Alert(Base):
-    """realtime class for the `service_alerts` feed."""
+    """Alert
+
+    realtime class for the `service_alerts` feed.
+
+    `source`: https://cdn.mbta.com/realtime/Alerts.pb
+
+    https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-alert
+
+    """
 
     __tablename__ = "alerts"
     __realtime_name__ = "service_alerts"
@@ -56,7 +64,3 @@ class Alert(Base):
         """Loads active_period_end and active_period_start as datetime objects."""
         # pylint: disable=attribute-defined-outside-init
         self.url = self.url or "https://www.mbta.com/"
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

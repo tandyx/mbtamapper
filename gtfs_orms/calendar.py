@@ -1,10 +1,9 @@
 """File to hold the Calendar class and its associated methods."""
 
-from datetime import datetime
+import datetime as dt
 from typing import TYPE_CHECKING
 
-import pytz
-from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
@@ -15,21 +14,27 @@ if TYPE_CHECKING:
 
 
 class Calendar(Base):
-    """Calendar"""
+    """Calendar
+
+    represents when a service operates
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#calendartxt
+
+    """
 
     __tablename__ = "calendars"
     __filename__ = "calendar.txt"
 
     service_id: Mapped[str] = mapped_column(primary_key=True)
-    monday: Mapped[int]
-    tuesday: Mapped[int]
-    wednesday: Mapped[int]
-    thursday: Mapped[int]
-    friday: Mapped[int]
-    saturday: Mapped[int]
-    sunday: Mapped[int]
-    start_date: Mapped[str]
-    end_date: Mapped[str]
+    monday: Mapped[bool]
+    tuesday: Mapped[bool]
+    wednesday: Mapped[bool]
+    thursday: Mapped[bool]
+    friday: Mapped[bool]
+    saturday: Mapped[bool]
+    sunday: Mapped[bool]
+    start_date: Mapped[dt.datetime]
+    end_date: Mapped[dt.datetime]
 
     calendar_dates: Mapped[list["CalendarDate"]] = relationship(
         back_populates="calendar", passive_deletes=True
@@ -41,37 +46,20 @@ class Calendar(Base):
         back_populates="calendar", passive_deletes=True
     )
 
-    @reconstructor
-    def _init_on_load_(self) -> None:
-        """Initialize the calendar object on load"""
-        # pylint: disable=attribute-defined-outside-init
-
-        self.start_datetime = pytz.timezone("America/New_York").localize(
-            datetime.strptime(self.start_date, "%Y%m%d")
-        )
-
-        self.end_datetime = pytz.timezone("America/New_York").localize(
-            datetime.strptime(self.end_date, "%Y%m%d")
-        )
-
-    def operates_on(self, date: datetime) -> bool:
+    def operates_on(self, date: dt.datetime | dt.date) -> bool:
         """Returns true if the calendar operates on the date
 
         Args:
-            - `date (datetime)`: The date to check
+            - `date (datetime|date|str)`: The date to check\n
         Returns:
             - `bool`: True if the calendar operates on the date
         """
-        exception = next(
-            (s for s in self.calendar_dates if s.date == date.strftime("%Y%m%d")), None
-        )
 
+        if isinstance(date, dt.datetime):
+            date: dt.date = date.date()
+        exception = next((s for s in self.calendar_dates if s.date == date), None)
         return bool(
-            self.start_datetime.date() <= date.date() <= self.end_datetime.date()
+            self.start_date.date() <= date <= self.end_date.date()
             and getattr(self, date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")

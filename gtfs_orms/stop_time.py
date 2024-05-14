@@ -2,8 +2,8 @@
 
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
+import datetime as dt
 import time
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional, override
 
 from sqlalchemy import ForeignKey
@@ -16,11 +16,20 @@ from .base import Base
 if TYPE_CHECKING:
     from .prediction import Prediction
     from .stop import Stop
+    from .transfer import Transfer
     from .trip import Trip
 
 
 class StopTime(Base):
-    """Stop Times"""
+    """Stop Times
+
+    this can also be called a tripstop in keolis terms
+
+    represents one trip @ one stop
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#stop_timestxt
+
+    """
 
     __tablename__ = "stop_times"
     __filename__ = "stop_times.txt"
@@ -51,6 +60,23 @@ class StopTime(Base):
             foreign(StopTime.stop_sequence)==Prediction.stop_sequence
         )""",
         uselist=False,
+        viewonly=True,
+    )
+    to_transfer: Mapped["Transfer"] = relationship(
+        "Transfer",
+        primaryjoin="""and_(
+            StopTime.trip_id==foreign(Transfer.to_trip_id),
+            StopTime.stop_id==foreign(Transfer.to_stop_id) 
+            )""",
+        viewonly=True,
+    )
+
+    from_transfer: Mapped["Transfer"] = relationship(
+        "Transfer",
+        primaryjoin="""and_(
+            StopTime.trip_id==foreign(Transfer.from_trip_id),
+            StopTime.stop_id==foreign(Transfer.from_stop_id)
+            )""",
         viewonly=True,
     )
 
@@ -101,7 +127,7 @@ class StopTime(Base):
             and not self.is_destination()
         )
 
-    def is_active(self, date: datetime = None, **kwargs) -> bool:
+    def is_active(self, date: dt.datetime = None, **kwargs) -> bool:
         """Returns true if this StopTime is active on the given date and time
 
         args:
@@ -121,13 +147,7 @@ class StopTime(Base):
         returns:
             - `bool`: whether the stop is the last stop in the trip
         """
-        if dest := max(self.trip.stop_times, default=None):
-            return dest.stop_sequence == self.stop_sequence
-        return False
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
+        return self.stop == self.trip.destination
 
     @override
     def _as_json_dict(self) -> dict[str, Any]:

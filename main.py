@@ -14,11 +14,34 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from gtfs_loader import FeedLoader, Query
 
 with open("route_keys.json", "r", encoding="utf-8") as file:
-    KEY_DICT: dict[str, dict[str, str]] = json.load(file)
+    KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(file)
 FEED_LOADER = FeedLoader(
     "https://cdn.mbta.com/MBTA_GTFS.zip",
     {k: v["route_types"] for k, v in KEY_DICT.items()},
 )
+
+
+def _error404(_app: flask.Flask, error: Exception = None) -> str:
+    """Returns 404.html // should only be used in the\
+        context of a 404 error.
+
+    Args:
+        - `error (Exception)`: Error to log.
+    Returns:
+        - `str`: 404.html.
+    """
+    if error:
+        logging.error(error)
+    url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+    for rule in _app.url_map.iter_rules():
+        if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+            continue
+        url_for = flask.url_for(rule.endpoint)
+        if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+            url_dict["possible_url"] = url_for
+            break
+    url_dict["possible_url"] = url_dict.get("possible_url", "/")
+    return flask.render_template("404.html", **url_dict), 404
 
 
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
@@ -125,18 +148,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         Returns:
             - `str`: 404.html.
         """
-        if error:
-            logging.error(error)
-        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
-        for rule in _app.url_map.iter_rules():
-            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
-                continue
-            url_for = flask.url_for(rule.endpoint)
-            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
-                url_dict["possible_url"] = url_for
-                break
-        url_dict["possible_url"] = url_dict.get("possible_url", "/")
-        return (flask.render_template("404.html", **url_dict), 404)
+        return _error404(_app, error)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -188,12 +200,13 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         geojson = bool(params.pop("geojson", False))
+        timeout = 15  # seconds
         try:
             data = FEED_LOADER.timeout_get_orm_json(
-                orm, *include, geojson=geojson, **params
+                orm, *include, timeout=timeout, geojson=geojson, **params
             )
         except TimeoutError:
-            return flask.jsonify({"error": "response > 15s"}), 408
+            return flask.jsonify({"error": f"response > {timeout}s"}), 408
         except Exception:  # pylint: disable=broad-except
             return flask.jsonify({"error": "?", f"{orm_name} args": orm.cols}), 400
         if data is None:
@@ -209,18 +222,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         Returns:
             - `str`: 404.html.
         """
-        if error:
-            logging.error(error)
-        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
-        for rule in _app.url_map.iter_rules():
-            if not len(rule.defaults or ()) >= len(rule.arguments or ()):
-                continue
-            url_for = flask.url_for(rule.endpoint)
-            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
-                url_dict["possible_url"] = url_for
-                break
-        url_dict["possible_url"] = url_dict.get("possible_url", "/")
-        return flask.render_template("404.html", **url_dict), 404
+        return _error404(_app, error)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -292,6 +294,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--log_level",
         "-l",
         default="INFO",
+        type=str,
         help="Logging level \\ (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
     )
 
@@ -305,10 +308,11 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = get_args().parse_args()
-    logging.getLogger().setLevel(getattr(logging, args.log_level))
+    logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
     # FEED_LOADER.get_shape_features("subway", Query("1", "0"))
     # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
     # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")
+    # args.frontend = True
     if args.frontend:
         app = create_default_app(args.proxies)
         app.run(debug=True, port=args.port, host=args.host)

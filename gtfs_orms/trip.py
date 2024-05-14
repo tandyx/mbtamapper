@@ -16,11 +16,21 @@ if TYPE_CHECKING:
     from .shape import Shape
     from .stop import Stop
     from .stop_time import StopTime
+    from .transfer import Transfer
+    from .trip_property import TripProperty
     from .vehicle import Vehicle
 
 
 class Trip(Base):
-    """Trip"""
+    """Trip
+
+    each trip is the equivalent to a "train" (such as 808)
+
+    note that not all Predictions have a scheduled Trip
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#tripstxt
+
+    """
 
     __tablename__ = "trips"
     __filename__ = "trips.txt"
@@ -53,6 +63,11 @@ class Trip(Base):
         back_populates="trip", passive_deletes=True
     )
     route: Mapped["Route"] = relationship(back_populates="trips")
+
+    trip_properties: Mapped[list["TripProperty"]] = relationship(
+        back_populates="trip", passive_deletes=True
+    )
+
     all_routes: Mapped[list["Route"]] = relationship(
         primaryjoin="""or_(Trip.route_id==foreign(Route.route_id),
                     and_(Trip.trip_id==remote(MultiRouteTrip.trip_id), 
@@ -75,13 +90,21 @@ class Trip(Base):
         viewonly=True,
     )
 
+    to_trip_transfers: Mapped[list["Transfer"]] = relationship(
+        back_populates="to_trip",
+        foreign_keys="Transfer.to_trip_id",
+        passive_deletes=True,
+    )
+    from_trip_transfers: Mapped[list["Transfer"]] = relationship(
+        back_populates="from_trip",
+        foreign_keys="Transfer.from_trip_id",
+        passive_deletes=True,
+    )
+
     @property
     def destination(self) -> Union["Stop", None]:
         """the destination of the trip as a `stop`"""
-        if (dest := max(self.stop_times, default=None)) is None:
-            return dest
-        return dest.stop
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
+        try:
+            return max(self.stop_times).stop
+        except (ValueError, TypeError, AttributeError):
+            return None

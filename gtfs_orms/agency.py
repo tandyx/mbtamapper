@@ -11,7 +11,13 @@ if TYPE_CHECKING:
 
 
 class Agency(Base):
-    """Agency class for the `agency.txt` file."""
+    """Agency
+
+    holds information about agancies within the system
+
+    https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#agencytxt
+
+    """
 
     __tablename__ = "agencies"
     __filename__ = "agency.txt"
@@ -26,7 +32,3 @@ class Agency(Base):
     routes: Mapped[list["Route"]] = relationship(
         "Route", back_populates="agency", passive_deletes=True
     )
-
-    def as_feature(self, *include: str) -> None:
-        """raises `NotImplementedError`"""
-        raise NotImplementedError(f"Not implemented for {self.__class__.__name__}")
