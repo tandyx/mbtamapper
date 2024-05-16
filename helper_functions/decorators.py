@@ -51,7 +51,7 @@ def timeit(_func: Callable[..., Any], round_to: int = 3):
         start = time.perf_counter()
         res = _func(*args, **kwargs)
 
-        _args = ", ".join(str(a) for a in args) if args else ""
+        _args = ", ".join(str(a) for a in args if "Feed" not in str(a)) if args else ""
         _kwargs = ", " + ", ".join(f"{k}={v}" for k, v in kwargs.items())
         logging.info(
             "Ran %s(%s) in %f s",

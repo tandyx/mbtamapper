@@ -1,3 +1,5 @@
+# !/usr/bin/env python3
+
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function.
     
@@ -19,10 +21,11 @@ from gtfs_loader import FeedLoader, Query
 
 with open("route_keys.json", "r", encoding="utf-8") as file:
     KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(file)
+GEOJSON_FOLDER = "geojsons"
 FEED_LOADER = FeedLoader(
-    "https://cdn.mbta.com/MBTA_GTFS.zip",
-    os.path.join(os.getcwd(), "static", "geojson"),
-    {k: v["route_types"] for k, v in KEY_DICT.items()},
+    url="https://cdn.mbta.com/MBTA_GTFS.zip",
+    geojson_path=os.path.join(os.getcwd(), "static", GEOJSON_FOLDER),
+    keys_dict={k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
 
@@ -31,21 +34,22 @@ def _error404(_app: flask.Flask, error: Exception = None) -> str:
         context of a 404 error.
 
     Args:
-        - `error (Exception)`: Error to log.
+        - `error (Exception)`: Error to log. \n
     Returns:
         - `str`: 404.html.
     """
     if error:
         logging.error(error)
+    _dict_field = "possible_url"
     url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
     for rule in _app.url_map.iter_rules():
-        if not len(rule.defaults or ()) >= len(rule.arguments or ()):
+        if not len(rule.defaults or ()) >= len(rule.arguments):
             continue
         url_for = flask.url_for(rule.endpoint)
         if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
-            url_dict["possible_url"] = url_for
+            url_dict[_dict_field] = url_for
             break
-    url_dict["possible_url"] = url_dict.get("possible_url", "/")
+    url_dict[_dict_field] = url_dict.get(_dict_field, "/")
     return flask.render_template("404.html", **url_dict), 404
 
 
@@ -89,13 +93,13 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     def get_stops() -> str:
         """Returns stops as geojson in the context of the route type AND \
             flask, exported to /stops as an api.
+            
         returns:
             - `str`: geojson of stops.
         """
         return flask.redirect(
             flask.url_for(
-                "static",
-                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.STOPS_FILE}",
+                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}"
             )
         )
 
@@ -105,13 +109,13 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     def get_parking() -> str:
         """Returns parking as geojson in the context of the route type AND \
             flask, exported to /parking as an api.
+            
         returns:
             - `str`: geojson of parking.
         """
         return flask.redirect(
             flask.url_for(
-                "static",
-                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.PARKING_FILE}",
+                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}"
             )
         )
 
@@ -122,14 +126,14 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     def get_routes() -> str:
         """Returns routes as geojson in the context of the route type AND \
             flask, exported to /routes as an api.
+            
         returns:
             - `str`: geojson of routes.
         """
 
         return flask.redirect(
             flask.url_for(
-                "static",
-                filename=f"{FEED_LOADER.GEOJSON_FOLDER_NAME}/{key}/{FEED_LOADER.SHAPES_FILE}",
+                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}"
             )
         )
 
@@ -179,13 +183,21 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
 
     @_app.route("/")
     def index():
-        """Returns index.html."""
+        """Returns index.html.
+
+        returns:
+            - `str`: index.html.
+        """
 
         return flask.render_template("index.html", content=KEY_DICT)
 
     @_app.route("/favicon.ico")
     def favicon() -> str:
-        """Returns favicon.ico."""
+        """Returns favicon.ico.
+
+        returns:
+            - `str`: favicon.ico.
+        """
         return flask.send_from_directory(
             os.path.join(_app.root_path, "static", "img"), "all_routes.ico"
         )
@@ -195,7 +207,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         """Returns the ORM for a given key.
 
         Args:
-            - `orm (str)`: ORM to return.
+            - `orm (str)`: ORM to return.\n
         Returns:
             - `str`: ORM for the key.
         """
@@ -223,7 +235,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         """Returns 404.html.
 
         Args:
-            - `error (Exception)`: Error to log.
+            - `error (Exception)`: Error to log.\n
         Returns:
             - `str`: 404.html.
         """

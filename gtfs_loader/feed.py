@@ -90,7 +90,6 @@ class Feed(Query):
         if not isinstance(dbapi_connection, sqlite3.Connection):
             logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
             return
-
         cursor = dbapi_connection.cursor()
         for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
             try:

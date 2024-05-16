@@ -58,7 +58,7 @@ class FeedLoader(Scheduler, Feed):
     def geojson_exports(self) -> None:
         """Exports geojsons all geojsons listed in `self.keys_dict`"""
         for key, routes in self.keys_dict.items():
-            self.export_geojsons(key, *routes, file_path=__class__.geojson_path)
+            self.export_geojsons(key, *routes, file_path=self.geojson_path)
 
     def import_and_run(
         self, import_data: bool = False, timezone: str = "America/New_York", **kwargs
