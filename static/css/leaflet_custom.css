@@ -165,6 +165,18 @@
   width: 100%;
 }
 
+/* .leaflet-control-fullscreen,
+.leaflet-control-attribution,
+.leaflet-control-zoom-out, */
+.leaflet-control-container {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
+}
+
 @keyframes leaflet-control-locate-throb {
   0% {
     stroke-width: 1;

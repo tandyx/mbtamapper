@@ -71,6 +71,15 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             - `str`: map.html"""
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
+    @_app.route("/key")
+    def get_key() -> str:
+        """Returns key.json.
+
+        returns:
+            - `str`: the route key
+        """
+        return flask.jsonify(key)
+
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
     def get_vehicles() -> str:
@@ -203,7 +212,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
         )
 
     @_app.route("/api/<orm_name>")
-    def get_orm(orm_name: str) -> str:
+    def orm_api(orm_name: str) -> str:
         """Returns the ORM for a given key.
 
         Args:
@@ -212,7 +221,7 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
             - `str`: ORM for the key.
         """
 
-        if not (orm := FeedLoader.find_orm(orm_name)):
+        if not (orm := FeedLoader.find_orm(orm_name.rstrip("s"))):
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")

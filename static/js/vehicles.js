@@ -88,6 +88,7 @@ function plotVehicles(options) {
   // });
 
   realtime.on("update", function (e) {
+    if (!window.mobileCheck()) setDefaultVehicleSideBarSummary(e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
@@ -154,16 +155,7 @@ async function fillPredictionVehicleData(trip_id) {
         .map(function (d) {
           const realDeparture = d.departure_time || d.arrival_time;
           if (!realDeparture || realDeparture < Date().valueOf()) return "";
-          let delayText = d.delay ? `${Math.floor(d.delay / 60)}` : "";
-          if (delayText === "0") {
-            delayText = "";
-          } else if (d.delay > 0) {
-            delayText = `+${delayText}`;
-          }
-          if (delayText) {
-            delayText += " min";
-          }
-
+          const delayText = getDelayText(d.delay);
           let stopTimeClass,
             tooltipText = "";
           if (d.stop_time) {
@@ -179,7 +171,6 @@ async function fillPredictionVehicleData(trip_id) {
               // d.stop_name += " <span class='fa'>&#xf023;</span>";
             }
           }
-
           return `<tr>
             <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${d.stop_name}</td>
             <td>
@@ -197,6 +188,10 @@ async function fillPredictionVehicleData(trip_id) {
     }, 400);
   }
 }
+
+/**
+ *
+ */
 
 /**
  *  fill alert prediction data
@@ -380,49 +375,32 @@ function getVehicleText(properties) {
 /**
  *  Set the vehicle sidebar summary
  * @param {L.sidebar} sidebar - sidebar object
- * @param {object} data - vehicle data
+ * @param {Object} data - vehicle data
  */
 
-function setVehicleSideBarSummary(sidebar, data) {
-  // const sidebar = addSidebar();
-  // const sidebar = addSidebar();
-  // sidebar.innerHTML = "";
-  const summary = document.createElement("div");
-  summary.classList.add("inner-sidebar-content");
-  summary.id = "summary";
-  summary.innerHTML = `
-  <h1>Summary</h1>
-  <p>There are ${
-    Object.keys(data).length
-  } vehicles currently on the mapdasdasdasdasudhasjhdkjashdjkashdjkashdksah dkjahsgdsagdsahdgsgakdjksa.</p>
-  <div id="piechart"></div>
-  `;
-  // createDelayPiechart("piechart",
-  const delayCounts = Object.values(data)
-    .map((properties) => properties.properties.next_stop?.delay)
-    .filter((delay) => delay !== null)
-    .reduce((counts, delay) => {
-      counts[getDelayClassName(delay)] =
-        (counts[getDelayClassName(delay)] || 0) + 1;
-      return counts;
-    }, {});
-  if (!document.getElementById("summary_")) {
-    setTimeout(() => {
-      sidebar.addPanel({
-        id: "summary_",
-        tab: "<i class='fa>&#xf05a;</i>",
-        pane: summary,
-      });
-    }, 2000);
-  }
+async function setDefaultVehicleSideBarSummary(data) {
+  const key = await (await fetch("key")).json();
+  let content = `<h2 class='color-${key}'>${titleCase(key).toLowerCase()}</h2>`;
+  // content += "<hr />";
+  content += "<p><table class='data-table'>";
+  content += "<tr><th>train</th><th>headsign</th><th>delay</th></tr>";
+  Object.values(data)
+    .map((e) => e.properties)
+    .forEach(function (d) {
+      const headsign = d.headsign;
+      const trip = d.trip_short_name;
 
-  // sidebar.addPanel({
-  //   id: "ghlink",
-  //   tab: '<i class="fa fa-github"></i>',
-  //   button: "https://github.com/noerw/leaflet-sidebar-v2",
-  // });
+      const delay = d.next_stop ? d.next_stop.delay : 0;
+      const delayText = getDelayText(delay);
 
-  createDelayPiechart("piechart", delayCounts);
+      content += `<tr>
+    <td style='color:#${d.route.route_color}'>${trip}</td>
+    <td>${headsign.replace("/", " / ")}</td>
+    <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
+    </tr>`;
+    });
+  content += "</table></p>";
+  setSideBarContent(content, "sidebar-default-content");
 }
 
 /**
@@ -442,65 +420,4 @@ function getDelayClassName(delay) {
     return "slight-delay";
   }
   return "on-time";
-}
-
-/**
- * creates a pie chart for the delay
- * @param {string} id - The id of the div to put the pie chart in
- * @param {Object} properties - The delay properties
- * @returns {void}
- */
-function createDelayPiechart(id, properties) {
-  const font = getComputedStyle(document.body).getPropertyValue(
-    "--font-family"
-  );
-  const styleSheet = getStylesheet("index");
-  const data = [
-    {
-      values: Object.values(properties),
-      labels: Object.keys(properties).map((label) => titleCase(label, "-")),
-      textinfo: "label",
-      marker: {
-        colors: Object.keys(properties).map((label) => {
-          const color = getStyleRuleValue("color", `.${label}`, styleSheet);
-          if (color.startsWith("var")) {
-            return getComputedStyle(document.body).getPropertyValue(
-              color.replace("var(", "").replace(")", "") || "#f2f2f2"
-            );
-          }
-          return color;
-        }),
-      },
-      type: "pie",
-      hoverlabel: {
-        borderRadius: 10,
-        font: { family: font, size: 15 },
-      },
-      hovertemplate: "%{label}: %{percent} <extra></extra>",
-      outsidetextfont: { color: "transparent" },
-      responsive: true,
-    },
-  ];
-
-  const layout = {
-    autosize: true,
-    showlegend: false,
-    font: {
-      family: font,
-      size: 15,
-      color: "#f2f2f2",
-    },
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(0,0,0,0)",
-    margin: {
-      l: 0,
-      r: 0,
-      b: 0,
-      t: 0,
-      pad: -30,
-    },
-    height: 300,
-  };
-
-  Plotly.newPlot(id, data, layout, { responsive: true });
 }

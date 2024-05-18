@@ -138,11 +138,12 @@ function inIframe() {
 
 /**
  * Gets a c style property from an element
- * @param {string} id - The element to get the style from
+ * @param {string | HTMLElement} id - The element to get the style from
  * @param {string} styleProp - The style property to get
+ * @returns {string} - The value of the style property
  */
 function getStyle(id, styleProp) {
-  let x = document.getElementById(id);
+  let x = typeof id === "string" ? document.getElementById(id) : id;
   if (x.style[styleProp]) return x.style[styleProp];
   if (window.getComputedStyle) {
     return document.defaultView
@@ -315,6 +316,16 @@ function getCssVar(name) {
 }
 
 /**
+ * sets the value of a css var
+ * @param {string} name - the name of the css variable
+ * @param {string} value - the value to set the css variable to
+ * @returns {void}
+ */
+function setCssVar(name, value) {
+  document.documentElement.style.setProperty(name, value);
+}
+
+/**
  *  Check if the device is like a mobile device
  * @returns {boolean} - whether or not the device is a mobile device
  */
@@ -353,4 +364,22 @@ function togglePopup(id, show = "auto") {
   }
   popup.classList.remove("show");
   openPopups.splice(openPopups.indexOf(identifier), 1);
+}
+
+/**
+ * gets delay text formatted
+ * @param {int} delay
+ * @returns {string} - the delay text
+ */
+function getDelayText(delay) {
+  let delayText = delay ? `${Math.floor(delay / 60)}` : "";
+  if (delayText === "0") {
+    delayText = "";
+  } else if (delay > 0) {
+    delayText = `+${delayText}`;
+  }
+  if (delayText) {
+    delayText += " min";
+  }
+  return delayText;
 }

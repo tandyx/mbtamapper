@@ -135,7 +135,11 @@
       </ul>
     </nav>
     <div id="map"></div>
-    <div id="sidebar"></div>
+    <div id="sidebar">
+      <div id="sidebar-handle"></div>
+      <div id="sidebar-default-content" class="hidden"></div>
+      <div id="sidebar-content" class="hidden"></div>
+    </div>
     <noscript>This page requires Javascript to be enabled.</noscript>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   </body>

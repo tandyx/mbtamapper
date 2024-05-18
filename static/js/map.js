@@ -10,6 +10,7 @@ window.addEventListener("load", function () {
     }
   });
   createMap("map", ROUTE_TYPE);
+  addSidebarDrag();
 });
 /** map factory function for map.html
  * @param {string} id - id of the map div
@@ -32,7 +33,24 @@ function createMap(id, route_type) {
       position: "topleft",
     },
     attributionControl: true,
-  }).setView([42.3519, -71.0552], route_type == "commuter_rail" ? 10 : 13);
+  }).setView(
+    [getDefaultCookie("lat", 42.3519), getDefaultCookie("lng", -71.0552)],
+    getDefaultCookie("zoom", route_type == "commuter_rail" ? 10 : 13)
+  );
+
+  map.on("move", function () {
+    const cords = map.getCenter();
+    setCookie("lat", cords.lat);
+    setCookie("lng", cords.lng);
+  });
+
+  map.on("zoom", () => {
+    setCookie("zoom", map.getZoom());
+  });
+
+  map.on("resize", (e) => {
+    console.log("resized");
+  });
 
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers[getDefaultCookie("darkMode", "light")].addTo(map);
@@ -164,14 +182,58 @@ function getBaseLayerDict(
   return baseLayers;
 }
 
+function addSidebarDrag() {
+  setCssVar("--sidebar-width", getDefaultCookie("sidebarWidth", "250px"));
+  const sidebar = document.getElementById("sidebar");
+  const sidebarHandle = document.getElementById("sidebar-handle");
+  const minWidth = 250; // 250px
+
+  function resize(e) {
+    document.body.classList.add("noselect");
+    const size = parseInt(getStyle(document.body, "width").trimEnd("px")) - e.x;
+    // const size = `calc(${getStyle(document.body, "width")} - ${e.x}px)`;
+    console.log(size);
+    if (size < minWidth) return;
+    setCssVar("--sidebar-width", `${size}px`);
+    setCookie("sidebarWidth", `${size}px`);
+  }
+
+  sidebarHandle.addEventListener("mousedown", (event) => {
+    document.addEventListener("mousemove", resize, false);
+    document.addEventListener(
+      "mouseup",
+      () => {
+        document.removeEventListener("mousemove", resize, false);
+        document.body.classList.remove("noselect");
+      },
+      false
+    );
+  });
+}
+
 /**
- * @param {L.map} map - Leaflet map object
- * @param {boolean} show - Whether to show the sidebar
- * @param {Object} options - Options for the sidebar
- * @returns {L.control.sidebar} sidebar
+ * Set sidebar content
+ * @param {string} content - content to set
+ * @param {"sidebar-content" | "sidebar-default-content" | HTMLElement} id - id of the sidebar
+ * @returns {void}
  */
-function addSidebar(map, show = true, options = {}) {
-  const sidebar = L.control.sidebar(options);
-  if (show) sidebar.addTo(map);
-  return sidebar;
+function setSideBarContent(content, id = "sidebar-content") {
+  const sidebar = typeof id === "string" ? document.getElementById(id) : id;
+  if (
+    !sidebar ||
+    !["sidebar-content", "sidebar-default-content"].includes(sidebar.id)
+  ) {
+    console.error("Sidebar not found");
+    return;
+  }
+  sidebar.classList.remove("hidden");
+  document
+    .getElementById(
+      sidebar.id === "sidebar-content"
+        ? "sidebar-default-content"
+        : "sidebar-content"
+    )
+    .classList.add("hidden");
+
+  sidebar.innerHTML = content;
 }
