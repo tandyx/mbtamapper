@@ -24,10 +24,6 @@ function plotShapes(options) {
         weight: 1.3,
         renderer: polyLineRender,
       });
-      if (f.properties.route_id === "741") {
-        console.log(f);
-        console.log(l);
-      }
 
       l.bindPopup(getShapeText(f.properties), textboxSize);
 
