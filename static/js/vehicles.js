@@ -282,10 +282,17 @@ function getVehicleText(properties) {
       : "https://mbta.com/schedules/" + self.properties.route_id
   }" target="_blank" style="color:#${
     properties.route_color
-  }" class="popup_header">${properties.trip_short_name}</a></p><p>${
-    DIRECTION_MAPPER[properties.direction_id]
-  } to ${properties.headsign}</p>
-  `;
+  }" class="popup_header">${properties.trip_short_name}</a></p>`;
+  if (properties.trip_short_name === "552") {
+    vehicleText.innerHTML += `<p>heart to hub</p>`;
+  } else if (properties.trip_short_name === "549") {
+    vehicleText.innerHTML += `<p>hub to heart</p>`;
+  } else {
+    vehicleText.innerHTML += `<p>${
+      DIRECTION_MAPPER[properties.direction_id] || "null"
+    } to ${properties.headsign}</p>
+    `;
+  }
   vehicleText.innerHTML += `<hr>`;
   if (properties.bikes_allowed) {
     vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>&nbsp;&nbsp;&nbsp;`;
