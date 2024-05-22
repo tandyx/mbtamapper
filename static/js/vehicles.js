@@ -35,6 +35,8 @@ const HEX_TO_CSS = {
     "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
 };
 
+const VEHICLES = {};
+
 /**
  * wrapper for `fillPredictionVehicleData` and `fillAlertVehicleData`
  * @param {string} trip_id  - stop id
@@ -65,12 +67,14 @@ function plotVehicles(options) {
       return f.id;
     },
     onEachFeature(f, l) {
+      VEHICLES[f.id] = l;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
         l.bindTooltip(f.properties.trip_short_name || f.id);
       }
       l.setIcon(
         getVehicleIcon(
+          f.id,
           f.properties.bearing,
           f.properties.route_color,
           f.properties.display_name
@@ -88,17 +92,20 @@ function plotVehicles(options) {
   // });
 
   realtime.on("update", function (e) {
-    if (!window.mobileCheck()) setDefaultVehicleSideBarSummary(e.features);
+    if (!window.mobileCheck() || !inIframe())
+      setDefaultVehicleSideBarSummary(e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
         const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
+        VEHICLES[id] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getVehicleText(feature.properties), textboxSize);
         layer.setIcon(
           getVehicleIcon(
+            id,
             feature.properties.bearing,
             feature.properties.route_color,
             feature.properties.display_name
@@ -235,17 +242,21 @@ async function fillAlertVehicleData(trip_id) {
 
 /**
  * return icon div
+ * @param {string} id - vehicle id
  * @param {string} bearing - icon to display
  * @param {string} color - color of icon
  * @param {string} displayString - text to display
  * @returns {L.divIcon} - div icon
  */
 
-function getVehicleIcon(bearing, color, displayString = null) {
+function getVehicleIcon(id, bearing, color, displayString = null) {
   const div = document.createElement("div");
+
   div.classList.add("vehicle_wrapper");
 
   const img = document.createElement("img");
+  img.id = id;
+  img.name = id;
   img.src = "static/img/icon.png";
   img.alt = "vehicle";
   img.width = 60;
@@ -300,9 +311,9 @@ function getVehicleText(properties) {
   vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
   vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;&nbsp;&nbsp;&nbsp;</span>`;
   // vehicleText.innerHTML += `</p>`;
-  if (properties.trip_properties.length) {
-    console.log();
-  }
+  // if (properties.trip_properties.length) {
+  //   console.log();
+  // }
 
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
@@ -386,22 +397,27 @@ function getVehicleText(properties) {
  */
 
 async function setDefaultVehicleSideBarSummary(data) {
-  const key = await (await fetch("key")).json();
-  let content = `<h2 class='color-${key}'>${titleCase(key).toLowerCase()}</h2>`;
+  // const key = await (await fetch("key")).json();
+  // let content = `<h2 class='color-${key}'>${titleCase(key).toLowerCase()}</h2>`;
+  let content = "";
+
   // content += "<hr />";
   content += "<p><table class='data-table'>";
   content += "<tr><th>train</th><th>headsign</th><th>delay</th></tr>";
   Object.values(data)
-    .map((e) => e.properties)
+    // .map((e) => e.properties)
     .forEach(function (d) {
-      const headsign = d.headsign;
-      const trip = d.trip_short_name;
-
-      const delay = d.next_stop ? d.next_stop.delay : 0;
+      const headsign = d.properties.headsign;
+      const trip = d.properties.trip_short_name;
+      const delay = d.properties.next_stop ? d.properties.next_stop.delay : 0;
       const delayText = getDelayText(delay);
 
       content += `<tr>
-    <td style='color:#${d.route.route_color}'>${trip}</td>
+    <td><a style='color:#${
+      d.properties.route.route_color
+    }' onclick="setTimeout(() => {VEHICLES[${
+        d.id
+      }].fire('click')}, 200)">${trip}</a></td>
     <td>${headsign.replace("/", " / ")}</td>
     <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
     </tr>`;

@@ -515,7 +515,6 @@ noscript {
   width: calc(100% - var(--sidebar-handle-width));
 
   table {
-    font-size: 8pt;
     td {
       padding: 2px;
     }

@@ -48,9 +48,9 @@ function createMap(id, route_type) {
     setCookie("zoom", map.getZoom());
   });
 
-  map.on("resize", (e) => {
-    console.log("resized");
-  });
+  // map.on("resize", (e) => {
+  //   console.log("resized");
+  // });
 
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers[getDefaultCookie("darkMode", "light")].addTo(map);
@@ -191,9 +191,7 @@ function addSidebarDrag() {
   function resize(e) {
     document.body.classList.add("noselect");
     const size = parseInt(getStyle(document.body, "width").trimEnd("px")) - e.x;
-    // const size = `calc(${getStyle(document.body, "width")} - ${e.x}px)`;
-    console.log(size);
-    if (size < minWidth) return;
+    if (size < minWidth || size > window.innerWidth) return;
     setCssVar("--sidebar-width", `${size}px`);
     setCookie("sidebarWidth", `${size}px`);
   }
