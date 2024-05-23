@@ -101,9 +101,9 @@ class FeedLoader(Scheduler, Feed):
                 job_thread.join()
 
         logging.info("Starting scheduler")
-        self.every(2).minutes.do(threader, self.import_realtime, Alert, join=True)
+        self.every().minute.do(threader, self.import_realtime, Alert, join=True)
         self.every(12).seconds.do(threader, self.import_realtime, Vehicle, join=True)
-        self.every(30).seconds.do(threader, self.import_realtime, Prediction, join=True)
+        self.every(20).seconds.do(threader, self.import_realtime, Prediction, join=True)
         self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
         while True:

@@ -3,6 +3,8 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function.
     
+    all arguments are ignored in production.
+    
 see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 
 """
@@ -12,6 +14,7 @@ import difflib
 import json
 import logging
 import os
+import threading
 
 import flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -179,7 +182,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     return _app
 
 
-def create_default_app(proxies: int = 5) -> flask.Flask:
+def create_main_app(proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
     Args:
@@ -189,6 +192,10 @@ def create_default_app(proxies: int = 5) -> flask.Flask:
     """
 
     _app = flask.Flask(__name__)
+
+    with _app.app_context():  # background thread to import data
+        thread = threading.Thread(target=FEED_LOADER.import_and_run)
+        thread.start()
 
     @_app.route("/")
     def index():
@@ -285,21 +292,19 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         action="store_true",
         help="Import data from GTFS feed.",
     )
-
-    _argparse.add_argument(
-        "--frontend",
-        "-f",
-        action="store_true",
-        # default=True,
-        help="Run flask ONLY - overrides --import_data.",
-    )
-
     _argparse.add_argument(
         "--port",
         "-p",
         type=int,
         default=80,
         help="Port to run the server on.",
+    )
+
+    _argparse.add_argument(
+        "--debug",
+        "-d",
+        action="store_true",
+        help="flask app debug mode",
     )
 
     _argparse.add_argument(
@@ -330,17 +335,11 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
     return _argparse
 
 
-# from gtfs_orms import Alert, Vehicle
-
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
-    # FEED_LOADER.get_shape_features("subway", Query("1", "0"))
-    # FEED_LOADER.get_stop_features("commuter_rail", Query("2", "4"))
-    # FEED_LOADER.get_orm_json(StopTime, stop_id="70061")
-    # args.frontend = True
-    if args.frontend:
-        app = create_default_app(args.proxies)
-        app.run(debug=True, port=args.port, host=args.host)
-    else:
-        FEED_LOADER.import_and_run(import_data=args.import_data)
+    if args.import_data:
+        FEED_LOADER.nightly_import()
+        FEED_LOADER.geojson_exports()
+    app = create_main_app(args.proxies)
+    app.run(debug=args.debug, port=args.port, host=args.host)

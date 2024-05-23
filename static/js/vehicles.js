@@ -67,7 +67,7 @@ function plotVehicles(options) {
       return f.id;
     },
     onEachFeature(f, l) {
-      VEHICLES[f.id] = l;
+      VEHICLES[`${f.id}`] = l;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
         l.bindTooltip(f.properties.trip_short_name || f.id);
@@ -99,7 +99,7 @@ function plotVehicles(options) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
         const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
-        VEHICLES[id] = layer;
+        VEHICLES[`${id}`] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getVehicleText(feature.properties), textboxSize);
@@ -415,9 +415,9 @@ async function setDefaultVehicleSideBarSummary(data) {
       content += `<tr>
     <td><a style='color:#${
       d.properties.route.route_color
-    }' onclick="setTimeout(() => {VEHICLES[${
+    }' onclick="setTimeout(() => {VEHICLES['${
         d.id
-      }].fire('click')}, 200)">${trip}</a></td>
+      }'].fire('click')}, 200)">${trip}</a></td>
     <td>${headsign.replace("/", " / ")}</td>
     <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
     </tr>`;
