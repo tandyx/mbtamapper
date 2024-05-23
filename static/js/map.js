@@ -5,7 +5,7 @@ window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   document.addEventListener("click", function (event) {
     if (!event.target.closest(".nav")) {
-      let menuToggle = document.getElementById("menu-toggle");
+      const menuToggle = document.getElementById("menu-toggle");
       if (menuToggle.checked) menuToggle.checked = false;
     }
   });

@@ -19,15 +19,12 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader, Query
 
-STATIC_FOLDER: str = "static"
 GEOJSON_FOLDER: str = "geojsons"
-with open(
-    os.path.join(STATIC_FOLDER, "config", "route_keys.json"), "r", encoding="utf-8"
-) as file:
-    KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(file)
+with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
+    KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(f)
 FEED_LOADER: FeedLoader = FeedLoader(
     url="https://cdn.mbta.com/MBTA_GTFS.zip",
-    geojson_path=os.path.join(os.getcwd(), STATIC_FOLDER, GEOJSON_FOLDER),
+    geojson_path=os.path.join(os.getcwd(), "static", GEOJSON_FOLDER),
     keys_dict={k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
