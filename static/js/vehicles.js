@@ -23,7 +23,7 @@ const HEX_TO_CSS = {
     "filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%);",
   "80276C":
     "filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%);",
-  "005595":
+  "006595":
     "filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%);",
   "00843D":
     "filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%);",
@@ -34,6 +34,7 @@ const HEX_TO_CSS = {
   ffffff:
     "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
 };
+const VEHICLES = {};
 
 /**
  * wrapper for `fillPredictionVehicleData` and `fillAlertVehicleData`
@@ -65,12 +66,14 @@ function plotVehicles(options) {
       return f.id;
     },
     onEachFeature(f, l) {
+      VEHICLES[`${f.id}`] = l;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
         l.bindTooltip(f.properties.trip_short_name || f.id);
       }
       l.setIcon(
         getVehicleIcon(
+          f.id,
           f.properties.bearing,
           f.properties.route_color,
           f.properties.display_name
@@ -88,16 +91,20 @@ function plotVehicles(options) {
   // });
 
   realtime.on("update", function (e) {
+    if (!window.mobileCheck() || !inIframe())
+      setDefaultVehicleSideBarSummary(e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
         const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
+        VEHICLES[`${id}`] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getVehicleText(feature.properties), textboxSize);
         layer.setIcon(
           getVehicleIcon(
+            id,
             feature.properties.bearing,
             feature.properties.route_color,
             feature.properties.display_name
@@ -154,16 +161,7 @@ async function fillPredictionVehicleData(trip_id) {
         .map(function (d) {
           const realDeparture = d.departure_time || d.arrival_time;
           if (!realDeparture || realDeparture < Date().valueOf()) return "";
-          let delayText = d.delay ? `${Math.floor(d.delay / 60)}` : "";
-          if (delayText === "0") {
-            delayText = "";
-          } else if (d.delay > 0) {
-            delayText = `+${delayText}`;
-          }
-          if (delayText) {
-            delayText += " min";
-          }
-
+          const delayText = getDelayText(d.delay);
           let stopTimeClass,
             tooltipText = "";
           if (d.stop_time) {
@@ -179,7 +177,6 @@ async function fillPredictionVehicleData(trip_id) {
               // d.stop_name += " <span class='fa'>&#xf023;</span>";
             }
           }
-
           return `<tr>
             <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${d.stop_name}</td>
             <td>
@@ -197,6 +194,10 @@ async function fillPredictionVehicleData(trip_id) {
     }, 400);
   }
 }
+
+/**
+ *
+ */
 
 /**
  *  fill alert prediction data
@@ -240,17 +241,21 @@ async function fillAlertVehicleData(trip_id) {
 
 /**
  * return icon div
+ * @param {string} id - vehicle id
  * @param {string} bearing - icon to display
  * @param {string} color - color of icon
  * @param {string} displayString - text to display
  * @returns {L.divIcon} - div icon
  */
 
-function getVehicleIcon(bearing, color, displayString = null) {
+function getVehicleIcon(id, bearing, color, displayString = null) {
   const div = document.createElement("div");
+
   div.classList.add("vehicle_wrapper");
 
   const img = document.createElement("img");
+  img.id = id;
+  img.name = id;
   img.src = "static/img/icon.png";
   img.alt = "vehicle";
   img.width = 60;
@@ -287,10 +292,17 @@ function getVehicleText(properties) {
       : "https://mbta.com/schedules/" + self.properties.route_id
   }" target="_blank" style="color:#${
     properties.route_color
-  }" class="popup_header">${properties.trip_short_name}</a></p><p>${
-    DIRECTION_MAPPER[properties.direction_id]
-  } to ${properties.headsign}</p>
-  `;
+  }" class="popup_header">${properties.trip_short_name}</a></p>`;
+  if (properties.trip_short_name === "552") {
+    vehicleText.innerHTML += `<p>heart to hub</p>`;
+  } else if (properties.trip_short_name === "549") {
+    vehicleText.innerHTML += `<p>hub to heart</p>`;
+  } else {
+    vehicleText.innerHTML += `<p>${
+      DIRECTION_MAPPER[properties.direction_id] || "null"
+    } to ${properties.headsign}</p>
+    `;
+  }
   vehicleText.innerHTML += `<hr>`;
   if (properties.bikes_allowed) {
     vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>&nbsp;&nbsp;&nbsp;`;
@@ -298,9 +310,9 @@ function getVehicleText(properties) {
   vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
   vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;&nbsp;&nbsp;&nbsp;</span>`;
   // vehicleText.innerHTML += `</p>`;
-  if (properties.trip_properties.length) {
-    console.log();
-  }
+  // if (properties.trip_properties.length) {
+  //   console.log();
+  // }
 
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
@@ -380,49 +392,37 @@ function getVehicleText(properties) {
 /**
  *  Set the vehicle sidebar summary
  * @param {L.sidebar} sidebar - sidebar object
- * @param {object} data - vehicle data
+ * @param {Object} data - vehicle data
  */
 
-function setVehicleSideBarSummary(sidebar, data) {
-  // const sidebar = addSidebar();
-  // const sidebar = addSidebar();
-  // sidebar.innerHTML = "";
-  const summary = document.createElement("div");
-  summary.classList.add("inner-sidebar-content");
-  summary.id = "summary";
-  summary.innerHTML = `
-  <h1>Summary</h1>
-  <p>There are ${
-    Object.keys(data).length
-  } vehicles currently on the mapdasdasdasdasudhasjhdkjashdjkashdjkashdksah dkjahsgdsagdsahdgsgakdjksa.</p>
-  <div id="piechart"></div>
-  `;
-  // createDelayPiechart("piechart",
-  const delayCounts = Object.values(data)
-    .map((properties) => properties.properties.next_stop?.delay)
-    .filter((delay) => delay !== null)
-    .reduce((counts, delay) => {
-      counts[getDelayClassName(delay)] =
-        (counts[getDelayClassName(delay)] || 0) + 1;
-      return counts;
-    }, {});
-  if (!document.getElementById("summary_")) {
-    setTimeout(() => {
-      sidebar.addPanel({
-        id: "summary_",
-        tab: "<i class='fa>&#xf05a;</i>",
-        pane: summary,
-      });
-    }, 2000);
-  }
+async function setDefaultVehicleSideBarSummary(data) {
+  // const key = await (await fetch("key")).json();
+  // let content = `<h2 class='color-${key}'>${titleCase(key).toLowerCase()}</h2>`;
+  let content = "";
 
-  // sidebar.addPanel({
-  //   id: "ghlink",
-  //   tab: '<i class="fa fa-github"></i>',
-  //   button: "https://github.com/noerw/leaflet-sidebar-v2",
-  // });
+  // content += "<hr />";
+  content += "<p><table class='data-table'>";
+  content += "<tr><th>train</th><th>headsign</th><th>delay</th></tr>";
+  Object.values(data)
+    // .map((e) => e.properties)
+    .forEach(function (d) {
+      const headsign = d.properties.headsign;
+      const trip = d.properties.trip_short_name;
+      const delay = d.properties.next_stop ? d.properties.next_stop.delay : 0;
+      const delayText = getDelayText(delay);
 
-  createDelayPiechart("piechart", delayCounts);
+      content += `<tr>
+    <td><a style='color:#${
+      d.properties.route.route_color
+    };cursor:pointer;' onclick="setTimeout(() => {VEHICLES['${
+        d.id
+      }'].fire('click')}, 200)">${trip}</a></td>
+    <td>${headsign.replace("/", " / ")}</td>
+    <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
+    </tr>`;
+    });
+  content += "</table></p>";
+  setSideBarContent(content, "sidebar-default-content");
 }
 
 /**
@@ -442,65 +442,4 @@ function getDelayClassName(delay) {
     return "slight-delay";
   }
   return "on-time";
-}
-
-/**
- * creates a pie chart for the delay
- * @param {string} id - The id of the div to put the pie chart in
- * @param {Object} properties - The delay properties
- * @returns {void}
- */
-function createDelayPiechart(id, properties) {
-  const font = getComputedStyle(document.body).getPropertyValue(
-    "--font-family"
-  );
-  const styleSheet = getStylesheet("index");
-  const data = [
-    {
-      values: Object.values(properties),
-      labels: Object.keys(properties).map((label) => titleCase(label, "-")),
-      textinfo: "label",
-      marker: {
-        colors: Object.keys(properties).map((label) => {
-          const color = getStyleRuleValue("color", `.${label}`, styleSheet);
-          if (color.startsWith("var")) {
-            return getComputedStyle(document.body).getPropertyValue(
-              color.replace("var(", "").replace(")", "") || "#f2f2f2"
-            );
-          }
-          return color;
-        }),
-      },
-      type: "pie",
-      hoverlabel: {
-        borderRadius: 10,
-        font: { family: font, size: 15 },
-      },
-      hovertemplate: "%{label}: %{percent} <extra></extra>",
-      outsidetextfont: { color: "transparent" },
-      responsive: true,
-    },
-  ];
-
-  const layout = {
-    autosize: true,
-    showlegend: false,
-    font: {
-      family: font,
-      size: 15,
-      color: "#f2f2f2",
-    },
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(0,0,0,0)",
-    margin: {
-      l: 0,
-      r: 0,
-      b: 0,
-      t: 0,
-      pad: -30,
-    },
-    height: 300,
-  };
-
-  Plotly.newPlot(id, data, layout, { responsive: true });
 }

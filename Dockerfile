@@ -13,5 +13,5 @@ COPY . .
 RUN apt-get install -y tzdata
 ENV TZ=America/New_York
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
-
-ENTRYPOINT ["sh", "./start.sh"]
+# python3 -m waitress --listen=*:80 --threads=50 --call main:create_default_app
+CMD ["python3", "-m", "waitress", "--listen=*:80", "--threads=50", "--call", "main:create_main_app"]
