@@ -29,11 +29,11 @@ python3 app.py
 production
 
 ```sh
-python3 -m waitress --listen=*:80 --threads=50 --call main:create_default_app &
+python3 -m waitress --listen=*:80 --threads=50 --call main:create_main_app &
 wait
 ```
 
-calling `app.py` with no arguments triggers a build process if there's no geojson data and the database doesn't exist. the `-i` (--import-data) flag forces a rebuild. other flags typically refer to testing the frontend locally, but this should be done with waitress (see [`/start.sh`](start.sh)).
+calling `app.py` with no arguments triggers a build process if there's no geojson data and the database doesn't exist. the `-i` (--import-data) flag forces a rebuild.
 
 every night at 3am est, the database rebuilds. at 3:30am est, map layers are updated (this is the process that takes a while).
 
