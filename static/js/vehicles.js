@@ -23,7 +23,7 @@ const HEX_TO_CSS = {
     "filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%);",
   "80276C":
     "filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%);",
-  "005595":
+  "006595":
     "filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%);",
   "00843D":
     "filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%);",
@@ -34,7 +34,6 @@ const HEX_TO_CSS = {
   ffffff:
     "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
 };
-
 const VEHICLES = {};
 
 /**
@@ -415,7 +414,7 @@ async function setDefaultVehicleSideBarSummary(data) {
       content += `<tr>
     <td><a style='color:#${
       d.properties.route.route_color
-    }' onclick="setTimeout(() => {VEHICLES['${
+    };cursor:pointer;' onclick="setTimeout(() => {VEHICLES['${
         d.id
       }'].fire('click')}, 200)">${trip}</a></td>
     <td>${headsign.replace("/", " / ")}</td>
