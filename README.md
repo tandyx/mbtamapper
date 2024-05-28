@@ -14,6 +14,8 @@ cd mbtamapper
 ```
 
 ```sh
+python3 -m venv .venv
+source .venv/bin/activate
 pip3 install --upgrade -r requirements.txt
 # pip3 install --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --upgrade -r requirements.txt
 ```
