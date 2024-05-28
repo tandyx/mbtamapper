@@ -4,6 +4,8 @@ sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
 ## setup
 
+requires python 3.10+ and node 20+
+
 ### building
 
 ```sh
@@ -13,9 +15,11 @@ cd mbtamapper
 
 ```sh
 pip3 install --upgrade -r requirements.txt
-cd static && 
-  npm install && 
-  cd ..
+# pip3 install --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --upgrade -r requirements.txt
+```
+
+```sh
+npm run install --prefix static
 ```
 
 ### running
