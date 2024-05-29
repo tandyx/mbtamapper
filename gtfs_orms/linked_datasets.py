@@ -8,7 +8,7 @@ import time
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import requests as rq
+import requests as req
 from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
 from sqlalchemy.orm import Mapped, mapped_column
@@ -110,7 +110,7 @@ class LinkedDataset(Base):
             - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         feed_entity = FeedMessage()
-        response = rq.get(self.url, timeout=10)
+        response = req.get(self.url, timeout=10)
         if not response.ok:
             logging.error("Error retrieving data from %s", self.url)
             return pd.DataFrame()
