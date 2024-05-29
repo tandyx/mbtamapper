@@ -83,8 +83,8 @@ class Feed(Query):
             automitcally called when a connection is created.
 
         Args:
-            dbapi_connection (sqlite3.Connection): connection to sqlite database
-            connection_record (ConnectionRecord, optional): connection record
+            - `dbapi_connection (sqlite3.Connection)`: connection to sqlite database
+            - `connection_record (ConnectionRecord, optional)`: connection record
         """
 
         if not isinstance(dbapi_connection, sqlite3.Connection):
@@ -107,8 +107,8 @@ class Feed(Query):
         """Sets sqlite pragma on close automatically.
 
         Args:
-            dbapi_connection (sqlite3.Connection): connection to sqlite database
-            connection_record (ConnectionRecord, optional): connection record
+            - `dbapi_connection (sqlite3.Connection)`: connection to sqlite database
+            - `connection_record (ConnectionRecord, optional)`: connection record
         """
         if not isinstance(dbapi_connection, sqlite3.Connection):
             logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
@@ -212,7 +212,7 @@ class Feed(Query):
             raise ValueError(f"{orm} is not a realtime ORM")
         dataset: list[LinkedDataset] = session.execute(
             self.get_dataset_query(orm.__realtime_name__)
-        ).first()
+        ).one_or_none()
         if not dataset:
             return
         self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
