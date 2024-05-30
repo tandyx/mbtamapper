@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: "./static/package-lock.json"
+          # cache-dependency-path: "./static/package-lock.json"
       - run: npm run install --prefix ./static
       # - run: yarn
       # - run: npm install -g eslint
