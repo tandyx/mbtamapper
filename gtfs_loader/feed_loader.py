@@ -74,7 +74,11 @@ class FeedLoader(Scheduler, Feed):
 
         if import_data or not os.path.exists(self.db_path):
             self.nightly_import(**kwargs)
-        if import_data or not os.path.exists(self.geojson_path):
+        if import_data or not all(
+            os.path.exists(os.path.join(self.geojson_path, k, fname))
+            for k in self.keys_dict
+            for fname in [self.SHAPES_FILE, self.PARKING_FILE, self.STOPS_FILE]
+        ):
             self.geojson_exports()
         self.run(timezone=timezone)
 

@@ -15,6 +15,7 @@
     "eslint-config-google": "^0.14.0"
   },
   "scripts": {
-    "install": "npm install"
+    "install": "npm install",
+    "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
   }
 }
