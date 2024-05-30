@@ -53,7 +53,7 @@ function createMap(id, route_type) {
   // });
 
   const baseLayers = getBaseLayerDict(...Array(2));
-  baseLayers[getDefaultCookie("darkMode", "light")].addTo(map);
+  baseLayers[getDefaultCookie("darkMode", "light", 90)].addTo(map);
   let stop_layer = L.layerGroup().addTo(map);
   stop_layer.name = "stops";
 
@@ -108,7 +108,7 @@ function createMap(id, route_type) {
   });
 
   map.on("baselayerchange", function (event) {
-    setCookie("darkMode", event.name);
+    setCookie("darkMode", event.name, 90);
   });
 
   if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
@@ -183,17 +183,17 @@ function getBaseLayerDict(
 }
 
 function addSidebarDrag() {
-  setCssVar("--sidebar-width", getDefaultCookie("sidebarWidth", "250px"));
+  setCssVar("--sidebar-width", getDefaultCookie("sidebarWidth", "300px"));
   const sidebar = document.getElementById("sidebar");
   const sidebarHandle = document.getElementById("sidebar-handle");
-  const minWidth = 250; // 250px
+  const minWidth = 300; // 250px
 
   function resize(e) {
     document.body.classList.add("noselect");
     const size = parseInt(getStyle(document.body, "width").trimEnd("px")) - e.x;
     if (size < minWidth || size > window.innerWidth) return;
     setCssVar("--sidebar-width", `${size}px`);
-    setCookie("sidebarWidth", `${size}px`);
+    setCookie("sidebarWidth", `${size}px`, 1);
   }
 
   sidebarHandle.addEventListener("mousedown", (event) => {
