@@ -304,6 +304,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--debug",
         "-d",
         action="store_true",
+        default=True,
         help="flask app debug mode",
     )
 
