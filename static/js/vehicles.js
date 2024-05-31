@@ -284,6 +284,20 @@ function getVehicleIcon(id, bearing, color, displayString = null) {
 function getVehicleText(properties) {
   const vehicleText = document.createElement("div");
   const formattedTimestamp = formatTimestamp(properties.timestamp, "%I:%M %P");
+  const platformName =
+    properties.route &&
+    properties.route.route_type == "2" &&
+    properties.next_stop &&
+    properties.next_stop.platform_name
+      ? properties.next_stop.platform_name
+          .toLowerCase()
+          .replace("commuter rail", "")
+          .replace("(all trains)", "")
+          .replace("(outbound)", "")
+          .replace("(boston)", "")
+          .replace("-", "")
+          .trim()
+      : "";
   vehicleText.innerHTML = `
   <p>
   <a href="${
@@ -382,7 +396,7 @@ function getVehicleText(properties) {
   vehicleText.innerHTML += `<div class = "popup_footer">
     <p>${properties.vehicle_id} @ ${
     properties.route ? properties.route.route_name : "unknown"
-  }</p>
+  } ${platformName}</p>
     <p>${formatTimestamp(properties.timestamp)}</p>
     </div>
   `;

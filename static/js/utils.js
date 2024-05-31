@@ -294,13 +294,14 @@ function getCookie(name) {
  * gets a default cookie value, sets the cookie if it does not exist
  * @param {string} name
  * @param {string} value
+ * @param {number | null} numDays
  * @returns {string} - the value of the cookie
  */
-function getDefaultCookie(name, value = "") {
+function getDefaultCookie(name, value = "", numDays = null) {
   let cookie = getCookie(name);
   if (!cookie) {
     cookie = value;
-    setCookie(name, value);
+    setCookie(name, value, numDays);
   }
   return cookie;
 }

@@ -20,17 +20,21 @@ def removes_session(_func: Callable[..., Any]):
 
     def _removes_session(*args, **kwargs):
         res = None
+        exception: bool = False
         try:
             res = _func(*args, **kwargs)
         except Exception as err:  # pylint: disable=broad-except
             logging.error(
                 "Error in %s: %s %s", _func.__name__, err, traceback.format_exc()
             )
+            exception = True
         for arg in args:
             for attr_name in dir(arg):
                 attr = getattr(arg, attr_name)
                 if isinstance(attr, scoped_session):
                     attr.remove()
+                    if exception:  # this may be a problem in the future;
+                        attr.rollback()
                     return res
         return res
 
