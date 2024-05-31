@@ -30,5 +30,5 @@ class Agency(Base):
     agency_phone: Mapped[str]
 
     routes: Mapped[list["Route"]] = relationship(
-        "Route", back_populates="agency", passive_deletes=True
+        back_populates="agency", passive_deletes=True
     )

@@ -1,8 +1,6 @@
 """File to hold the LinkedDataset class and its associated methods."""
 
 # pylint: disable=no-name-in-module
-# pylint: disable=wildcard-import
-# pylint: disable=unused-wildcard-import
 import logging
 import time
 from typing import TYPE_CHECKING

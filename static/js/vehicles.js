@@ -291,10 +291,7 @@ function getVehicleText(properties) {
     properties.next_stop.platform_name
       ? properties.next_stop.platform_name
           .toLowerCase()
-          .replace("commuter rail", "")
-          .replace("(all trains)", "")
-          .replace("(outbound)", "")
-          .replace("(boston)", "")
+          .replace(/ *\([^)]*\) */g, "")
           .replace("-", "")
           .trim()
       : "";
