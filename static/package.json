@@ -9,13 +9,5 @@
     "leaflet.markercluster": "^1.5.3",
     "plotly.js-dist-min": "^2.31.0",
     "strftime": "^0.10.2"
-  },
-  "devDependencies": {
-    "eslint": "^8.53.0",
-    "eslint-config-google": "^0.14.0"
-  },
-  "scripts": {
-    "install": "npm install",
-    "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
   }
 }

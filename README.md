@@ -21,7 +21,7 @@ pip3 install --upgrade -r requirements.txt
 ```
 
 ```sh
-npm run install --prefix static
+cd static && npm install && cd ..
 ```
 
 ### running
