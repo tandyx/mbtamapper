@@ -32,14 +32,14 @@ FEED_LOADER: FeedLoader = FeedLoader(
 )
 
 
-def _error404(_app: flask.Flask, error: Exception = None) -> str:
+def _error404(_app: flask.Flask, error: Exception = None) -> tuple[str, int]:
     """Returns 404.html // should only be used in the\
         context of a 404 error.
 
     Args:
         - `error (Exception)`: Error to log. \n
     Returns:
-        - `str`: 404.html.
+        - `tuple[str, int]`: 404.html and 404 status code.
     """
     if error:
         logging.error(error)
@@ -193,7 +193,7 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
-    with _app.app_context():  # background thread to import data
+    with _app.app_context():  # background thread to run update
         thread = threading.Thread(target=FEED_LOADER.import_and_run)
         thread.start()
 
@@ -206,6 +206,17 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
         """
 
         return flask.render_template("index.html", content=KEY_DICT)
+
+    @_app.teardown_appcontext
+    def shutdown_session(exception: Exception = None) -> None:
+        """Tears down database session.
+
+        Args:
+            - `exception (Exception, optional)`: Exception to log. Defaults to None.
+        """
+        FEED_LOADER.scoped_session.remove()
+        if exception:
+            logging.error(exception)
 
     @_app.route("/favicon.ico")
     def favicon() -> str:
