@@ -182,7 +182,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     return _app
 
 
-def create_main_app(proxies: int = 5) -> flask.Flask:
+def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
     Args:
@@ -194,7 +194,9 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
     _app = flask.Flask(__name__)
 
     with _app.app_context():  # background thread to run update
-        thread = threading.Thread(target=FEED_LOADER.import_and_run)
+        thread = threading.Thread(
+            target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
+        )
         thread.start()
 
     @_app.route("/")
@@ -301,14 +303,10 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--import_data",
         "-i",
         action="store_true",
-        help="Import data from GTFS feed.",
+        help="run import of database + export of geojson files",
     )
     _argparse.add_argument(
-        "--port",
-        "-p",
-        type=int,
-        default=80,
-        help="Port to run the server on.",
+        "--port", "-p", type=int, default=80, help="app.run() only: server port"
     )
 
     _argparse.add_argument(
@@ -316,13 +314,11 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "-d",
         action="store_true",
         default=True,
-        help="flask app debug mode",
+        help="app.run() only: debug mode",
     )
 
     _argparse.add_argument(
-        "--host",
-        default="127.0.0.1",
-        help="Host to run the server on.",
+        "--host", default="127.0.0.1", help="app.run() only: server host address"
     )
 
     _argparse.add_argument(
@@ -330,7 +326,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "-x",
         type=int,
         default=5,
-        help="Number of proxies to allow on connection.",
+        help="number of proxies to allow on connection.",
     )
 
     _argparse.add_argument(
@@ -350,8 +346,5 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
-    if args.import_data:
-        FEED_LOADER.nightly_import()
-        FEED_LOADER.geojson_exports()
-    app = create_main_app(args.proxies)
+    app = create_main_app(args.import_data, args.proxies)
     app.run(debug=args.debug, port=args.port, host=args.host)
