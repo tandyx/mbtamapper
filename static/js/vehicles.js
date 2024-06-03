@@ -291,6 +291,7 @@ function getVehicleText(properties) {
       ? properties.next_stop.platform_name
           .toLowerCase()
           .replace(/ *\([^)]*\) */g, "")
+          .replace("commuter rail", "")
           .replace("-", "")
           .trim()
       : "";
@@ -326,14 +327,13 @@ function getVehicleText(properties) {
 
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
+      const tmsp =
+        properties.next_stop?.arrival_time ||
+        properties.next_stop?.departure_time;
+      const fmttmsp = tmsp ? formatTimestamp(tmsp, "%I:%M %P") : "";
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
-      )} ${properties.stop_time.stop_name} - ${formatTimestamp(
-        properties.next_stop?.arrival_time ||
-          properties.next_stop?.departure_time ||
-          null,
-        "%I:%M %P"
-      )}</p>`;
+      )} ${properties.stop_time.stop_name} - ${fmttmsp}</p>`;
     } else {
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status

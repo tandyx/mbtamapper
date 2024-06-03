@@ -307,11 +307,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
     )
 
     _argparse.add_argument(
-        "--debug",
-        "-d",
-        action="store_true",
-        default=True,
-        help="app.run() only: debug mode",
+        "--debug", "-d", action="store_true", help="app.run() only: debug mode"
     )
 
     _argparse.add_argument(
@@ -343,5 +339,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
+    if args.import_data and args.debug:
+        logging.warning("Import data and debug mode are not compatible.")
     app = create_main_app(args.import_data, args.proxies)
     app.run(debug=args.debug, port=args.port, host=args.host)
