@@ -14,7 +14,7 @@ import difflib
 import json
 import logging
 import os
-import threading
+import threading as t
 
 import flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -22,12 +22,12 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader, Query
 
-GEOJSON_FOLDER: str = "geojsons"
+LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
     KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(f)
 FEED_LOADER: FeedLoader = FeedLoader(
     url="https://cdn.mbta.com/MBTA_GTFS.zip",
-    geojson_path=os.path.join(os.getcwd(), "static", GEOJSON_FOLDER),
+    geojson_path=os.path.join(os.getcwd(), "static", LAYER_FOLDER),
     keys_dict={k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
@@ -109,11 +109,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: geojson of stops.
         """
-        return flask.redirect(
-            flask.url_for(
-                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}"
-            )
-        )
+        return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}")
 
     @_app.route("/parking")
     @_app.route("/facilities")
@@ -125,11 +121,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: geojson of parking.
         """
-        return flask.redirect(
-            flask.url_for(
-                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}"
-            )
-        )
+
+        return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}")
 
     @_app.route("/routes")
     @_app.route("/shapes")
@@ -143,11 +136,16 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             - `str`: geojson of routes.
         """
 
-        return flask.redirect(
-            flask.url_for(
-                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}"
-            )
-        )
+        return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}")
+
+    @_app.route("/favicon.ico")
+    def favicon() -> str:
+        """Returns favicon.ico.
+
+        returns:
+            - `str`: favicon.ico.
+        """
+        return _app.send_static_file("img/all_routes.ico")
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception = None) -> None:
@@ -186,6 +184,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
     Args:
+        - `import_data (bool, optional)`: Whether to import data. Defaults to False.
         - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
         - `Flask`: default app.
@@ -194,7 +193,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     _app = flask.Flask(__name__)
 
     with _app.app_context():  # background thread to run update
-        thread = threading.Thread(
+        thread = t.Thread(
             target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
         )
         thread.start()
@@ -227,9 +226,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: favicon.ico.
         """
-        return flask.send_from_directory(
-            os.path.join(_app.root_path, "static", "img"), "all_routes.ico"
-        )
+        return _app.send_static_file("img/all_routes.ico")
 
     @_app.route("/api/<orm_name>")
     def orm_api(orm_name: str) -> str:
