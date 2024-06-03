@@ -292,10 +292,11 @@ function getCookie(name) {
 
 /**
  * gets a default cookie value, sets the cookie if it does not exist
- * @param {string} name
- * @param {string} value
- * @param {number | null} numDays
+ * @param {string} name - the name of the cookie
+ * @param {string} value - default "" value of the cookie
+ * @param {number | null} numDays - the number of days until the cookie expires or null if it never expires
  * @returns {string} - the value of the cookie
+ * @example let user = getDefaultCookie("username", "johan", 10);
  */
 function getDefaultCookie(name, value = "", numDays = null) {
   let cookie = getCookie(name);
@@ -309,7 +310,7 @@ function getDefaultCookie(name, value = "", numDays = null) {
 /**
  * gets the value (style) of a css var
  * @param {string} name - the name of the css variable
- * @returns {string} - the value of the css variable
+ * @returns {string} the value of the css variable
  */
 
 function getCssVar(name) {

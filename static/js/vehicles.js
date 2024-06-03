@@ -97,7 +97,7 @@ function plotVehicles(options) {
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
-        const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
+        const wasOpen = layer.getPopup()?.isOpen() || false;
         VEHICLES[`${id}`] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
@@ -164,19 +164,18 @@ async function fillPredictionVehicleData(trip_id) {
           const delayText = getDelayText(d.delay);
           let stopTimeClass,
             tooltipText = "";
-          if (d.stop_time) {
-            if (d.stop_time.flag_stop) {
-              stopTimeClass = "flag_stop tooltip";
-              tooltipText = "flag stop";
-              // d.stop_name += " <span class='fa'>&#xf024;</span>";
-              d.stop_name += "<i> f</i>";
-            } else if (d.stop_time.early_departure) {
-              stopTimeClass = "early_departure tooltip";
-              tooltipText = "early departure";
-              d.stop_name += "<i> L</i>";
-              // d.stop_name += " <span class='fa'>&#xf023;</span>";
-            }
+          if (d.stop_time?.flag_stop) {
+            stopTimeClass = "flag_stop tooltip";
+            tooltipText = "flag stop";
+            // d.stop_name += " <span class='fa'>&#xf024;</span>";
+            d.stop_name += "<i> f</i>";
+          } else if (d.stop_time?.early_departure) {
+            stopTimeClass = "early_departure tooltip";
+            tooltipText = "early departure";
+            d.stop_name += "<i> L</i>";
+            // d.stop_name += " <span class='fa'>&#xf023;</span>";
           }
+
           return `<tr>
             <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${d.stop_name}</td>
             <td>
@@ -330,10 +329,9 @@ function getVehicleText(properties) {
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
       )} ${properties.stop_time.stop_name} - ${formatTimestamp(
-        properties.next_stop
-          ? properties.next_stop.arrival_time ||
-              properties.next_stop.departure_time
-          : null,
+        properties.next_stop?.arrival_time ||
+          properties.next_stop?.departure_time ||
+          null,
         "%I:%M %P"
       )}</p>`;
     } else {
@@ -419,7 +417,7 @@ async function setDefaultVehicleSideBarSummary(data) {
     .forEach(function (d) {
       const headsign = d.properties.headsign;
       const trip = d.properties.trip_short_name;
-      const delay = d.properties.next_stop ? d.properties.next_stop.delay : 0;
+      const delay = d.properties.next_stop?.delay || 0;
       const delayText = getDelayText(delay);
 
       content += `<tr>

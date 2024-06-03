@@ -46,7 +46,7 @@ function plotStops(options) {
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
-        const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
+        const wasOpen = layer.getPopup()?.isOpen() || false;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getStopText(feature.properties), textboxSize);
@@ -86,7 +86,7 @@ function getStopText(properties) {
   <a href="${
     properties.stop_url
   }" rel="noopener" target="_blank" style="color:#${
-    primaryRoute ? primaryRoute.route_color : "var(--text-color)"
+    primaryRoute?.route_color || "var(--text-color)"
   }"  class="popup_header">${properties.stop_name.replace("/", " / ")}</a>
   </p>`;
   stopHtml.innerHTML += `<p class="popup_subheader">${
@@ -226,7 +226,7 @@ async function fillPredictionsStopData(stop_id, child_stops) {
           <td style='color:#${
             d.route.route_color
           }'>${d.route.route_name.replace(" Line", "").replace("/", " / ")}</td>
-          <td>${d.trip ? d.trip.trip_short_name || d.trip_id : d.trip_id}</td>
+          <td>${d.trip?.trip_short_name || d.trip_id}</td>
           <td>${d.headsign}</td>
           <td>
             ${formatTimestamp(realDeparture, "%I:%M %P")}
