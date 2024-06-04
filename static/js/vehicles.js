@@ -34,7 +34,7 @@ const HEX_TO_CSS = {
   ffffff:
     "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
 };
-const VEHICLES = {};
+// const VEHICLES = {};
 
 /**
  * wrapper for `fillPredictionVehicleData` and `fillAlertVehicleData`
@@ -66,10 +66,10 @@ function plotVehicles(options) {
       return f.id;
     },
     onEachFeature(f, l) {
-      VEHICLES[`${f.id}`] = l;
+      // VEHICLES[`${f.id}`] = l;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
-        l.bindTooltip(f.properties.trip_short_name || f.id);
+        l.bindTooltip(f.id);
       }
       l.setIcon(
         getVehicleIcon(
@@ -98,7 +98,7 @@ function plotVehicles(options) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
         const wasOpen = layer.getPopup()?.isOpen() || false;
-        VEHICLES[`${id}`] = layer;
+        // VEHICLES[`${id}`] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getVehicleText(feature.properties), textboxSize);
@@ -270,6 +270,7 @@ function getVehicleIcon(id, bearing, color, displayString = null) {
   div.appendChild(span);
 
   return L.divIcon({
+    id: id,
     html: div,
     iconSize: [10, 10],
   });
@@ -419,13 +420,23 @@ async function setDefaultVehicleSideBarSummary(data) {
       const trip = d.properties.trip_short_name;
       const delay = d.properties.next_stop?.delay || 0;
       const delayText = getDelayText(delay);
+      // setTimeout(() => {VEHICLES['${
+      //   d.id
+      // }'].fire('click')}, 200)
+      _onclick = (iconId) => {
+        mapsPlaceholder[0].eachLayer((layer) => {
+          if (layer.options?.icon?.options?.id == iconId) {
+            layer.fire("click");
+          }
+        });
+      };
 
       content += `<tr>
     <td><a style='color:#${
       d.properties.route.route_color
-    };cursor:pointer;' onclick="setTimeout(() => {VEHICLES['${
+    };cursor:pointer;' onclick="setTimeout( () => {_onclick(${
         d.id
-      }'].fire('click')}, 200)">${trip}</a></td>
+      })}, 200)">${trip}</a></td>
     <td>${headsign.replace("/", " / ")}</td>
     <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
     </tr>`;

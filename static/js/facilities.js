@@ -7,10 +7,6 @@
  */
 function plotFacilities(options) {
   const { url, layer, textboxSize, isMobile } = options;
-  const facilityIcon = L.icon({
-    iconUrl: "static/img/parking.png",
-    iconSize: [15, 15],
-  });
 
   const realtime = L.realtime(url, {
     interval: 3600000,
@@ -26,7 +22,13 @@ function plotFacilities(options) {
       if (!isMobile) {
         l.bindTooltip(f.properties.facility_long_name);
       }
-      l.setIcon(facilityIcon);
+      l.setIcon(
+        L.icon({
+          id: f.id,
+          iconUrl: "static/img/parking.png",
+          iconSize: [15, 15],
+        })
+      );
       l.setZIndexOffset(-150);
     },
   });

@@ -143,14 +143,14 @@ function inIframe() {
  * @returns {string} - The value of the style property
  */
 function getStyle(id, styleProp) {
-  let x = typeof id === "string" ? document.getElementById(id) : id;
-  if (x.style[styleProp]) return x.style[styleProp];
+  const element = typeof id === "string" ? document.getElementById(id) : id;
+  if (element.style[styleProp]) return element.style[styleProp];
   if (window.getComputedStyle) {
     return document.defaultView
-      .getComputedStyle(x, null)
+      .getComputedStyle(element, null)
       .getPropertyValue(styleProp);
   }
-  if (x.currentStyle) return x.currentStyle[styleProp];
+  if (element.currentStyle) return element.currentStyle[styleProp];
 
   return;
 }
@@ -163,9 +163,7 @@ function getStyle(id, styleProp) {
  * @returns {string} - The truncated string
  */
 function truncateString(str, num, tail = "...") {
-  if (str.length <= num) {
-    return str;
-  }
+  if (str.length <= num) return str;
   return str.slice(0, num) + tail;
 }
 

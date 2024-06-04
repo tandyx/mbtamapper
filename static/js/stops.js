@@ -2,10 +2,18 @@
  * @file stops.js - Plot stops on map in realtime, updating every hour
  */
 
-const stopIcon = L.icon({
-  iconUrl: "static/img/mbta.png",
-  iconSize: [12, 12],
-});
+/**
+ *
+ * @param {string} id - id of the map div
+ * @returns {L.divIcon} - stop icon
+ */
+function getStopIcon(id) {
+  return L.icon({
+    id: id,
+    iconUrl: "static/img/mbta.png",
+    iconSize: [12, 12],
+  });
+}
 
 /** Plot stops on map in realtime, updating every hour
  * @param {Object} options - options for plotting stops
@@ -31,7 +39,7 @@ function plotStops(options) {
       if (!isMobile) {
         l.bindTooltip(f.properties.stop_name);
       }
-      l.setIcon(stopIcon);
+      l.setIcon(getStopIcon(f.id));
       l.setZIndexOffset(-100);
       l.on("click", function () {
         fillAlertStopData(f.properties.stop_id);

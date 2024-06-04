@@ -1,6 +1,12 @@
 /**
  * @file map.js - main map script
  */
+
+const mapsPlaceholder = [];
+L.Map.addInitHook(function () {
+  mapsPlaceholder.push(this);
+});
+
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   document.addEventListener("click", function (event) {
@@ -12,6 +18,7 @@ window.addEventListener("load", function () {
   createMap("map", ROUTE_TYPE);
   addSidebarDrag();
 });
+
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {string} route_type - route type
@@ -54,18 +61,18 @@ function createMap(id, route_type) {
 
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers[getDefaultCookie("darkMode", "light", 90)].addTo(map);
-  let stop_layer = L.layerGroup().addTo(map);
+  const stop_layer = L.layerGroup().addTo(map);
   stop_layer.name = "stops";
 
-  let shape_layer = L.layerGroup().addTo(map);
+  const shape_layer = L.layerGroup().addTo(map);
   shape_layer.name = "shapes";
 
-  let vehicle_layer = L.markerClusterGroup({
+  const vehicle_layer = L.markerClusterGroup({
     disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
   }).addTo(map);
   vehicle_layer.name = "vehicles";
 
-  let parking_lots = L.layerGroup();
+  const parking_lots = L.layerGroup();
   parking_lots.name = "parking";
 
   plotStops({
