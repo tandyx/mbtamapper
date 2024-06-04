@@ -267,14 +267,6 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         """
         return _error404(_app, error)
 
-    if proxies:
-        _app.wsgi_app = ProxyFix(
-            _app.wsgi_app,
-            x_for=proxies,
-            x_proto=proxies,
-            x_host=proxies,
-            x_prefix=proxies,
-        )
     _app.wsgi_app = DispatcherMiddleware(
         _app.wsgi_app,
         {f"/{key}": create_key_app(key, proxies).wsgi_app for key in KEY_DICT},
