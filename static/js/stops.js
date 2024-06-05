@@ -1,15 +1,18 @@
 /**
  * @file stops.js - Plot stops on map in realtime, updating every hour
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @exports {plotStops}
  */
 
+"use strict";
+
 /**
- *
- * @param {string} id - id of the map div
  * @returns {L.divIcon} - stop icon
  */
-function getStopIcon(id) {
+function getStopIcon() {
   return L.icon({
-    id: id,
     iconUrl: "static/img/mbta.png",
     iconSize: [12, 12],
   });

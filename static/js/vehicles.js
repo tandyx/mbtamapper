@@ -1,9 +1,14 @@
 /**
  * @file vehicles.js - Plot vehicles on map in realtime, updating every 15 seconds
+ * @module vehicles
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @typedef {import("./map.js")}
+ * @exports {plotVehicles}
  */
 
-// import * as L from "leaflet";
-// import * as Plotly from "plotly.js";
+"use strict";
 
 const DIRECTION_MAPPER = {
   0: "Outbound",
@@ -37,7 +42,7 @@ const HEX_TO_CSS = {
 // const VEHICLES = {};
 
 /**
- * wrapper for `fillPredictionVehicleData` and `fillAlertVehicleData`
+ * wrapper for @function fillPredictionVehicleData @function fillAlertVehicleData
  * @param {string} trip_id  - stop id
  */
 function fillVehicleDataWrapper(trip_id) {
@@ -65,15 +70,19 @@ function plotVehicles(options) {
     getFeatureId(f) {
       return f.id;
     },
+
+    /**
+     * @param {*} f
+     * @param {L.Layer} l
+     */
     onEachFeature(f, l) {
-      // VEHICLES[`${f.id}`] = l;
+      l.id = f.id;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
         l.bindTooltip(f.id);
       }
       l.setIcon(
         getVehicleIcon(
-          f.id,
           f.properties.bearing,
           f.properties.route_color,
           f.properties.display_name
@@ -104,7 +113,6 @@ function plotVehicles(options) {
         layer.bindPopup(getVehicleText(feature.properties), textboxSize);
         layer.setIcon(
           getVehicleIcon(
-            id,
             feature.properties.bearing,
             feature.properties.route_color,
             feature.properties.display_name
@@ -240,21 +248,19 @@ async function fillAlertVehicleData(trip_id) {
 
 /**
  * return icon div
- * @param {string} id - vehicle id
  * @param {string} bearing - icon to display
  * @param {string} color - color of icon
  * @param {string} displayString - text to display
  * @returns {L.divIcon} - div icon
  */
 
-function getVehicleIcon(id, bearing, color, displayString = null) {
+function getVehicleIcon(bearing, color, displayString = null) {
   const div = document.createElement("div");
 
   div.classList.add("vehicle_wrapper");
 
   const img = document.createElement("img");
-  img.id = id;
-  img.name = id;
+
   img.src = "static/img/icon.png";
   img.alt = "vehicle";
   img.width = 60;
@@ -270,7 +276,6 @@ function getVehicleIcon(id, bearing, color, displayString = null) {
   div.appendChild(span);
 
   return L.divIcon({
-    id: id,
     html: div,
     iconSize: [10, 10],
   });
@@ -424,8 +429,11 @@ async function setDefaultVehicleSideBarSummary(data) {
       //   d.id
       // }'].fire('click')}, 200)
       _onclick = (iconId) => {
-        mapsPlaceholder[0].eachLayer((layer) => {
-          if (layer.options?.icon?.options?.id == iconId) {
+        const mapRef = mapsPlaceholder[0];
+        mapRef.fitBounds(mapRef.options.maxBounds);
+        mapRef.eachLayer((layer) => {
+          if (layer?.id == iconId) {
+            mapRef.jumpTo(layer.getLatLng());
             layer.fire("click");
           }
         });
@@ -434,32 +442,13 @@ async function setDefaultVehicleSideBarSummary(data) {
       content += `<tr>
     <td><a style='color:#${
       d.properties.route.route_color
-    };cursor:pointer;' onclick="setTimeout( () => {_onclick(${
+    };cursor:pointer;' onclick="setTimeout( () => {_onclick('${
         d.id
-      })}, 200)">${trip}</a></td>
+      }')}, 200)">${trip}</a></td>
     <td>${headsign.replace("/", " / ")}</td>
     <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
     </tr>`;
     });
   content += "</table></p>";
   setSideBarContent(content, "sidebar-default-content");
-}
-
-/**
- * gets the delay class name
- * @param {int} delay - delay in seconds
- * @returns {string} - delay class name
- */
-
-function getDelayClassName(delay) {
-  if (delay >= 900) {
-    return "severe-delay";
-  }
-  if (delay >= 600) {
-    return "moderate-delay";
-  }
-  if (delay > 60) {
-    return "slight-delay";
-  }
-  return "on-time";
 }

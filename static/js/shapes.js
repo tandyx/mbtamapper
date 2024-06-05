@@ -1,3 +1,13 @@
+/**
+ * @file shapes.js - Plot stops on map in realtime, updating every hour
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @exports {plotShapes}
+ */
+
+"use strict";
+
 /** Plot shapes on map in realtime, updating every hour
  * @param {Object} options - options for plotting shapes
  * @param {string} options.url - url to geojson
@@ -16,8 +26,13 @@ function plotShapes(options) {
     cache: true,
     removeMissing: true,
     getFeatureId(f) {
-      return f.id;
+      return f.id; // geo
     },
+    /**
+     *
+     * @param {*} f
+     * @param {L.Polyline} l
+     */
     onEachFeature(f, l) {
       l.setStyle({
         color: `#${f.properties.route_color}`,

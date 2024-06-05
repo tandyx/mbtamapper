@@ -1,8 +1,11 @@
 /**
  * @file utils.js - misc utility functions
+ * @module utils
+ * @typedef {import("../node_modules/strftime/strftime.js")}
+ * @exports {*}
  */
 
-// import { strftime } from "strftime";
+"use strict";
 
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
@@ -382,4 +385,22 @@ function getDelayText(delay) {
     delayText += " min";
   }
   return delayText;
+}
+
+/**
+ * gets the delay class name
+ * @param {int} delay - delay in seconds
+ * @returns {string} - delay class name
+ */
+function getDelayClassName(delay) {
+  if (delay >= 900) {
+    return "severe-delay";
+  }
+  if (delay >= 600) {
+    return "moderate-delay";
+  }
+  if (delay > 60) {
+    return "slight-delay";
+  }
+  return "on-time";
 }

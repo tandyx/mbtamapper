@@ -1,3 +1,13 @@
+/**
+ * @file facilities.js - Plot stops on map in realtime, updating every hour
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @exports {plotFacilities}
+ */
+
+"use strict";
+
 /** Plot facilities on map in realtime, updating every hour
  * @param {string} options.url - url to geojson
  * @param {L.layerGroup} options.layer - layer to plot facilities on
@@ -24,7 +34,6 @@ function plotFacilities(options) {
       }
       l.setIcon(
         L.icon({
-          id: f.id,
           iconUrl: "static/img/parking.png",
           iconSize: [15, 15],
         })

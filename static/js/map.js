@@ -1,6 +1,21 @@
 /**
  * @file map.js - main map script
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet.markercluster")}
+ * @typedef {import("leaflet.locatecontrol")}
+ * @typedef {import("leaflet-search")}
+ * @typedef {import("leaflet-fullscreen")}
+ * @typedef {import("leaflet-providers")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @typedef {import("./shapes.js")}
+ * @typedef {import("./stops.js")}
+ * @typedef {import("./vehicles.js")}
+ * @typedef {import("./facilities.js")}
+ * @exports {mapsPlaceholder}
  */
+
+"use strict";
 
 const mapsPlaceholder = [];
 L.Map.addInitHook(function () {
