@@ -7,6 +7,8 @@
     
 see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 
+johan cho | 2023-2024
+
 """
 
 import argparse
