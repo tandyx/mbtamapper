@@ -244,7 +244,10 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
-        geojson = bool(params.pop("geojson", False))
+        geojson = (
+            bool(params.pop("geojson", False))
+            or params.pop("file_type", "").lower() == "geojson"
+        )
         timeout = 15  # seconds
         try:
             data = FEED_LOADER.timeout_get_orm_json(

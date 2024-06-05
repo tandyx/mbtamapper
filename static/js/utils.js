@@ -2,7 +2,7 @@
  * @file utils.js - misc utility functions
  * @module utils
  * @typedef {import("../node_modules/strftime/strftime.js")}
- * @exports {*}
+ * @exports *
  */
 
 "use strict";

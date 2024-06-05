@@ -5,7 +5,7 @@
  * @typedef {import("leaflet-realtime")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./map.js")}
- * @exports {plotVehicles}
+ * @exports plotVehicles
  */
 
 "use strict";

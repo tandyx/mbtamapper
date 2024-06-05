@@ -12,7 +12,7 @@
  * @typedef {import("./stops.js")}
  * @typedef {import("./vehicles.js")}
  * @typedef {import("./facilities.js")}
- * @exports {mapsPlaceholder}
+ * @exports mapsPlaceholder
  */
 
 "use strict";

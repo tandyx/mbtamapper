@@ -1,9 +1,10 @@
 /**
  * @file shapes.js - Plot stops on map in realtime, updating every hour
+ * @module shapes
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime")}
  * @typedef {import("./utils.js")}
- * @exports {plotShapes}
+ * @exports plotShapes
  */
 
 "use strict";
