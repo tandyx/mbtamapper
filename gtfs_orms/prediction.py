@@ -73,12 +73,8 @@ class Prediction(Base):
     )
 
     @property
-    def destination(self) -> t.Optional["Stop"]:
-        """Returns the destination of the prediction.
-
-        Returns:
-            - `str`: the destination of the prediction
-        """
+    def destination(self) -> "Stop | None":
+        """the destination of the trip as a `stop`"""
         if self.trip:
             return self.trip.destination
         return max(

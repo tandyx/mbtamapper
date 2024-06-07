@@ -22,6 +22,7 @@ from zipfile import ZipFile
 import asteval
 import geojson as gj
 import pandas as pd
+import pandas.core.generic as pdcg
 import requests as req
 import sqlalchemy as sa
 import timeout_function_decorator
@@ -34,7 +35,7 @@ from helper_functions import removes_session, timeit
 from .query import Query
 
 
-class Feed(Query):
+class Feed:
     """Loads GTFS data into a route_type specific SQLite database. \
         This class also contains methods to query the database. \
         inherits from Query class, which contains queries. \
@@ -72,6 +73,20 @@ class Feed(Query):
     PARKING_FILE = "parking.json"
     STOPS_FILE = "stops.json"
     SHAPES_FILE = "shapes.json"
+
+    @staticmethod
+    def find_orm(name: str) -> type[Base] | None:
+        """returns the `type` of the orm by name
+
+        returns:
+            - `type[Base]`: type of the orm
+        """
+        for cls in Base.__subclasses__():
+            if cls.__name__.lower() == name.lower():
+                return cls
+        return None
+
+    get_orm = find_orm
 
     @staticmethod
     @event.listens_for(sa.Engine, "connect")
@@ -215,7 +230,7 @@ class Feed(Query):
         if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
         dataset: list[LinkedDataset] = session.execute(
-            self.get_dataset_query(orm.__realtime_name__)
+            Query.get_dataset_query(orm.__realtime_name__)
         ).one_or_none()
         if not dataset:
             return
@@ -231,8 +246,8 @@ class Feed(Query):
         """
         session = self.scoped_session()
         for stmt in [
-            self.delete_calendars_query(date),
-            self.delete_facilities_query("parking-area", "bike-storage"),
+            Query.delete_calendars_query(date),
+            Query.delete_facilities_query("parking-area", "bike-storage"),
         ]:
             res: sa.CursorResult = session.execute(stmt)
             logging.info("Deleted %s rows from %s", res.rowcount, stmt.table.name)
@@ -284,7 +299,7 @@ class Feed(Query):
             stops += session.execute(Query("3").parent_stops_query).all()
         if "4" in query_obj.route_types:
             stops += session.execute(
-                self.select(Stop).where(Stop.vehicle_type == "4")
+                query_obj.select(Stop).where(Stop.vehicle_type == "4")
             ).all()
         return gj.FeatureCollection([s[0].as_feature(*include) for s in stops])
 
@@ -305,7 +320,7 @@ class Feed(Query):
         shapes: list[tuple[Shape]] = session.execute(query_obj.get_shapes_query()).all()
         if key in ["rapid_transit", "all_routes"]:
             shapes += session.execute(
-                self.get_shapes_from_route_query(*self.SL_ROUTES).where(
+                query_obj.get_shapes_from_route_query(*self.SL_ROUTES).where(
                     Route.route_type != "2"
                 )
             ).all()
@@ -336,7 +351,7 @@ class Feed(Query):
                 Query("3").get_facilities_query("parking-area")
             ).all()
         if "4" in query_obj.route_types:
-            facils += session.execute(self.ferry_parking_query).all()
+            facils += session.execute(query_obj.ferry_parking_query).all()
         return gj.FeatureCollection([f[0].as_feature(*include) for f in facils])
 
     @removes_session
@@ -372,8 +387,8 @@ class Feed(Query):
 
     @removes_session
     def to_sql(
-        self, data: pd.DataFrame, orm: t.Type[Base], purge: bool = False, **kwargs
-    ) -> int:
+        self, data: pdcg.NDFrame, orm: t.Type[Base], purge: bool = False, **kwargs
+    ) -> int | None:
         """Helper function to dump dataframe to sql.
 
         Args:
@@ -388,7 +403,7 @@ class Feed(Query):
         if purge:
             while True:
                 try:
-                    session.execute(self.delete(orm))
+                    session.execute(Query.delete(orm))
                     session.commit()
                     break
                 except exc.IllegalStateChangeError:
@@ -410,7 +425,7 @@ class Feed(Query):
     @removes_session
     def get_orm_json(
         self, _orm: type[Base] | str, *include: str, geojson: bool = False, **params
-    ) -> list[dict[str]] | gj.FeatureCollection:
+    ) -> list[dict[str, t.Any]] | gj.FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
         args:
@@ -462,7 +477,7 @@ class Feed(Query):
                 param_list.append(p_item)
             else:
                 non_cols.append(p_item)
-        stmt = self.select(_orm).where(
+        stmt = Query.select(_orm).where(
             *(
                 sa.text(
                     f"""{_orm.__tablename__}.{v['key']} {v['action']} {v['value'] if v['value'] == 'NULL' else f'\'{v["value"]}\''}"""

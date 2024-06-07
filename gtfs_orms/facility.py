@@ -33,17 +33,17 @@ class Facility(Base):
 
     facility_id: Mapped[str] = mapped_column(primary_key=True)
     facility_code: Mapped[t.Optional[str]]
-    facility_class: Mapped[t.Optional[str]]
-    facility_type: Mapped[t.Optional[str]]
-    stop_id: Mapped[t.Optional[str]] = mapped_column(
+    facility_class: Mapped[int]
+    facility_type: Mapped[str]
+    stop_id: Mapped[str] = mapped_column(
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
     facility_short_name: Mapped[t.Optional[str]]
-    facility_long_name: Mapped[t.Optional[str]]
-    facility_desc: Mapped[t.Optional[str]]
+    facility_long_name: Mapped[str]
+    facility_desc: Mapped[t.Optional[str]]  # almost always null
     facility_lat: Mapped[t.Optional[float]]
     facility_lon: Mapped[t.Optional[float]]
-    wheelchair_facility: Mapped[t.Optional[str]]
+    wheelchair_facility: Mapped[int]
 
     facility_properties: Mapped[list["FacilityProperty"]] = relationship(
         back_populates="facility", passive_deletes=True

@@ -34,7 +34,7 @@ FEED_LOADER: FeedLoader = FeedLoader(
 )
 
 
-def _error404(_app: flask.Flask, error: Exception = None) -> tuple[str, int]:
+def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, int]:
     """Returns 404.html // should only be used in the\
         context of a 404 error.
 
@@ -77,22 +77,22 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/key")
-    def get_key() -> str:
+    def get_key() -> flask.Response:
         """Returns key.json.
 
         returns:
-            - `str`: the route key
+            - `Response`: the route key
         """
         return flask.jsonify(key)
 
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
-    def get_vehicles() -> str:
+    def get_vehicles() -> flask.Response:
         """Returns vehicles as geojson in the context of the route type AND \
             flask, exported to /vehicles as an api.
             
         Returns:
-            - `str`: geojson of vehicles.
+            - `Response`: geojson of vehicles.
         """
         return flask.jsonify(
             FEED_LOADER.get_vehicles_feature(
@@ -104,24 +104,24 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
     @_app.route("/stops")
     @_app.route("/api/stop")
-    def get_stops() -> str:
+    def get_stops() -> flask.Response:
         """Returns stops as geojson in the context of the route type AND \
             flask, exported to /stops as an api.
             
         returns:
-            - `str`: geojson of stops.
+            - `Response`: geojson of stops.
         """
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}")
 
     @_app.route("/parking")
     @_app.route("/facilities")
     @_app.route("/api/parking")
-    def get_parking() -> str:
+    def get_parking() -> flask.Response:
         """Returns parking as geojson in the context of the route type AND \
             flask, exported to /parking as an api.
             
         returns:
-            - `str`: geojson of parking.
+            - `Response`: geojson of parking.
         """
 
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}")
@@ -130,27 +130,27 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     @_app.route("/shapes")
     @_app.route("/api/route")
     @_app.route("/api/shape")
-    def get_routes() -> str:
+    def get_routes() -> flask.Response:
         """Returns routes as geojson in the context of the route type AND \
             flask, exported to /routes as an api.
             
         returns:
-            - `str`: geojson of routes.
+            - `Response`: geojson of routes.
         """
 
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}")
 
     @_app.route("/favicon.ico")
-    def favicon() -> str:
+    def favicon() -> flask.Response:
         """Returns favicon.ico.
 
         returns:
-            - `str`: favicon.ico.
+            - `Response`: favicon.ico.
         """
         return _app.send_static_file("img/all_routes.ico")
 
     @_app.teardown_appcontext
-    def shutdown_session(exception: Exception = None) -> None:
+    def shutdown_session(exception: Exception | None = None) -> None:
         """Tears down database session.
 
         Args:
@@ -161,7 +161,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             logging.error(exception)
 
     @_app.errorhandler(404)
-    def page_not_found(error: Exception = None) -> str:
+    def page_not_found(error: Exception | None = None) -> tuple[str, int]:
         """Returns 404.html.
 
         Args:
@@ -211,7 +211,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         return flask.render_template("index.html", content=KEY_DICT)
 
     @_app.teardown_appcontext
-    def shutdown_session(exception: Exception = None) -> None:
+    def shutdown_session(exception: Exception | None = None) -> None:
         """Tears down database session.
 
         Args:
@@ -222,16 +222,16 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             logging.error(exception)
 
     @_app.route("/favicon.ico")
-    def favicon() -> str:
+    def favicon() -> flask.Response:
         """Returns favicon.ico.
 
         returns:
-            - `str`: favicon.ico.
+            - `Response`: favicon.ico.
         """
         return _app.send_static_file("img/all_routes.ico")
 
     @_app.route("/api/<orm_name>")
-    def orm_api(orm_name: str) -> str:
+    def orm_api(orm_name: str) -> tuple[str | flask.Response, int] | flask.Response:
         """Returns the ORM for a given key.
 
         Args:
@@ -262,7 +262,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         return flask.jsonify(data)
 
     @_app.errorhandler(404)
-    def page_not_found(error: Exception = None) -> str:
+    def page_not_found(error: Exception | None = None) -> tuple[str, int]:
         """Returns 404.html.
 
         Args:

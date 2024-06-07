@@ -32,7 +32,7 @@ class CalendarDate(Base):  # pylint: disable=too-few-public-methods
         primary_key=True,
     )
     date: Mapped[dt.datetime] = mapped_column(primary_key=True)
-    exception_type: Mapped[t.Optional[str]]
+    exception_type: Mapped[str]
     holiday_name: Mapped[t.Optional[str]]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_dates")

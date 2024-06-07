@@ -29,7 +29,9 @@ class Shape(Base):
         back_populates="shape", passive_deletes=True
     )
     shape_points: Mapped[list["ShapePoint"]] = relationship(
-        back_populates="shape", passive_deletes=True
+        back_populates="shape",
+        passive_deletes=True,
+        order_by="ShapePoint.shape_pt_sequence",
     )
 
     def as_linestring(self) -> LineString:

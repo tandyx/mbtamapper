@@ -102,6 +102,6 @@ class Trip(Base):
     )
 
     @property
-    def destination(self) -> t.Union["Stop", None]:
+    def destination(self) -> "Stop | None":
         """the destination of the trip as a `stop`"""
         return getattr(max(self.stop_times, default=None), "stop", None)

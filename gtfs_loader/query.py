@@ -22,20 +22,6 @@ class Query:
         - `*route_types (str)`: list of route_types to query
     """
 
-    @staticmethod
-    def find_orm(name: str) -> type[Base] | None:
-        """returns the `type` of the orm by name
-
-        returns:
-            - `type[Base]`: type of the orm
-        """
-        for cls in Base.__subclasses__():
-            if cls.__name__.lower() == name.lower():
-                return cls
-        return None
-
-    get_orm = find_orm
-
     @classproperty
     def ferry_parking_query(cls: t.Type[t.Self]) -> Select[tuple[Base]]:
         """

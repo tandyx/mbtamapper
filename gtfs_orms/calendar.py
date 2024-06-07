@@ -46,7 +46,7 @@ class Calendar(Base):
         back_populates="calendar", passive_deletes=True
     )
 
-    def operates_on(self, date: dt.datetime | dt.date) -> bool:
+    def operates_on(self, _date: dt.datetime | dt.date) -> bool:
         """Returns true if the calendar operates on the date
 
         Args:
@@ -55,11 +55,11 @@ class Calendar(Base):
             - `bool`: True if the calendar operates on the date
         """
 
-        if isinstance(date, dt.datetime):
-            date: dt.date = date.date()
-        exception = next((s for s in self.calendar_dates if s.date == date), None)
+        if isinstance(_date, dt.datetime):
+            _date: dt.date = _date.date()
+        exception = next((s for s in self.calendar_dates if s.date == _date), None)
         return bool(
-            self.start_date.date() <= date <= self.end_date.date()
-            and getattr(self, date.strftime("%A").lower())
+            self.start_date.date() <= _date <= self.end_date.date()
+            and getattr(self, _date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")

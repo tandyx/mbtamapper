@@ -29,12 +29,12 @@ class CalendarAttribute(Base):
         ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    service_description: Mapped[t.Optional[str]]
-    service_schedule_name: Mapped[t.Optional[str]]
-    service_schedule_type: Mapped[t.Optional[str]]
-    service_schedule_typicality: Mapped[t.Optional[str]]
-    rating_start_date: Mapped[t.Optional[dt.datetime]]
+    service_description: Mapped[str]
+    service_schedule_name: Mapped[str]
+    service_schedule_type: Mapped[str]
+    service_schedule_typicality: Mapped[str]
+    rating_start_date: Mapped[dt.datetime]
     rating_end_date: Mapped[t.Optional[dt.datetime]]
-    rating_description: Mapped[t.Optional[str]]
+    rating_description: Mapped[str]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_attributes")

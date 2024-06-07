@@ -41,12 +41,13 @@ def removes_session(_func: t.Callable[..., t.Any]):
     return _removes_session
 
 
-def timeit(_func: t.Callable[..., t.Any], round_to: int = 3):
+def timeit(_func: t.Callable[..., t.Any], round_to: int = 3, show_args: bool = True):
     """Decorator to time a function and log it.
 
     Args:
         - `_func (function)`: Function to wrap.
-        - `round_to (int, optional)`: Number of decimal places to round to. Defaults to 3. \n
+        - `round_to (int, optional)`: Number of decimal places to round to. Defaults to 3.
+        - `show_args (bool, True)`: show args into the function\n
     Returns:
         - `function`: Wrapped function.
     """
@@ -54,15 +55,21 @@ def timeit(_func: t.Callable[..., t.Any], round_to: int = 3):
     def _timeit(*args, **kwargs) -> t.Any:
         start = time.perf_counter()
         res = _func(*args, **kwargs)
-
-        _args = ", ".join(str(a) for a in args if "Feed" not in str(a)) if args else ""
-        _kwargs = ", " + ", ".join(f"{k}={v}" for k, v in kwargs.items())
-        logging.info(
-            "Ran %s(%s) in %f s",
-            _func.__name__,
-            _args + (_kwargs if _kwargs != ", " else ""),
-            round(time.perf_counter() - start, round_to),
-        )
+        if show_args:
+            _args = ", ".join(str(a) for a in args) if args else ""
+            _kwargs = ", " + ", ".join(f"{k}={v}" for k, v in kwargs.items())
+            logging.info(
+                "Ran %s(%s) in %f s",
+                _func.__name__,
+                _args + (_kwargs if _kwargs != ", " else ""),
+                round(time.perf_counter() - start, round_to),
+            )
+        else:
+            logging.info(
+                "Ran %s in %f s",
+                _func.__name__,
+                round(time.perf_counter() - start, round_to),
+            )
         return res
 
     return _timeit

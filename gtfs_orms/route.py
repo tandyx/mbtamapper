@@ -37,16 +37,16 @@ class Route(Base):
     )
     route_short_name: Mapped[t.Optional[str]]
     route_long_name: Mapped[t.Optional[str]]
-    route_desc: Mapped[t.Optional[str]]
-    route_type: Mapped[t.Optional[str]]
+    route_desc: Mapped[str]
+    route_type: Mapped[str]
     route_url: Mapped[t.Optional[str]]
-    route_color: Mapped[t.Optional[str]]
-    route_text_color: Mapped[t.Optional[str]]
+    route_color: Mapped[str]
+    route_text_color: Mapped[str]
     route_sort_order: Mapped[int]
-    route_fare_class: Mapped[t.Optional[str]]
+    route_fare_class: Mapped[str]
     line_id: Mapped[t.Optional[str]]
     listed_route: Mapped[t.Optional[str]]
-    network_id: Mapped[t.Optional[str]]
+    network_id: Mapped[str]
 
     agency: Mapped["Agency"] = relationship(back_populates="routes")
     multi_route_trips: Mapped[list["MultiRouteTrip"]] = relationship(

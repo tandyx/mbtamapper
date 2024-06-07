@@ -133,7 +133,6 @@ class Vehicle(Base):
             )
         return _dict
 
-    @t.override
     def as_feature(self, *include: str) -> Feature:
         """Returns vehicle as feature.
 
@@ -161,8 +160,10 @@ class Vehicle(Base):
         from .alert import Alert  # pylint: disable=import-outside-toplevel
 
         for attr in orms:
-            orm_list: Base | t.Iterable[Base] = getattr(self, attr, None)
+            orm_list: Base | t.Iterable[Base] | None = getattr(self, attr, None)
             orm_list = [orm_list] if isinstance(orm_list, Base) else orm_list
+            if not orm_list:
+                continue
             for orm in orm_list:
                 for sub_attar_name in dir(orm):
                     if sub_attar_name.startswith("_") or sub_attar_name in self.cols:
@@ -198,6 +199,7 @@ class Vehicle(Base):
             return self.trip.trip_short_name
         if (
             self.route
+            and self.route_id  # mypy shit
             and (self.route.route_type == "3" or self.route_id.startswith("Green"))
             and self.route.route_short_name
         ):
@@ -216,7 +218,7 @@ class Vehicle(Base):
             return max(self.predictions).stop.stop_name
         return "unknown"
 
-    def _trip_short_name(self) -> str:
+    def _trip_short_name(self) -> str | None:
         """Returns trip short name.
 
         returns:
