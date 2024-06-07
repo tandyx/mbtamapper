@@ -15,8 +15,8 @@ import sqlite3
 import tempfile
 import textwrap
 import time
+import typing as t
 from datetime import datetime
-from typing import Type
 from zipfile import ZipFile
 
 import asteval
@@ -203,7 +203,7 @@ class Feed(Query):
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: Type[Alert | Vehicle | Prediction] | str) -> None:
+    def import_realtime(self, orm: t.Type[Alert | Vehicle | Prediction] | str) -> None:
         """Imports realtime data into the database.
 
         Args:
@@ -372,7 +372,7 @@ class Feed(Query):
 
     @removes_session
     def to_sql(
-        self, data: pd.DataFrame, orm: Type[Base], purge: bool = False, **kwargs
+        self, data: pd.DataFrame, orm: t.Type[Base], purge: bool = False, **kwargs
     ) -> int:
         """Helper function to dump dataframe to sql.
 

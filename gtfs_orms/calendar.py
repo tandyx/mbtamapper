@@ -1,13 +1,13 @@
 """File to hold the Calendar class and its associated methods."""
 
 import datetime as dt
-from typing import TYPE_CHECKING
+import typing as t
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .calendar_attribute import CalendarAttribute
     from .calendar_date import CalendarDate
     from .trip import Trip

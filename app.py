@@ -16,7 +16,7 @@ import difflib
 import json
 import logging
 import os
-import threading as t
+import threading
 
 import flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -195,7 +195,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     _app = flask.Flask(__name__)
 
     with _app.app_context():  # background thread to run update
-        thread = t.Thread(
+        thread = threading.Thread(
             target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
         )
         thread.start()
@@ -240,7 +240,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             - `str`: ORM for the key.
         """
 
-        if not (orm := FeedLoader.find_orm(orm_name.rstrip("s"))):
+        if not (orm := FeedLoader.find_orm(orm_name.strip().rstrip("s"))):
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
@@ -336,7 +336,9 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
-    if args.import_data and args.debug:
-        logging.warning("Import data and debug mode are not compatible.")
+    if args.debug and (
+        args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
+    ):
+        raise ValueError("cannot run in debug mode while importing data.")
     app = create_main_app(args.import_data, args.proxies)
     app.run(debug=args.debug, port=args.port, host=args.host)

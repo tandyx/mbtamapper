@@ -1,13 +1,13 @@
 """File to hold the Calendar class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional
+import typing as t
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .stop import Stop
     from .stop_time import StopTime
     from .trip import Trip
@@ -26,25 +26,25 @@ class Transfer(Base):
     __tablename__ = "transfers"
     __filename__ = "transfers.txt"
 
-    from_stop_id: Mapped[str] = mapped_column(
+    from_stop_id: Mapped[t.Optional[str]] = mapped_column(
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
-    to_stop_id: Mapped[str] = mapped_column(
+    to_stop_id: Mapped[t.Optional[str]] = mapped_column(
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
 
-    transfer_type: Mapped[Optional[str]]
-    min_transfer_time: Mapped[Optional[int]]
-    min_walk_time: Mapped[Optional[int]]
-    min_wheelchair_time: Mapped[Optional[int]]
-    suggested_buffer_time: Mapped[Optional[int]]
-    wheelchair_transfer: Mapped[Optional[str]]
-    from_trip_id: Mapped[Optional[str]] = mapped_column(
+    transfer_type: Mapped[t.Optional[str]]
+    min_transfer_time: Mapped[t.Optional[int]]
+    min_walk_time: Mapped[t.Optional[int]]
+    min_wheelchair_time: Mapped[t.Optional[int]]
+    suggested_buffer_time: Mapped[t.Optional[int]]
+    wheelchair_transfer: Mapped[t.Optional[str]]
+    from_trip_id: Mapped[t.Optional[str]] = mapped_column(
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
-    to_trip_id: Mapped[Optional[str]] = mapped_column(
+    to_trip_id: Mapped[t.Optional[str]] = mapped_column(
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
 

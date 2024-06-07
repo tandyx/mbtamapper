@@ -1,12 +1,12 @@
 """File to hold the Agency class and its associated methods."""
 
-from typing import TYPE_CHECKING
+import typing as t
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .route import Route
 
 

@@ -2,7 +2,7 @@
 
 import json
 import time
-from typing import Any, Self, Type
+import typing as t
 
 from sqlalchemy import orm
 
@@ -27,12 +27,12 @@ class Base(orm.DeclarativeBase):
 
     # pylint: disable=no-self-argument
     @classproperty
-    def primary_keys(cls: Type[Self]) -> list[str]:
+    def primary_keys(cls: t.Type[t.Self]) -> list[str]:
         """list of string columns as the primary keys for the class."""
         return [key.name for key in cls.__table__.columns if key.primary_key]
 
     @classproperty
-    def cols(cls: Type[Self]) -> list[str]:
+    def cols(cls: t.Type[t.Self]) -> list[str]:
         """list of string columns for the class."""
         return cls.__table__.columns.keys()
 
@@ -42,7 +42,7 @@ class Base(orm.DeclarativeBase):
     def __str__(self) -> str:
         return str(self.as_dict())
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: t.Self) -> bool:
         """Implements equality operator.
 
         Returns:
@@ -56,7 +56,7 @@ class Base(orm.DeclarativeBase):
             getattr(self, key) == getattr(other, key) for key in self.primary_keys
         )
 
-    def __lt__(self, other: Self) -> bool:
+    def __lt__(self, other: t.Self) -> bool:
         """Implements less than operator.
 
         Returns:
@@ -81,7 +81,7 @@ class Base(orm.DeclarativeBase):
 
         return all(getattr(self, key, None) is not None for key in self.primary_keys)
 
-    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+    def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns a json searizable representation of \
             the object as opposed to Base.as_dict() which returns a dict.
             
@@ -99,7 +99,7 @@ class Base(orm.DeclarativeBase):
             if not k.startswith("_") and _is_json_searializable(v)
         } | {"timestamp": getattr(self, "timestamp", time.time())}
 
-    def _as_json_dict(self) -> dict[str, Any]:
+    def _as_json_dict(self) -> dict[str, t.Any]:
         """Returns a dict representation of the object
         
         args:
@@ -116,7 +116,7 @@ class Base(orm.DeclarativeBase):
             if not k.startswith("_") and _is_json_searializable(v)
         }
 
-    def as_dict(self, *include, **kwargs) -> dict[str, Any]:
+    def as_dict(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns a dict representation of the object, front-facing.\
         Override this method to change the `dict `representation.
         
@@ -144,7 +144,7 @@ class Base(orm.DeclarativeBase):
         return new_dict
 
 
-def _is_json_searializable(obj: Any) -> bool:
+def _is_json_searializable(obj: t.Any) -> bool:
     """Checks if an object is JSON serializable.
 
     Args:

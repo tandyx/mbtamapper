@@ -1,13 +1,13 @@
 """File to hold the Trip class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional, Union
+import typing as t
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .alert import Alert
     from .calendar import Calendar
     from .multi_route_trip import MultiRouteTrip
@@ -35,24 +35,24 @@ class Trip(Base):
     __tablename__ = "trips"
     __filename__ = "trips.txt"
 
-    route_id: Mapped[Optional[str]] = mapped_column(
+    route_id: Mapped[str] = mapped_column(
         ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    service_id: Mapped[Optional[str]] = mapped_column(
+    service_id: Mapped[str] = mapped_column(
         ForeignKey("calendars.service_id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     trip_id: Mapped[str] = mapped_column(primary_key=True)
-    trip_headsign: Mapped[Optional[str]]
-    trip_short_name: Mapped[Optional[str]]
-    direction_id: Mapped[Optional[int]]
-    block_id: Mapped[Optional[str]]
-    shape_id: Mapped[Optional[str]] = mapped_column(
+    trip_headsign: Mapped[str]
+    trip_short_name: Mapped[t.Optional[str]]
+    direction_id: Mapped[int]
+    block_id: Mapped[t.Optional[str]]
+    shape_id: Mapped[str] = mapped_column(
         ForeignKey("shapes.shape_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_accessible: Mapped[Optional[int]]
-    trip_route_type: Mapped[Optional[str]]
-    route_pattern_id: Mapped[Optional[str]]
-    bikes_allowed: Mapped[Optional[int]]
+    wheelchair_accessible: Mapped[int]
+    trip_route_type: Mapped[t.Optional[str]]
+    route_pattern_id: Mapped[str]
+    bikes_allowed: Mapped[int]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="trips")
     multi_route_trips: Mapped[list["MultiRouteTrip"]] = relationship(
@@ -102,9 +102,6 @@ class Trip(Base):
     )
 
     @property
-    def destination(self) -> Union["Stop", None]:
+    def destination(self) -> t.Union["Stop", None]:
         """the destination of the trip as a `stop`"""
-        try:
-            return max(self.stop_times).stop
-        except (ValueError, TypeError, AttributeError):
-            return None
+        return getattr(max(self.stop_times, default=None), "stop", None)

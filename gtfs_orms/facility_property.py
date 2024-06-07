@@ -1,13 +1,13 @@
 """File to hold the FacilityProperty class and its associated methods."""
 
-from typing import TYPE_CHECKING, override
+import typing as t
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .facility import Facility
 
 
@@ -32,7 +32,7 @@ class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
 
     facility: Mapped["Facility"] = relationship(back_populates="facility_properties")
 
-    @override
+    @t.override
     def as_dict(self, *args, **kwargs):  # pylint: disable=unused-argument
         """Return the facility property as a dictionary \
         (useful for JSON serialization).

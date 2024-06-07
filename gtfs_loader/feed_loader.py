@@ -3,8 +3,8 @@
 import logging
 import os
 import time
+import typing as t
 from threading import Thread
-from typing import Callable, NoReturn
 
 from schedule import Scheduler
 
@@ -24,6 +24,20 @@ class FeedLoader(Scheduler, Feed):
         - `keys_dict (dict[str, list[str]])`: Dictionary of keys to load
         - `**kwargs`: Keyword arguments to pass to `Feed`, such as `gtfs_name`
     """
+
+    @property
+    def geojsons_exist(self) -> bool:
+        """if *all* geojsons exist"""
+        return all(
+            os.path.exists(os.path.join(self.geojson_path, k, fname))
+            for k in self.keys_dict
+            for fname in [self.SHAPES_FILE, self.PARKING_FILE, self.STOPS_FILE]
+        )
+
+    @property
+    def db_exists(self) -> bool:
+        """if the database exists"""
+        return os.path.exists(self.db_path)
 
     def __init__(
         self, url: str, geojson_path: str, keys_dict: dict[str, list[str]], **kwargs
@@ -62,7 +76,7 @@ class FeedLoader(Scheduler, Feed):
 
     def import_and_run(
         self, import_data: bool = False, timezone: str = "America/New_York", **kwargs
-    ) -> NoReturn:
+    ) -> t.NoReturn:
         """this is the main entrypoint for the application.
 
         Args:
@@ -72,24 +86,20 @@ class FeedLoader(Scheduler, Feed):
             - `**kwargs`: Keyword arguments to pass to `nightly import`.
         """
 
-        if import_data or not os.path.exists(self.db_path):
+        if import_data or not self.db_exists:
             self.nightly_import(**kwargs)
-        if import_data or not all(
-            os.path.exists(os.path.join(self.geojson_path, k, fname))
-            for k in self.keys_dict
-            for fname in [self.SHAPES_FILE, self.PARKING_FILE, self.STOPS_FILE]
-        ):
+        if import_data or not self.geojsons_exist:
             self.geojson_exports()
         self.run(timezone=timezone)
 
-    def run(self, timezone: str = "America/New_York") -> NoReturn:
+    def run(self, timezone: str = "America/New_York") -> t.NoReturn:
         """Schedules jobs.
 
         Args:
             - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
         """
 
-        def threader(func: Callable, *args, join: bool = False, **kwargs) -> None:
+        def threader(func: t.Callable, *args, join: bool = False, **kwargs) -> None:
             """threads a function.
 
             Args:

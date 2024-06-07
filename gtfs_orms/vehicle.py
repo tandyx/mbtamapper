@@ -1,7 +1,7 @@
 """File to hold the Vehicle class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING, Any, Generator, Iterable, Optional, override
+import typing as t
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .alert import Alert
     from .prediction import Prediction
     from .route import Route
@@ -33,20 +33,20 @@ class Vehicle(Base):
     __realtime_name__ = "vehicle_positions"
 
     vehicle_id: Mapped[str] = mapped_column(primary_key=True)
-    trip_id: Mapped[Optional[str]]
-    route_id: Mapped[Optional[str]]
-    direction_id: Mapped[Optional[int]]
-    latitude: Mapped[Optional[float]]
-    longitude: Mapped[Optional[float]]
-    bearing: Mapped[Optional[float]]
-    current_stop_sequence: Mapped[Optional[int]]
-    current_status: Mapped[Optional[str]]
-    timestamp: Mapped[Optional[int]]
-    stop_id: Mapped[Optional[str]]
-    label: Mapped[Optional[str]]
-    occupancy_status: Mapped[Optional[str]]
-    occupancy_percentage: Mapped[Optional[int]]
-    speed: Mapped[Optional[float]]
+    trip_id: Mapped[t.Optional[str]]
+    route_id: Mapped[t.Optional[str]]
+    direction_id: Mapped[t.Optional[int]]
+    latitude: Mapped[t.Optional[float]]
+    longitude: Mapped[t.Optional[float]]
+    bearing: Mapped[t.Optional[float]]
+    current_stop_sequence: Mapped[t.Optional[int]]
+    current_status: Mapped[t.Optional[str]]
+    timestamp: Mapped[t.Optional[int]]
+    stop_id: Mapped[t.Optional[str]]
+    label: Mapped[t.Optional[str]]
+    occupancy_status: Mapped[t.Optional[str]]
+    occupancy_percentage: Mapped[t.Optional[int]]
+    speed: Mapped[t.Optional[float]]
 
     predictions: Mapped[list["Prediction"]] = relationship(
         back_populates="vehicle",
@@ -98,8 +98,8 @@ class Vehicle(Base):
         """
         return Point(self.longitude, self.latitude)
 
-    @override
-    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+    @t.override
+    def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """Returns vehicle as json.
 
         args:
@@ -133,7 +133,7 @@ class Vehicle(Base):
             )
         return _dict
 
-    @override
+    @t.override
     def as_feature(self, *include: str) -> Feature:
         """Returns vehicle as feature.
 
@@ -149,7 +149,7 @@ class Vehicle(Base):
             properties=self.as_json(*include),
         )
 
-    def get_alerts(self, *orms) -> Generator["Alert", None, None]:
+    def get_alerts(self, *orms) -> t.Generator["Alert", None, None]:
         """Returns alerts as json.
 
         args:
@@ -161,7 +161,7 @@ class Vehicle(Base):
         from .alert import Alert  # pylint: disable=import-outside-toplevel
 
         for attr in orms:
-            orm_list: Base | Iterable[Base] = getattr(self, attr, None)
+            orm_list: Base | t.Iterable[Base] = getattr(self, attr, None)
             orm_list = [orm_list] if isinstance(orm_list, Base) else orm_list
             for orm in orm_list:
                 for sub_attar_name in dir(orm):
@@ -170,7 +170,7 @@ class Vehicle(Base):
                     object_attr = getattr(orm, sub_attar_name)
                     if isinstance(object_attr, Alert):
                         yield object_attr
-                    if isinstance(object_attr, Iterable):
+                    if isinstance(object_attr, t.Iterable):
                         for a in object_attr:
                             if isinstance(a, Alert):
                                 yield a
@@ -210,9 +210,6 @@ class Vehicle(Base):
         returns:
             - `str`: headsign
         """
-
-        # self.trip.trip_headsign if self.trip else max(self.predictions, key=lambda x: x.stop_sequence).stop.stop_name if self.predictions else "Unknown"
-
         if self.trip:
             return self.trip.trip_headsign
         if self.predictions:

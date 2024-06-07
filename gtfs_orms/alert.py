@@ -1,12 +1,12 @@
 """File to hold the Alert class and its associated methods."""
 
-from typing import TYPE_CHECKING, Optional
+import typing as t
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .route import Route
     from .stop import Stop
     from .trip import Trip
@@ -27,21 +27,21 @@ class Alert(Base):
     __realtime_name__ = "service_alerts"
 
     alert_id: Mapped[str] = mapped_column(primary_key=True)
-    cause: Mapped[Optional[str]]
-    effect: Mapped[Optional[str]]
-    severity: Mapped[Optional[str]]
-    stop_id: Mapped[Optional[str]]
-    agency_id: Mapped[Optional[str]]
-    route_id: Mapped[Optional[str]]
-    route_type: Mapped[Optional[str]]
-    direction_id: Mapped[Optional[str]]
-    trip_id: Mapped[Optional[str]]
-    active_period_end: Mapped[Optional[int]]
-    header: Mapped[Optional[str]]
-    description: Mapped[Optional[str]]
-    url: Mapped[Optional[str]]
-    active_period_start: Mapped[Optional[int]]
-    timestamp: Mapped[Optional[int]]
+    cause: Mapped[t.Optional[str]]
+    effect: Mapped[t.Optional[str]]
+    severity: Mapped[t.Optional[str]]
+    stop_id: Mapped[t.Optional[str]]
+    agency_id: Mapped[t.Optional[str]]
+    route_id: Mapped[t.Optional[str]]
+    route_type: Mapped[t.Optional[str]]
+    direction_id: Mapped[t.Optional[str]]
+    trip_id: Mapped[t.Optional[str]]
+    active_period_end: Mapped[t.Optional[int]]
+    header: Mapped[t.Optional[str]]
+    description: Mapped[t.Optional[str]]
+    url: Mapped[t.Optional[str]]
+    active_period_start: Mapped[t.Optional[int]]
+    timestamp: Mapped[t.Optional[int]]
 
     route: Mapped["Route"] = relationship(
         back_populates="alerts",

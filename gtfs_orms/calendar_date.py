@@ -1,14 +1,14 @@
 """File to hold the CalendarDate class and its associated methods."""
 
 import datetime as dt
-from typing import TYPE_CHECKING, Optional
+import typing as t
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .calendar import Calendar
 
 
@@ -32,7 +32,7 @@ class CalendarDate(Base):  # pylint: disable=too-few-public-methods
         primary_key=True,
     )
     date: Mapped[dt.datetime] = mapped_column(primary_key=True)
-    exception_type: Mapped[Optional[str]]
-    holiday_name: Mapped[Optional[str]]
+    exception_type: Mapped[t.Optional[str]]
+    holiday_name: Mapped[t.Optional[str]]
 
     calendar: Mapped["Calendar"] = relationship(back_populates="calendar_dates")

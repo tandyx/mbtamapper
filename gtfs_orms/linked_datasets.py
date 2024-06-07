@@ -3,7 +3,7 @@
 # pylint: disable=no-name-in-module
 import logging
 import time
-from typing import TYPE_CHECKING
+import typing as t
 
 import pandas as pd
 import requests as req
@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     import google.protobuf.message as pbm
 
     FeedMessage = pbm.Message

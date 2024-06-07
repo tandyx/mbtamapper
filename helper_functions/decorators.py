@@ -3,12 +3,12 @@
 import logging
 import time
 import traceback
-from typing import Any, Callable
+import typing as t
 
 from sqlalchemy.orm import scoped_session
 
 
-def removes_session(_func: Callable[..., Any]):
+def removes_session(_func: t.Callable[..., t.Any]):
     """Decorator to remove a scroped session from a Feed object after function call. \
     This decorator also removes the session from the object if an exception is raised.
 
@@ -41,7 +41,7 @@ def removes_session(_func: Callable[..., Any]):
     return _removes_session
 
 
-def timeit(_func: Callable[..., Any], round_to: int = 3):
+def timeit(_func: t.Callable[..., t.Any], round_to: int = 3):
     """Decorator to time a function and log it.
 
     Args:
@@ -51,7 +51,7 @@ def timeit(_func: Callable[..., Any], round_to: int = 3):
         - `function`: Wrapped function.
     """
 
-    def _timeit(*args, **kwargs) -> Any:
+    def _timeit(*args, **kwargs) -> t.Any:
         start = time.perf_counter()
         res = _func(*args, **kwargs)
 

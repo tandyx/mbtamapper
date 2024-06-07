@@ -1,6 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
-from typing import TYPE_CHECKING, Any, override
+import typing as t
 
 from geojson import Feature
 from shapely.geometry import LineString
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .shape_point import ShapePoint
     from .trip import Trip
 
@@ -56,8 +56,8 @@ class Shape(Base):
             properties=self.as_json(*include),
         )
 
-    @override
-    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+    @t.override
+    def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns shape object as a dictionary.
 
         args:
