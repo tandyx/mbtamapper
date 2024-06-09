@@ -446,7 +446,9 @@ async function setDefaultVehicleSideBarSummary(data) {
       const trip = d.properties.trip_short_name;
       const delay = d.properties.next_stop?.delay || 0;
       const nextStop =
-        d.properties.next_stop?.stop_name?.replace("/", " / ") || "";
+        d.properties.next_stop?.stop_name?.replace("/", " / ") ||
+        d.properties.stop_time?.stop_name?.replace("/", " / ") ||
+        "";
       const delayText = getDelayText(delay);
       content += `<tr>
     <td><a style='color:#${

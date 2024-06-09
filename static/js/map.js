@@ -58,6 +58,7 @@ L.Map.prototype.findLayer = function (layer, click = false, zoom = null) {
   if (matchWithoutZoom.length) return _execLayer(matchWithoutZoom[0]);
   const initialBounds = this.getBounds();
   this.fitBounds(this.options.maxBounds);
+  mcg.disableClustering();
   if (!(layer instanceof L.Layer)) {
     this.eachLayer((layer_) => {
       if (layer_?.id == layer) {
