@@ -193,6 +193,9 @@ function createMap(id, route_type) {
  * @returns {Array} control layers
  */
 function createControlLayers(tile_layers, ...layers) {
+  const searchContainerId = "findBox";
+  const isMobile = window.mobileCheck();
+
   const locateControl = L.control.locate({
     enableHighAccuracy: true,
     initialZoomLevel: 15,
@@ -201,16 +204,17 @@ function createControlLayers(tile_layers, ...layers) {
       zIndexOffset: 500,
     },
   });
-  const searchContainerId = "findBox";
   /**@type {L.Control} */
   const controlSearch = L.control.search({
     layer: L.layerGroup(layers),
-    container: searchContainerId,
+    container: isMobile ? "" : searchContainerId,
     initial: false,
     propertyName: "searchName",
     zoom: 16,
     marker: false,
     textPlaceholder: "",
+    collapsed: isMobile,
+    autoCollapse: true,
   });
   controlSearch.on("search:locationfound", function (event) {
     event.layer.openPopup();
@@ -218,12 +222,11 @@ function createControlLayers(tile_layers, ...layers) {
 
   window.addEventListener("keydown", (keyEvent) => {
     if (
-      (keyEvent.code === "F3" ||
-        ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.code === "KeyF")) &&
-      !window.mobileCheck()
+      keyEvent.code === "F3" ||
+      ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.code === "KeyF")
     ) {
       keyEvent.preventDefault();
-      controlSearch._button.click();
+      controlSearch._input.focus();
     }
   });
 

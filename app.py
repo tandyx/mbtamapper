@@ -3,10 +3,6 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function.
     
-    all arguments are ignored in production except:
-        - `--import_data` to import data.
-        - `--proxies` to set the number of proxies to allow on connection.
-    
 see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 
 johan cho | 2023-2024

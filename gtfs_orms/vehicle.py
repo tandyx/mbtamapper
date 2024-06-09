@@ -25,6 +25,8 @@ class Vehicle(Base):
 
     this table is realtime and thus violatile. all relationships are viewonly
 
+    `source`: https://cdn.mbta.com/realtime/VehiclePositions.pb
+
     https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-vehicleposition
 
     """
