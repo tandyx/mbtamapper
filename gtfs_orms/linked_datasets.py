@@ -1,21 +1,19 @@
 """File to hold the LinkedDataset class and its associated methods."""
 
 # pylint: disable=no-name-in-module
-# pylint: disable=wildcard-import
-# pylint: disable=unused-wildcard-import
 import logging
 import time
-from typing import TYPE_CHECKING
+import typing as t
 
 import pandas as pd
-import requests as rq
+import requests as req
 from google.protobuf.json_format import MessageToDict
 from google.transit.gtfs_realtime_pb2 import FeedMessage
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     import google.protobuf.message as pbm
 
     FeedMessage = pbm.Message
@@ -87,30 +85,37 @@ class LinkedDataset(Base):
     service_alerts: Mapped[int]
     authentication_type: Mapped[str]
 
-    def as_dataframe(self) -> pd.DataFrame:
+    def as_dataframe(self, **kwargs) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\
             as a dataframe.
             
+        args:
+            - `**kwargs`: Additional keyword arguments passed to the request.
         Returns:
             - `pd.DataFrame`: Realtime data from the linked dataset.
         """
 
         if self.trip_updates:
-            return self._process_trip_updates()
+            return self._process_trip_updates(**kwargs)
         if self.vehicle_positions:
-            return self._process_vehicle_positions()
+            return self._process_vehicle_positions(**kwargs)
         if self.service_alerts:
-            return self._process_service_alerts()
+            return self._process_service_alerts(**kwargs)
         return pd.DataFrame()
 
-    def _load_dataframe(self) -> pd.DataFrame:
+    def _load_dataframe(self, **kwargs) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 
+        args:
+            - `**kwargs`: Additional keyword arguments passed to the request.
         Returns:
             - `pd.DataFrame`: Realtime data from the linked dataset.
         """
         feed_entity = FeedMessage()
-        response = rq.get(self.url, timeout=10)
+        try:
+            response = req.get(self.url, timeout=10, **kwargs)
+        except req.exceptions.SSLError:
+            response = req.get(self.url, timeout=10, verify=False, **kwargs)
         if not response.ok:
             logging.error("Error retrieving data from %s", self.url)
             return pd.DataFrame()
@@ -214,7 +219,7 @@ class LinkedDataset(Base):
 
 
 def df_unpack(
-    dataframe: pd.DataFrame, *columns: str, prefix: bool = True
+    dataframe: pd.DataFrame, *columns: str, prefix: bool = True, sep: str = "_"
 ) -> pd.DataFrame:
     """Unpacks a column of a dataframe that contains a list of dictionaries. \
         Returns a dataframe with the unpacked column and the original dataframe\
@@ -225,6 +230,7 @@ def df_unpack(
         - `*columns (str)`: columns to unpack.
         - `prefix (bool, optional)`: whether to add prefix to unpacked columns. \
             Defaults to True. \n
+        - `sep (str, optional)`: separator for prefix. Defaults to "_". \n
     Returns:
         - `pd.DataFrame`: dataframe with unpacked columns
     """
@@ -235,6 +241,6 @@ def df_unpack(
         exploded = dataframe.explode(col)
         series = exploded[col].apply(pd.Series)
         if prefix:
-            series = series.add_prefix(col + "_")
+            series = series.add_prefix(col + sep)
         dataframe = pd.concat([exploded.drop([col], axis=1), series], axis=1)
     return dataframe

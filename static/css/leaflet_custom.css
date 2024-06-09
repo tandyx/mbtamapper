@@ -1,3 +1,7 @@
+:root {
+  --leaflet-control-search-height: 30px;
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: var(--border-radius) !important;
   p {
@@ -119,32 +123,34 @@
 }
 
 .leaflet-control-search .search-tip {
-  background: none;
   color: var(--dark-text-color);
 }
 .leaflet-control-search .search-tooltip {
-  position: absolute;
-  top: 21px;
-  left: 0;
-  float: left;
-  list-style: none;
-  padding-left: 0;
-  min-width: 120px;
-  max-height: 122px;
-  z-index: 1010;
-  overflow-y: auto;
-  overflow-x: hidden;
-  cursor: pointer;
   border-radius: 5px;
+  top: 25px;
+  left: calc(var(--leaflet-control-search-height) + 5px) !important;
 }
 
-.leaflet-control-search .search-tip:hover {
+.leaflet-control-search .search-button {
+  height: var(--leaflet-control-search-height) !important;
+}
+.leaflet-control-search .search-input {
+  float: right;
+  height: var(--leaflet-control-search-height) !important;
+  margin-top: -0px;
+}
+
+.leaflet-control-search .search-cancel {
+  right: 1px !important;
+}
+
+/* .leaflet-control-search .search-tip:hover {
   color: var(--dark-text-color);
 }
 
 .leaflet-control-search .search-button:hover {
   background: url(\static\npm_packages\images\search-icon.png) none;
-}
+} */
 
 .marker-cluster div {
   font-family: var(--font-family) !important;

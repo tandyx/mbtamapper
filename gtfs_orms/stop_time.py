@@ -4,7 +4,7 @@
 # pylint: disable=unused-wildcard-import
 import datetime as dt
 import time
-from typing import TYPE_CHECKING, Any, Optional, override
+import typing as t
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
@@ -13,7 +13,7 @@ from helper_functions import get_date, to_seconds
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .prediction import Prediction
     from .stop import Stop
     from .transfer import Transfer
@@ -38,19 +38,19 @@ class StopTime(Base):
         ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    arrival_time: Mapped[Optional[str]]
-    departure_time: Mapped[Optional[str]]
-    stop_id: Mapped[Optional[str]] = mapped_column(
+    arrival_time: Mapped[str]
+    departure_time: Mapped[str]
+    stop_id: Mapped[str] = mapped_column(
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    stop_sequence: Mapped[Optional[int]] = mapped_column(primary_key=True)
-    stop_headsign: Mapped[Optional[str]]
-    pickup_type: Mapped[Optional[str]]
-    drop_off_type: Mapped[Optional[str]]
-    timepoint: Mapped[Optional[str]]
-    checkpoint_id: Mapped[Optional[str]]
-    continuous_pickup: Mapped[Optional[str]]
-    continuous_drop_off: Mapped[Optional[str]]
+    stop_sequence: Mapped[int] = mapped_column(primary_key=True)
+    stop_headsign: Mapped[t.Optional[str]]
+    pickup_type: Mapped[str]  # consider as int?
+    drop_off_type: Mapped[str]  # consider as int?
+    timepoint: Mapped[t.Optional[str]]  # consider as int?
+    checkpoint_id: Mapped[t.Optional[str]]
+    continuous_pickup: Mapped[t.Optional[str]]
+    continuous_drop_off: Mapped[t.Optional[str]]
 
     stop: Mapped["Stop"] = relationship(back_populates="stop_times")
     trip: Mapped["Trip"] = relationship(back_populates="stop_times")
@@ -127,7 +127,7 @@ class StopTime(Base):
             and not self.is_destination()
         )
 
-    def is_active(self, date: dt.datetime = None, **kwargs) -> bool:
+    def is_active(self, _date: dt.datetime | None = None, **kwargs) -> bool:
         """Returns true if this StopTime is active on the given date and time
 
         args:
@@ -137,7 +137,7 @@ class StopTime(Base):
             - `bool`: whether the stop is active on the given date and time
         """
         return (
-            self.trip.calendar.operates_on(date or get_date(**kwargs))
+            self.trip.calendar.operates_on(_date or get_date(**kwargs))
             and self.departure_timestamp > time.time()
         )
 
@@ -149,8 +149,8 @@ class StopTime(Base):
         """
         return self.stop == self.trip.destination
 
-    @override
-    def _as_json_dict(self) -> dict[str, Any]:
+    @t.override
+    def _as_json_dict(self) -> dict[str, t.Any]:
         """Returns a dict representation of the object
 
         returns:

@@ -1,11 +1,23 @@
 /**
  * @file stops.js - Plot stops on map in realtime, updating every hour
+ * @module stops
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @exports plotStops
  */
 
-const stopIcon = L.icon({
-  iconUrl: "static/img/mbta.png",
-  iconSize: [12, 12],
-});
+"use strict";
+
+/**
+ * @returns {L.divIcon} - stop icon
+ */
+function getStopIcon() {
+  return L.icon({
+    iconUrl: "static/img/mbta.png",
+    iconSize: [12, 12],
+  });
+}
 
 /** Plot stops on map in realtime, updating every hour
  * @param {Object} options - options for plotting stops
@@ -28,10 +40,11 @@ function plotStops(options) {
     },
     onEachFeature(f, l) {
       l.bindPopup(getStopText(f.properties), textboxSize);
+      l.feature.properties.searchName = f.properties.stop_name;
       if (!isMobile) {
         l.bindTooltip(f.properties.stop_name);
       }
-      l.setIcon(stopIcon);
+      l.setIcon(getStopIcon(f.id));
       l.setZIndexOffset(-100);
       l.on("click", function () {
         fillAlertStopData(f.properties.stop_id);
@@ -40,13 +53,13 @@ function plotStops(options) {
     },
   });
   realtime.on("update", handleUpdateEvent);
-
   realtime.on("update", function (e) {
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
-        const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
+        layer.feature.properties.searchName = feature.properties.stop_name;
+        const wasOpen = layer.getPopup()?.isOpen() || false;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getStopText(feature.properties), textboxSize);
@@ -86,7 +99,7 @@ function getStopText(properties) {
   <a href="${
     properties.stop_url
   }" rel="noopener" target="_blank" style="color:#${
-    primaryRoute ? primaryRoute.route_color : "var(--text-color)"
+    primaryRoute?.route_color || "var(--text-color)"
   }"  class="popup_header">${properties.stop_name.replace("/", " / ")}</a>
   </p>`;
   stopHtml.innerHTML += `<p class="popup_subheader">${
@@ -226,7 +239,7 @@ async function fillPredictionsStopData(stop_id, child_stops) {
           <td style='color:#${
             d.route.route_color
           }'>${d.route.route_name.replace(" Line", "").replace("/", " / ")}</td>
-          <td>${d.trip ? d.trip.trip_short_name || d.trip_id : d.trip_id}</td>
+          <td>${d.trip?.trip_short_name || d.trip_id}</td>
           <td>${d.headsign}</td>
           <td>
             ${formatTimestamp(realDeparture, "%I:%M %P")}

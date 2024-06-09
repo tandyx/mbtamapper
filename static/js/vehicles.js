@@ -1,9 +1,16 @@
 /**
  * @file vehicles.js - Plot vehicles on map in realtime, updating every 15 seconds
+ * @module vehicles
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @typedef {import("./map.js")}
+ * @typedef {import("leaflet.markercluster")}
+ * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src.js")}
+ * @exports plotVehicles
  */
 
-// import * as L from "leaflet";
-// import * as Plotly from "plotly.js";
+"use strict";
 
 const DIRECTION_MAPPER = {
   0: "Outbound",
@@ -34,10 +41,10 @@ const HEX_TO_CSS = {
   ffffff:
     "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
 };
-const VEHICLES = {};
+// const VEHICLES = {};
 
 /**
- * wrapper for `fillPredictionVehicleData` and `fillAlertVehicleData`
+ * wrapper for @function fillPredictionVehicleData @function fillAlertVehicleData
  * @param {string} trip_id  - stop id
  */
 function fillVehicleDataWrapper(trip_id) {
@@ -65,15 +72,20 @@ function plotVehicles(options) {
     getFeatureId(f) {
       return f.id;
     },
+
+    /**
+     * @param {*} f
+     * @param {L.Layer} l
+     */
     onEachFeature(f, l) {
-      VEHICLES[`${f.id}`] = l;
+      l.id = f.id;
+      l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
-        l.bindTooltip(f.properties.trip_short_name || f.id);
+        l.bindTooltip(f.id);
       }
       l.setIcon(
         getVehicleIcon(
-          f.id,
           f.properties.bearing,
           f.properties.route_color,
           f.properties.display_name
@@ -96,15 +108,19 @@ function plotVehicles(options) {
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
+
         const feature = e.update[id];
-        const wasOpen = layer.getPopup() ? layer.getPopup().isOpen() : false;
-        VEHICLES[`${id}`] = layer;
+        const wasOpen = layer.getPopup()?.isOpen() || false;
+
+        layer.id = feature.id;
+        layer.feature.properties.searchName = `${feature.properties.trip_short_name} @ ${feature.properties.route?.route_name}`;
+
+        // VEHICLES[`${id}`] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
         layer.bindPopup(getVehicleText(feature.properties), textboxSize);
         layer.setIcon(
           getVehicleIcon(
-            id,
             feature.properties.bearing,
             feature.properties.route_color,
             feature.properties.display_name
@@ -164,19 +180,18 @@ async function fillPredictionVehicleData(trip_id) {
           const delayText = getDelayText(d.delay);
           let stopTimeClass,
             tooltipText = "";
-          if (d.stop_time) {
-            if (d.stop_time.flag_stop) {
-              stopTimeClass = "flag_stop tooltip";
-              tooltipText = "flag stop";
-              // d.stop_name += " <span class='fa'>&#xf024;</span>";
-              d.stop_name += "<i> f</i>";
-            } else if (d.stop_time.early_departure) {
-              stopTimeClass = "early_departure tooltip";
-              tooltipText = "early departure";
-              d.stop_name += "<i> L</i>";
-              // d.stop_name += " <span class='fa'>&#xf023;</span>";
-            }
+          if (d.stop_time?.flag_stop) {
+            stopTimeClass = "flag_stop tooltip";
+            tooltipText = "flag stop";
+            // d.stop_name += " <span class='fa'>&#xf024;</span>";
+            d.stop_name += "<i> f</i>";
+          } else if (d.stop_time?.early_departure) {
+            stopTimeClass = "early_departure tooltip";
+            tooltipText = "early departure";
+            d.stop_name += "<i> L</i>";
+            // d.stop_name += " <span class='fa'>&#xf023;</span>";
           }
+
           return `<tr>
             <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${d.stop_name}</td>
             <td>
@@ -241,26 +256,24 @@ async function fillAlertVehicleData(trip_id) {
 
 /**
  * return icon div
- * @param {string} id - vehicle id
  * @param {string} bearing - icon to display
  * @param {string} color - color of icon
  * @param {string} displayString - text to display
  * @returns {L.divIcon} - div icon
  */
 
-function getVehicleIcon(id, bearing, color, displayString = null) {
+function getVehicleIcon(bearing, color, displayString = null) {
   const div = document.createElement("div");
 
   div.classList.add("vehicle_wrapper");
 
   const img = document.createElement("img");
-  img.id = id;
-  img.name = id;
+
   img.src = "static/img/icon.png";
   img.alt = "vehicle";
   img.width = 60;
   img.height = 60;
-  img.style.cssText = HEX_TO_CSS[color] || HEX_TO_CSS["ffffff"];
+  img.style.cssText = HEX_TO_CSS[color] || "";
   img.style.transform = `rotate(${bearing}deg)`;
 
   const span = document.createElement("span");
@@ -284,6 +297,18 @@ function getVehicleIcon(id, bearing, color, displayString = null) {
 function getVehicleText(properties) {
   const vehicleText = document.createElement("div");
   const formattedTimestamp = formatTimestamp(properties.timestamp, "%I:%M %P");
+  const platformName =
+    properties.route &&
+    properties.route.route_type == "2" &&
+    properties.next_stop &&
+    properties.next_stop.platform_name
+      ? properties.next_stop.platform_name
+          .toLowerCase()
+          .replace(/ *\([^)]*\) */g, "")
+          .replace("commuter rail", "")
+          .replace("-", "")
+          .trim()
+      : "";
   vehicleText.innerHTML = `
   <p>
   <a href="${
@@ -313,18 +338,16 @@ function getVehicleText(properties) {
   // if (properties.trip_properties.length) {
   //   console.log();
   // }
-
+  // var trip_properties = properties.trip_properties;
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
+      const tmsp =
+        properties.next_stop?.arrival_time ||
+        properties.next_stop?.departure_time;
+      const fmttmsp = tmsp ? formatTimestamp(tmsp, "%I:%M %P") : "";
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
-      )} ${properties.stop_time.stop_name} - ${formatTimestamp(
-        properties.next_stop
-          ? properties.next_stop.arrival_time ||
-              properties.next_stop.departure_time
-          : null,
-        "%I:%M %P"
-      )}</p>`;
+      )} ${properties.stop_time.stop_name} - ${fmttmsp}</p>`;
     } else {
       vehicleText.innerHTML += `<p>${almostTitleCase(
         properties.current_status
@@ -382,7 +405,7 @@ function getVehicleText(properties) {
   vehicleText.innerHTML += `<div class = "popup_footer">
     <p>${properties.vehicle_id} @ ${
     properties.route ? properties.route.route_name : "unknown"
-  }</p>
+  } ${platformName}</p>
     <p>${formatTimestamp(properties.timestamp)}</p>
     </div>
   `;
@@ -398,48 +421,46 @@ function getVehicleText(properties) {
 async function setDefaultVehicleSideBarSummary(data) {
   // const key = await (await fetch("key")).json();
   // let content = `<h2 class='color-${key}'>${titleCase(key).toLowerCase()}</h2>`;
-  let content = "";
+  const key = await (await fetch("key")).json();
+  const findBox = "<div id='findBox'></div>";
+  if (key === "ferry") {
+    return setSideBarContent(
+      `${findBox}<h2>no vehicle data for ${key}</h2><p style='text-align:center;'>but alerts are still realtime!</p>`,
+      "sidebar-default-content"
+    );
+  }
+
+  let content = findBox;
 
   // content += "<hr />";
-  content += "<p><table class='data-table'>";
-  content += "<tr><th>train</th><th>headsign</th><th>delay</th></tr>";
+  content += "<table class='sidebar-table sortable'>";
+  content +=
+    "<thead><th>train</th><th>next stop</th><th>headsign</th><th>delay</th></thead><tbody>";
   Object.values(data)
     // .map((e) => e.properties)
     .forEach(function (d) {
-      const headsign = d.properties.headsign;
+      const headsign =
+        d.properties.headsign != "unknown"
+          ? d.properties.headsign?.replace("/", " / ") || ""
+          : "";
       const trip = d.properties.trip_short_name;
-      const delay = d.properties.next_stop ? d.properties.next_stop.delay : 0;
+      const delay = d.properties.next_stop?.delay || 0;
+      const nextStop =
+        d.properties.next_stop?.stop_name?.replace("/", " / ") ||
+        d.properties.stop_time?.stop_name?.replace("/", " / ") ||
+        "";
       const delayText = getDelayText(delay);
-
       content += `<tr>
     <td><a style='color:#${
       d.properties.route.route_color
-    };cursor:pointer;' onclick="setTimeout(() => {VEHICLES['${
+    };cursor:pointer;' onclick="mapsPlaceholder[0].findLayer('${
         d.id
-      }'].fire('click')}, 200)">${trip}</a></td>
-    <td>${headsign.replace("/", " / ")}</td>
+      }', true, 14)">${trip}</a></td>
+    <td>${nextStop}</td>
+    <td>${headsign}</td>
     <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
     </tr>`;
     });
-  content += "</table></p>";
+  content += "</tbody></table>";
   setSideBarContent(content, "sidebar-default-content");
-}
-
-/**
- * gets the delay class name
- * @param {int} delay - delay in seconds
- * @returns {string} - delay class name
- */
-
-function getDelayClassName(delay) {
-  if (delay >= 900) {
-    return "severe-delay";
-  }
-  if (delay >= 600) {
-    return "moderate-delay";
-  }
-  if (delay > 60) {
-    return "slight-delay";
-  }
-  return "on-time";
 }

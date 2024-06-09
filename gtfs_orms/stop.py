@@ -1,7 +1,7 @@
 """File to hold the Stop class and its associated methods."""
 
 # pylint: disable=line-too-long
-from typing import TYPE_CHECKING, Any, Generator, Optional, override
+import typing as t
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .alert import Alert
     from .facility import Facility
     from .prediction import Prediction
@@ -39,27 +39,27 @@ class Stop(Base):
     __tablename__ = "stops"
     __filename__ = "stops.txt"
 
-    stop_id: Mapped[Optional[str]] = mapped_column(primary_key=True)
-    stop_code: Mapped[Optional[str]]
-    stop_name: Mapped[Optional[str]]
-    stop_desc: Mapped[Optional[str]]
-    platform_code: Mapped[Optional[str]]
-    platform_name: Mapped[Optional[str]]
-    stop_lat: Mapped[Optional[float]]
-    stop_lon: Mapped[Optional[float]]
-    zone_id: Mapped[Optional[str]]
-    stop_address: Mapped[Optional[str]]
-    stop_url: Mapped[Optional[str]]
-    level_id: Mapped[Optional[str]]
-    location_type: Mapped[Optional[str]]
-    parent_station: Mapped[Optional[str]] = mapped_column(
+    stop_id: Mapped[str] = mapped_column(primary_key=True)
+    stop_code: Mapped[t.Optional[str]]
+    stop_name: Mapped[str]
+    stop_desc: Mapped[t.Optional[str]]
+    platform_code: Mapped[t.Optional[str]]
+    platform_name: Mapped[t.Optional[str]]
+    stop_lat: Mapped[t.Optional[float]]
+    stop_lon: Mapped[t.Optional[float]]
+    zone_id: Mapped[t.Optional[str]]
+    stop_address: Mapped[t.Optional[str]]
+    stop_url: Mapped[t.Optional[str]]
+    level_id: Mapped[t.Optional[str]]
+    location_type: Mapped[str]  # consider as int?
+    parent_station: Mapped[t.Optional[str]] = mapped_column(
         ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
     )
-    wheelchair_boarding: Mapped[Optional[str]]
-    municipality: Mapped[Optional[str]]
-    on_street: Mapped[Optional[str]]
-    at_street: Mapped[Optional[str]]
-    vehicle_type: Mapped[Optional[str]]
+    wheelchair_boarding: Mapped[str]  # consider as int?
+    municipality: Mapped[str]
+    on_street: Mapped[t.Optional[str]]
+    at_street: Mapped[t.Optional[str]]
+    vehicle_type: Mapped[t.Optional[str]]
 
     stop_times: Mapped[list["StopTime"]] = relationship(
         back_populates="stop", passive_deletes=True
@@ -150,7 +150,7 @@ class Stop(Base):
         """
         return Point(self.stop_lon, self.stop_lat)
 
-    def get_routes(self) -> Generator["Route", None, None]:
+    def get_routes(self) -> t.Generator["Route", None, None]:
         """yields a list of routes that stop @ this stop & children
 
         yields:
@@ -161,7 +161,7 @@ class Stop(Base):
         else:
             yield from self.routes
 
-    def get_stop_times(self) -> Generator["StopTime", None, None]:
+    def get_stop_times(self) -> t.Generator["StopTime", None, None]:
         """yields a list of `StopTime` objects for this stop || children
 
         yields:
@@ -172,7 +172,7 @@ class Stop(Base):
         else:
             yield from self.stop_times
 
-    def get_alerts(self) -> Generator["Alert", None, None]:
+    def get_alerts(self) -> t.Generator["Alert", None, None]:
         """yields a list of `Alert` objects for this stop & children
 
         yields:
@@ -181,7 +181,7 @@ class Stop(Base):
         yield from self.alerts
         yield from (a for cs in self.child_stops for a in cs.alerts)
 
-    def get_predictions(self) -> Generator["Prediction", None, None]:
+    def get_predictions(self) -> t.Generator["Prediction", None, None]:
         """yields a list of `Prediction` objects\
             for this stop and its children
         
@@ -192,8 +192,8 @@ class Stop(Base):
         else:
             yield from self.predictions
 
-    @override
-    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+    @t.override
+    def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """returns `Stop(...)` as a json serializable object:
 
         args:

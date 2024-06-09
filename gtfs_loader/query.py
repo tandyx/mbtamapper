@@ -3,10 +3,9 @@
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=no-self-argument
-from datetime import datetime, timedelta
-from typing import Any, Self, Type
+import datetime as dt
+import typing as t
 
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import *
 
@@ -23,27 +22,13 @@ class Query:
         - `*route_types (str)`: list of route_types to query
     """
 
-    @staticmethod
-    def find_orm(name: str) -> type[Base] | None:
-        """returns the `type` of the orm by name
-
-        returns:
-            - `type[Base]`: type of the orm
-        """
-        for cls in Base.__subclasses__():
-            if cls.__name__.lower() == name.lower():
-                return cls
-        return None
-
-    get_orm = find_orm
-
     @classproperty
-    def ferry_parking_query(cls: Type[Self]) -> Select[tuple[DeclarativeMeta]]:
+    def ferry_parking_query(cls: t.Type[t.Self]) -> Select[tuple[Base]]:
         """
         Returns a query for ferry parking.
 
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for ferry parking.
+            - `Select[tuple[Base]]`: A query for ferry parking.
         """
         return (
             select(Facility)
@@ -53,7 +38,7 @@ class Query:
         )
 
     @staticmethod
-    def select(*orms: DeclarativeMeta, **kwargs) -> Select[tuple[DeclarativeMeta]]:
+    def select(*orms: Base, **kwargs) -> Select[tuple[Base]]:
         """
         Returns a generic select query for tables.
 
@@ -61,29 +46,29 @@ class Query:
             - `*orms`: tables to query
             - `**kwargs`: kwargs for select\n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A generic select query for tables.
+            - `Select[tuple[Base]]`: A generic select query for tables.
         """
         return select(*orms, **kwargs)
 
     @staticmethod
-    def delete(orm: DeclarativeMeta) -> Delete:
+    def delete(orm: Base) -> Delete:
         """
         Returns a generic delete query for a table.
 
         args:
-            - `orm (DeclarativeMeta)`: table to query\n
+            - `orm (Base)`: table to query\n
         Returns:
             - `Delete`: A generic delete query for a table.
         """
         return delete(orm)
 
     @staticmethod
-    def update(orm: DeclarativeMeta) -> Update:
+    def update(orm: Base) -> Update:
         """
         Returns a generic update query for a table.
 
         args:
-            - `orm (DeclarativeMeta)`: table to query\n
+            - `orm (Base)`: table to query\n
         returns:
             - `Update`: A generic update query for a table.
         """
@@ -91,8 +76,8 @@ class Query:
 
     @staticmethod
     def get_active_calendars_query(
-        date: datetime, specific: bool = False, days_ahead: int = 7
-    ) -> Select[tuple[DeclarativeMeta]]:
+        date: dt.datetime, specific: bool = False, days_ahead: int = 7
+    ) -> Select[tuple[Base]]:
         """
         Returns a query for active calendars on a date.
 
@@ -102,7 +87,7 @@ class Query:
                 Defaults to False (query for week)
             - `days_ahead (int, optional)`: number of days ahead to query. Defaults to 7.\n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for active calendars on a date.
+            - `Select[tuple[Base]]`: A query for active calendars on a date.
         """
         if specific:
             return (
@@ -121,7 +106,7 @@ class Query:
                         and_(
                             CalendarAttribute.service_schedule_typicality != "6",
                             Calendar.start_date
-                            <= (date + timedelta(days=7)).strftime("%Y%m%d"),
+                            <= (date + dt.timedelta(days=7)).strftime("%Y%m%d"),
                             Calendar.end_date >= date.strftime("%Y%m%d"),
                             getattr(Calendar, date.strftime("%A").lower()),
                             not_(
@@ -157,7 +142,7 @@ class Query:
                     and_(
                         CalendarAttribute.service_schedule_typicality != "6",
                         Calendar.start_date
-                        <= (date + timedelta(days=days_ahead)).strftime("%Y%m%d"),
+                        <= (date + dt.timedelta(days=days_ahead)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
                     ),
                     and_(
@@ -199,7 +184,7 @@ class Query:
         Args:
             - `*exclude (str)`: list of facility types to exclude.
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query to delete facilities.
+            - `Select[tuple[Base]]`: A query to delete facilities.
         """
 
         return delete(Facility).where(
@@ -211,13 +196,13 @@ class Query:
         )
 
     @staticmethod
-    def get_shapes_from_route_query(*routes: str) -> Select[tuple[DeclarativeMeta]]:
+    def get_shapes_from_route_query(*routes: str) -> Select[tuple[Base]]:
         """Returns a query for shapes.
 
         Args:
             - `*routes (str)`: list of routes to query. Defaults to None.\n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for shapes.
+            - `Select[tuple[Base]]`: A query for shapes.
         """
         base_query = (
             select(Shape)
@@ -229,25 +214,25 @@ class Query:
         return base_query.where(Route.route_id.in_(routes))
 
     @staticmethod
-    def get_dataset_query(realtime_name: str) -> Select[tuple[DeclarativeMeta]]:
+    def get_dataset_query(realtime_name: str) -> Select[tuple[Base]]:
         """Returns a query for linked dataset.
 
         Args:
             - `realtime_name (str)`: realtime name\n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for linked dataset."""
+            - `Select[tuple[Base]]`: A query for linked dataset."""
         return select(LinkedDataset).where(getattr(LinkedDataset, realtime_name))
 
     @staticmethod
     def get_item_by_attr_query(
-        orm: Type[DeclarativeMeta], param: str, param_value: Any
-    ) -> Select[tuple[DeclarativeMeta]]:
+        orm: t.Type[Base], param: str, param_value: Any
+    ) -> Select[tuple[Base]]:
         """Returns a query for an item by id.
 
         Args:
-            - `orm (Type[DeclarativeMeta])`: table to query \n
+            - `orm (t.Type[Base])`: table to query \n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for an item by id.
+            - `Select[tuple[Base]]`: A query for an item by id.
         """
         return select(orm).where(getattr(orm, param) == param_value)
 
@@ -262,16 +247,16 @@ class Query:
         self.parent_stops_query = self._get_parent_stops_query()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(route_types={self.route_types})>"
+        return f"<{self.__class__.__name__}(route_types={', '.join(self.route_types)})>"
 
     def __str__(self) -> str:
         return self.__repr__()
 
-    def _get_trips_query(self) -> Select[tuple[DeclarativeMeta]]:
+    def _get_trips_query(self) -> Select[tuple[Base]]:
         """Returns a query for trips.
 
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for trips."""
+            - `Select[tuple[Base]]`: A query for trips."""
         return (
             select(Trip)
             .distinct()
@@ -290,11 +275,11 @@ class Query:
             )
         )
 
-    def _get_parent_stops_query(self) -> Select[tuple[DeclarativeMeta]]:
+    def _get_parent_stops_query(self) -> Select[tuple[Base]]:
         """Returns a query for parent stops.
 
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for parent stops.
+            - `Select[tuple[Base]]`: A query for parent stops.
         """
 
         parent = aliased(Stop)
@@ -307,11 +292,11 @@ class Query:
             .where(StopTime.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
 
-    def get_shapes_query(self) -> Select[tuple[DeclarativeMeta]]:
+    def get_shapes_query(self) -> Select[tuple[Base]]:
         """Returns a query for shapes.
 
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for shapes."""
+            - `Select[tuple[Base]]`: A query for shapes."""
         return (
             select(Shape)
             .distinct()
@@ -319,11 +304,11 @@ class Query:
             .where(Trip.trip_id.in_(select(self.trip_query.columns.trip_id)))
         )
 
-    def get_routes_query(self) -> Select[tuple[DeclarativeMeta]]:
+    def get_routes_query(self) -> Select[tuple[Base]]:
         """Returns a query for routes.
 
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for routes."""
+            - `Select[tuple[Base]]`: A query for routes."""
 
         return (
             select(Route)
@@ -331,14 +316,14 @@ class Query:
             .where(Route.route_id.in_(select(self.trip_query.columns.route_id)))
         )
 
-    def get_vehicles_query(self, *add_routes: str) -> Select[tuple[DeclarativeMeta]]:
+    def get_vehicles_query(self, *add_routes: str) -> Select[tuple[Base]]:
         """Returns a query for vehicles.
 
         Args:
             - `*add_routes (str, optional)`: list of routes to add to query for vehicles. \
                 Defaults to `None`. \n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for vehicles.
+            - `Select[tuple[Base]]`: A query for vehicles.
         """
 
         return (
@@ -356,13 +341,13 @@ class Query:
             )
         )
 
-    def get_facilities_query(self, *types: str) -> Select[tuple[DeclarativeMeta]]:
+    def get_facilities_query(self, *types: str) -> Select[tuple[Base]]:
         """Returns a query for parking facilities.
 
         Args:
             - `*types (str)`: list of facility types, \n
         Returns:
-            - `Select[tuple[DeclarativeMeta]]`: A query for parking facilities.
+            - `Select[tuple[Base]]`: A query for parking facilities.
         """
         return (
             select(Facility)

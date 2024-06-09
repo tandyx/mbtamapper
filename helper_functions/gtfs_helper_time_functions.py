@@ -1,6 +1,6 @@
 """Helper functions for time conversions for gtfs loader"""
 
-from datetime import datetime, timedelta
+import datetime as dt
 
 import pytz
 
@@ -18,7 +18,7 @@ def to_seconds(time: str) -> int:
     return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
 
 
-def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
+def get_date(offset: int = 0, zone: str = "America/New_York") -> dt.datetime:
     """Returns the current date in the given timezone
 
     Args:
@@ -28,12 +28,12 @@ def get_date(offset: int = 0, zone: str = "America/New_York") -> datetime:
         - `datetime`: The current date in the given timezone
     """
 
-    return datetime.now(pytz.timezone(zone)).replace(
+    return dt.datetime.now(pytz.timezone(zone)).replace(
         hour=0, minute=0, second=0, microsecond=0
-    ) + timedelta(days=offset)
+    ) + dt.timedelta(days=offset)
 
 
-def get_current_time(offset: int = 0, zone: str = "America/New_York") -> datetime:
+def get_current_time(offset: int = 0, zone: str = "America/New_York") -> dt.datetime:
     """Returns the current time in the given timezone
 
     Args:
@@ -43,4 +43,4 @@ def get_current_time(offset: int = 0, zone: str = "America/New_York") -> datetim
         - `datetime`: The current time in the given timezone
     """
 
-    return datetime.now(pytz.timezone(zone)) + timedelta(hours=offset)
+    return dt.datetime.now(pytz.timezone(zone)) + dt.timedelta(hours=offset)

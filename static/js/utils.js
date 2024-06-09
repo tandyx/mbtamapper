@@ -1,8 +1,11 @@
 /**
  * @file utils.js - misc utility functions
+ * @module utils
+ * @typedef {import("strftime")}
+ * @exports *
  */
 
-// import { strftime } from "strftime";
+"use strict";
 
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
@@ -143,14 +146,14 @@ function inIframe() {
  * @returns {string} - The value of the style property
  */
 function getStyle(id, styleProp) {
-  let x = typeof id === "string" ? document.getElementById(id) : id;
-  if (x.style[styleProp]) return x.style[styleProp];
+  const element = typeof id === "string" ? document.getElementById(id) : id;
+  if (element.style[styleProp]) return element.style[styleProp];
   if (window.getComputedStyle) {
     return document.defaultView
-      .getComputedStyle(x, null)
+      .getComputedStyle(element, null)
       .getPropertyValue(styleProp);
   }
-  if (x.currentStyle) return x.currentStyle[styleProp];
+  if (element.currentStyle) return element.currentStyle[styleProp];
 
   return;
 }
@@ -163,9 +166,7 @@ function getStyle(id, styleProp) {
  * @returns {string} - The truncated string
  */
 function truncateString(str, num, tail = "...") {
-  if (str.length <= num) {
-    return str;
-  }
+  if (str.length <= num) return str;
   return str.slice(0, num) + tail;
 }
 
@@ -292,15 +293,17 @@ function getCookie(name) {
 
 /**
  * gets a default cookie value, sets the cookie if it does not exist
- * @param {string} name
- * @param {string} value
+ * @param {string} name - the name of the cookie
+ * @param {string} value - default "" value of the cookie
+ * @param {number | null} numDays - the number of days until the cookie expires or null if it never expires
  * @returns {string} - the value of the cookie
+ * @example let user = getDefaultCookie("username", "johan", 10);
  */
-function getDefaultCookie(name, value = "") {
+function getDefaultCookie(name, value = "", numDays = null) {
   let cookie = getCookie(name);
   if (!cookie) {
     cookie = value;
-    setCookie(name, value);
+    setCookie(name, value, numDays);
   }
   return cookie;
 }
@@ -308,7 +311,7 @@ function getDefaultCookie(name, value = "") {
 /**
  * gets the value (style) of a css var
  * @param {string} name - the name of the css variable
- * @returns {string} - the value of the css variable
+ * @returns {string} the value of the css variable
  */
 
 function getCssVar(name) {
@@ -382,4 +385,22 @@ function getDelayText(delay) {
     delayText += " min";
   }
   return delayText;
+}
+
+/**
+ * gets the delay class name
+ * @param {int} delay - delay in seconds
+ * @returns {string} - delay class name
+ */
+function getDelayClassName(delay) {
+  if (delay >= 900) {
+    return "severe-delay";
+  }
+  if (delay >= 600) {
+    return "moderate-delay";
+  }
+  if (delay > 60) {
+    return "slight-delay";
+  }
+  return "on-time";
 }

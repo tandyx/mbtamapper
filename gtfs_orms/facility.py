@@ -1,6 +1,6 @@
 """File to hold the Facility class and its associated methods."""
 
-from typing import TYPE_CHECKING, Any, Optional, override
+import typing as t
 
 from geojson import Feature
 from shapely.geometry import Point
@@ -9,11 +9,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .facility_property import FacilityProperty
     from .stop import Stop
-
-# pylint: disable=line-too-long
 
 
 class Facility(Base):
@@ -34,18 +32,18 @@ class Facility(Base):
     __filename__ = "facilities.txt"
 
     facility_id: Mapped[str] = mapped_column(primary_key=True)
-    facility_code: Mapped[Optional[str]]
-    facility_class: Mapped[Optional[str]]
-    facility_type: Mapped[Optional[str]]
-    stop_id: Mapped[Optional[str]] = mapped_column(
+    facility_code: Mapped[t.Optional[str]]
+    facility_class: Mapped[int]
+    facility_type: Mapped[str]
+    stop_id: Mapped[str] = mapped_column(
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    facility_short_name: Mapped[Optional[str]]
-    facility_long_name: Mapped[Optional[str]]
-    facility_desc: Mapped[Optional[str]]
-    facility_lat: Mapped[Optional[float]]
-    facility_lon: Mapped[Optional[float]]
-    wheelchair_facility: Mapped[Optional[str]]
+    facility_short_name: Mapped[t.Optional[str]]
+    facility_long_name: Mapped[str]
+    facility_desc: Mapped[t.Optional[str]]  # almost always null
+    facility_lat: Mapped[t.Optional[float]]
+    facility_lon: Mapped[t.Optional[float]]
+    wheelchair_facility: Mapped[int]
 
     facility_properties: Mapped[list["FacilityProperty"]] = relationship(
         back_populates="facility", passive_deletes=True
@@ -61,8 +59,8 @@ class Facility(Base):
         """
         return Point(self.facility_lon, self.facility_lat)
 
-    @override
-    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+    @t.override
+    def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns facility object as a dictionary.\
             same as `as_dict` but with the facility properties included.
         

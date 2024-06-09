@@ -1,6 +1,80 @@
 /**
  * @file map.js - main map script
+ * @typedef {import("leaflet")}
+ * @typedef {import("leaflet.markercluster")}
+ * @typedef {import("leaflet.locatecontrol")}
+ * @typedef {import("leaflet-search")}
+ * @typedef {import("leaflet-fullscreen")}
+ * @typedef {import("leaflet-providers")}
+ * @typedef {import("leaflet-realtime")}
+ * @typedef {import("./utils.js")}
+ * @typedef {import("./shapes.js")}
+ * @typedef {import("./stops.js")}
+ * @typedef {import("./vehicles.js")}
+ * @typedef {import("./facilities.js")}
+ * @exports mapsPlaceholder
  */
+
+/**@class L.Map */
+
+"use strict";
+/**
+ * @type {Array<L.Map>} mapsPlaceholder
+ */
+const mapsPlaceholder = [];
+L.Map.addInitHook(function () {
+  mapsPlaceholder.push(this);
+});
+
+/**
+ * @name L.Map#findLayer
+ * @memberof! L.Map.prototype
+ * @description Find a layer by id
+ * @param {string | L.Layer} layer the id NOT leaflet ID of the layer or the layer itself
+ * @param {boolean} click  if true, the layer will be clicked
+ * @param {null | integer} zoom  the zoom level to zoom to
+ * @returns {L.Layer | null} the layer if found, null otherwise
+ */
+L.Map.prototype.findLayer = function (layer, click = false, zoom = null) {
+  /** @type {L.MarkerCluster | null} */
+
+  /**
+   * @param {L.Layer} _layer
+   */
+  const _execLayer = (_layer) => {
+    if (click) {
+      _layer.fire("click");
+      _layer.closeTooltip();
+    }
+    this.setView(_layer.getLatLng(), zoom || 15);
+    return _layer;
+  };
+  let mcg;
+  const matchWithoutZoom = Object.values(this._layers).filter((l) => {
+    if (l instanceof L.MarkerClusterGroup) mcg = l; //**acceptable** side affect
+    if (layer instanceof L.Layer && layer == l) return l;
+    if (l.id == layer) return l;
+  });
+  if (matchWithoutZoom.length) return _execLayer(matchWithoutZoom[0]);
+  const initialBounds = this.getBounds();
+  this.fitBounds(this.options.maxBounds);
+  mcg.disableClustering();
+  if (!(layer instanceof L.Layer)) {
+    this.eachLayer((layer_) => {
+      if (layer_?.id == layer) {
+        _execLayer(layer_);
+        layer = layer_;
+      }
+    });
+  } else {
+    _execLayer(layer);
+  }
+  if (!(layer instanceof L.Layer)) layer = null;
+  if (mcg) mcg.enableClustering();
+  if (!layer || !zoom) this.fitBounds(initialBounds);
+  return layer;
+};
+
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   document.addEventListener("click", function (event) {
@@ -12,6 +86,7 @@ window.addEventListener("load", function () {
   createMap("map", ROUTE_TYPE);
   addSidebarDrag();
 });
+
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {string} route_type - route type
@@ -37,7 +112,6 @@ function createMap(id, route_type) {
     [getDefaultCookie("lat", 42.3519), getDefaultCookie("lng", -71.0552)],
     getDefaultCookie("zoom", route_type == "commuter_rail" ? 10 : 13)
   );
-
   map.on("move", function () {
     const cords = map.getCenter();
     setCookie("lat", cords.lat);
@@ -53,20 +127,14 @@ function createMap(id, route_type) {
   // });
 
   const baseLayers = getBaseLayerDict(...Array(2));
-  baseLayers[getDefaultCookie("darkMode", "light")].addTo(map);
-  let stop_layer = L.layerGroup().addTo(map);
-  stop_layer.name = "stops";
-
-  let shape_layer = L.layerGroup().addTo(map);
-  shape_layer.name = "shapes";
-
-  let vehicle_layer = L.markerClusterGroup({
+  baseLayers[getDefaultCookie("darkMode", "light", 90)].addTo(map);
+  const stop_layer = L.layerGroup(undefined, { name: "stops" }).addTo(map);
+  const shape_layer = L.layerGroup(undefined, { name: "shapes" }).addTo(map);
+  const vehicle_layer = L.markerClusterGroup({
     disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
+    name: "vehicles",
   }).addTo(map);
-  vehicle_layer.name = "vehicles";
-
-  let parking_lots = L.layerGroup();
-  parking_lots.name = "parking";
+  const parking_lots = L.layerGroup(undefined, { name: "parking" });
 
   plotStops({
     url: "stops",
@@ -108,7 +176,7 @@ function createMap(id, route_type) {
   });
 
   map.on("baselayerchange", function (event) {
-    setCookie("darkMode", event.name);
+    setCookie("darkMode", event.name, 90);
   });
 
   if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
@@ -121,7 +189,7 @@ function createMap(id, route_type) {
 }
 /** create control layers
  * @param {Object} tile_layers - base layers
- * @param {L.layerGroup} layers - layers to be added to the map
+ * @param {L.layerGroup[]} layers - layers to be added to the map
  * @returns {Array} control layers
  */
 function createControlLayers(tile_layers, ...layers) {
@@ -133,11 +201,13 @@ function createControlLayers(tile_layers, ...layers) {
       zIndexOffset: 500,
     },
   });
-
+  const searchContainerId = "findBox";
+  /**@type {L.Control} */
   const controlSearch = L.control.search({
     layer: L.layerGroup(layers),
+    container: searchContainerId,
     initial: false,
-    propertyName: "name",
+    propertyName: "searchName",
     zoom: 16,
     marker: false,
     textPlaceholder: "",
@@ -146,12 +216,23 @@ function createControlLayers(tile_layers, ...layers) {
     event.layer.openPopup();
   });
 
+  window.addEventListener("keydown", (keyEvent) => {
+    if (
+      (keyEvent.code === "F3" ||
+        ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.code === "KeyF")) &&
+      !window.mobileCheck()
+    ) {
+      keyEvent.preventDefault();
+      controlSearch._button.click();
+    }
+  });
+
   const layerControl = L.control.layers(
     tile_layers,
-    Object.fromEntries(layers.map((layer) => [layer.name, layer]))
+    Object.fromEntries(layers.map((layer) => [layer.options?.name, layer]))
   );
 
-  return [locateControl, layerControl];
+  return [locateControl, layerControl, controlSearch];
 }
 
 /** Get base layer dictionary
@@ -183,17 +264,20 @@ function getBaseLayerDict(
 }
 
 function addSidebarDrag() {
-  setCssVar("--sidebar-width", getDefaultCookie("sidebarWidth", "250px"));
+  const minWidth = 450; // minimum sidebar width
+  setCssVar(
+    "--sidebar-width",
+    getDefaultCookie("sidebarWidth", `${minWidth}px`, 2)
+  );
   const sidebar = document.getElementById("sidebar");
   const sidebarHandle = document.getElementById("sidebar-handle");
-  const minWidth = 250; // 250px
 
   function resize(e) {
     document.body.classList.add("noselect");
     const size = parseInt(getStyle(document.body, "width").trimEnd("px")) - e.x;
     if (size < minWidth || size > window.innerWidth) return;
     setCssVar("--sidebar-width", `${size}px`);
-    setCookie("sidebarWidth", `${size}px`);
+    setCookie("sidebarWidth", `${size}px`, 1);
   }
 
   sidebarHandle.addEventListener("mousedown", (event) => {

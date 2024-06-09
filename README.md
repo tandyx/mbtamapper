@@ -4,6 +4,8 @@ sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
 ## setup
 
+requires python 3.10+ and node 20+
+
 ### building
 
 ```sh
@@ -12,10 +14,14 @@ cd mbtamapper
 ```
 
 ```sh
+python3 -m venv .venv
+source .venv/bin/activate
 pip3 install --upgrade -r requirements.txt
-cd static && 
-  npm install && 
-  cd ..
+# pip3 install --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --upgrade -r requirements.txt
+```
+
+```sh
+cd static && npm install && cd ..
 ```
 
 ### running
@@ -101,3 +107,14 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
         }
     ]
 ```
+
+### docker
+
+  this is more for me than anything else
+  
+  ```sh
+  docker build --tag mbta_mapper .
+  docker tag mbta_mapper tandyy/mbta_mapper:latest
+  docker push tandyy/mbta_mapper:latest
+  # docker run -d -p 80:80 mbta_mapper
+  ```

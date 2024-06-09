@@ -1,13 +1,13 @@
 """module holding the TripProperty class"""
 
-from typing import TYPE_CHECKING, Optional
+import typing as t
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .trip import Trip
 
 
@@ -28,6 +28,6 @@ class TripProperty(Base):
         primary_key=True,
     )
     trip_property_id: Mapped[str] = mapped_column(primary_key=True)
-    value: Mapped[Optional[str]] = mapped_column(primary_key=True)
+    value: Mapped[str] = mapped_column(primary_key=True)
 
     trip: Mapped["Trip"] = relationship(back_populates="trip_properties")

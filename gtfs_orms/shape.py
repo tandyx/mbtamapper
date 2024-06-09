@@ -1,6 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
-from typing import TYPE_CHECKING, Any, override
+import typing as t
 
 from geojson import Feature
 from shapely.geometry import LineString
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .shape_point import ShapePoint
     from .trip import Trip
 
@@ -29,7 +29,9 @@ class Shape(Base):
         back_populates="shape", passive_deletes=True
     )
     shape_points: Mapped[list["ShapePoint"]] = relationship(
-        back_populates="shape", passive_deletes=True
+        back_populates="shape",
+        passive_deletes=True,
+        order_by="ShapePoint.shape_pt_sequence",
     )
 
     def as_linestring(self) -> LineString:
@@ -56,8 +58,8 @@ class Shape(Base):
             properties=self.as_json(*include),
         )
 
-    @override
-    def as_json(self, *include, **kwargs) -> dict[str, Any]:
+    @t.override
+    def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns shape object as a dictionary.
 
         args:

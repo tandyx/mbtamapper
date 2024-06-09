@@ -1,6 +1,8 @@
 :root {
   --font-family: "montserrat", "Helvetica", sans-serif;
   --text-color: #f2f2f2;
+  --lighter-text-color: #9b9b9b;
+  --lighter-dark-background: #252525;
   --dark-text-color: #060606;
   --dark-background: #1a1a1a;
   --tooltip-background: #333;
@@ -16,7 +18,7 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --sidebar-width: 250px;
+  --sidebar-width: 500px;
   --sidebar-handle-width: 3px;
   --sidebar-content-padding: 10px;
 }
@@ -390,7 +392,7 @@ noscript {
 }
 
 .data-table {
-  border: 1px solid var(--text-color) !important  ;
+  border: 1px solid var(--text-color) !important;
   width: 100%;
   border-collapse: collapse;
 
@@ -403,6 +405,70 @@ noscript {
     border: 1px solid var(--text-color) !important;
     padding: 10px;
   }
+}
+
+.sidebar-table {
+  border: 1px solid var(--text-color) !important;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  border-radius: 40px;
+  tbody,
+  thead,
+  tr,
+  td,
+  th {
+    border: 1px solid var(--text-color) !important;
+    padding: 10px;
+  }
+  tbody tr:nth-child(odd) {
+    background-color: var(--lighter-dark-background);
+    /* color: var(--dark-background); */
+  }
+}
+
+.sortable thead th:not(.no-sort) {
+  cursor: pointer;
+}
+.sortable thead th:not(.no-sort)::after,
+.sortable thead th:not(.no-sort)::before {
+  transition: color 0.1s ease-in-out;
+  color: transparent;
+}
+.sortable thead th:not(.no-sort)::after {
+  margin-left: 3px;
+  content: "▸";
+}
+.sortable thead th:not(.no-sort):hover::after {
+  color: inherit;
+}
+.sortable thead th:not(.no-sort)[aria-sort="descending"]::after {
+  color: inherit;
+  content: "▾";
+}
+.sortable thead th:not(.no-sort)[aria-sort="ascending"]::after {
+  color: inherit;
+  content: "▴";
+}
+.sortable thead th:not(.no-sort).indicator-left::after {
+  content: "";
+}
+.sortable thead th:not(.no-sort).indicator-left::before {
+  margin-right: 3px;
+  content: "▸";
+}
+.sortable thead th:not(.no-sort).indicator-left:hover::before {
+  color: inherit;
+}
+.sortable
+  thead
+  th:not(.no-sort).indicator-left[aria-sort="descending"]::before {
+  color: inherit;
+  content: "▾";
+}
+.sortable thead th:not(.no-sort).indicator-left[aria-sort="ascending"]::before {
+  color: inherit;
+  content: "▴";
 }
 
 @-webkit-keyframes spin {
@@ -503,6 +569,18 @@ noscript {
   /* border-left: 1px solid var(--text-color); */
   right: calc(var(--sidebar-width) - var(--sidebar-handle-width));
   left: 0px;
+}
+
+#sidebar-always {
+  z-index: 1;
+  background: var(--dark-background);
+  margin: 10px 20% 0 0%;
+  width: max-content;
+  /* min-width: calc(100% - var(--sidebar-width)); */
+  /* width: min(max-content, calc(100% - var(--sidebar-handle-width))); */
+  color: var(--text-color);
+  /* padding: 10px; */
+  padding-bottom: 50px;
 }
 
 #sidebar-handle:hover {

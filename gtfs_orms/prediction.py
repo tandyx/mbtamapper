@@ -2,13 +2,13 @@
 
 # pylint: disable=line-too-long
 
-from typing import TYPE_CHECKING, Any, Optional, Union, override
+import typing as t
 
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from .base import Base
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .route import Route
     from .stop import Stop
     from .stop_time import StopTime
@@ -34,14 +34,14 @@ class Prediction(Base):
     __realtime_name__ = "trip_updates"
 
     prediction_id: Mapped[str]
-    arrival_time: Mapped[Optional[int]]
-    departure_time: Mapped[Optional[int]]
-    direction_id: Mapped[Optional[int]]
-    stop_sequence: Mapped[Optional[int]]
-    route_id: Mapped[Optional[str]]
-    stop_id: Mapped[Optional[str]]
-    trip_id: Mapped[Optional[str]]
-    vehicle_id: Mapped[Optional[str]]
+    arrival_time: Mapped[t.Optional[int]]
+    departure_time: Mapped[t.Optional[int]]
+    direction_id: Mapped[t.Optional[int]]
+    stop_sequence: Mapped[t.Optional[int]]
+    route_id: Mapped[t.Optional[str]]
+    stop_id: Mapped[t.Optional[str]]
+    trip_id: Mapped[t.Optional[str]]
+    vehicle_id: Mapped[t.Optional[str]]
     index: Mapped[int] = mapped_column(primary_key=True)
 
     route: Mapped["Route"] = relationship(
@@ -73,18 +73,14 @@ class Prediction(Base):
     )
 
     @property
-    def destination(self) -> Union["Stop", None]:
-        """Returns the destination of the prediction.
-
-        Returns:
-            - `str`: the destination of the prediction
-        """
+    def destination(self) -> "Stop | None":
+        """the destination of the trip as a `stop`"""
         if self.trip:
             return self.trip.destination
-        try:
-            return max(s for s in self.vehicle.predictions if s.trip_id == self.trip_id)
-        except ValueError:
-            return None
+        return max(
+            (s for s in self.vehicle.predictions if s.trip_id == self.trip_id),
+            default=None,
+        )
 
     @reconstructor
     def _init_on_load_(self) -> None:
@@ -92,6 +88,7 @@ class Prediction(Base):
         # pylint: disable=attribute-defined-outside-init
         self.stop_sequence = self.stop_sequence or 0
         self.stop_name = self.stop.stop_name if self.stop else None
+        self.platform_name = self.stop.platform_name if self.stop else None
         self.delay = self._get_delay()
 
     def __repr__(self) -> str:
@@ -160,8 +157,8 @@ class Prediction(Base):
             return max(self.vehicle.predictions).stop.stop_name
         return ""
 
-    @override
-    def as_json(self, *include: str, **kwargs) -> dict[str, Any]:
+    @t.override
+    def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """returns `Prediction` as a dictionary.\
             overrides `as_json` in `Base`.
         

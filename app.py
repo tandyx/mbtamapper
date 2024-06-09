@@ -3,9 +3,13 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function.
     
-    all arguments are ignored in production.
+    all arguments are ignored in production except:
+        - `--import_data` to import data.
+        - `--proxies` to set the number of proxies to allow on connection.
     
 see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
+
+johan cho | 2023-2024
 
 """
 
@@ -22,24 +26,24 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from gtfs_loader import FeedLoader, Query
 
-GEOJSON_FOLDER: str = "geojsons"
+LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
     KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(f)
 FEED_LOADER: FeedLoader = FeedLoader(
     url="https://cdn.mbta.com/MBTA_GTFS.zip",
-    geojson_path=os.path.join(os.getcwd(), "static", GEOJSON_FOLDER),
+    geojson_path=os.path.join(os.getcwd(), "static", LAYER_FOLDER),
     keys_dict={k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
 
-def _error404(_app: flask.Flask, error: Exception = None) -> str:
+def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, int]:
     """Returns 404.html // should only be used in the\
         context of a 404 error.
 
     Args:
         - `error (Exception)`: Error to log. \n
     Returns:
-        - `str`: 404.html.
+        - `tuple[str, int]`: 404.html and 404 status code.
     """
     if error:
         logging.error(error)
@@ -75,22 +79,22 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/key")
-    def get_key() -> str:
+    def get_key() -> flask.Response:
         """Returns key.json.
 
         returns:
-            - `str`: the route key
+            - `Response`: the route key
         """
         return flask.jsonify(key)
 
     @_app.route("/vehicles")
     @_app.route("/api/vehicle")
-    def get_vehicles() -> str:
+    def get_vehicles() -> flask.Response:
         """Returns vehicles as geojson in the context of the route type AND \
             flask, exported to /vehicles as an api.
             
         Returns:
-            - `str`: geojson of vehicles.
+            - `Response`: geojson of vehicles.
         """
         return flask.jsonify(
             FEED_LOADER.get_vehicles_feature(
@@ -102,55 +106,53 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
     @_app.route("/stops")
     @_app.route("/api/stop")
-    def get_stops() -> str:
+    def get_stops() -> flask.Response:
         """Returns stops as geojson in the context of the route type AND \
             flask, exported to /stops as an api.
             
         returns:
-            - `str`: geojson of stops.
+            - `Response`: geojson of stops.
         """
-        return flask.redirect(
-            flask.url_for(
-                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}"
-            )
-        )
+        return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}")
 
     @_app.route("/parking")
     @_app.route("/facilities")
     @_app.route("/api/parking")
-    def get_parking() -> str:
+    def get_parking() -> flask.Response:
         """Returns parking as geojson in the context of the route type AND \
             flask, exported to /parking as an api.
             
         returns:
-            - `str`: geojson of parking.
+            - `Response`: geojson of parking.
         """
-        return flask.redirect(
-            flask.url_for(
-                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}"
-            )
-        )
+
+        return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}")
 
     @_app.route("/routes")
     @_app.route("/shapes")
     @_app.route("/api/route")
     @_app.route("/api/shape")
-    def get_routes() -> str:
+    def get_routes() -> flask.Response:
         """Returns routes as geojson in the context of the route type AND \
             flask, exported to /routes as an api.
             
         returns:
-            - `str`: geojson of routes.
+            - `Response`: geojson of routes.
         """
 
-        return flask.redirect(
-            flask.url_for(
-                "static", filename=f"{GEOJSON_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}"
-            )
-        )
+        return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}")
+
+    @_app.route("/favicon.ico")
+    def favicon() -> flask.Response:
+        """Returns favicon.ico.
+
+        returns:
+            - `Response`: favicon.ico.
+        """
+        return _app.send_static_file("img/all_routes.ico")
 
     @_app.teardown_appcontext
-    def shutdown_session(exception: Exception = None) -> None:
+    def shutdown_session(exception: Exception | None = None) -> None:
         """Tears down database session.
 
         Args:
@@ -161,7 +163,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             logging.error(exception)
 
     @_app.errorhandler(404)
-    def page_not_found(error: Exception = None) -> str:
+    def page_not_found(error: Exception | None = None) -> tuple[str, int]:
         """Returns 404.html.
 
         Args:
@@ -182,10 +184,11 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     return _app
 
 
-def create_main_app(proxies: int = 5) -> flask.Flask:
+def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
     Args:
+        - `import_data (bool, optional)`: Whether to import data. Defaults to False.
         - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
     Returns:
         - `Flask`: default app.
@@ -193,8 +196,10 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
-    with _app.app_context():  # background thread to import data
-        thread = threading.Thread(target=FEED_LOADER.import_and_run)
+    with _app.app_context():  # background thread to run update
+        thread = threading.Thread(
+            target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
+        )
         thread.start()
 
     @_app.route("/")
@@ -207,19 +212,28 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
 
         return flask.render_template("index.html", content=KEY_DICT)
 
+    @_app.teardown_appcontext
+    def shutdown_session(exception: Exception | None = None) -> None:
+        """Tears down database session.
+
+        Args:
+            - `exception (Exception, optional)`: Exception to log. Defaults to None.
+        """
+        FEED_LOADER.scoped_session.remove()
+        if exception:
+            logging.error(exception)
+
     @_app.route("/favicon.ico")
-    def favicon() -> str:
+    def favicon() -> flask.Response:
         """Returns favicon.ico.
 
         returns:
-            - `str`: favicon.ico.
+            - `Response`: favicon.ico.
         """
-        return flask.send_from_directory(
-            os.path.join(_app.root_path, "static", "img"), "all_routes.ico"
-        )
+        return _app.send_static_file("img/all_routes.ico")
 
     @_app.route("/api/<orm_name>")
-    def orm_api(orm_name: str) -> str:
+    def orm_api(orm_name: str) -> tuple[str | flask.Response, int] | flask.Response:
         """Returns the ORM for a given key.
 
         Args:
@@ -228,11 +242,14 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
             - `str`: ORM for the key.
         """
 
-        if not (orm := FeedLoader.find_orm(orm_name.rstrip("s"))):
+        if not (orm := FeedLoader.find_orm(orm_name.strip().rstrip("s"))):
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
-        geojson = bool(params.pop("geojson", False))
+        geojson = (
+            bool(params.pop("geojson", False))  # this will be removed in the future
+            or params.pop("file_type", "").lower() == "geojson"
+        )
         timeout = 15  # seconds
         try:
             data = FEED_LOADER.timeout_get_orm_json(
@@ -247,7 +264,7 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
         return flask.jsonify(data)
 
     @_app.errorhandler(404)
-    def page_not_found(error: Exception = None) -> str:
+    def page_not_found(error: Exception | None = None) -> tuple[str, int]:
         """Returns 404.html.
 
         Args:
@@ -257,14 +274,6 @@ def create_main_app(proxies: int = 5) -> flask.Flask:
         """
         return _error404(_app, error)
 
-    if proxies:
-        _app.wsgi_app = ProxyFix(
-            _app.wsgi_app,
-            x_for=proxies,
-            x_proto=proxies,
-            x_host=proxies,
-            x_prefix=proxies,
-        )
     _app.wsgi_app = DispatcherMiddleware(
         _app.wsgi_app,
         {f"/{key}": create_key_app(key, proxies).wsgi_app for key in KEY_DICT},
@@ -290,27 +299,18 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "--import_data",
         "-i",
         action="store_true",
-        help="Import data from GTFS feed.",
+        help="run import of database + export of geojson files",
     )
     _argparse.add_argument(
-        "--port",
-        "-p",
-        type=int,
-        default=80,
-        help="Port to run the server on.",
+        "--port", "-p", type=int, default=80, help="app.run() only: server port"
     )
 
     _argparse.add_argument(
-        "--debug",
-        "-d",
-        action="store_true",
-        help="flask app debug mode",
+        "--debug", "-d", action="store_true", help="app.run() only: debug mode"
     )
 
     _argparse.add_argument(
-        "--host",
-        default="127.0.0.1",
-        help="Host to run the server on.",
+        "--host", default="127.0.0.1", help="app.run() only: server host address"
     )
 
     _argparse.add_argument(
@@ -318,7 +318,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         "-x",
         type=int,
         default=5,
-        help="Number of proxies to allow on connection.",
+        help="number of proxies to allow on connection.",
     )
 
     _argparse.add_argument(
@@ -338,8 +338,9 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = get_args().parse_args()
     logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
-    if args.import_data:
-        FEED_LOADER.nightly_import()
-        FEED_LOADER.geojson_exports()
-    app = create_main_app(args.proxies)
+    if args.debug and (
+        args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
+    ):
+        raise ValueError("cannot run in debug mode while importing data.")
+    app = create_main_app(args.import_data, args.proxies)
     app.run(debug=args.debug, port=args.port, host=args.host)
