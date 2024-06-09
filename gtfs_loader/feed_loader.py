@@ -40,7 +40,7 @@ class FeedLoader(Scheduler, Feed):
         return os.path.exists(self.db_path)
 
     def __init__(
-        self, url: str, geojson_path: str, keys_dict: dict[str, t.Any], **kwargs
+        self, url: str, geojson_path: str, keys_dict: dict[str, list[str]], **kwargs
     ) -> None:
         """Initializes FeedLoader.
 
