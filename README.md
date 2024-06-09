@@ -107,3 +107,14 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
         }
     ]
 ```
+
+### docker
+
+  this is more for me than anything else
+  
+  ```sh
+  docker build --tag mbta_mapper .
+  docker tag mbta_mapper tandyy/mbta_mapper:latest
+  docker push tandyy/mbta_mapper:latest
+  # docker run -d -p 80:80 mbta_mapper
+  ```
