@@ -7,7 +7,9 @@
     "leaflet-search": "^4.0.0",
     "leaflet.locatecontrol": "^0.79.0",
     "leaflet.markercluster": "^1.5.3",
+    "leaflet.markercluster.freezable": "^1.0.0",
     "plotly.js-dist-min": "^2.31.0",
+    "sortable-tablesort": "^3.2.3",
     "strftime": "^0.10.2"
   },
   "scripts": {

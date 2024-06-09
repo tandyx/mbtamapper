@@ -40,6 +40,7 @@ function plotStops(options) {
     },
     onEachFeature(f, l) {
       l.bindPopup(getStopText(f.properties), textboxSize);
+      l.feature.properties.searchName = f.properties.stop_name;
       if (!isMobile) {
         l.bindTooltip(f.properties.stop_name);
       }
@@ -52,12 +53,12 @@ function plotStops(options) {
     },
   });
   realtime.on("update", handleUpdateEvent);
-
   realtime.on("update", function (e) {
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
         const feature = e.update[id];
+        layer.feature.properties.searchName = feature.properties.stop_name;
         const wasOpen = layer.getPopup()?.isOpen() || false;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();

@@ -359,15 +359,19 @@ class Feed:
         self, key: str, query_obj: Query, *include: str
     ) -> gj.FeatureCollection:
         """Returns vehicles as FeatureCollection.
-
-        Args:
+        notes:
+            - early return if ferry data is requested.
+            - tries 10 times to get data \n
+        args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
             - `query_obj (Query)`: Query object
             - `*include (str)`: other orms to include \n
-        Returns:
+        returns:
             - `FeatureCollection`: vehicles as FeatureCollection
         """
         session = self.scoped_session()
+        if key == "ferry":  # no ferry data :(
+            return gj.FeatureCollection([])
         if key == "rapid_transit":
             vehicles_query = query_obj.get_vehicles_query(*self.SL_ROUTES)
         else:

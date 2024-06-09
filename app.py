@@ -3,7 +3,9 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function.
     
-    all arguments are ignored in production.
+    all arguments are ignored in production except:
+        - `--import_data` to import data.
+        - `--proxies` to set the number of proxies to allow on connection.
     
 see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 
@@ -245,7 +247,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
         geojson = (
-            bool(params.pop("geojson", False))
+            bool(params.pop("geojson", False))  # this will be removed in the future
             or params.pop("file_type", "").lower() == "geojson"
         )
         timeout = 15  # seconds

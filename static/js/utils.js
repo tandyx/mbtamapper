@@ -1,13 +1,11 @@
 /**
  * @file utils.js - misc utility functions
  * @module utils
- * @typedef {import("strftime").default} strftime
+ * @typedef {import("strftime")}
  * @exports *
  */
 
-strftime;
-
-("use strict");
+"use strict";
 
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile

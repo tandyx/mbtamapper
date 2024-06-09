@@ -73,11 +73,13 @@
     />
     <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
 
+    <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js') }}"></script>
+
+    <!-- other js -->
     <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/sortable-tablesort/sortable.min.js') }}"></script>
 
-    <!-- plotly -->
-
-    <script src="{{ url_for('static', filename='node_modules/plotly.js-dist-min/plotly.min.js') }}"></script>
+    <!-- <script src="{{ url_for('static', filename='node_modules/plotly.js-dist-min/plotly.min.js') }}"></script> -->
 
     <!-- Custom CSS -->
     <link
@@ -129,6 +131,7 @@
     <div id="map"></div>
     <div id="sidebar">
       <div id="sidebar-handle"></div>
+      <div id="sidebar-always"><div id="findBox"></div></div>
       <div id="sidebar-default-content" class="hidden"></div>
       <div id="sidebar-content" class="hidden"></div>
     </div>

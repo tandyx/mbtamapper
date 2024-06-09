@@ -5,6 +5,8 @@
  * @typedef {import("leaflet-realtime")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./map.js")}
+ * @typedef {import("leaflet.markercluster")}
+ * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src.js")}
  * @exports plotVehicles
  */
 
@@ -77,6 +79,7 @@ function plotVehicles(options) {
      */
     onEachFeature(f, l) {
       l.id = f.id;
+      l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
       l.bindPopup(getVehicleText(f.properties), textboxSize);
       if (!isMobile) {
         l.bindTooltip(f.id);
@@ -105,8 +108,13 @@ function plotVehicles(options) {
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
+
         const feature = e.update[id];
         const wasOpen = layer.getPopup()?.isOpen() || false;
+
+        layer.id = feature.id;
+        layer.feature.properties.searchName = `${feature.properties.trip_short_name} @ ${feature.properties.route?.route_name}`;
+
         // VEHICLES[`${id}`] = layer;
         layer.unbindPopup();
         if (wasOpen) layer.closePopup();
@@ -265,7 +273,7 @@ function getVehicleIcon(bearing, color, displayString = null) {
   img.alt = "vehicle";
   img.width = 60;
   img.height = 60;
-  img.style.cssText = HEX_TO_CSS[color] || HEX_TO_CSS["ffffff"];
+  img.style.cssText = HEX_TO_CSS[color] || "";
   img.style.transform = `rotate(${bearing}deg)`;
 
   const span = document.createElement("span");
@@ -330,7 +338,7 @@ function getVehicleText(properties) {
   // if (properties.trip_properties.length) {
   //   console.log();
   // }
-
+  // var trip_properties = properties.trip_properties;
   if (properties.stop_time) {
     if (properties.current_status != "STOPPED_AT") {
       const tmsp =
@@ -413,42 +421,44 @@ function getVehicleText(properties) {
 async function setDefaultVehicleSideBarSummary(data) {
   // const key = await (await fetch("key")).json();
   // let content = `<h2 class='color-${key}'>${titleCase(key).toLowerCase()}</h2>`;
-  let content = "";
+  const key = await (await fetch("key")).json();
+  const findBox = "<div id='findBox'></div>";
+  if (key === "ferry") {
+    return setSideBarContent(
+      `${findBox}<h2>no vehicle data for ${key}</h2><p style='text-align:center;'>but alerts are still realtime!</p>`,
+      "sidebar-default-content"
+    );
+  }
+
+  let content = findBox;
 
   // content += "<hr />";
-  content += "<p><table class='data-table'>";
-  content += "<tr><th>train</th><th>headsign</th><th>delay</th></tr>";
+  content += "<table class='sidebar-table sortable'>";
+  content +=
+    "<thead><th>train</th><th>next stop</th><th>headsign</th><th>delay</th></thead><tbody>";
   Object.values(data)
     // .map((e) => e.properties)
     .forEach(function (d) {
-      const headsign = d.properties.headsign;
+      const headsign =
+        d.properties.headsign != "unknown"
+          ? d.properties.headsign?.replace("/", " / ") || ""
+          : "";
       const trip = d.properties.trip_short_name;
       const delay = d.properties.next_stop?.delay || 0;
+      const nextStop =
+        d.properties.next_stop?.stop_name?.replace("/", " / ") || "";
       const delayText = getDelayText(delay);
-      // setTimeout(() => {VEHICLES['${
-      //   d.id
-      // }'].fire('click')}, 200)
-      _onclick = (iconId) => {
-        const mapRef = mapsPlaceholder[0];
-        mapRef.fitBounds(mapRef.options.maxBounds);
-        mapRef.eachLayer((layer) => {
-          if (layer?.id == iconId) {
-            mapRef.jumpTo(layer.getLatLng());
-            layer.fire("click");
-          }
-        });
-      };
-
       content += `<tr>
     <td><a style='color:#${
       d.properties.route.route_color
-    };cursor:pointer;' onclick="setTimeout( () => {_onclick('${
+    };cursor:pointer;' onclick="mapsPlaceholder[0].findLayer('${
         d.id
-      }')}, 200)">${trip}</a></td>
-    <td>${headsign.replace("/", " / ")}</td>
+      }', true, 14)">${trip}</a></td>
+    <td>${nextStop}</td>
+    <td>${headsign}</td>
     <td><i class='${getDelayClassName(delay)}'>${delayText}</i></td>
     </tr>`;
     });
-  content += "</table></p>";
+  content += "</tbody></table>";
   setSideBarContent(content, "sidebar-default-content");
 }

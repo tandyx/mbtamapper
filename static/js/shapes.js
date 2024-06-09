@@ -40,9 +40,8 @@ function plotShapes(options) {
         weight: 1.3,
         renderer: polyLineRender,
       });
-
+      l.feature.properties.searchName = f.properties.route_name;
       l.bindPopup(getShapeText(f.properties), textboxSize);
-
       if (!isMobile) l.bindTooltip(f.properties.route_name);
       l.on("click", function () {
         fillAlertShapeData(f.properties.route_id);

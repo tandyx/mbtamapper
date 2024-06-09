@@ -30,6 +30,7 @@ function plotFacilities(options) {
     },
     onEachFeature(f, l) {
       l.bindPopup(getFacilityText(f.properties), textboxSize);
+      l.feature.properties.searchName = f.properties.facility_long_name;
       if (!isMobile) {
         l.bindTooltip(f.properties.facility_long_name);
       }
