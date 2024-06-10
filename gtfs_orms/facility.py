@@ -35,7 +35,7 @@ class Facility(Base):
     facility_code: Mapped[t.Optional[str]]
     facility_class: Mapped[int]
     facility_type: Mapped[str]
-    stop_id: Mapped[str] = mapped_column(
+    stop_id: Mapped[t.Optional[str]] = mapped_column(
         ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
     facility_short_name: Mapped[t.Optional[str]]
