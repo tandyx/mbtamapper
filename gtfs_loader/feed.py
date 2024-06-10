@@ -155,7 +155,7 @@ class Feed:
 
         def _abort(*args, **kwargs) -> None:
             """abort the flush call to enforce readonly"""
-            return None
+            logging.warning("readonly session: aborting flush")
 
         session.flush = _abort
         return session
