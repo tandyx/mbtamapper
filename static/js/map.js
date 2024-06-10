@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet.markercluster")}
  * @typedef {import("leaflet.locatecontrol")}
- * @typedef {import("leaflet-search")}
+ * @typedef {import("leaflet-search-types")}
  * @typedef {import("leaflet-fullscreen")}
  * @typedef {import("leaflet-providers")}
  * @typedef {import("leaflet-realtime")}
@@ -14,10 +14,9 @@
  * @typedef {import("./facilities.js")}
  * @exports mapsPlaceholder
  */
-
 /**@class L.Map */
-
 "use strict";
+
 /**
  * @type {Array<L.Map>} mapsPlaceholder
  */
@@ -204,7 +203,7 @@ function createControlLayers(tile_layers, ...layers) {
       zIndexOffset: 500,
     },
   });
-  /**@type {L.Control} */
+
   const controlSearch = L.control.search({
     layer: L.layerGroup(layers),
     container: isMobile ? "" : searchContainerId,
@@ -216,6 +215,7 @@ function createControlLayers(tile_layers, ...layers) {
     collapsed: isMobile,
     autoCollapse: true,
   });
+
   controlSearch.on("search:locationfound", function (event) {
     event.layer.openPopup();
   });
