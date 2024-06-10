@@ -129,8 +129,6 @@ class LinkedDataset(Base):
             sep="_",
         )
 
-    # from flatten_json import flatten
-
     def _post_process(self, dataframe: pd.DataFrame, rename_dict: dict) -> pd.DataFrame:
         """Returns realtime data from the linked dataset.
 

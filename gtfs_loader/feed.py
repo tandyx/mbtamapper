@@ -75,9 +75,11 @@ class Feed:
     SHAPES_FILE = "shapes.json"
 
     @staticmethod
-    def find_orm(name: str) -> type[Base] | None:
+    def find_orm(name: str) -> t.Type[Base] | None:
         """returns the `type` of the orm by name
 
+        args:
+            - `name (str)`: name of the orm
         returns:
             - `type[Base]`: type of the orm
         """
@@ -134,6 +136,29 @@ class Feed:
         except sqlite3.OperationalError:
             logging.warning("PRAGMA optimize failed")
         cursor.close()
+
+    def _get_session(self, readonly: bool = False, **kwargs) -> saorm.Session:
+        """returns a `Session` from `Feed.scoped_session`.
+
+        wrapper for `sa.scoped_session.__call__(...)`
+
+        args:
+            - `readonly (bool)`: whether the session is readonly
+            - `**kwargs`: keyword arguments to pass to `scoped_session` \n
+        returns:
+            - `Session`: session object
+        """
+
+        session = self.scoped_session(**kwargs)
+        if not readonly:
+            return session
+
+        def _abort(*args, **kwargs) -> None:
+            """abort the flush call to enforce readonly"""
+            return None
+
+        session.flush = _abort
+        return session
 
     def __init__(self, url: str, gtfs_name: str | None = None) -> None:
         """
@@ -224,7 +249,7 @@ class Feed:
         Args:
             - `orm (Type[Alert | Vehicle | Prediction] | str)`: realtime ORM.
         """
-        session = self.scoped_session()
+        session = self._get_session(readonly=True)
         if isinstance(orm, str):
             orm = __class__.find_orm(orm)
         if orm not in __class__.REALTIME_ORMS:
@@ -244,7 +269,7 @@ class Feed:
         Args:
             - `date (datetime)`: date to filter on
         """
-        session = self.scoped_session()
+        session = self._get_session()
         for stmt in [
             Query.delete_calendars_query(date),
             Query.delete_facilities_query("parking-area", "bike-storage"),
@@ -293,7 +318,7 @@ class Feed:
         returns:
             - `FeatureCollection`: stops as FeatureCollection
         """
-        session = self.scoped_session()
+        session = self._get_session(readonly=True)
         stops: list[tuple[Stop]] = session.execute(query_obj.parent_stops_query).all()
         if key == "rapid_transit":
             stops += session.execute(Query("3").parent_stops_query).all()
@@ -316,7 +341,7 @@ class Feed:
         returns:
             - `FeatureCollection`: shapes as FeatureCollection
         """
-        session = self.scoped_session()
+        session = self._get_session(readonly=True)
         shapes: list[tuple[Shape]] = session.execute(query_obj.get_shapes_query()).all()
         if key in ["rapid_transit", "all_routes"]:
             shapes += session.execute(
@@ -342,7 +367,7 @@ class Feed:
             - `FeatureCollection`: facilities as FeatureCollection
         """
 
-        session = self.scoped_session()
+        session = self._get_session(readonly=True)
         facils: list[tuple[Facility]] = session.execute(
             query_obj.get_facilities_query("parking-area")
         ).all()
@@ -369,7 +394,7 @@ class Feed:
         returns:
             - `FeatureCollection`: vehicles as FeatureCollection
         """
-        session = self.scoped_session()
+        session = self._get_session(readonly=True)
         if key == "ferry":  # no ferry data :(
             return gj.FeatureCollection([])
         if key == "rapid_transit":
@@ -403,7 +428,7 @@ class Feed:
         returns:
             - `int`: number of rows added
         """
-        session = self.scoped_session()
+        session = self._get_session()
         if purge:
             while True:
                 try:
@@ -441,7 +466,7 @@ class Feed:
             - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
         """
         # pylint: disable=line-too-long
-        session = self.scoped_session()
+        session = self._get_session(readonly=True)
         if isinstance(_orm, str):
             _orm = self.find_orm(_orm)
         if not _orm:
