@@ -211,7 +211,7 @@ function createControlLayers(tile_layers, ...layers) {
     propertyName: "searchName",
     zoom: 16,
     marker: false,
-    textPlaceholder: "",
+    textPlaceholder: "search",
     collapsed: isMobile,
     autoCollapse: true,
   });
