@@ -270,6 +270,7 @@ function getVehicleIcon(bearing, color, displayString = null) {
   const img = document.createElement("img");
 
   img.src = "static/img/icon.png";
+  img.loading = "lazy";
   img.alt = "vehicle";
   img.width = 60;
   img.height = 60;
