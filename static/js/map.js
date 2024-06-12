@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet.markercluster")}
  * @typedef {import("leaflet.locatecontrol")}
- * @typedef {import("leaflet-search")}
+ * @typedef {import("leaflet-search-types")}
  * @typedef {import("leaflet-fullscreen")}
  * @typedef {import("leaflet-providers")}
  * @typedef {import("leaflet-realtime")}
@@ -14,10 +14,9 @@
  * @typedef {import("./facilities.js")}
  * @exports mapsPlaceholder
  */
-
 /**@class L.Map */
-
 "use strict";
+
 /**
  * @type {Array<L.Map>} mapsPlaceholder
  */
@@ -193,6 +192,9 @@ function createMap(id, route_type) {
  * @returns {Array} control layers
  */
 function createControlLayers(tile_layers, ...layers) {
+  const searchContainerId = "findBox";
+  const isMobile = window.mobileCheck();
+
   const locateControl = L.control.locate({
     enableHighAccuracy: true,
     initialZoomLevel: 15,
@@ -201,29 +203,30 @@ function createControlLayers(tile_layers, ...layers) {
       zIndexOffset: 500,
     },
   });
-  const searchContainerId = "findBox";
-  /**@type {L.Control} */
+
   const controlSearch = L.control.search({
     layer: L.layerGroup(layers),
-    container: searchContainerId,
+    container: isMobile ? "" : searchContainerId,
     initial: false,
     propertyName: "searchName",
     zoom: 16,
     marker: false,
-    textPlaceholder: "",
+    textPlaceholder: "search",
+    collapsed: isMobile,
+    autoCollapse: true,
   });
+
   controlSearch.on("search:locationfound", function (event) {
     event.layer.openPopup();
   });
 
   window.addEventListener("keydown", (keyEvent) => {
     if (
-      (keyEvent.code === "F3" ||
-        ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.code === "KeyF")) &&
-      !window.mobileCheck()
+      keyEvent.code === "F3" ||
+      ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.code === "KeyF")
     ) {
       keyEvent.preventDefault();
-      controlSearch._button.click();
+      controlSearch._input.focus();
     }
   });
 

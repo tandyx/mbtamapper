@@ -25,6 +25,8 @@ class Prediction(Base):
 
     this is better known as a TripUpdate,\
         but i called it prediction way back then and never changed it :P
+        
+    `source`: https://cdn.mbta.com/realtime/TripUpdates.pb
     
     https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-tripupdate
 
@@ -89,6 +91,7 @@ class Prediction(Base):
         self.stop_sequence = self.stop_sequence or 0
         self.stop_name = self.stop.stop_name if self.stop else None
         self.platform_name = self.stop.platform_name if self.stop else None
+        # self.stop_url = self.stop.stop_url if self.stop else None
         self.delay = self._get_delay()
 
     def __repr__(self) -> str:

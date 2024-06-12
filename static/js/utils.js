@@ -110,23 +110,6 @@ function almostTitleCase(str, split = "_") {
   const _str = str.toLowerCase().split(split).join(" ");
   return _str.charAt(0).toUpperCase() + _str.slice(1);
 }
-/** Set images to route type
- * @param {string} base_url - base url to set images to
- * @param {string} route_type - route type to set images to
- * @returns {void}
- */
-function setImages(base_url, route_type) {
-  for (const [key, value] of Object.entries({
-    "og:image": "property",
-    "twitter:image": "name",
-  })) {
-    document.querySelector(`meta[${value}="${key}"]`).setAttribute(
-      "content",
-      `/${base_url}/static/img/${route_type.toLowerCase()}.png`
-      // `{{ url_for('static', filename='img/${route_type.toLowerCase()}.png') }}`
-    );
-  }
-}
 
 /** Check if user is in iframe
  * @returns {boolean} - whether or not user is in iframe

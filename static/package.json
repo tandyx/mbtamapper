@@ -16,6 +16,7 @@
     "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
   },
   "devDependencies": {
-    "@types/strftime": "^0.9.8"
+    "@types/strftime": "^0.9.8",
+    "leaflet-search-types": "^0.0.6"
   }
 }
