@@ -1,7 +1,7 @@
 /**
  * @file utils.js - misc utility functions
  * @module utils
- * @typedef {import("strftime")}
+ * @typedef {import("strftime").strftime} strftime
  * @exports *
  */
 
@@ -240,7 +240,7 @@ function getStylesheet(sheetName) {
  * sets a cookie to a value
  * @param {string} name - The name of the cookie
  * @param {string} value - The value of the cookie
- * @param {number | null} exdays - The number of days until the cookie expires or null if it never expires
+ * @param {number | null} exdays - The number of days until the cookie expires or null if it never expires @default null
  * @returns {void}
  * @example setCookie("username", "johan", 10);
  */
@@ -277,8 +277,8 @@ function getCookie(name) {
 /**
  * gets a default cookie value, sets the cookie if it does not exist
  * @param {string} name - the name of the cookie
- * @param {string} value - default "" value of the cookie
- * @param {number | null} numDays - the number of days until the cookie expires or null if it never expires
+ * @param {string} value - value of the cookie @default ""
+ * @param {number | null} numDays - the number of days until the cookie expires or null if it never expires @default null
  * @returns {string} - the value of the cookie
  * @example let user = getDefaultCookie("username", "johan", 10);
  */

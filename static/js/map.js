@@ -84,6 +84,9 @@ window.addEventListener("load", function () {
   });
   createMap("map", ROUTE_TYPE);
   addSidebarDrag();
+  if (inIframe()) {
+    document.getElementById("sidebar").style.display = "none";
+  }
 });
 
 /** map factory function for map.html

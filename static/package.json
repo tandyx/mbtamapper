@@ -5,18 +5,18 @@
     "leaflet-providers": "^2.0.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
-    "leaflet.locatecontrol": "^0.79.0",
+    "leaflet.locatecontrol": "^0.81.1",
     "leaflet.markercluster": "^1.5.3",
     "leaflet.markercluster.freezable": "^1.0.0",
-    "plotly.js-dist-min": "^2.31.0",
+    "plotly.js-dist-min": "^2.33.0",
     "sortable-tablesort": "^3.2.3",
-    "strftime": "^0.10.2"
+    "strftime": "^0.10.3"
   },
   "scripts": {
     "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
   },
   "devDependencies": {
     "@types/strftime": "^0.9.8",
-    "leaflet-search-types": "^0.0.6"
+    "leaflet-search-types": "^0.0.9"
   }
 }

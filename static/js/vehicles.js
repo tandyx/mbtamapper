@@ -103,7 +103,7 @@ function plotVehicles(options) {
   // });
 
   realtime.on("update", function (e) {
-    if (!window.mobileCheck() || !inIframe())
+    if (!window.mobileCheck() && !inIframe())
       setDefaultVehicleSideBarSummary(e.features);
     Object.keys(e.update).forEach(
       function (id) {
