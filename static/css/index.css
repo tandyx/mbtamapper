@@ -413,6 +413,7 @@ noscript {
   border-collapse: collapse;
   text-align: left;
   border-radius: 40px;
+  margin-bottom: 10px;
   tbody,
   thead,
   tr,
@@ -614,7 +615,9 @@ noscript {
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none;
 }
-
+#titleCard::after {
+  content: "mbtamapper";
+}
 @media (max-width: 786px) {
   .mobile-hidden {
     display: block;
@@ -624,5 +627,8 @@ noscript {
   }
   #map {
     width: 100%;
+  }
+  #titleCard::after {
+    content: "mbta mapper";
   }
 }

@@ -2,7 +2,7 @@
  * @file facilities.js - Plot stops on map in realtime, updating every hour
  * @module facilities
  * @typedef {import("leaflet")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
  * @exports plotFacilities
  */

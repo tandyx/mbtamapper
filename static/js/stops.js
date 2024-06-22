@@ -2,7 +2,7 @@
  * @file stops.js - Plot stops on map in realtime, updating every hour
  * @module stops
  * @typedef {import("leaflet")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
  * @exports plotStops
  */
@@ -25,7 +25,7 @@ function getStopIcon() {
  * @param {L.layerGroup} options.layer - layer to plot stops on
  * @param {object} options.textboxSize
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.realtime} - realtime layer
+ * @returns {L.Realtime} - realtime layer
  */
 function plotStops(options) {
   const { url, layer, textboxSize, isMobile } = options;
@@ -56,6 +56,7 @@ function plotStops(options) {
   realtime.on("update", function (e) {
     Object.keys(e.update).forEach(
       function (id) {
+        /**@type {L.Layer} */
         const layer = this.getLayer(id);
         const feature = e.update[id];
         layer.feature.properties.searchName = feature.properties.stop_name;

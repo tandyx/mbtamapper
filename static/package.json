@@ -16,7 +16,11 @@
     "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
   },
   "devDependencies": {
+    "@types/leaflet-providers": "^1.2.4",
+    "@types/leaflet.locatecontrol": "^0.74.5",
+    "@types/leaflet.markercluster": "^1.5.4",
     "@types/strftime": "^0.9.8",
+    "leaflet-realtime-types": "^0.0.3",
     "leaflet-search-types": "^0.0.9"
   }
 }

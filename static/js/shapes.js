@@ -2,7 +2,7 @@
  * @file shapes.js - Plot stops on map in realtime, updating every hour
  * @module shapes
  * @typedef {import("leaflet")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
  * @exports plotShapes
  */
@@ -15,7 +15,7 @@
  * @param {L.layerGroup} options.layer - layer to plot shapes on
  * @param {object} options.textboxSize - size of textbox
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.realtime} - realtime layer
+ * @returns {L.Realtime} - realtime layer
  */
 function plotShapes(options) {
   const { url, layer, textboxSize, isMobile } = options;

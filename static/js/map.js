@@ -6,7 +6,7 @@
  * @typedef {import("leaflet-search-types")}
  * @typedef {import("leaflet-fullscreen")}
  * @typedef {import("leaflet-providers")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./shapes.js")}
  * @typedef {import("./stops.js")}
@@ -52,7 +52,7 @@ L.Map.prototype.findLayer = function (layer, click = false, zoom = null) {
   const matchWithoutZoom = Object.values(this._layers).filter((l) => {
     if (l instanceof L.MarkerClusterGroup) mcg = l; //**acceptable** side affect
     if (layer instanceof L.Layer && layer == l) return l;
-    if (l.id == layer) return l;
+    if (l.id == layer || l._leaflet_id == layer) return l;
   });
   if (matchWithoutZoom.length) return _execLayer(matchWithoutZoom[0]);
   const initialBounds = this.getBounds();
@@ -60,7 +60,7 @@ L.Map.prototype.findLayer = function (layer, click = false, zoom = null) {
   mcg.disableClustering();
   if (!(layer instanceof L.Layer)) {
     this.eachLayer((layer_) => {
-      if (layer_?.id == layer) {
+      if (layer_?.id == layer || layer_?._leaflet_id == layer) {
         _execLayer(layer_);
         layer = layer_;
       }

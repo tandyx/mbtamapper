@@ -2,7 +2,7 @@
  * @file vehicles.js - Plot vehicles on map in realtime, updating every 15 seconds
  * @module vehicles
  * @typedef {import("leaflet")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./map.js")}
  * @typedef {import("leaflet.markercluster")}
@@ -58,6 +58,7 @@ function fillVehicleDataWrapper(trip_id) {
  * @param {L.layerGroup} options.layer - layer to plot vehicles on
  * @param {object} options.textboxSize - size of textbox
  * @param {boolean} options.isMobile - is the device mobile
+ * @returns {L.Realtime} - realtime layer
  */
 // function plotVehicles(url, layer, textboxSize = null) {
 function plotVehicles(options) {
@@ -72,11 +73,6 @@ function plotVehicles(options) {
     getFeatureId(f) {
       return f.id;
     },
-
-    /**
-     * @param {*} f
-     * @param {L.Layer} l
-     */
     onEachFeature(f, l) {
       l.id = f.id;
       l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;

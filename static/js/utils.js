@@ -157,9 +157,9 @@ function truncateString(str, num, tail = "...") {
  * formats a timestamp to a locale string
  * @param {int} timestamp - The timestamp to format
  * @param {string} strf - The format to format the timestamp to
- * @returns
+ * @returns {string} - The formatted timestamp
  */
-function formatTimestamp(timestamp, strf = null) {
+function formatTimestamp(timestamp, strf = "") {
   const datetime = new Date(timestamp * 1000);
   if (strf) {
     return strftimeIT(strf, datetime);
