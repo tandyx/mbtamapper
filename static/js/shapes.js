@@ -4,6 +4,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
+ * @import { Realtime } from "leaflet";
  * @exports plotShapes
  */
 
@@ -15,7 +16,7 @@
  * @param {L.layerGroup} options.layer - layer to plot shapes on
  * @param {object} options.textboxSize - size of textbox
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.Realtime} - realtime layer
+ * @returns {Realtime} - realtime layer
  */
 function plotShapes(options) {
   const { url, layer, textboxSize, isMobile } = options;
@@ -29,11 +30,7 @@ function plotShapes(options) {
     getFeatureId(f) {
       return f.id; // geo
     },
-    /**
-     *
-     * @param {*} f
-     * @param {L.Polyline} l
-     */
+
     onEachFeature(f, l) {
       l.setStyle({
         color: `#${f.properties.route_color}`,

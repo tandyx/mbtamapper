@@ -6,7 +6,7 @@
  * @typedef {import("./utils.js")}
  * @typedef {import("./map.js")}
  * @typedef {import("leaflet.markercluster")}
- * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src.js")}
+ * @import { Realtime } from "leaflet";
  * @exports plotVehicles
  */
 
@@ -58,7 +58,7 @@ function fillVehicleDataWrapper(trip_id) {
  * @param {L.layerGroup} options.layer - layer to plot vehicles on
  * @param {object} options.textboxSize - size of textbox
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.Realtime} - realtime layer
+ * @returns {Realtime} - realtime layer
  */
 // function plotVehicles(url, layer, textboxSize = null) {
 function plotVehicles(options) {

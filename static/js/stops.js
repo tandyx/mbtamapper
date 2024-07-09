@@ -4,6 +4,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
+ * @import { Realtime } from "leaflet";
  * @exports plotStops
  */
 
@@ -25,7 +26,7 @@ function getStopIcon() {
  * @param {L.layerGroup} options.layer - layer to plot stops on
  * @param {object} options.textboxSize
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.Realtime} - realtime layer
+ * @returns {Realtime} - realtime layer
  */
 function plotStops(options) {
   const { url, layer, textboxSize, isMobile } = options;

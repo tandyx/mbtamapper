@@ -4,6 +4,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
+ * @import { Realtime } from "leaflet";
  * @exports plotFacilities
  */
 
@@ -14,7 +15,7 @@
  * @param {L.layerGroup} options.layer - layer to plot facilities on
  * @param {object} options.textboxSize - size of textbox;
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.realtime} - realtime layer
+ * @returns {Realtime} - realtime layer
  */
 function plotFacilities(options) {
   const { url, layer, textboxSize, isMobile } = options;

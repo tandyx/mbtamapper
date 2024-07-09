@@ -1,7 +1,8 @@
 /**
  * @file utils.js - misc utility functions
  * @module utils
- * @typedef {import("strftime").strftime} strftime
+ * @import {strftime} from "strftime";
+ * @import { Realtime } from "leaflet";
  * @exports *
  */
 
@@ -168,7 +169,7 @@ function formatTimestamp(timestamp, strf = "") {
 }
 
 /** Handle update event for realtime layers
- * @param {L.realtime} entity - realtime layer to update
+ * @param {Realtime} entity - realtime layer to update
  * @returns {void}
  */
 function handleUpdateEvent(entity) {
@@ -372,8 +373,9 @@ function getDelayText(delay) {
 
 /**
  * gets the delay class name
- * @param {int} delay - delay in seconds
- * @returns {string} - delay class name
+ * @template {number} T
+ * @param {T} delay - delay in seconds
+ * @returns {"severe-delay" | "moderate-delay" | "slight-delay" | "on-time"} - the delay class name
  */
 function getDelayClassName(delay) {
   if (delay >= 900) {
