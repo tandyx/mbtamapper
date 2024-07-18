@@ -26,9 +26,7 @@ function plotFacilities(options) {
     container: layer,
     cache: true,
     removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
+    getFeatureId: (f) => f.id,
     onEachFeature(f, l) {
       l.bindPopup(getFacilityText(f.properties), textboxSize);
       l.feature.properties.searchName = f.properties.facility_long_name;
@@ -36,10 +34,7 @@ function plotFacilities(options) {
         l.bindTooltip(f.properties.facility_long_name);
       }
       l.setIcon(
-        L.icon({
-          iconUrl: "static/img/parking.png",
-          iconSize: [15, 15],
-        })
+        L.icon({ iconUrl: "static/img/parking.png", iconSize: [15, 15] })
       );
       l.setZIndexOffset(-150);
     },

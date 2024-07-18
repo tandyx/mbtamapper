@@ -27,10 +27,7 @@ function plotShapes(options) {
     container: layer,
     cache: true,
     removeMissing: true,
-    getFeatureId(f) {
-      return f.id; // geo
-    },
-
+    getFeatureId: (f) => f.id,
     onEachFeature(f, l) {
       l.setStyle({
         color: `#${f.properties.route_color}`,
@@ -40,9 +37,7 @@ function plotShapes(options) {
       l.feature.properties.searchName = f.properties.route_name;
       l.bindPopup(getShapeText(f.properties), textboxSize);
       if (!isMobile) l.bindTooltip(f.properties.route_name);
-      l.on("click", function () {
-        fillAlertShapeData(f.properties.route_id);
-      });
+      l.on("click", () => fillAlertShapeData(f.properties.route_id));
     },
   });
 
@@ -83,14 +78,13 @@ function getShapeText(properties) {
 async function fillAlertShapeData(route_id) {
   for (const alertEl of document.getElementsByName(`alert-shape-${route_id}`)) {
     const popupId = `popup-alert-${route_id}`;
-    alertEl.onclick = function () {
-      togglePopup(popupId);
-    };
+    alertEl.onclick = () => togglePopup(popupId);
     const popupText = document.createElement("span");
     popupText.classList.add("popuptext");
     popupText.style.minWidth = "350px";
     popupText.id = popupId;
     popupText.innerHTML = "...";
+    /**@type {{}[]} */
     const _data = await (
       await fetch(`/api/alert?route_id=${route_id}&stop_id=null`)
     ).json();
@@ -107,7 +101,6 @@ async function fillAlertShapeData(route_id) {
           const end = d.active_period_end
             ? formatTimestamp(d.active_period_end, strf)
             : null;
-
           return `<tr>
             <td>${d.header}</td>
             <td>${start} to ${end}</td>

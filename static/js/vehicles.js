@@ -12,6 +12,8 @@
 
 "use strict";
 
+const GOOGLY_EYES = ["G-10283"];
+
 const DIRECTION_MAPPER = {
   0: "Outbound",
   1: "Inbound",
@@ -70,9 +72,7 @@ function plotVehicles(options) {
     container: layer,
     cache: false,
     removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
+    getFeatureId: (f) => f.id,
     onEachFeature(f, l) {
       l.id = f.id;
       l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
@@ -99,7 +99,7 @@ function plotVehicles(options) {
   // });
 
   realtime.on("update", function (e) {
-    if (!window.mobileCheck()) setDefaultVehicleSideBarSummary(e.features);
+    if (!mobileCheck()) setDefaultVehicleSideBarSummary(e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
@@ -226,6 +226,7 @@ async function fillAlertVehicleData(trip_id) {
     popupText.classList.add("popuptext");
     popupText.id = popupId;
     popupText.innerHTML = "...";
+    /** @type {{}[]} */
     const _data = await (await fetch(`/api/alert?trip_id=${trip_id}`)).json();
     if (!_data.length) return;
     alertEl.classList.remove("hidden");
@@ -279,10 +280,7 @@ function getVehicleIcon(bearing, color, displayString = null) {
   div.appendChild(img);
   div.appendChild(span);
 
-  return L.divIcon({
-    html: div,
-    iconSize: [10, 10],
-  });
+  return L.divIcon({ html: div, iconSize: [10, 10] });
 }
 
 /**
@@ -411,7 +409,7 @@ function getVehicleText(properties) {
 /**
  *  Set the vehicle sidebar summary
  * @param {L.sidebar} sidebar - sidebar object
- * @param {Object} data - vehicle data
+ * @param {{}[]} data - vehicle data
  */
 
 async function setDefaultVehicleSideBarSummary(data) {

@@ -14,10 +14,7 @@
  * @returns {L.divIcon} - stop icon
  */
 function getStopIcon() {
-  return L.icon({
-    iconUrl: "static/img/mbta.png",
-    iconSize: [12, 12],
-  });
+  return L.icon({ iconUrl: "static/img/mbta.png", iconSize: [12, 12] });
 }
 
 /** Plot stops on map in realtime, updating every hour
@@ -36,9 +33,7 @@ function plotStops(options) {
     container: layer,
     cache: true,
     removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
+    getFeatureId: (f) => f.id,
     onEachFeature(f, l) {
       l.bindPopup(getStopText(f.properties), textboxSize);
       l.feature.properties.searchName = f.properties.stop_name;
@@ -89,7 +84,7 @@ function plotStops(options) {
 
 /**
  *  Get the stop text for the popup
- * @param {object} properties - properties of the stop
+ * @param {{}} properties - properties of the stop
  * @returns {HTMLElement} - HTML element with stop text
  */
 function getStopText(properties) {
@@ -140,9 +135,7 @@ async function fillAlertStopData(stop_id) {
   for (const alertEl of document.getElementsByName(`alert-stop-${stop_id}`)) {
     const popupId = `popup-alert-${stop_id}`;
     // const oldTooltip = alertEl.getAttribute("data-tooltip");
-    alertEl.onclick = function () {
-      togglePopup(popupId);
-    };
+    alertEl.onclick = () => togglePopup(popupId);
     const popupText = document.createElement("span");
     popupText.classList.add("popuptext");
     popupText.style.minWidth = "350px";
@@ -186,9 +179,7 @@ async function fillPredictionsStopData(stop_id, child_stops) {
   )) {
     const popupId = `popup-predictions-${stop_id}`;
     const currTime = new Date().getTime() / 1000;
-    alertEl.onclick = function () {
-      togglePopup(popupId);
-    };
+    alertEl.onclick = () => togglePopup(popupId);
     const popupText = document.createElement("span");
     popupText.classList.add("popuptext");
     popupText.id = popupId;
@@ -203,17 +194,6 @@ async function fillPredictionsStopData(stop_id, child_stops) {
         ).json())
       );
     }
-    // const currTimeThres = new Date().getTime() / 10000 - 15 * 60;
-    // const stopTimeData = [];
-    // for (const child of child_stops.filter((s) => s.location_type == 0)) {
-    //   stopTimeData.push(
-    //     ...(await (
-    //       await fetch(
-    //         `/api/stoptime?stop_id=${child.stop_id}&departure_timestamp>${currTimeThres}&include=route`
-    //       )
-    //     ).json())
-    //   );
-    // }
 
     if (!_data.length) return;
     alertEl.classList.remove("hidden");

@@ -11,7 +11,7 @@
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
  */
-window.mobileCheck = function () {
+const mobileCheck = function () {
   let check = false;
   (function (a) {
     if (
@@ -138,8 +138,7 @@ function getStyle(id, styleProp) {
       .getPropertyValue(styleProp);
   }
   if (element.currentStyle) return element.currentStyle[styleProp];
-
-  return;
+  return "";
 }
 
 /**
@@ -162,9 +161,7 @@ function truncateString(str, num, tail = "...") {
  */
 function formatTimestamp(timestamp, strf = "") {
   const datetime = new Date(timestamp * 1000);
-  if (strf) {
-    return strftimeIT(strf, datetime);
-  }
+  if (strf) return strftimeIT(strf, datetime);
   return datetime.toLocaleString();
 }
 
@@ -322,7 +319,7 @@ function isLikeMobile(threshold = null) {
   }
   return window.innerWidth <= 768;
 }
-
+/**@type {string[]} */
 const openPopups = [];
 /**
  * Toggles a popup

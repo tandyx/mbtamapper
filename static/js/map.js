@@ -17,13 +17,8 @@
 /**@class L.Map */
 "use strict";
 
-/**
- * @type {Array<L.Map>} mapsPlaceholder
- */
+/** @type {L.Map[]} mapsPlaceholder*/
 const mapsPlaceholder = [];
-L.Map.addInitHook(function () {
-  mapsPlaceholder.push(this);
-});
 
 /**
  * @name L.Map#findLayer
@@ -82,8 +77,7 @@ window.addEventListener("load", function () {
       if (menuToggle.checked) menuToggle.checked = false;
     }
   });
-  createMap("map", ROUTE_TYPE);
-  addSidebarDrag();
+  mapsPlaceholder.push(createMap("map", ROUTE_TYPE));
 });
 
 /** map factory function for map.html
@@ -92,12 +86,13 @@ window.addEventListener("load", function () {
  * @returns {L.map} map
  */
 function createMap(id, route_type) {
-  const isMobile = window.mobileCheck();
-  const textboxSize = {
-    maxWidth: 375,
-    minWidth: 250,
-  };
-
+  const isMobile = mobileCheck();
+  if (isMobile || inIframe()) {
+    document.getElementById("sidebar")?.classList?.add("hidden");
+  } else {
+    addSidebarDrag();
+  }
+  const textboxSize = { maxWidth: 375, minWidth: 250 };
   const map = L.map(id, {
     minZoom: 9,
     maxZoom: 20,
@@ -117,13 +112,7 @@ function createMap(id, route_type) {
     setCookie("lng", cords.lng);
   });
 
-  map.on("zoom", () => {
-    setCookie("zoom", map.getZoom());
-  });
-
-  // map.on("resize", (e) => {
-  //   console.log("resized");
-  // });
+  map.on("zoom", () => setCookie("zoom", map.getZoom()));
 
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers[getDefaultCookie("darkMode", "light", 90)].addTo(map);
@@ -169,23 +158,15 @@ function createMap(id, route_type) {
     parking_lots
   ).forEach((control) => control.addTo(map));
 
-  map.on("zoomend", function () {
+  map.on("zoomend", () => {
     if (map.getZoom() < 16) map.removeLayer(parking_lots);
     if (map.getZoom() >= 16) map.addLayer(parking_lots);
   });
-
-  map.on("baselayerchange", function (event) {
-    setCookie("darkMode", event.name, 90);
-  });
-
+  map.on("baselayerchange", (event) => setCookie("darkMode", event.name, 90));
   if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
-
-  // setTimeout(() => {
-  //   sidebar.open("summary_");
-  // }, 2000);
-
   return map;
 }
+
 /** create control layers
  * @param {Object} tile_layers - base layers
  * @param {L.layerGroup[]} layers - layers to be added to the map
@@ -193,15 +174,13 @@ function createMap(id, route_type) {
  */
 function createControlLayers(tile_layers, ...layers) {
   const searchContainerId = "findBox";
-  const isMobile = window.mobileCheck();
+  const isMobile = mobileCheck();
 
   const locateControl = L.control.locate({
     enableHighAccuracy: true,
     initialZoomLevel: 15,
     metric: false,
-    markerStyle: {
-      zIndexOffset: 500,
-    },
+    markerStyle: { zIndexOffset: 500 },
   });
 
   const controlSearch = L.control.search({
@@ -216,9 +195,7 @@ function createControlLayers(tile_layers, ...layers) {
     autoCollapse: true,
   });
 
-  controlSearch.on("search:locationfound", function (event) {
-    event.layer.openPopup();
-  });
+  controlSearch.on("search:locationfound", (event) => event.layer.openPopup());
 
   window.addEventListener("keydown", (keyEvent) => {
     if (
@@ -243,7 +220,7 @@ function createControlLayers(tile_layers, ...layers) {
  * @param {string} lightId - id of light layer
  * @param {string} darkId - id of dark layer
  * @param {object} additionalLayers - additional layers to add to dictionary
- * @returns {object} - base layer dictionary
+ * @returns {{ light: TileLayer.Provider; dark: TileLayer.Provider}} - base layer dictionary
  */
 function getBaseLayerDict(
   lightId = "CartoDB.Positron",
@@ -267,14 +244,15 @@ function getBaseLayerDict(
 }
 
 function addSidebarDrag() {
-  const minWidth = 450; // minimum sidebar width
-  setCssVar(
-    "--sidebar-width",
-    getDefaultCookie("sidebarWidth", `${minWidth}px`, 2)
-  );
+  const minWidth = 20; // minimum sidebar width
+  setCssVar("--sidebar-width", getDefaultCookie("sidebarWidth", `450px`, 2));
+
   const sidebar = document.getElementById("sidebar");
   const sidebarHandle = document.getElementById("sidebar-handle");
 
+  /**
+   * @param {MouseEvent} e
+   */
   function resize(e) {
     document.body.classList.add("noselect");
     const size = parseInt(getStyle(document.body, "width").trimEnd("px")) - e.x;
@@ -319,6 +297,5 @@ function setSideBarContent(content, id = "sidebar-content") {
         : "sidebar-content"
     )
     .classList.add("hidden");
-
   sidebar.innerHTML = content;
 }

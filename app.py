@@ -298,7 +298,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         help="run import of database + export of geojson files",
     )
     _argparse.add_argument(
-        "--port", "-p", type=int, default=80, help="app.run() only: server port"
+        "--port", "-p", type=int, default=3000, help="app.run() only: server port"
     )
 
     _argparse.add_argument(
