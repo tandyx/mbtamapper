@@ -2,8 +2,9 @@
  * @file facilities.js - Plot stops on map in realtime, updating every hour
  * @module facilities
  * @typedef {import("leaflet")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
+ * @import { Realtime } from "leaflet";
  * @exports plotFacilities
  */
 
@@ -14,7 +15,7 @@
  * @param {L.layerGroup} options.layer - layer to plot facilities on
  * @param {object} options.textboxSize - size of textbox;
  * @param {boolean} options.isMobile - is the device mobile
- * @returns {L.realtime} - realtime layer
+ * @returns {Realtime} - realtime layer
  */
 function plotFacilities(options) {
   const { url, layer, textboxSize, isMobile } = options;
@@ -25,9 +26,7 @@ function plotFacilities(options) {
     container: layer,
     cache: true,
     removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
+    getFeatureId: (f) => f.id,
     onEachFeature(f, l) {
       l.bindPopup(getFacilityText(f.properties), textboxSize);
       l.feature.properties.searchName = f.properties.facility_long_name;
@@ -35,10 +34,7 @@ function plotFacilities(options) {
         l.bindTooltip(f.properties.facility_long_name);
       }
       l.setIcon(
-        L.icon({
-          iconUrl: "static/img/parking.png",
-          iconSize: [15, 15],
-        })
+        L.icon({ iconUrl: "static/img/parking.png", iconSize: [15, 15] })
       );
       l.setZIndexOffset(-150);
     },

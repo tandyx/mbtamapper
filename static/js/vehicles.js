@@ -2,15 +2,17 @@
  * @file vehicles.js - Plot vehicles on map in realtime, updating every 15 seconds
  * @module vehicles
  * @typedef {import("leaflet")}
- * @typedef {import("leaflet-realtime")}
+ * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./map.js")}
  * @typedef {import("leaflet.markercluster")}
- * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src.js")}
+ * @import { Realtime } from "leaflet";
  * @exports plotVehicles
  */
 
 "use strict";
+
+const GOOGLY_EYES = ["G-10283"];
 
 const DIRECTION_MAPPER = {
   0: "Outbound",
@@ -58,6 +60,7 @@ function fillVehicleDataWrapper(trip_id) {
  * @param {L.layerGroup} options.layer - layer to plot vehicles on
  * @param {object} options.textboxSize - size of textbox
  * @param {boolean} options.isMobile - is the device mobile
+ * @returns {Realtime} - realtime layer
  */
 // function plotVehicles(url, layer, textboxSize = null) {
 function plotVehicles(options) {
@@ -69,14 +72,7 @@ function plotVehicles(options) {
     container: layer,
     cache: false,
     removeMissing: true,
-    getFeatureId(f) {
-      return f.id;
-    },
-
-    /**
-     * @param {*} f
-     * @param {L.Layer} l
-     */
+    getFeatureId: (f) => f.id,
     onEachFeature(f, l) {
       l.id = f.id;
       l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
@@ -103,8 +99,7 @@ function plotVehicles(options) {
   // });
 
   realtime.on("update", function (e) {
-    if (!window.mobileCheck() || !inIframe())
-      setDefaultVehicleSideBarSummary(e.features);
+    if (!mobileCheck()) setDefaultVehicleSideBarSummary(e.features);
     Object.keys(e.update).forEach(
       function (id) {
         const layer = this.getLayer(id);
@@ -231,6 +226,7 @@ async function fillAlertVehicleData(trip_id) {
     popupText.classList.add("popuptext");
     popupText.id = popupId;
     popupText.innerHTML = "...";
+    /** @type {{}[]} */
     const _data = await (await fetch(`/api/alert?trip_id=${trip_id}`)).json();
     if (!_data.length) return;
     alertEl.classList.remove("hidden");
@@ -284,10 +280,7 @@ function getVehicleIcon(bearing, color, displayString = null) {
   div.appendChild(img);
   div.appendChild(span);
 
-  return L.divIcon({
-    html: div,
-    iconSize: [10, 10],
-  });
+  return L.divIcon({ html: div, iconSize: [10, 10] });
 }
 
 /**
@@ -416,7 +409,7 @@ function getVehicleText(properties) {
 /**
  *  Set the vehicle sidebar summary
  * @param {L.sidebar} sidebar - sidebar object
- * @param {Object} data - vehicle data
+ * @param {{}[]} data - vehicle data
  */
 
 async function setDefaultVehicleSideBarSummary(data) {

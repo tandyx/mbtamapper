@@ -1,7 +1,8 @@
 /**
  * @file utils.js - misc utility functions
  * @module utils
- * @typedef {import("strftime")}
+ * @import {strftime} from "strftime";
+ * @import { Realtime } from "leaflet";
  * @exports *
  */
 
@@ -10,7 +11,7 @@
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
  */
-window.mobileCheck = function () {
+const mobileCheck = function () {
   let check = false;
   (function (a) {
     if (
@@ -137,8 +138,7 @@ function getStyle(id, styleProp) {
       .getPropertyValue(styleProp);
   }
   if (element.currentStyle) return element.currentStyle[styleProp];
-
-  return;
+  return "";
 }
 
 /**
@@ -157,18 +157,16 @@ function truncateString(str, num, tail = "...") {
  * formats a timestamp to a locale string
  * @param {int} timestamp - The timestamp to format
  * @param {string} strf - The format to format the timestamp to
- * @returns
+ * @returns {string} - The formatted timestamp
  */
-function formatTimestamp(timestamp, strf = null) {
+function formatTimestamp(timestamp, strf = "") {
   const datetime = new Date(timestamp * 1000);
-  if (strf) {
-    return strftimeIT(strf, datetime);
-  }
+  if (strf) return strftimeIT(strf, datetime);
   return datetime.toLocaleString();
 }
 
 /** Handle update event for realtime layers
- * @param {L.realtime} entity - realtime layer to update
+ * @param {Realtime} entity - realtime layer to update
  * @returns {void}
  */
 function handleUpdateEvent(entity) {
@@ -240,7 +238,7 @@ function getStylesheet(sheetName) {
  * sets a cookie to a value
  * @param {string} name - The name of the cookie
  * @param {string} value - The value of the cookie
- * @param {number | null} exdays - The number of days until the cookie expires or null if it never expires
+ * @param {number | null} exdays - The number of days until the cookie expires or null if it never expires @default null
  * @returns {void}
  * @example setCookie("username", "johan", 10);
  */
@@ -277,8 +275,8 @@ function getCookie(name) {
 /**
  * gets a default cookie value, sets the cookie if it does not exist
  * @param {string} name - the name of the cookie
- * @param {string} value - default "" value of the cookie
- * @param {number | null} numDays - the number of days until the cookie expires or null if it never expires
+ * @param {string} value - value of the cookie @default ""
+ * @param {number | null} numDays - the number of days until the cookie expires or null if it never expires @default null
  * @returns {string} - the value of the cookie
  * @example let user = getDefaultCookie("username", "johan", 10);
  */
@@ -321,7 +319,7 @@ function isLikeMobile(threshold = null) {
   }
   return window.innerWidth <= 768;
 }
-
+/**@type {string[]} */
 const openPopups = [];
 /**
  * Toggles a popup
@@ -372,8 +370,9 @@ function getDelayText(delay) {
 
 /**
  * gets the delay class name
- * @param {int} delay - delay in seconds
- * @returns {string} - delay class name
+ * @template {number} T
+ * @param {T} delay - delay in seconds
+ * @returns {"severe-delay" | "moderate-delay" | "slight-delay" | "on-time"} - the delay class name
  */
 function getDelayClassName(delay) {
   if (delay >= 900) {
