@@ -176,7 +176,7 @@ class Feed:
         self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
         self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
-        self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
+        self.engine = sa.create_engine(os.getenv('DBURL'))
         self.scoped_session = saorm.scoped_session(
             saorm.sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         )

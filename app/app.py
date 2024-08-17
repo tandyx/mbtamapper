@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import threading
+from pathlib import Path
 
 import flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -23,7 +24,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from gtfs_loader import FeedLoader, Query
 
 LAYER_FOLDER: str = "geojsons"
-with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
+with open(os.path.join(Path(__file__).parent, "static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
     KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(f)
 FEED_LOADER: FeedLoader = FeedLoader(
     url="https://cdn.mbta.com/MBTA_GTFS.zip",
