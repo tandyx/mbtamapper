@@ -20,7 +20,7 @@
         "icon": "static/img/rapid_transit.ico",
         "image": "static/img/rapid_transit.png",
         "fa_unicode": "&#xf239;",
-        "display_name": "\"rapid\" transit",
+        "display_name": "rapid transit",
         "color": "#da291c",
         "route_types": [
             "0",
