@@ -18,9 +18,6 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --sidebar-width: 450px;
-  --sidebar-handle-width: 3px;
-  --sidebar-content-padding: 10px;
 }
 
 @font-face {
@@ -83,8 +80,8 @@ body,
 #map {
   position: absolute;
   z-index: 0;
-  height: calc(100% - var(--navbar-height));
-  width: calc(100% - var(--sidebar-width));
+  height: 100%;
+  width: 100%;
 }
 
 noscript {
@@ -522,31 +519,6 @@ noscript {
   animation-timing-function: linear; */
 }
 
-#sidebar {
-  position: absolute;
-  z-index: 1;
-  width: var(--sidebar-width);
-  /* min-width: 250px; */
-  height: 100%;
-  background: var(--dark-background);
-  color: var(--text-color);
-  padding: 10px 20px;
-  overflow-y: scroll;
-
-  /* border-left: 1px solid var(--text-color); */
-  right: 0;
-  /* overflow-x: hidden; */
-  scroll-padding-bottom: 50px;
-  padding-bottom: 50px;
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover,
-  ::-webkit-scrollbar-thumb,
-  ::-webkit-scrollbar-track,
-  ::-webkit-scrollbar {
-    border-radius: 0px;
-  }
-}
-
 .sortable-table {
   width: 100%;
   border-collapse: collapse;
@@ -564,61 +536,6 @@ noscript {
     padding: 10px;
     border-bottom: 1px solid var(--text-color);
   } */
-}
-
-#sidebar-handle {
-  position: absolute;
-  z-index: 1;
-  width: var(--sidebar-handle-width);
-  height: 100%;
-  top: 0;
-  /* right: min(calc(100vw - var(--sidebar-width)), var(--sidebar-width)); */
-  background: var(--dark-background);
-  color: var(--text-color);
-  /* padding: 10px; */
-  /* overflow-y: auto; */
-  transition: 0.125s;
-  /* border-left: 1px solid var(--text-color); */
-  right: calc(var(--sidebar-width) - var(--sidebar-handle-width));
-  left: 0px;
-}
-
-#sidebar-always {
-  z-index: 1;
-  background: var(--dark-background);
-  margin: 10px 20% 0 0%;
-  width: max-content;
-  /* min-width: calc(100% - var(--sidebar-width)); */
-  /* width: min(max-content, calc(100% - var(--sidebar-handle-width))); */
-  color: var(--text-color);
-  /* padding: 10px; */
-  padding-bottom: 50px;
-}
-
-#sidebar-handle:hover {
-  background: var(--text-color);
-  cursor: col-resize;
-}
-
-#sidebar-content,
-#sidebar-default-content {
-  width: calc(100% - var(--sidebar-handle-width));
-  overflow: auto;
-  overflow: auto;
-  height: 90%;
-  table {
-    height: 50%;
-    td {
-      padding: 2px;
-    }
-  }
-  h1,
-  h2,
-  h3,
-  h4,
-  table {
-    text-align: center;
-  }
 }
 
 .noselect {

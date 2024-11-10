@@ -2,7 +2,7 @@
  * @file utils.js - misc utility functions
  * @module utils
  * @import {strftime} from "strftime";
- * @import { Realtime } from "leaflet";
+ * @import { Realtime, RealtimeUpdateEvent } from "leaflet";
  * @exports *
  */
 
@@ -166,13 +166,13 @@ function formatTimestamp(timestamp, strf = "") {
 }
 
 /** Handle update event for realtime layers
- * @param {Realtime} entity - realtime layer to update
+ * @param {(event: RealtimeUpdateEvent) => void} fn - realtime layer to update
  * @returns {void}
  */
-function handleUpdateEvent(entity) {
-  Object.keys(entity.update).forEach(
+function handleUpdateEvent(fn) {
+  Object.keys(fn.update).forEach(
     function (id) {
-      const feature = entity.update[id];
+      const feature = fn.update[id];
       updateLayer.call(this, id, feature);
     }.bind(this)
   );

@@ -7,6 +7,10 @@
   --leaflet-control-icon: 30px;
 }
 
+.leaflet-top {
+  top: var(--navbar-height);
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: var(--border-radius) !important;
   p {
@@ -122,39 +126,6 @@
   color: black;
 }
 
-.leaflet-control-search.search-exp,
-.leaflet-control-search .search-input {
-  color: var(--dark-text-color);
-}
-
-.leaflet-control-search .search-tip {
-  color: var(--dark-text-color);
-}
-.leaflet-control-search .search-tooltip {
-  border-radius: 5px;
-  top: 25px;
-  /* left: calc(var(--leaflet-control-search-height) + 5px) !important; */
-}
-
-.leaflet-control-search .search-button {
-  height: var(--leaflet-control-search-height) !important;
-}
-.leaflet-control-search .search-input {
-  /* float: right; */
-  height: var(--leaflet-control-search-height) !important;
-  margin-top: -0px;
-  min-width: 250px;
-  margin-left: -2px;
-}
-
-.leaflet-control-search .search-cancel {
-  right: 1px !important;
-}
-
-/* .leaflet-control-search .search-tip:hover {
-  color: var(--dark-text-color);
-} */
-
 .marker-cluster div {
   font-family: var(--font-family) !important;
   color: var(--dark-text-color) !important;
@@ -216,37 +187,6 @@
   }
 }
 
-@media screen and (min-width: 768px) {
-  .leaflet-control-search .search-button {
-    /* background: url(\static\npm_packages\images\search-icon.png) none; */
-    display: none;
-  }
-  .leaflet-control-search {
-    background: none !important;
-    border: none !important;
-    margin-left: 2px;
-    /* margin-left: var(--leaflet-control-icon) !important; */
-  }
-  /* .leaflet-control-search::after {
-    content: "Search";
-    display: inline-block;
-    margin-top: 5px;
-    margin-left: 10px;
-    color: var(--text-color);
-  } */
-  .leaflet-control-search::after {
-    /* left: 0px; */
-    position: absolute;
-    width: var(--leaflet-control-icon);
-    font: normal normal normal 14px/1 FontAwesome;
-    font-size: inherit;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    content: "\f002";
-    background: none;
-    margin-top: 6px;
-    margin-left: 10px;
-    color: var(--text-color);
-  }
+.search-input {
+  color: #252525 !important;
 }
