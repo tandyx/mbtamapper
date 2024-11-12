@@ -26,12 +26,13 @@ nav {
   color: var(--text-color);
 }
 
+.menu::before,
 nav::before {
   content: "";
   position: absolute;
   z-index: -1;
-  -webkit-backdrop-filter: blur(50px);
-  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(var(--blur-radius));
+  backdrop-filter: blur(var(--blur-radius));
   top: 0;
   left: 0;
   right: 0;
@@ -186,6 +187,10 @@ nav a:visited:hover {
     height: 2.5em;
     padding: var(--menubar-padding);
     border-top: 2px solid var(--grey-accent);
+  }
+
+  #menu-toggle:checked ~ .menu li:first-of-type {
+    border: none;
   }
 
   .menu > li {

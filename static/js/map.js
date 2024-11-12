@@ -15,7 +15,8 @@
  * @typedef {import("./realtime/stops.js")}
  */
 "use strict";
-
+/** @type {L.Map?} */
+// let map;
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   createMap("map", ROUTE_TYPE);
@@ -28,6 +29,8 @@ window.addEventListener("load", function () {
  */
 function createMap(id, route_type) {
   const isMobile = mobileCheck();
+  const theme = Theme.fromExisting();
+
   const textboxSize = { maxWidth: 375, minWidth: 250 };
   const map = L.map(id, {
     minZoom: 9,
@@ -52,13 +55,14 @@ function createMap(id, route_type) {
   map.on("zoom", () => sessionStorage.setItem("zoom", map.getZoom()));
 
   const baseLayers = getBaseLayerDict(...Array(2));
-  baseLayers[getDefaultCookie("darkMode", "light", 90)].addTo(map);
+  baseLayers[theme.theme].addTo(map);
   const stop_layer = L.layerGroup(undefined, { name: "stops" }).addTo(map);
   const shape_layer = L.layerGroup(undefined, { name: "shapes" }).addTo(map);
   const vehicle_layer = L.markerClusterGroup({
     disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
     name: "vehicles",
   }).addTo(map);
+
   const parking_lots = L.layerGroup(undefined, { name: "parking" });
   const baseOp = { textboxSize, isMobile };
   new StopLayer({ url: "stops", layer: stop_layer, ...baseOp }).plot();
@@ -82,7 +86,8 @@ function createMap(id, route_type) {
     if (map.getZoom() < 16) map.removeLayer(parking_lots);
     if (map.getZoom() >= 16) map.addLayer(parking_lots);
   });
-  map.on("baselayerchange", (event) => setCookie("darkMode", event.name, 90));
+  map.on("baselayerchange", (event) => new Theme(event.name).set());
+
   if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
   return map;
 }
@@ -93,8 +98,6 @@ function createMap(id, route_type) {
  * @returns {Array} control layers
  */
 function createControlLayers(tile_layers, ...layers) {
-  const isMobile = mobileCheck();
-
   const locateControl = L.control.locate({
     enableHighAccuracy: true,
     initialZoomLevel: 15,
@@ -149,8 +152,8 @@ function getBaseLayerDict(
       "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
   };
   const baseLayers = {
-    light: L.tileLayer.provider(lightId, options),
-    dark: L.tileLayer.provider(darkId, options),
+    light: L.tileLayer.provider(lightId, { id: "lightLayer", ...options }),
+    dark: L.tileLayer.provider(darkId, { id: "darkLayer", ...options }),
   };
 
   for (const [key, value] of Object.entries(additionalLayers)) {

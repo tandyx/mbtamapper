@@ -92,6 +92,34 @@
           >
             &#xf2bd;
           </a>
+          <a id="modeToggle" class="tooltip"> &#xf2bd; </a>
+
+          <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
+          <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+          <script async defer>
+            /**
+              @import { Theme } from "js/utils.js"
+            **/
+            window.addEventListener("load", () => {
+              const toggle = document.getElementById("modeToggle");
+              /**
+               * updates toggle
+               * @param {Theme} theme
+               */
+              const updateToggle = (theme) => {
+                toggle.innerHTML = theme.unicodeIcon;
+                toggle.dataset.tooltip = `change to ${
+                  Theme.activeTheme == "dark" ? "light" : "dark"
+                }`;
+              };
+              updateToggle(Theme.fromExisting().set());
+              toggle.addEventListener("click", () => {
+                updateToggle(Theme.fromExisting().reverse());
+              });
+            });
+          </script>
+
+          <!-- -->
         </div>
       </div>
     </main>

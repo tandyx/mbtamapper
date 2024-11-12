@@ -329,14 +329,15 @@ const openPopups = [];
  */
 function togglePopup(id, show = "auto") {
   const popup = typeof id === "string" ? document.getElementById(id) : id;
-  // console.log(popup);
   if (!popup) return;
   const identifier = popup.id || popup.name;
+  if (window.chrome) popup.classList.add("popup-solid-bg"); // fuck chrome
   if (!popup.classList.contains("show")) {
     openPopups.push(identifier);
   } else {
     openPopups.splice(openPopups.indexOf(identifier), 1);
   }
+
   if (show === "auto") {
     popup.classList.toggle("show");
     return;
@@ -385,4 +386,86 @@ function getDelayClassName(delay) {
     return "slight-delay";
   }
   return "on-time";
+}
+
+class Theme {
+  /**
+   * @template {"dark" | "light"} T
+   * @param {T} theme
+   */
+  constructor(theme) {
+    if (!theme) throw new Error("theme must be set");
+    this.theme = theme;
+  }
+
+  static inputEnum = { light: 0, dark: 1 };
+
+  /**
+   * gets the system theme through window.watchMedia
+   * @returns {"dark" | "light" | null}
+   */
+  static get systemTheme() {
+    for (const scheme of [
+      ["(prefers-color-scheme: dark)", "dark"],
+      ["(prefers-color-scheme: light)", "light"],
+    ]) {
+      const queryList = window.matchMedia(scheme[0]);
+      if (queryList.matches) return scheme[1];
+    }
+  }
+  /**
+   * gets the active theme from either the html element or system theme\
+   * @returns {"dark" | "light" | null}
+   */
+  static get activeTheme() {
+    return document.documentElement.dataset.mode || Theme.systemTheme;
+  }
+
+  /**
+   * returns unicode icon from sys active theme
+   */
+  static get unicodeIcon() {
+    return Theme.activeTheme === "dark" ? "\uf186" : "\uf185";
+  }
+
+  /**
+   * returns unicode icon from sys active theme
+   */
+  get unicodeIcon() {
+    return this.theme === "dark" ? "\uf186" : "\uf185";
+  }
+
+  /**
+   * factory; creaates new Theme from existing settings
+   */
+  static fromExisting() {
+    return new Theme(
+      document.documentElement.dataset.mode || Theme.systemTheme || "light"
+    );
+  }
+
+  /**
+   * sets <html data-mode="this.theme"> and saves it to session storage
+   * @param {boolean} [save=true] true by default saves to `sessionStorage`
+   * @returns {this}
+   */
+  set(save = true) {
+    if (!this.theme) throw new Error("must set theme to set it");
+    document.documentElement.setAttribute("data-mode", this.theme);
+    if (save) sessionStorage.setItem("theme", this.theme);
+    const cLayer = document.getElementsByClassName("leaflet-control-layers");
+    if (!cLayer.length) return this;
+    const elements = cLayer[0].getElementsByTagName("input");
+    elements[Theme.inputEnum[this.theme]]?.click();
+    return this;
+  }
+  /**
+   * reverses the theme (if dark -> light)
+   * @param {boolean} [save=true] true by default, saves to `sessionStorage`
+   * @returns {Theme}
+   */
+  reverse(save = true) {
+    if (!this.theme) throw new Error("must set theme to reverse it");
+    return new Theme(this.theme === "dark" ? "light" : "dark").set(save);
+  }
 }

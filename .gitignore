@@ -70,3 +70,5 @@ venv/
 
 /static/.eslintrc.yml
 /static/.eslintrc.json
+.directory
+*/*/package-lock.json

@@ -121,9 +121,9 @@ class VehicleLayer extends _RealtimeLayer {
             layer.openPopup();
             setTimeout(_this.#fillDataWrapper, 200, feature.properties.trip_id);
           }
-          // layer.on("click", () => {
-          //   setTimeout(_this.#fillDataWrapper, 200, feature.properties.trip_id);
-          // });
+          layer.on("click", () => {
+            setTimeout(_this.#fillDataWrapper, 200, feature.properties.trip_id);
+          });
         }.bind(this)
       );
     });
@@ -264,7 +264,7 @@ class VehicleLayer extends _RealtimeLayer {
    * @param {boolean} popup - whether to show the popup
    * @returns {void}
    */
-  async #fillPredictionData(trip_id) {
+  static async fillPredictionData(trip_id) {
     for (const predEl of document.getElementsByName(`pred-veh-${trip_id}`)) {
       const popupId = `popup-pred-${trip_id}`;
       predEl.onclick = function () {
@@ -329,7 +329,7 @@ class VehicleLayer extends _RealtimeLayer {
    *  fill alert prediction data
    * @param {string} trip_id - vehicle id
    */
-  async #fillAlertData(trip_id) {
+  static async fillAlertData(trip_id) {
     for (const alertEl of document.getElementsByName(`alert-veh-${trip_id}`)) {
       const popupId = `popup-alert-${trip_id}`;
       alertEl.onclick = function () {
@@ -369,7 +369,7 @@ class VehicleLayer extends _RealtimeLayer {
    * @param {string} trip_id
    */
   #fillDataWrapper(trip_id) {
-    this.#fillAlertData(trip_id);
-    this.#fillPredictionData(trip_id);
+    VehicleLayer.fillAlertData(trip_id);
+    VehicleLayer.fillPredictionData(trip_id);
   }
 }

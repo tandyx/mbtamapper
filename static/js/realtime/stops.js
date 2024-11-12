@@ -39,25 +39,31 @@ class StopLayer extends _RealtimeLayer {
         if (!options.isMobile) l.bindTooltip(f.properties.stop_name);
         l.setIcon(_this.#getIcon());
         l.setZIndexOffset(-100);
-        l.on("click", () => _this.#fillDataWrapper(feature.properties));
+        l.on("click", () => _this.fillDataWrapper(f.properties));
       },
     });
     realtime.on("update", (e) => {
       Object.keys(e.update).forEach(
         function (id) {
           /**@type {L.Layer} */
-          const layer = this.getLayer(id);
+          const layer = realtime.getLayer(id);
           const feature = e.update[id];
           layer.feature.properties.searchName = feature.properties.stop_name;
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.unbindPopup();
           if (wasOpen) layer.closePopup();
-          layer.bindPopup(_this.#getPopupText(feature.properties), textboxSize);
+          layer.bindPopup(
+            _this.#getPopupText(feature.properties),
+            options.textboxSize
+          );
           if (wasOpen) {
             layer.openPopup();
-            _this.#fillDataWrapper(feature.properties);
+            _this.fillDataWrapper(feature.properties);
           }
-        }.bind(this)
+          layer.on("click", () => {
+            setTimeout(_this.fillDataWrapper, 200, feature.properties);
+          });
+        }.bind(realtime)
       );
     });
     return realtime;
@@ -115,7 +121,7 @@ class StopLayer extends _RealtimeLayer {
    * wrapper for this.#fillAlertData and this.#fillPredictionsData
    * @param {StopProperty} properties
    */
-  #fillDataWrapper(properties) {
+  fillDataWrapper(properties) {
     this.#fillAlertData(properties.stop_id);
     this.#fillPredictionsData(properties.stop_id, properties.child_stops);
   }

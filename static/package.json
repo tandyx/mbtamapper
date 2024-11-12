@@ -5,11 +5,11 @@
     "leaflet-providers": "^2.0.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
-    "leaflet.locatecontrol": "^0.81.1",
+    "leaflet-sidebar-v2": "^3.2.3",
+    "leaflet.locatecontrol": "^0.82.0",
     "leaflet.markercluster": "^1.5.3",
     "leaflet.markercluster.freezable": "^1.0.0",
-    "plotly.js-dist-min": "^2.33.0",
-    "sortable-tablesort": "^3.2.3",
+    "plotly.js-dist-min": "^2.35.2",
     "strftime": "^0.10.3"
   },
   "scripts": {
@@ -17,10 +17,10 @@
   },
   "devDependencies": {
     "@types/leaflet-providers": "^1.2.4",
-    "@types/leaflet.locatecontrol": "^0.74.5",
-    "@types/leaflet.markercluster": "^1.5.4",
+    "@types/leaflet.locatecontrol": "^0.74.6",
+    "@types/leaflet.markercluster": "^1.5.5",
     "@types/strftime": "^0.9.8",
     "leaflet-realtime-types": "^0.0.3",
-    "leaflet-search-types": "^0.0.9"
+    "leaflet-search-types": "^0.0.11"
   }
 }
