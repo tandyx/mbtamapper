@@ -22,6 +22,8 @@ window.addEventListener("load", function () {
   createMap("map", ROUTE_TYPE);
 });
 
+window.addEventListener("load", () => Theme.fromExisting().set());
+
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {string} route_type - route type

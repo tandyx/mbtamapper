@@ -25,5 +25,3 @@ window.addEventListener("load", () => {
     if (window.innerWidth > 768 && menutoggle.checked) menutoggle.click();
   });
 });
-
-window.addEventListener("load", () => Theme.fromExisting().set());

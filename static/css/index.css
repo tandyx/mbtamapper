@@ -2,7 +2,7 @@
   --font-family: "montserrat", "Helvetica", sans-serif;
   --light-text-color: #f2f2f2;
   --lighter-text-color: #9b9b9b;
-  --lighter-dark-background: #252525;
+  --lighter-dark-background: #727272;
   --dark-text-color: #060606;
   --tooltip-background: #333;
 
@@ -265,7 +265,7 @@ h1 {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background-color: #424242;
+  background-color: var(--lighter-dark-background);
   border-radius: var(--border-radius);
   opacity: 0.6;
 }

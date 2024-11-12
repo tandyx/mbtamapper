@@ -436,11 +436,14 @@ class Theme {
   }
 
   /**
-   * factory; creaates new Theme from existing settings
+   * factory; creates new Theme from existing settings
    */
   static fromExisting() {
     return new Theme(
-      document.documentElement.dataset.mode || Theme.systemTheme || "light"
+      document.documentElement.dataset.mode ||
+        sessionStorage.getItem("theme") ||
+        Theme.systemTheme ||
+        "light"
     );
   }
 
