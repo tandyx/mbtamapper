@@ -72,16 +72,14 @@
       href="{{ url_for('static', filename='node_modules/leaflet-search/dist/leaflet-search.min.css') }}"
     />
     <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
-
     <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js') }}"></script>
+    <!-- static/node_modules/leaflet-sidebar -->
+    <script src="{{ url_for('static', filename='node_modules/leaflet-sidebar-v2/js/leaflet-sidebar.js') }}"></script>
 
     <!-- other js -->
     <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/sortable-tablesort/sortable.min.js') }}"></script>
 
-    <!-- <script src="{{ url_for('static', filename='node_modules/plotly.js-dist-min/plotly.min.js') }}"></script> -->
-
-    <!-- Custom CSS -->
+    <!-- stylesheets -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
@@ -98,12 +96,14 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/popup.css') }}"
     />
-    <!-- Custom JS -->
+    <!-- custom js -->
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vehicles.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/stops.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/shapes.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/facilities.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/vehicles.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/facilities.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/stops.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
   </head>
 
   <body>
@@ -113,7 +113,9 @@
       <label class="menu-button-container" for="menu-toggle">
         <div class="menu-button"></div>
       </label>
-      <ul class="menu">
+
+      <ul class="menu" id="navmenu">
+        <li id="modeToggle" class="fa"><a>&#xF186;</a></li>
         {% for key, value in navbar.items() if not key == "all_routes" %} {% if
         key == _key %}
         <li>
@@ -128,15 +130,9 @@
         {% endif %} {% endfor %}
       </ul>
     </nav>
+    <!-- <x-nav></x-nav> -->
     <div id="map"></div>
-    <div id="sidebar">
-      <div id="sidebar-handle"></div>
-      <div id="sidebar-always">
-        <div id="findBox"></div>
-      </div>
-      <div id="sidebar-default-content" class="hidden"></div>
-      <div id="sidebar-content" class="hidden"></div>
-    </div>
+    <!-- <div id="sidebar"></div> -->
     <noscript>This page requires Javascript to be enabled.</noscript>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   </body>

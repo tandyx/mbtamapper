@@ -9,7 +9,7 @@
   padding: 0;
   text-align: center;
   color: var(--text-color);
-  background-color: var(--dark-text-color);
+  background-color: var(--background-color);
   .mainContainer {
     display: flex;
     flex-direction: column;
@@ -61,7 +61,7 @@
   table,
   td,
   th {
-    border: 1px solid var(--text-color);
+    border: 1px solid;
   }
 
   .margin-top-neg-30 {
