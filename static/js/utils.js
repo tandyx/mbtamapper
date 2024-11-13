@@ -331,7 +331,9 @@ function togglePopup(id, show = "auto") {
   const popup = typeof id === "string" ? document.getElementById(id) : id;
   if (!popup) return;
   const identifier = popup.id || popup.name;
-  if (window.chrome) popup.classList.add("popup-solid-bg"); // fuck chrome
+  if (window.chrome || navigator.userAgent.indexOf("AppleWebKit") != -1) {
+    popup.classList.add("popup-solid-bg"); // just use firefox
+  }
   if (!popup.classList.contains("show")) {
     openPopups.push(identifier);
   } else {
