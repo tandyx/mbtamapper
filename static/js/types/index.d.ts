@@ -33,6 +33,7 @@ export interface StopProperty extends LayerProperty {
   wheelchair_boarding: string;
   zone_id?: ZoneID;
   child_stops?: StopProperty[];
+  routes: Route[];
 }
 
 export enum ZoneID {

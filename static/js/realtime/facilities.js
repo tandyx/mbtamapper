@@ -57,24 +57,45 @@ class FacilityLayer extends _RealtimeLayer {
   #getPopupText(properties) {
     const facilityHtml = document.createElement("div");
     const capac_acc = properties["capacity-accessible"];
-    facilityHtml.innerHTML += `<p>
-    <a href="${properties["contact-url"]}" rel="noopener" target="_blank" class="facility_header popup_header">${properties.facility_long_name}</a>
-    </p>`;
-    facilityHtml.innerHTML += `<p class="popup_subheader"><a href="${properties["contact-url"]}" rel="noopener" target="_blank">${properties.operator}</a></p>`;
-    facilityHtml.innerHTML += "<hr /><p>";
-    facilityHtml.innerHTML += `<span class='fa tooltip' data-tooltip='${properties.capacity} spots'>&#xf1b9;</span>&nbsp;&nbsp;&nbsp;`;
-    if (capac_acc !== "0" && capac_acc) {
-      facilityHtml.innerHTML += `<span class='fa tooltip' data-tooltip='${capac_acc} spots'>&#xf193;</span>`;
-    }
-    facilityHtml.innerHTML += "</p>";
-    facilityHtml.innerHTML += `<p>${properties["fee-daily"]}</p>`;
-    //   facilityHtml.innerHTML += `<p>${properties["fee-monthly"]}</p>`;
-    facilityHtml.innerHTML += `<p><a href="${properties["payment-app-url"]}">${properties["payment-app"]} ${properties["payment-app-id"]}</a></p>`;
-    facilityHtml.innerHTML += `<div class="popup_footer">
-      <p>${properties.facility_id} @ ${properties.contact}</p>
-      <p>${properties["contact-phone"]}</p>
-      <p>${formatTimestamp(properties.timestamp)}</p>
-    </div>`;
+    facilityHtml.innerHTML = /* HTML */ `
+      <p>
+        <a
+          href="${properties["contact-url"]}"
+          rel="noopener"
+          target="_blank"
+          class="facility_header popup_header"
+        >
+          ${properties.facility_long_name}
+        </a>
+      </p>
+      <p class="popup_subheader">
+        <a href="${properties["contact-url"]}" rel="noopener" target="_blank">
+          ${properties.operator}
+        </a>
+      </p>
+      <hr />
+      <p>
+        <span class="fa tooltip" data-tooltip="${properties.capacity} spots"
+          >&#xf1b9;</span
+        >&nbsp;&nbsp;&nbsp;
+        ${capac_acc !== "0" && capac_acc
+          ? `
+        <span class='fa tooltip' data-tooltip='${capac_acc} spots'>&#xf193;</span>
+      `
+          : ""}
+      </p>
+      <p>${properties["fee-daily"]}</p>
+      <p>
+        <a href="${properties["payment-app-url"]}">
+          ${properties["payment-app"]} ${properties["payment-app-id"]}
+        </a>
+      </p>
+      <div class="popup_footer">
+        <p>${properties.facility_id} @ ${properties.contact}</p>
+        <p>${properties["contact-phone"]}</p>
+        <p>${formatTimestamp(properties.timestamp)}</p>
+      </div>
+    `;
     return facilityHtml;
   }
 }

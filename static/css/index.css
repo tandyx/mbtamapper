@@ -17,7 +17,7 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --blur-radius: 50px;
+  --blur-radius: 25px;
 }
 
 [data-mode="dark"] {

@@ -57,22 +57,42 @@ class ShapeLayer extends _RealtimeLayer {
    */
   #getPopupText(properties) {
     const shapeHtml = document.createElement("div");
-    shapeHtml.innerHTML += `<p>
-    <a href="${
-      properties.route_url
-    }" rel="noopener" target="_blank" style="color:#${
-      properties.route_color
-    }" class="popup_header">${properties.route_name.replace("/", " / ")}</a>
-    </p>`;
-    shapeHtml.innerHTML += `<p class="popup_subheader">${properties.route_desc}</p>`;
-    shapeHtml.innerHTML += "<hr />";
-    // vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;</span>&nbsp;&nbsp;&nbsp;`;
-    shapeHtml.innerHTML += `<span name="alert-shape-${properties.route_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>`;
-    shapeHtml.innerHTML += `<p>${properties.route_id} @ <a href="${properties.agency.agency_url}" rel="noopener" target="_blank">${properties.agency.agency_name}</a></p>`;
-    shapeHtml.innerHTML += `<p>${properties.agency.agency_phone}</p>`;
-    shapeHtml.innerHTML += `<div class="popup_footer"> 
-          <p>${formatTimestamp(properties.timestamp)}</p>
-      </div>`;
+    shapeHtml.innerHTML = /* HTML */ `
+      <p>
+        <a
+          href="${properties.route_url}"
+          rel="noopener"
+          target="_blank"
+          style="color:#${properties.route_color}"
+          class="popup_header"
+        >
+          ${properties.route_name.replace("/", " / ")}
+        </a>
+      </p>
+      <p class="popup_subheader">${properties.route_desc}</p>
+      <hr />
+      <span
+        name="alert-shape-${properties.route_id}"
+        class="fa hidden popup tooltip slight-delay"
+        data-tooltip="alerts"
+      >
+        &#xf071;
+      </span>
+      <p>
+        ${properties.route_id} @
+        <a
+          href="${properties.agency.agency_url}"
+          rel="noopener"
+          target="_blank"
+        >
+          ${properties.agency.agency_name}
+        </a>
+      </p>
+      <p>${properties.agency.agency_phone}</p>
+      <div class="popup_footer">
+        <p>${formatTimestamp(properties.timestamp)}</p>
+      </div>
+    `;
     return shapeHtml;
   }
 
