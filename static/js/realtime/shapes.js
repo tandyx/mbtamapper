@@ -8,6 +8,8 @@
  * @import {_RealtimeLayer} from "./base.js"
  * @exports ShapeLayer
  */
+"use strict";
+
 /**
  * represents the shape layer
  */

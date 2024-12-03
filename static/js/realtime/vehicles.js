@@ -10,6 +10,8 @@
  * @exports VehicleLayer
  */
 
+"use strict";
+
 /**
  * encapsulating class to plot Vehicles on a leaflet map
  * after object creation, you can call `.plot` to plot it
@@ -149,7 +151,7 @@ class VehicleLayer extends _RealtimeLayer {
       properties.next_stop.platform_name
         ? properties.next_stop.platform_name
             .toLowerCase()
-            .replace(/ *\([^)]*\) */g, "")
+            .replace(/ *\([^)]*\) *z/g, "")
             .replace("commuter rail", "")
             .replace("-", "")
             .trim()
@@ -158,7 +160,7 @@ class VehicleLayer extends _RealtimeLayer {
       <p>
         <a
           href="${properties.route?.route_url ||
-          `https://mbta.com/schedules/${self.properties.route_id}`}"
+          `https://mbta.com/schedules/${properties.route_id}`}"
           target="_blank"
           style="color:#${properties.route_color}"
           class="popup_header"
@@ -220,12 +222,12 @@ class VehicleLayer extends _RealtimeLayer {
       properties.next_stop?.delay !== null
         ? `
       ${
-        Math.round(properties.next_stop.delay / 60) !== 0
+        Math.round(properties.next_stop?.delay / 60) !== 0
           ? `
           <i 
-            class='${getDelayClassName(properties.next_stop.delay)}'
-          > ${Math.abs(Math.round(properties.next_stop.delay / 60))} minutes ${
-              getDelayClassName(properties.next_stop.delay) === "on-time"
+            class='${getDelayClassName(properties.next_stop?.delay)}'
+          > ${Math.abs(Math.round(properties.next_stop?.delay / 60))} minutes ${
+              getDelayClassName(properties.next_stop?.delay) === "on-time"
                 ? "early"
                 : "late"
             }

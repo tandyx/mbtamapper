@@ -8,6 +8,9 @@
  * @import {_RealtimeLayer} from "./base.js"
  * @exports FacilityLayer
  */
+
+"use strict";
+
 /**
  * represents the facility class
  */

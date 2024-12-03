@@ -7,6 +7,8 @@
  * @exports _RealtimeLayer
  */
 
+"use strict";
+
 /**
  * base encapsulating class for plotting realtime layers
  */

@@ -8,6 +8,9 @@
  * @import {_RealtimeLayer} from "./base.js"
  * @exports StopLayer
  */
+
+"use strict";
+
 /**
  * encapsulates stops
  */
