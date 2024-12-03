@@ -35,7 +35,9 @@ python3 app.py
 production
 
 ```sh
-python3 -m waitress --listen=*:5000 --threads=50 --call main:create_main_app &
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+sudo netfilter-persistent save
+sudo .venv/bin/python3 -m waitress --listen=*:80 --threads=50 --call app:create_main_app &
 wait
 ```
 
