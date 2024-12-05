@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# tfw ur too lazy to figure out docker
+# tfw ur too lazy to figure out docker on oracle's stupid server
 
 # specifically tailored for ubuntu server
 
