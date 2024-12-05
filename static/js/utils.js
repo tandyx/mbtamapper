@@ -425,6 +425,7 @@ class Theme {
 
   /**
    * returns unicode icon from sys active theme
+   * @returns {string}
    */
   static get unicodeIcon() {
     return Theme.activeTheme === "dark" ? "\uf186" : "\uf185";
@@ -432,6 +433,7 @@ class Theme {
 
   /**
    * returns unicode icon from sys active theme
+   * @returns {string}
    */
   get unicodeIcon() {
     return this.theme === "dark" ? "\uf186" : "\uf185";
@@ -451,13 +453,14 @@ class Theme {
 
   /**
    * sets <html data-mode="this.theme"> and saves it to session storage
-   * @param {boolean} [save=true] true by default saves to `sessionStorage`
+   * @param {"session" | "local" | null} [save = "session"] by default saves to `sessionStorage`
    * @returns {this}
    */
-  set(save = true) {
+  set(save = "session") {
     if (!this.theme) throw new Error("must set theme to set it");
     document.documentElement.setAttribute("data-mode", this.theme);
-    if (save) sessionStorage.setItem("theme", this.theme);
+    if (save == "session") sessionStorage.setItem("theme", this.theme);
+    if (save == "local") localStorage.setItem("theme", this.theme);
     const cLayer = document.getElementsByClassName("leaflet-control-layers");
     if (!cLayer.length) return this;
     const elements = cLayer[0].getElementsByTagName("input");
@@ -466,10 +469,10 @@ class Theme {
   }
   /**
    * reverses the theme (if dark -> light)
-   * @param {boolean} [save=true] true by default, saves to `sessionStorage`
+   * @param {"session" | "local" | null} [save = "session"] by default saves to `sessionStorage`
    * @returns {Theme}
    */
-  reverse(save = true) {
+  reverse(save = "session") {
     if (!this.theme) throw new Error("must set theme to reverse it");
     return new Theme(this.theme === "dark" ? "light" : "dark").set(save);
   }

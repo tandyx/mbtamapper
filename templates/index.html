@@ -112,7 +112,7 @@
                   Theme.activeTheme == "dark" ? "light" : "dark"
                 }`;
               };
-              updateToggle(Theme.fromExisting().set());
+              updateToggle(Theme.fromExisting().set("local"));
               toggle.addEventListener("click", () => {
                 updateToggle(Theme.fromExisting().reverse());
               });
