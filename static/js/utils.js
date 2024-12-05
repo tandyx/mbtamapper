@@ -390,13 +390,17 @@ function getDelayClassName(delay) {
   return "on-time";
 }
 
+/**
+ * @template {"dark" | "light"} T
+ */
 class Theme {
   /**
-   * @template {"dark" | "light"} T
    * @param {T} theme
    */
   constructor(theme) {
-    if (!theme) throw new Error("theme must be set");
+    if (!["light", "dark"].includes(theme)) {
+      throw new Error("theme must be light or dark");
+    }
     this.theme = theme;
   }
 
@@ -407,12 +411,10 @@ class Theme {
    * @returns {"dark" | "light" | null}
    */
   static get systemTheme() {
-    for (const scheme of [
-      ["(prefers-color-scheme: dark)", "dark"],
-      ["(prefers-color-scheme: light)", "light"],
-    ]) {
-      const queryList = window.matchMedia(scheme[0]);
-      if (queryList.matches) return scheme[1];
+    for (const scheme of ["dark", "light"]) {
+      if (window.matchMedia(`(prefers-color-scheme: ${scheme})`).matches) {
+        return scheme;
+      }
     }
   }
   /**
@@ -425,7 +427,6 @@ class Theme {
 
   /**
    * returns unicode icon from sys active theme
-   * @returns {string}
    */
   static get unicodeIcon() {
     return Theme.activeTheme === "dark" ? "\uf186" : "\uf185";
@@ -433,7 +434,6 @@ class Theme {
 
   /**
    * returns unicode icon from sys active theme
-   * @returns {string}
    */
   get unicodeIcon() {
     return this.theme === "dark" ? "\uf186" : "\uf185";
@@ -446,6 +446,7 @@ class Theme {
     return new Theme(
       document.documentElement.dataset.mode ||
         sessionStorage.getItem("theme") ||
+        localStorage.getItem("theme") ||
         Theme.systemTheme ||
         "light"
     );
@@ -459,8 +460,8 @@ class Theme {
   set(save = "session") {
     if (!this.theme) throw new Error("must set theme to set it");
     document.documentElement.setAttribute("data-mode", this.theme);
-    if (save == "session") sessionStorage.setItem("theme", this.theme);
-    if (save == "local") localStorage.setItem("theme", this.theme);
+    if (save === "session") sessionStorage.setItem("theme", this.theme);
+    if (save === "local") localStorage.setItem("theme", this.theme);
     const cLayer = document.getElementsByClassName("leaflet-control-layers");
     if (!cLayer.length) return this;
     const elements = cLayer[0].getElementsByTagName("input");
@@ -470,7 +471,9 @@ class Theme {
   /**
    * reverses the theme (if dark -> light)
    * @param {"session" | "local" | null} [save = "session"] by default saves to `sessionStorage`
-   * @returns {Theme}
+   * @returns {T extends "dark" ? Theme<"light"> : Theme<"dark">}
+   * @example
+   * const theme = new Theme.fromExisting().reverse()
    */
   reverse(save = "session") {
     if (!this.theme) throw new Error("must set theme to reverse it");
