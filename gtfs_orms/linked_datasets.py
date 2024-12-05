@@ -163,7 +163,7 @@ class LinkedDataset(Base):
             "trip_update_stop_time_update_arrival",
         ]:
             dataframe[col] = dataframe[col].apply(
-                lambda x: (int(x.get("time")) if isinstance(x, dict) else x)
+                lambda x: int(x.get("time")) if isinstance(x, dict) else x
             )
 
         dataframe["trip_update_stop_time_update_stop_sequence"] = (

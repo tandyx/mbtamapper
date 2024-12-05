@@ -22,7 +22,10 @@ window.addEventListener("load", function () {
   createMap("map", ROUTE_TYPE);
 });
 
-window.addEventListener("load", () => Theme.fromExisting().set());
+window.addEventListener("load", () => {
+  if (inIframe()) setCssVar("--navbar-height", "0px");
+  Theme.fromExisting().set();
+});
 
 /** map factory function for map.html
  * @param {string} id - id of the map div
