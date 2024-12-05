@@ -9,7 +9,7 @@ requires python 3.10+ and node 20+
 ### building
 
 ```sh
-git clone https://github.com/johan-cho/mbtamapper.git
+git clone https://github.com/tandyx/mbtamapper.git
 cd mbtamapper
 ```
 
@@ -35,8 +35,7 @@ python3 app.py
 production
 
 ```sh
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-sudo netfilter-persistent save
+# see ./deploy.sh
 sudo .venv/bin/python3 -m waitress --listen=*:80 --threads=50 --call app:create_main_app &
 wait
 ```
