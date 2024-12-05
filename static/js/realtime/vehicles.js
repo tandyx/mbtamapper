@@ -10,6 +10,8 @@
  * @exports VehicleLayer
  */
 
+"use strict";
+
 /**
  * encapsulating class to plot Vehicles on a leaflet map
  * after object creation, you can call `.plot` to plot it
@@ -149,88 +151,114 @@ class VehicleLayer extends _RealtimeLayer {
       properties.next_stop.platform_name
         ? properties.next_stop.platform_name
             .toLowerCase()
-            .replace(/ *\([^)]*\) */g, "")
+            .replace(/ *\([^)]*\) *z/g, "")
             .replace("commuter rail", "")
             .replace("-", "")
             .trim()
         : "";
-    vehicleText.innerHTML = `
+    vehicleText.innerHTML = /* HTML */ `
+      <p>
+        <a
+          href="${properties.route?.route_url ||
+          `https://mbta.com/schedules/${properties.route_id}`}"
+          target="_blank"
+          style="color:#${properties.route_color}"
+          class="popup_header"
+        >
+          ${properties.trip_short_name}
+        </a>
+      </p>
+      <p>
+        ${properties.trip_short_name === "552"
+          ? "heart to hub"
+          : properties.trip_short_name === "549"
+          ? "hub to heart"
+          : `${
+              VehicleLayer.#direction_map[properties.direction_id] || "null"
+            } to ${properties.headsign}`}
+      </p>
+      <hr />
+      <span class="fa tooltip" data-tooltip="bikes allowed"
+        >${properties.bikes_allowed ? "&#xf206;&nbsp;&nbsp;&nbsp;" : ""}
+      </span>
+      <span
+        name="pred-veh-${properties.trip_id}"
+        class="fa hidden popup tooltip"
+        data-tooltip="predictions"
+      >
+        &#xf239;&nbsp;&nbsp;&nbsp;
+      </span>
+      <span
+        name="alert-veh-${properties.trip_id}"
+        class="fa hidden popup tooltip slight-delay"
+        data-tooltip="alerts"
+      >
+        &#xf071;&nbsp;&nbsp;&nbsp;
+      </span>
+      ${properties.stop_time
+        ? `${
+            properties.current_status != "STOPPED_AT"
+              ? `
+      <p>${almostTitleCase(properties.current_status)} ${
+                  properties.stop_time.stop_name
+                } - ${
+                  properties.next_stop?.arrival_time ||
+                  properties.next_stop?.departure_time
+                    ? formatTimestamp(
+                        properties.next_stop?.arrival_time ||
+                          properties.next_stop?.departure_time,
+                        "%I:%M %P"
+                      )
+                    : ""
+                }</p>
+    `
+              : `
+      <p>${almostTitleCase(properties.current_status)} ${
+                  properties.stop_time.stop_name
+                }</p>
+    `
+          }
+    ${
+      properties.next_stop?.delay !== null
+        ? `
+      ${
+        Math.round(properties.next_stop?.delay / 60) !== 0
+          ? `
+          <i 
+            class='${getDelayClassName(properties.next_stop?.delay)}'
+          > ${Math.abs(Math.round(properties.next_stop?.delay / 60))} minutes ${
+              getDelayClassName(properties.next_stop?.delay) === "on-time"
+                ? "early"
+                : "late"
+            }
+          </i>`
+          : "<i>on time</i>"
+      }
+    `
+        : ""
+    }
+  `
+        : properties.next_stop
+        ? `
+    ${
+      properties.current_status != "STOPPED_AT"
+        ? `
+      <p>${almostTitleCase(properties.current_status)} ${
+            properties.next_stop.stop_name
+          } - ${formattedTimestamp}</p>
+    `
+        : `
+      <p>${almostTitleCase(properties.current_status)} ${
+            properties.next_stop.stop_name
+          }</p>
+    `
+    }
+  `
+        : ""}
+      ${properties.occupancy_status != null
+        ? `
     <p>
-    <a href="${
-      properties.route
-        ? properties.route.route_url
-        : "https://mbta.com/schedules/" + self.properties.route_id
-    }" target="_blank" style="color:#${
-      properties.route_color
-    }" class="popup_header">${properties.trip_short_name}</a></p>`;
-    if (properties.trip_short_name === "552") {
-      vehicleText.innerHTML += `<p>heart to hub</p>`;
-    } else if (properties.trip_short_name === "549") {
-      vehicleText.innerHTML += `<p>hub to heart</p>`;
-    } else {
-      vehicleText.innerHTML += `<p>${
-        VehicleLayer.#direction_map[properties.direction_id] || "null"
-      } to ${properties.headsign}</p>
-      `;
-    }
-    vehicleText.innerHTML += `<hr>`;
-    if (properties.bikes_allowed) {
-      vehicleText.innerHTML += `<span class='fa tooltip' data-tooltip='bikes allowed'>&#xf206;</span>&nbsp;&nbsp;&nbsp;`;
-    }
-    vehicleText.innerHTML += `<span name="pred-veh-${properties.trip_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
-    vehicleText.innerHTML += `<span name="alert-veh-${properties.trip_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;&nbsp;&nbsp;&nbsp;</span>`;
-    // vehicleText.innerHTML += `</p>`;
-    // if (properties.trip_properties.length) {
-    //   console.log();
-    // }
-    // var trip_properties = properties.trip_properties;
-    if (properties.stop_time) {
-      if (properties.current_status != "STOPPED_AT") {
-        const tmsp =
-          properties.next_stop?.arrival_time ||
-          properties.next_stop?.departure_time;
-        const fmttmsp = tmsp ? formatTimestamp(tmsp, "%I:%M %P") : "";
-        vehicleText.innerHTML += `<p>${almostTitleCase(
-          properties.current_status
-        )} ${properties.stop_time.stop_name} - ${fmttmsp}</p>`;
-      } else {
-        vehicleText.innerHTML += `<p>${almostTitleCase(
-          properties.current_status
-        )} ${properties.stop_time.stop_name}`;
-      }
-
-      if (properties.next_stop && properties.next_stop.delay !== null) {
-        const delayMinutes = Math.floor(properties.next_stop.delay / 60);
-        const delayClass = getDelayClassName(properties.next_stop.delay);
-        if (delayClass !== "on-time") {
-          vehicleText.innerHTML += `<i class='${delayClass}'>${delayMinutes} minutes late</i>`;
-        } else if (delayMinutes === 0) {
-          vehicleText.innerHTML += `<i>on time</i>`;
-        } else {
-          vehicleText.innerHTML += `<i class='on-time'>${Math.abs(
-            delayMinutes
-          )} minutes early</i>`;
-        }
-
-        // vehicleText.innerHTML += `<p>delay: ${properties.next_stop.delay} minutes</p>`;
-      }
-    } else if (properties.next_stop) {
-      if (properties.current_status != "STOPPED_AT") {
-        vehicleText.innerHTML += `<p>${almostTitleCase(
-          properties.current_status
-        )} ${properties.next_stop.stop_name} - ${formattedTimestamp}</p>`;
-      } else {
-        vehicleText.innerHTML += `<p>${almostTitleCase(
-          properties.current_status
-        )} ${properties.next_stop.stop_name}</p>`;
-      }
-      // if (properties.next_stop.delay === null) {
-      //   vehicleText.innerHTML += `<i>not scheduled</i>`;
-      // }
-    }
-
-    if (properties.occupancy_status != null) {
-      vehicleText.innerHTML += `<p><span class="${
+      <span class="${
         properties.occupancy_percentage >= 80
           ? "severe-delay"
           : properties.occupancy_percentage >= 60
@@ -238,20 +266,25 @@ class VehicleLayer extends _RealtimeLayer {
           : properties.occupancy_percentage >= 40
           ? "slight-delay"
           : ""
-      }">${properties.occupancy_percentage}% occupancy</span></p>`;
-    }
-
-    vehicleText.innerHTML += `<p>${
-      properties.speed_mph != null
-        ? Math.round(properties.speed_mph)
-        : properties.speed_mph
-    } mph</p>`;
-
-    vehicleText.innerHTML += `<div class = "popup_footer">
-      <p>${properties.vehicle_id} @ ${
-      properties.route ? properties.route.route_name : "unknown"
-    } ${platformName}</p>
-      <p>${formatTimestamp(properties.timestamp)}</p>
+      }">
+        ${properties.occupancy_percentage}% occupancy
+      </span>
+    </p>
+  `
+        : ""}
+      <p>
+        ${properties.speed_mph != null
+          ? Math.round(properties.speed_mph)
+          : properties.speed_mph}
+        mph
+      </p>
+      <div class="popup_footer">
+        <p>
+          ${properties.vehicle_id} @
+          ${properties.route ? properties.route.route_name : "unknown"}
+          ${platformName}
+        </p>
+        <p>${formatTimestamp(properties.timestamp)}</p>
       </div>
     `;
     return vehicleText;

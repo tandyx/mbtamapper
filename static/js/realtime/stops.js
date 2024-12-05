@@ -8,6 +8,9 @@
  * @import {_RealtimeLayer} from "./base.js"
  * @exports StopLayer
  */
+
+"use strict";
+
 /**
  * encapsulates stops
  */
@@ -80,39 +83,60 @@ class StopLayer extends _RealtimeLayer {
    */
   #getPopupText(properties) {
     const stopHtml = document.createElement("div");
-    const primaryRoute = properties.routes.sort(
-      (a, b) => a.route_type - b.route_type
-    )[0];
-    stopHtml.innerHTML += `<p>
-    <a href="${
-      properties.stop_url
-    }" rel="noopener" target="_blank" style="color:#${
-      primaryRoute?.route_color || "var(--text-color)"
-    }"  class="popup_header">${properties.stop_name.replace("/", " / ")}</a>
-    </p>`;
-    stopHtml.innerHTML += `<p class="popup_subheader">${
-      properties.zone_id || "zone-1A"
-    }</p>`;
-    stopHtml.innerHTML += "<hr />";
-    if (properties.wheelchair_boarding == "0") {
-      stopHtml.innerHTML += `<span class='fa tooltip slight-delay' data-tooltip='wheelchair accessible w/ caveats'>&#xf193;</span>&nbsp;&nbsp;&nbsp;`;
-    } else if (properties.wheelchair_boarding == "1") {
-      stopHtml.innerHTML += `<span class='fa tooltip' data-tooltip='wheelchair accessible'>&#xf193;</span>&nbsp;&nbsp;&nbsp;`;
-    }
-    stopHtml.innerHTML += `<span name="predictions-stop-${properties.stop_id}" class="fa hidden popup tooltip" data-tooltip="predictions">&#xf239;&nbsp;&nbsp;&nbsp;</span>`;
-    stopHtml.innerHTML += `<span name="alert-stop-${properties.stop_id}" class="fa hidden popup tooltip slight-delay" data-tooltip="alerts">&#xf071;</span>`;
-
-    stopHtml.innerHTML += `<p>${properties.routes
-      .map(
-        (r) =>
-          `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name},</a>`
-      )
-      .join(" ")}</p>`;
-
-    stopHtml.innerHTML += `<div class="popup_footer">
-        <p>${properties.stop_id} @ ${properties.stop_address}</p>
-        <p>${formatTimestamp(properties.timestamp)}</p>
-      </div>`;
+    const primeRoute = properties.routes
+      .sort((a, b) => a.route_type - b.route_type)
+      ?.at(0);
+    stopHtml.innerHTML = /* HTML */ ` <p>
+        <a
+          href="${properties.stop_url}"
+          rel="noopener"
+          target="_blank"
+          style="color:#${primeRoute?.route_color || "var(--text-color)"}"
+          class="popup_header"
+        >
+          ${properties.stop_name.replace("/", " / ")}
+        </a>
+      </p>
+      <p class="popup_subheader">${properties.zone_id || "zone-1A"}</p>
+      <hr />
+      ${
+        ["0", "1"].includes(properties.wheelchair_boarding)
+          ? `<span
+        class="fa tooltip"
+        data-tooltip="wheelchair accessible ${
+          properties.wheelchair_boarding == "0" ? "w/ caveats" : ""
+        }"
+      >&#xf193;
+      </span>&nbsp;&nbsp;&nbsp;`
+          : ""
+      }
+        <span
+          name="predictions-stop-${properties.stop_id}"
+          class="fa hidden popup tooltip"
+          data-tooltip="predictions"
+        >
+          &#xf239;&nbsp;&nbsp;&nbsp;
+        </span>
+        <span
+          name="alert-stop-${properties.stop_id}"
+          class="fa hidden popup tooltip slight-delay"
+          data-tooltip="alerts"
+        >
+          &#xf071;
+        </span>
+        <p>
+          ${properties.routes
+            .map(
+              (r) =>
+                `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name}</a>`
+            )
+            .join(", ")}
+        </p>
+        <div class="popup_footer">
+          <p>${properties.stop_id} @ ${properties.stop_address}</p>
+          <p>${formatTimestamp(properties.timestamp)}</p>
+        </div></span
+      >`;
 
     return stopHtml;
   }

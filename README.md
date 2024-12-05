@@ -9,7 +9,7 @@ requires python 3.10+ and node 20+
 ### building
 
 ```sh
-git clone https://github.com/johan-cho/mbtamapper.git
+git clone https://github.com/tandyx/mbtamapper.git
 cd mbtamapper
 ```
 
@@ -35,7 +35,8 @@ python3 app.py
 production
 
 ```sh
-python3 -m waitress --listen=*:80 --threads=50 --call main:create_main_app &
+# see ./deploy.sh
+sudo .venv/bin/python3 -m waitress --listen=*:80 --threads=50 --call app:create_main_app &
 wait
 ```
 
@@ -71,8 +72,9 @@ you could query the database (please don't abuse it)
 this data is already filtered out based on `route_type`; see [`/route_keys.json`](route_keys.json).
 
 - `{vehicles}?include=...,...`: realtime vehicle data
-  
+
   - `include`: optional comma separated list of relational fields to include
+
 - `{stops|shapes|parking}`; doesn't take params and redirects to a static `.geojson` file
 
 ### example
@@ -110,11 +112,11 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
 
 ### docker
 
-  this is more for me than anything else
-  
-  ```sh
-  docker build --tag mbta_mapper .
-  docker tag mbta_mapper tandyy/mbta_mapper:latest
-  docker push tandyy/mbta_mapper:latest
-  # docker run -d -p 80:80 mbta_mapper
-  ```
+this is more for me than anything else
+
+```sh
+docker build --tag mbta_mapper .
+docker tag mbta_mapper tandyy/mbta_mapper:latest
+docker push tandyy/mbta_mapper:latest
+# docker run -d -p 80:80 mbta_mapper
+```
