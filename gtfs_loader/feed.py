@@ -397,14 +397,15 @@ class Feed:
         session = self._get_session(readonly=True)
         if key == "ferry":  # no ferry data :(
             return gj.FeatureCollection([])
+        _routes: list[str] = []
         if key == "rapid_transit":
-            vehicles_query = query_obj.get_vehicles_query(*self.SL_ROUTES)
-        else:
-            vehicles_query = query_obj.get_vehicles_query()
+            _routes.extend([*self.SL_ROUTES, "Shuttle-Generic"])
+        if key == "subway":
+            _routes.append("Shuttle-Generic")
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
             try:
-                data = session.execute(vehicles_query).all()
+                data = session.execute(query_obj.get_vehicles_query(*_routes)).all()
             except (exc.OperationalError, exc.DatabaseError) as error:
                 logging.error("Failed to get vehicle data: %s", error)
             if any(v[0].predictions for v in data):

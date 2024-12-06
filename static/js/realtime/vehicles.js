@@ -163,9 +163,10 @@ class VehicleLayer extends _RealtimeLayer {
             } to ${properties.headsign}`}
       </p>
       <hr />
-      <span class="fa tooltip" data-tooltip="bikes allowed"
-        >${properties.bikes_allowed ? "&#xf206;&nbsp;&nbsp;&nbsp;" : ""}
-      </span>
+      ${properties.bikes_allowed
+        ? `<span class="fa tooltip" data-tooltip="bikes allowed"
+        >&#xf206;&nbsp;&nbsp;&nbsp;</span>`
+        : ""}
       <span
         name="pred-veh-${properties.trip_id}"
         class="fa hidden popup tooltip"
@@ -203,7 +204,8 @@ class VehicleLayer extends _RealtimeLayer {
                 }</p>`
           }
     ${
-      properties.next_stop?.delay !== null
+      properties.next_stop?.delay !== null ||
+      properties.next_stop?.delay !== NaN
         ? `
       ${
         Math.round(properties.next_stop?.delay / 60) !== 0
