@@ -1,5 +1,3 @@
-import { Feature } from "geojson";
-
 export interface LayerApiRealtimeOptions {
   url: string;
   layer: L.LayerGroup;

@@ -400,8 +400,6 @@ class Feed:
         _routes: list[str] = []
         if key == "rapid_transit":
             _routes.extend([*self.SL_ROUTES, "Shuttle-Generic"])
-        if key == "subway":
-            _routes.append("Shuttle-Generic")
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
             try:

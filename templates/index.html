@@ -116,9 +116,9 @@
                   Theme.activeTheme == "dark" ? "light" : "dark"
                 }`;
               };
-              updateToggle(Theme.fromExisting().set("local"));
+              updateToggle(Theme.fromExisting().set(sessionStorage));
               toggle.addEventListener("click", () => {
-                updateToggle(Theme.fromExisting().reverse());
+                updateToggle(Theme.fromExisting().reverse(sessionStorage));
               });
             });
           </script>

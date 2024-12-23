@@ -74,7 +74,7 @@
     <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
     <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js') }}"></script>
     <!-- static/node_modules/leaflet-sidebar -->
-    <script src="{{ url_for('static', filename='node_modules/leaflet-sidebar-v2/js/leaflet-sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/leaflet-sidebar/src/L.Control.Sidebar.js') }}"></script>
 
     <!-- other js -->
     <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
@@ -132,7 +132,7 @@
     </nav>
     <!-- <x-nav></x-nav> -->
     <div id="map"></div>
-    <!-- <div id="sidebar"></div> -->
+    <div id="sidebar"></div>
     <noscript>This page requires Javascript to be enabled.</noscript>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   </body>

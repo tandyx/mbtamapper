@@ -7,6 +7,7 @@
  * @typedef {import("leaflet-fullscreen")}
  * @typedef {import("leaflet-providers")}
  * @typedef {import("leaflet-realtime-types")}
+ * @typedef {import("leaflet-sidebar")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./realtime/base.js")}
  * @typedef {import("./realtime/vehicles.js")}
@@ -22,10 +23,20 @@ window.addEventListener("load", function () {
   createMap("map", ROUTE_TYPE);
 });
 
-window.addEventListener("load", () => {
+window.addEventListener("load", function () {
   if (inIframe()) setCssVar("--navbar-height", "0px");
-  Theme.fromExisting().set();
+  Theme.fromExisting().set(sessionStorage, onThemeChange);
 });
+/**
+ * gets storage or default
+ * @param {string} key
+ * @param {any} _default
+ * @param {Storage} [storage=sessionStorage]
+ * @returns {any}
+ */
+function storageGet(key, _default, storage = sessionStorage) {
+  return storage.getItem(key) || _default;
+}
 
 /** map factory function for map.html
  * @param {string} id - id of the map div
@@ -36,7 +47,6 @@ function createMap(id, route_type) {
   const isMobile = mobileCheck();
   const theme = Theme.fromExisting();
 
-  const textboxSize = { maxWidth: 375, minWidth: 250 };
   const map = L.map(id, {
     minZoom: 9,
     maxZoom: 20,
@@ -44,13 +54,16 @@ function createMap(id, route_type) {
     fullscreenControl: true,
     fullscreenControlOptions: { position: "topleft" },
     attributionControl: true,
-  }).setView(
+  });
+
+  map.setView(
     [
       sessionStorage.getItem("lat") || 42.3519,
       sessionStorage.getItem("lng") || -71.0552,
     ],
     sessionStorage.getItem("zoom") || route_type == "commuter_rail" ? 10 : 13
   );
+
   map.on("move", function () {
     const cords = map.getCenter();
     sessionStorage.setItem("lat", cords.lat);
@@ -58,49 +71,64 @@ function createMap(id, route_type) {
   });
 
   map.on("zoom", () => sessionStorage.setItem("zoom", map.getZoom()));
+  map.on("baselayerchange", (event) => {
+    new Theme(event.name).set(sessionStorage, onThemeChange);
+  });
 
   const baseLayers = getBaseLayerDict(...Array(2));
   baseLayers[theme.theme].addTo(map);
-  const stop_layer = L.layerGroup(undefined, { name: "stops" }).addTo(map);
-  const shape_layer = L.layerGroup(undefined, { name: "shapes" }).addTo(map);
-  const vehicle_layer = L.markerClusterGroup({
-    disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
-    name: "vehicles",
-  }).addTo(map);
 
-  const parking_lots = L.layerGroup(undefined, { name: "parking" });
-  const baseOp = { textboxSize, isMobile };
-  new StopLayer({ url: "stops", layer: stop_layer, ...baseOp }).plot();
-  new ShapeLayer({ url: "shapes", layer: shape_layer, ...baseOp }).plot();
-  new VehicleLayer({
-    url: "vehicles?include=route,next_stop,stop_time,trip_properties",
-    layer: vehicle_layer,
+  const baseOp = { textboxSize: { maxWidth: 375, minWidth: 250 }, isMobile };
+
+  const stopLayer = new StopLayer({
+    url: "stops",
+    layer: L.layerGroup(undefined, { name: "stops" }).addTo(map),
     ...baseOp,
-  }).plot();
-  new FacilityLayer({ url: "parking", layer: parking_lots, ...baseOp }).plot();
+  });
 
+  const shapeLayer = new ShapeLayer({
+    url: "shapes",
+    layer: L.layerGroup(undefined, { name: "shapes" }).addTo(map),
+    ...baseOp,
+  });
+
+  const vehicleLayer = new VehicleLayer({
+    url: "vehicles?include=route,next_stop,stop_time,trip_properties",
+    layer: L.markerClusterGroup({
+      disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
+      name: "vehicles",
+    }).addTo(map),
+    ...baseOp,
+  });
+
+  const facilityLayer = new FacilityLayer({
+    url: "parking",
+    layer: L.layerGroup(undefined, { name: "parking" }),
+    ...baseOp,
+  });
+
+  const layers = [stopLayer, shapeLayer, vehicleLayer, facilityLayer];
+  layers.forEach((layer) => layer.plot());
   createControlLayers(
     baseLayers,
-    stop_layer,
-    shape_layer,
-    vehicle_layer,
-    parking_lots
+    ...layers.map((layer) => layer.options.layer)
   ).forEach((control) => control.addTo(map));
 
   map.on("zoomend", () => {
-    if (map.getZoom() < 16) map.removeLayer(parking_lots);
-    if (map.getZoom() >= 16) map.addLayer(parking_lots);
+    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
+    map.addLayer(facilityLayer.options.layer);
   });
-  map.on("baselayerchange", (event) => new Theme(event.name).set());
 
-  if (map.hasLayer(parking_lots)) map.removeLayer(parking_lots);
+  if (map.hasLayer(facilityLayer.options.layer)) {
+    map.removeLayer(facilityLayer.options.layer);
+  }
   return map;
 }
 
 /** create control layers
- * @param {Object} tile_layers - base layers
+ * @param {{light: TileLayer.Provider, dark: TileLayer.Provider}} tile_layers - base layers
  * @param {L.layerGroup[]} layers - layers to be added to the map
- * @returns {Array} control layers
+ * @returns {L.Control[]} control layers
  */
 function createControlLayers(tile_layers, ...layers) {
   const locateControl = L.control.locate({
