@@ -58,7 +58,7 @@
       <hr />
 
       <table>
-        {% for key, value in content.items() if not key == "all_routes" %}
+        {% for key, value in content.items() if not key == "all_routes"%}
         <tr>
           <td class="button_base {{ key | lower }}">
             <a href="/{{ key | lower }}">
@@ -72,8 +72,12 @@
 
       <div class="footer">
         <div>
-          I have no relation to the mbta other than being a former keolis
-          employee.
+          this app displays where every mbta vehicle is on a realtime map. it
+          can be used for commuting.
+        </div>
+        <br />
+        <div>
+          this site works the best in firefox <span class="fa">&#xf269;</span>.
         </div>
         <div class="fa link-wrapper">
           <a
@@ -112,9 +116,9 @@
                   Theme.activeTheme == "dark" ? "light" : "dark"
                 }`;
               };
-              updateToggle(Theme.fromExisting().set());
+              updateToggle(Theme.fromExisting().set(sessionStorage));
               toggle.addEventListener("click", () => {
-                updateToggle(Theme.fromExisting().reverse());
+                updateToggle(Theme.fromExisting().reverse(sessionStorage));
               });
             });
           </script>

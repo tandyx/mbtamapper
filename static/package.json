@@ -5,11 +5,10 @@
     "leaflet-providers": "^2.0.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
-    "leaflet-sidebar-v2": "^3.2.3",
+    "leaflet-sidebar": "^0.2.4",
     "leaflet.locatecontrol": "^0.82.0",
     "leaflet.markercluster": "^1.5.3",
     "leaflet.markercluster.freezable": "^1.0.0",
-    "plotly.js-dist-min": "^2.35.2",
     "strftime": "^0.10.3"
   },
   "scripts": {

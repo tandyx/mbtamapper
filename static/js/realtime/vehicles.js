@@ -140,22 +140,7 @@ class VehicleLayer extends _RealtimeLayer {
    */
   #getPopupText(properties) {
     const vehicleText = document.createElement("div");
-    const formattedTimestamp = formatTimestamp(
-      properties.timestamp,
-      "%I:%M %P"
-    );
-    const platformName =
-      properties.route &&
-      properties.route.route_type == "2" &&
-      properties.next_stop &&
-      properties.next_stop.platform_name
-        ? properties.next_stop.platform_name
-            .toLowerCase()
-            .replace(/ *\([^)]*\) *z/g, "")
-            .replace("commuter rail", "")
-            .replace("-", "")
-            .trim()
-        : "";
+    const fmtmstp = formatTimestamp(properties.timestamp, "%I:%M %P");
     vehicleText.innerHTML = /* HTML */ `
       <p>
         <a
@@ -178,9 +163,10 @@ class VehicleLayer extends _RealtimeLayer {
             } to ${properties.headsign}`}
       </p>
       <hr />
-      <span class="fa tooltip" data-tooltip="bikes allowed"
-        >${properties.bikes_allowed ? "&#xf206;&nbsp;&nbsp;&nbsp;" : ""}
-      </span>
+      ${properties.bikes_allowed
+        ? `<span class="fa tooltip" data-tooltip="bikes allowed"
+        >&#xf206;&nbsp;&nbsp;&nbsp;</span>`
+        : ""}
       <span
         name="pred-veh-${properties.trip_id}"
         class="fa hidden popup tooltip"
@@ -215,11 +201,11 @@ class VehicleLayer extends _RealtimeLayer {
               : `
       <p>${almostTitleCase(properties.current_status)} ${
                   properties.stop_time.stop_name
-                }</p>
-    `
+                }</p>`
           }
     ${
-      properties.next_stop?.delay !== null
+      properties.next_stop?.delay !== null ||
+      properties.next_stop?.delay !== NaN
         ? `
       ${
         Math.round(properties.next_stop?.delay / 60) !== 0
@@ -245,7 +231,7 @@ class VehicleLayer extends _RealtimeLayer {
         ? `
       <p>${almostTitleCase(properties.current_status)} ${
             properties.next_stop.stop_name
-          } - ${formattedTimestamp}</p>
+          } - ${fmtmstp}</p>
     `
         : `
       <p>${almostTitleCase(properties.current_status)} ${
@@ -282,7 +268,9 @@ class VehicleLayer extends _RealtimeLayer {
         <p>
           ${properties.vehicle_id} @
           ${properties.route ? properties.route.route_name : "unknown"}
-          ${platformName}
+          ${properties.next_stop?.platform_code
+            ? `track ${properties.next_stop.platform_code}`
+            : ""}
         </p>
         <p>${formatTimestamp(properties.timestamp)}</p>
       </div>

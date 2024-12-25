@@ -1,5 +1,3 @@
-import { Feature } from "geojson";
-
 export interface LayerApiRealtimeOptions {
   url: string;
   layer: L.LayerGroup;
@@ -179,7 +177,8 @@ export interface NextStop {
   departure_time: number | null;
   direction_id: number;
   index: number;
-  platform_name: string;
+  platform_code?: string;
+  platform_name?: string;
   prediction_id: string;
   route_id: RouteID;
   stop_id: string;

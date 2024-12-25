@@ -390,44 +390,89 @@ function getDelayClassName(delay) {
   return "on-time";
 }
 
+/**
+ * blends two hex colors, returning their average
+ * @param {string} color1
+ * @param {string} color2
+ * @returns {`#${string}`}
+ */
+function mixHexColors(color1, color2) {
+  // Remove the '#' from the hex strings if present
+  color1 = color1.startsWith("#") ? color1.slice(1) : color1;
+  color2 = color2.startsWith("#") ? color2.slice(1) : color2;
+
+  // Convert hex to RGB components
+  const r1 = parseInt(color1.slice(0, 2), 16);
+  const g1 = parseInt(color1.slice(2, 4), 16);
+  const b1 = parseInt(color1.slice(4, 6), 16);
+
+  const r2 = parseInt(color2.slice(0, 2), 16);
+  const g2 = parseInt(color2.slice(2, 4), 16);
+  const b2 = parseInt(color2.slice(4, 6), 16);
+
+  // Average the RGB components
+  const rMix = Math.round((r1 + r2) / 2);
+  const gMix = Math.round((g1 + g2) / 2);
+  const bMix = Math.round((b1 + b2) / 2);
+
+  // Convert back to hex and format with leading zeros if needed
+  const mixedColor = `#${rMix.toString(16).padStart(2, "0")}${gMix
+    .toString(16)
+    .padStart(2, "0")}${bMix.toString(16).padStart(2, "0")}`;
+
+  return mixedColor;
+}
+
+/**
+ * on theme change
+ * @param {Theme} _theme
+ * @returns
+ */
+function onThemeChange(_theme) {
+  const cLayer = document.getElementsByClassName("leaflet-control-layers");
+  if (!cLayer.length) return;
+  const elements = cLayer[0].getElementsByTagName("input");
+  elements[{ light: 0, dark: 1 }[_theme.theme]]?.click();
+}
+
+/**
+ * class for theme management
+ * @template {"dark" | "light"} T
+ */
 class Theme {
   /**
-   * @template {"dark" | "light"} T
-   * @param {T} theme
+   * where the theme key is stored
    */
-  constructor(theme) {
-    if (!theme) throw new Error("theme must be set");
-    this.theme = theme;
-  }
-
-  static inputEnum = { light: 0, dark: 1 };
+  static THEME_STORAGE_KEY = "_theme";
 
   /**
    * gets the system theme through window.watchMedia
    * @returns {"dark" | "light" | null}
    */
   static get systemTheme() {
-    for (const scheme of [
-      ["(prefers-color-scheme: dark)", "dark"],
-      ["(prefers-color-scheme: light)", "light"],
-    ]) {
-      const queryList = window.matchMedia(scheme[0]);
-      if (queryList.matches) return scheme[1];
+    for (const scheme of ["dark", "light"]) {
+      if (window.matchMedia(`(prefers-color-scheme: ${scheme})`).matches) {
+        return scheme;
+      }
     }
+    // if (window.matchMedia(`(prefers-color-scheme: dark)`).matches) {
+    //   return "dark";
+    // }
+    // return "light";
   }
   /**
-   * gets the active theme from either the html element or system theme\
-   * @returns {"dark" | "light" | null}
+   * gets the active theme from either the html element or system theme
+   * @returns {"dark" | "light"}
    */
   static get activeTheme() {
-    return document.documentElement.dataset.mode || Theme.systemTheme;
+    return document.documentElement.dataset.mode || this.systemTheme;
   }
 
   /**
    * returns unicode icon from sys active theme
    */
   static get unicodeIcon() {
-    return Theme.activeTheme === "dark" ? "\uf186" : "\uf185";
+    return this.activeTheme === "dark" ? "\uf186" : "\uf185";
   }
 
   /**
@@ -438,39 +483,60 @@ class Theme {
   }
 
   /**
-   * factory; creates new Theme from existing settings
+   * factory; creates new `Theme` from existing settings
+   * @param {Storage?} [storagePriorty=null] pointer to first storage to use default sessionStorage before local.
    */
-  static fromExisting() {
-    return new Theme(
+  static fromExisting(storagePriorty = null) {
+    const pStore = storagePriorty || sessionStorage || localStorage;
+    const secStore = pStore === sessionStorage ? localStorage : sessionStorage;
+    return new this(
       document.documentElement.dataset.mode ||
-        sessionStorage.getItem("theme") ||
-        Theme.systemTheme ||
+        pStore.getItem(this.THEME_STORAGE_KEY) ||
+        secStore.getItem(this.THEME_STORAGE_KEY) ||
+        this.systemTheme ||
         "light"
     );
+  }
+  /**
+   * manually create a new theme object.
+   * @param {T} theme "dark" or "light"; will throw error if not
+   */
+  constructor(theme) {
+    if (!["light", "dark"].includes(theme)) throw new Error("only light||dark");
+    this.theme = theme;
+  }
+
+  /**
+   * opposite theme object without setting
+   * @typedef {T extends "dark" ? Theme<"light"> : Theme<"dark">} OppTheme
+   * @returns {OppTheme}
+   */
+  get opposite() {
+    return new Theme(this.theme === "dark" ? "light" : "dark");
   }
 
   /**
    * sets <html data-mode="this.theme"> and saves it to session storage
-   * @param {boolean} [save=true] true by default saves to `sessionStorage`
+   * @param {Storage?} storage storage to save to, default doesn't save
+   * @param {((theme: this) => null)?} onSave callback that executes after save.
    * @returns {this}
    */
-  set(save = true) {
-    if (!this.theme) throw new Error("must set theme to set it");
+  set(storage = null, onSave = null) {
     document.documentElement.setAttribute("data-mode", this.theme);
-    if (save) sessionStorage.setItem("theme", this.theme);
-    const cLayer = document.getElementsByClassName("leaflet-control-layers");
-    if (!cLayer.length) return this;
-    const elements = cLayer[0].getElementsByTagName("input");
-    elements[Theme.inputEnum[this.theme]]?.click();
+    if (storage) storage.setItem(Theme.THEME_STORAGE_KEY, this.theme);
+    if (onSave) onSave(this);
     return this;
   }
   /**
    * reverses the theme (if dark -> light)
-   * @param {boolean} [save=true] true by default, saves to `sessionStorage`
-   * @returns {Theme}
+   * this is the same as new `Theme().opposite.set()`
+   * @param {Storage?} storage storage to save to, default doesn't save
+   * @param {((theme: OppTheme) => null)?} onSave executed callback function when changing; `theme` is the NEW theme
+   * @returns {OppTheme}
+   * @example
+   * const theme = Theme.fromExisting().reverse()
    */
-  reverse(save = true) {
-    if (!this.theme) throw new Error("must set theme to reverse it");
-    return new Theme(this.theme === "dark" ? "light" : "dark").set(save);
+  reverse(storage = null, onSave = null) {
+    return this.opposite.set(storage, onSave);
   }
 }

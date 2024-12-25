@@ -200,10 +200,10 @@ class Vehicle(Base):
         if self.trip and self.trip.trip_short_name:
             return self.trip.trip_short_name
         if (
-            self.route
-            and self.route_id  # mypy shit
+            self.route_id  # mypy shit
             and (self.route.route_type == "3" or self.route_id.startswith("Green"))
             and self.route.route_short_name
+            and len(self.route.route_short_name) <= 4
         ):
             return self.route.route_short_name
         return ""

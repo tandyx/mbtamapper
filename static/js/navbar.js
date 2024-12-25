@@ -18,7 +18,10 @@ window.addEventListener("load", () => {
     const anchor = child.getElementsByTagName("a")[0];
     anchor.text = Theme.unicodeIcon;
     child.addEventListener("click", () => {
-      anchor.text = Theme.fromExisting().reverse().unicodeIcon;
+      anchor.text = Theme.fromExisting().reverse(
+        sessionStorage,
+        onThemeChange
+      ).unicodeIcon;
     });
   }
   window.addEventListener("resize", () => {

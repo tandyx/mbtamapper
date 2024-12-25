@@ -162,6 +162,14 @@
   animation: leaflet-control-locate-throb 10s ease infinite;
 }
 
+.leaflet-sidebar {
+  background-color: rgba(var(--background-color-blur));
+  backdrop-filter: blur(var(--blur-radius));
+  -webkit-backdrop-filter: blur(var(--blur-radius));
+  z-index: 100000;
+  color: var(--text-color);
+}
+
 @keyframes leaflet-control-locate-throb {
   0% {
     stroke-width: 1;
