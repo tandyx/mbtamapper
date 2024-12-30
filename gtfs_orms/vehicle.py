@@ -79,8 +79,11 @@ class Vehicle(Base):
     )
 
     next_stop: Mapped[list["Prediction"]] = relationship(
-        primaryjoin="""and_(foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
-                            foreign(Vehicle.stop_id)==Prediction.stop_id)""",
+        primaryjoin="""and_(
+            foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
+            foreign(Vehicle.stop_id)==Prediction.stop_id,
+            foreign(Vehicle.trip_id)==Prediction.trip_id,
+        )""",
         viewonly=True,
     )
 

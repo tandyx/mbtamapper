@@ -137,14 +137,13 @@ class Prediction(Base):
         Returns:
             - `int`: the delay of the prediction
         """
+        delay = 0
         if not self.stop_time:
-            return None
+            return delay
         if self.departure_time and self.stop_time.departure_timestamp:
             delay = self.departure_time - self.stop_time.departure_timestamp
         elif self.arrival_time and self.stop_time.arrival_timestamp:
             delay = self.arrival_time - self.stop_time.arrival_timestamp
-        else:
-            delay = 0
         if delay <= -60_000:
             delay += 86_400
         return delay

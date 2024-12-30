@@ -141,6 +141,9 @@ class VehicleLayer extends _RealtimeLayer {
   #getPopupText(properties) {
     const vehicleText = document.createElement("div");
     const fmtmstp = formatTimestamp(properties.timestamp, "%I:%M %P");
+    const delay = Math.round(properties.next_stop?.delay / 60);
+    const dClassName = getDelayClassName(properties.next_stop?.delay);
+    console.log(`${properties.trip_id}: ${delay}`);
     vehicleText.innerHTML = /* HTML */ `
       <p>
         <a
@@ -204,20 +207,17 @@ class VehicleLayer extends _RealtimeLayer {
                 }</p>`
           }
     ${
-      properties.next_stop?.delay !== null ||
-      properties.next_stop?.delay !== NaN
+      properties.next_stop?.delay !== null
         ? `
       ${
-        Math.round(properties.next_stop?.delay / 60) !== 0
+        delay !== 0
           ? `
-          <i 
-            class='${getDelayClassName(properties.next_stop?.delay)}'
-          > ${Math.abs(Math.round(properties.next_stop?.delay / 60))} minutes ${
-              getDelayClassName(properties.next_stop?.delay) === "on-time"
-                ? "early"
-                : "late"
+          <i class='${dClassName}'> ${Math.abs(delay)} minutes ${
+              dClassName === "on-time" ? "early" : "late"
             }
           </i>`
+          : delay !== delay
+          ? ""
           : "<i>on time</i>"
       }
     `
