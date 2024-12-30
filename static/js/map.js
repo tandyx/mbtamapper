@@ -64,7 +64,7 @@ function createMap(id, route_type) {
     sessionStorage.getItem("zoom") || route_type == "commuter_rail" ? 10 : 13
   );
 
-  map.on("move", function () {
+  map.on("move", () => {
     const cords = map.getCenter();
     sessionStorage.setItem("lat", cords.lat);
     sessionStorage.setItem("lng", cords.lng);
@@ -75,9 +75,9 @@ function createMap(id, route_type) {
     new Theme(event.name).set(sessionStorage, onThemeChange);
   });
 
-  const baseLayers = getBaseLayerDict(...Array(2));
+  const baseLayers = getBaseLayerDict();
   baseLayers[theme.theme].addTo(map);
-
+  /**@type {LayerApiRealtimeOptions} */
   const baseOp = { textboxSize: { maxWidth: 375, minWidth: 250 }, isMobile };
 
   const stopLayer = new StopLayer({

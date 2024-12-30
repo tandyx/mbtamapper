@@ -9,10 +9,24 @@
 
 "use strict";
 
+const _icons = {
+  alert: "&#xf071;",
+  prediction: "&#xf239;",
+  bike: "&#xf206;",
+  wheelchair: "&#xf193;",
+  parking: "&#xf1b9;",
+  space: "&nbsp;&nbsp;",
+};
+
+/** @typedef {typeof _icons} Icons */
+
 /**
  * base encapsulating class for plotting realtime layers
  */
 class _RealtimeLayer {
+  /** @name _icons */
+  /** @type {Icons} typehint shennagins, ref to global var */
+  static icons = _icons;
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -56,5 +70,29 @@ class _RealtimeLayer {
         updateLayer.call(this, id, feature);
       }.bind(this)
     );
+  }
+
+  /**
+   * gives a popup icon a loading symbol. this preps the icon
+   * @param {HTMLElement} element the icon
+   * @param {string} popupId popupId for `togglePopup`
+   * @returns {string} original html
+   */
+  loadingIcon(element, popupId) {
+    const prevHtml = element.innerHTML;
+    element.onclick = () => togglePopup(popupId);
+    element.classList.remove("hidden");
+    element.innerHTML = "<div class='loader'></div>";
+    return prevHtml;
+  }
+
+  /**
+   * adds spacing to selected icon (or any string)
+   * @template {keyof Icons} T
+   * @param {T} icon
+   * @returns {`${Icons[T]}${Icons["space"]}`} icon html with html spacing
+   */
+  static iconSpacing(icon) {
+    return (this.icons[icon] || icon) + this.icons.space;
   }
 }

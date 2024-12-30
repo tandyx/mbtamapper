@@ -78,7 +78,7 @@ class ShapeLayer extends _RealtimeLayer {
         class="fa hidden popup tooltip slight-delay"
         data-tooltip="alerts"
       >
-        &#xf071;
+        ${_RealtimeLayer.icons.alert}
       </span>
       <p>
         ${properties.route_id} @
@@ -107,7 +107,7 @@ class ShapeLayer extends _RealtimeLayer {
       `alert-shape-${route_id}`
     )) {
       const popupId = `popup-alert-${route_id}`;
-      alertEl.onclick = () => togglePopup(popupId);
+      const prevHtml = super.loadingIcon(alertEl, popupId);
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.style.minWidth = "350px";
@@ -117,12 +117,11 @@ class ShapeLayer extends _RealtimeLayer {
       const _data = await (
         await fetch(`/api/alert?route_id=${route_id}&stop_id=null`)
       ).json();
-      if (!_data.length) return;
-      alertEl.classList.remove("hidden");
+      if (!_data.length) return alertEl.classList.add("hidden");
       popupText.innerHTML =
         "<table class='data-table'><tr><th>alert</th><th style='width:40%;'>period</th></tr>" +
         _data
-          .map(function (d) {
+          .map((d) => {
             const strf = "%m-%d";
             const start = d.active_period_start
               ? formatTimestamp(d.active_period_start, strf)
@@ -137,6 +136,7 @@ class ShapeLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
+      alertEl.innerHTML = _RealtimeLayer.icons.alert;
       alertEl.appendChild(popupText);
       setTimeout(() => {
         if (openPopups.includes(popupId)) togglePopup(popupId, true);

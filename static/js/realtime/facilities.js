@@ -79,11 +79,11 @@ class FacilityLayer extends _RealtimeLayer {
       <hr />
       <p>
         <span class="fa tooltip" data-tooltip="${properties.capacity} spots"
-          >&#xf1b9;</span
-        >&nbsp;&nbsp;&nbsp;
+          >${_RealtimeLayer.icons.parking}</span
+        >${_RealtimeLayer.icons.space}
         ${capac_acc !== "0" && capac_acc
           ? `
-        <span class='fa tooltip' data-tooltip='${capac_acc} spots'>&#xf193;</span>
+        <span class='fa tooltip' data-tooltip='${capac_acc} spots'>${_RealtimeLayer.icons.wheelchair}</span>
       `
           : ""}
       </p>
