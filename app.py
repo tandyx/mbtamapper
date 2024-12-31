@@ -342,6 +342,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = get_args().parse_args()
+    logging.basicConfig()
     logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
