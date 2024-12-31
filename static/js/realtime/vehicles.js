@@ -5,7 +5,7 @@
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty } from "../types/index.js"
- * @import { Realtime } from "leaflet";
+ * @import { Layer, Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
  * @exports VehicleLayer
  */
@@ -88,6 +88,7 @@ class VehicleLayer extends _RealtimeLayer {
     options = { ..._this.options, ...options };
     const realtime = L.realtime(options.url, {
       interval: 15000,
+      // interval: 7500,
       type: "FeatureCollection",
       container: options.layer,
       cache: false,
@@ -100,7 +101,8 @@ class VehicleLayer extends _RealtimeLayer {
         if (!options.isMobile) l.bindTooltip(f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
-        l.on("click", () =>
+
+        l.once("click", () =>
           _this.#fillDataWrapper(f.properties.trip_id, _this)
         );
       },
@@ -109,8 +111,12 @@ class VehicleLayer extends _RealtimeLayer {
     realtime.on("update", function (e) {
       Object.keys(e.update).forEach(
         function (id) {
+          /**@type {Layer} */
           const layer = this.getLayer(id);
           const feature = e.update[id];
+          const _onclick = () => {
+            _this.#fillDataWrapper(feature.properties.trip_id, _this);
+          };
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.id = feature.id;
           layer.feature.properties.searchName = `${feature.properties.trip_short_name} @ ${feature.properties.route?.route_name}`;
@@ -123,17 +129,10 @@ class VehicleLayer extends _RealtimeLayer {
           layer.setIcon(_this.#getIcon(feature.properties));
           if (wasOpen) {
             layer.openPopup();
-            setTimeout(
-              () => _this.#fillDataWrapper(feature.properties.trip_id, _this),
-              200
-            );
+            setTimeout(_onclick, 200);
           }
-          layer.on("click", () => {
-            setTimeout(
-              () => _this.#fillDataWrapper(feature.properties.trip_id, _this),
-              200
-            );
-          });
+          layer.off("click", _onclick);
+          layer.once("click", _onclick);
         }.bind(this)
       );
     });
@@ -392,7 +391,7 @@ class VehicleLayer extends _RealtimeLayer {
    * @param {this} _this override `this`
    */
   #fillDataWrapper(trip_id, _this = null) {
-    _this ||= _this;
+    _this ||= this;
     _this.#fillAlertData(trip_id);
     _this.#fillPredictionData(trip_id);
   }

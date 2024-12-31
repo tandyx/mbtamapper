@@ -82,7 +82,7 @@ class _RealtimeLayer {
     const prevHtml = element.innerHTML;
     element.onclick = () => togglePopup(popupId);
     element.classList.remove("hidden");
-    element.innerHTML = "<div class='loader'></div>";
+    element.innerHTML = `<div class='loader'></div>`;
     return prevHtml;
   }
 

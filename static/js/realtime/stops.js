@@ -51,6 +51,9 @@ class StopLayer extends _RealtimeLayer {
           /**@type {L.Layer} */
           const layer = realtime.getLayer(id);
           const feature = e.update[id];
+          const _onclick = () => {
+            _this.#fillDataWrapper(feature.properties.trip_id, _this);
+          };
           layer.feature.properties.searchName = feature.properties.stop_name;
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.unbindPopup();
@@ -61,11 +64,10 @@ class StopLayer extends _RealtimeLayer {
           );
           if (wasOpen) {
             layer.openPopup();
-            _this.fillDataWrapper(feature.properties);
+            setTimeout(_onclick, 200);
           }
-          layer.on("click", () => {
-            setTimeout(_this.fillDataWrapper, 200, feature.properties);
-          });
+          layer.off("click", _onclick);
+          layer.once("click", _onclick);
         }.bind(realtime)
       );
     });
@@ -147,7 +149,18 @@ class StopLayer extends _RealtimeLayer {
    */
   fillDataWrapper(properties) {
     this.#fillAlertData(properties.stop_id);
-    this.#fillPredictionsData(properties.stop_id, properties.child_stops);
+    this.#fillPredictionData(properties.stop_id, properties.child_stops);
+  }
+
+  /**
+   * wraps this.#fillPredictionData and this.#fillAlertData
+   * @param {string} trip_id
+   * @param {this} _this override `this`
+   */
+  #fillDataWrapper(trip_id, _this = null) {
+    _this ||= this;
+    _this.#fillAlertData(trip_id);
+    _this.#fillPredictionData(trip_id);
   }
 
   /**
@@ -194,7 +207,7 @@ class StopLayer extends _RealtimeLayer {
    * @param {string} stop_id
    * @param {StopProperty[]} child_stops
    */
-  async #fillPredictionsData(stop_id, child_stops) {
+  async #fillPredictionData(stop_id, child_stops) {
     for (const predEl of document.getElementsByName(
       `predictions-stop-${stop_id}`
     )) {

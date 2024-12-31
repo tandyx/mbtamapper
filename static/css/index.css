@@ -24,13 +24,13 @@
   --text-color: #f2f2f2;
   --background-color: #0e0e0e;
   --popup-background: #252525;
-  --background-color-blur: rgba(0, 0, 0, 0.2);
+  --background-color-blur: rgba(0, 0, 0, 0.75);
 }
 [data-mode="light"] {
   --text-color: #191919;
   --background-color: #e8e8e8;
   --popup-background: #252525;
-  --background-color-blur: rgba(255, 255, 255, 0.2);
+  --background-color-blur: rgba(255, 255, 255, 0.5);
 }
 
 @font-face {
