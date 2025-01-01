@@ -8,12 +8,12 @@ see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 johan cho | 2023-2024
 
 """
-
 import argparse
 import difflib
 import json
 import logging
 import os
+import sys
 import threading
 
 import flask
@@ -342,8 +342,9 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = get_args().parse_args()
-    logging.basicConfig()
-    logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
+    logger = logging.getLogger()
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger.setLevel(getattr(logging, args.log_level.upper()))
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):

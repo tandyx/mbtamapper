@@ -53,18 +53,18 @@ class VehicleLayer extends _RealtimeLayer {
    * @returns {L.DivIcon}
    */
   #getIcon(properties) {
-    const iconHtml = `
+    const iconHtml = /* HTML */ `
       <div class="vehicle_wrapper">
-        <img 
-          src="static/img/icon.png" 
-          loading="lazy" 
-          alt="vehicle" 
-          width="60" 
-          height="60" 
+        <img
+          src="static/img/icon.png"
+          loading="lazy"
+          alt="vehicle"
+          width="60"
+          height="60"
           style="
             ${VehicleLayer.#hex_css_map[properties.route_color] || ""}; 
             transform: rotate(${properties.bearing}deg);
-          " 
+          "
         />
         <span class="vehicle_text">${properties.display_name}</span>
       </div>
