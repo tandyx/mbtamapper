@@ -166,8 +166,6 @@ class VehicleLayer extends _RealtimeLayer {
       <p>
         ${properties.trip_short_name === "552"
           ? "heart to hub"
-          : properties.trip_short_name === "549"
-          ? "hub to heart"
           : `${
               VehicleLayer.#direction_map[properties.direction_id] || "null"
             } to ${properties.headsign}`}

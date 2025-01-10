@@ -6,7 +6,7 @@
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
     "leaflet-sidebar": "^0.2.4",
-    "leaflet.locatecontrol": "^0.82.0",
+    "leaflet.locatecontrol": "^0.83.1",
     "leaflet.markercluster": "^1.5.3",
     "leaflet.markercluster.freezable": "^1.0.0",
     "strftime": "^0.10.3"
