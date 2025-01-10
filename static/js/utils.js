@@ -453,7 +453,6 @@ function asyncSleep(time) {
  * @param {number} [sleep=15000] ms to sleep
  */
 async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
-  console.log(`active: ${_id}`);
   while (true) {
     const el = document.getElementById(_id);
     if (!el) {
@@ -471,9 +470,34 @@ async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
     } else {
       humanReadable = `~ ${Math.floor(_time / 86400)}d`;
     }
-    el.innerHTML = `${humanReadable} ago`;
+    el.innerHTML = `updated ${humanReadable} ago`;
     await asyncSleep(sleep);
   }
+}
+
+/**
+ * gets storage or default value.
+ *
+ * sets `_default` value into storage
+ *
+ * defaults to sessionStorage
+ *
+ * @param {string} key
+ * @param {any} _default
+ * @param {{storage?: Storage, parseInt?: boolean, parseFloat?: boolean, parseJson?: boolean}} options
+ * @returns {any}
+ */
+function storageGet(key, _default, options) {
+  const _storage = options.storage || sessionStorage;
+  const _item = _storage.getItem(key);
+  if (!_item) {
+    _storage.setItem(key, _default);
+    return _default;
+  }
+  if (options.parseFloat) return parseFloat(_item);
+  if (options.parseInt) return parseInt(_item);
+  if (options.parseJson) return JSON.parse(_item);
+  return _item;
 }
 
 /**

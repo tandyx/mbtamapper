@@ -171,7 +171,9 @@ class StopLayer extends _RealtimeLayer {
     for (const alertEl of document.getElementsByName(`alert-stop-${stop_id}`)) {
       const popupId = `popup-alert-${stop_id}`;
       // const oldTooltip = alertEl.getAttribute("data-tooltip");
-      super.loadingIcon(alertEl, popupId);
+      super.loadingIcon(alertEl, popupId, {
+        style: "border-top: var(--border) solid var(--slight-delay);",
+      });
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.style.minWidth = "350px";

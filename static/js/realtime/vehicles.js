@@ -89,7 +89,7 @@ class VehicleLayer extends _RealtimeLayer {
     options = { ..._this.options, ...options };
     const realtime = L.realtime(options.url, {
       interval: 15000,
-      // interval: 7500,
+      // interval: 500,
       type: "FeatureCollection",
       container: options.layer,
       cache: false,
@@ -361,7 +361,9 @@ class VehicleLayer extends _RealtimeLayer {
   async #fillAlertData(trip_id) {
     for (const alertEl of document.getElementsByName(`alert-veh-${trip_id}`)) {
       const popupId = `popup-alert-${trip_id}`;
-      super.loadingIcon(alertEl, popupId);
+      super.loadingIcon(alertEl, popupId, {
+        style: "border-top: var(--border) solid var(--slight-delay);",
+      });
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.id = popupId;

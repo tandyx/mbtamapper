@@ -107,7 +107,10 @@ class ShapeLayer extends _RealtimeLayer {
       `alert-shape-${route_id}`
     )) {
       const popupId = `popup-alert-${route_id}`;
-      const prevHtml = super.loadingIcon(alertEl, popupId);
+      super.loadingIcon(alertEl, popupId, {
+        style: "border-top: var(--border) solid var(--slight-delay);",
+      });
+
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.style.minWidth = "350px";

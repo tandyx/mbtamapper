@@ -27,16 +27,6 @@ window.addEventListener("load", function () {
   if (inIframe()) setCssVar("--navbar-height", "0px");
   Theme.fromExisting().set(sessionStorage, onThemeChange);
 });
-/**
- * gets storage or default
- * @param {string} key
- * @param {any} _default
- * @param {Storage} [storage=sessionStorage]
- * @returns {any}
- */
-function storageGet(key, _default, storage = sessionStorage) {
-  return storage.getItem(key) || _default;
-}
 
 /** map factory function for map.html
  * @param {string} id - id of the map div
@@ -58,10 +48,12 @@ function createMap(id, route_type) {
 
   map.setView(
     [
-      sessionStorage.getItem("lat") || 42.3519,
-      sessionStorage.getItem("lng") || -71.0552,
+      storageGet("lat", 42.3519, { parseFloat: true }),
+      storageGet("lng", -71.0552, { parseFloat: true }),
     ],
-    sessionStorage.getItem("zoom") || route_type == "commuter_rail" ? 10 : 13
+    storageGet("zoom", route_type == "commuter_rail" ? 10 : 13, {
+      parseFloat: true,
+    })
   );
 
   map.on("move", () => {

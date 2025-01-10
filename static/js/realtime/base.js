@@ -76,13 +76,18 @@ class _RealtimeLayer {
    * gives a popup icon a loading symbol. this preps the icon
    * @param {HTMLElement} element the icon
    * @param {string} popupId popupId for `togglePopup`
+   * @param {{style?: string, classList?: string[]}?} options
    * @returns {string} original html
    */
-  loadingIcon(element, popupId) {
+  loadingIcon(element, popupId, options) {
     const prevHtml = element.innerHTML;
+    const classList = ["loader", ...(options?.classList || [])];
     element.onclick = () => togglePopup(popupId);
     element.classList.remove("hidden");
-    element.innerHTML = `<div class='loader'></div>`;
+    element.innerHTML = /* HTML */ ` <div
+      class="${classList.join(" ")}"
+      style="${options?.style}"
+    ></div>`;
     return prevHtml;
   }
 

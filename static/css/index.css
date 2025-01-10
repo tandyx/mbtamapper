@@ -18,6 +18,7 @@
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
   --blur-radius: 25px;
+  --slight-delay: #d19900;
 }
 
 [data-mode="dark"] {
