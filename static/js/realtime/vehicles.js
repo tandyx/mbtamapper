@@ -78,6 +78,7 @@ class VehicleLayer extends _RealtimeLayer {
    */
   constructor(options) {
     super(options);
+    this.iter = 0;
   }
 
   /**
@@ -101,21 +102,20 @@ class VehicleLayer extends _RealtimeLayer {
         if (!options.isMobile) l.bindTooltip(f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
-
-        l.once("click", () =>
-          _this.#fillDataWrapper(f.properties.trip_id, _this)
-        );
+        l.once("click", () => _this.#fillDataWrapper(f.properties, _this));
       },
     });
-
+    // realtime.on("update", () => _this.iter++);
     realtime.on("update", function (e) {
+      this.iter++;
       Object.keys(e.update).forEach(
         function (id) {
           /**@type {Layer} */
           const layer = this.getLayer(id);
+          /**@type {GeoJSON.Feature<GeoJSON.Geometry, VehicleProperties} */
           const feature = e.update[id];
           const _onclick = () => {
-            _this.#fillDataWrapper(feature.properties.trip_id, _this);
+            _this.#fillDataWrapper(feature.properties, _this);
           };
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.id = feature.id;
@@ -142,7 +142,7 @@ class VehicleLayer extends _RealtimeLayer {
 
   /**
    * gets vehicle text
-   * @param {VehicleProperties} properties
+   * @param {string} properties
    * @returns {HTMLDivElement} - vehicle text
    */
   #getPopupText(properties) {
@@ -279,9 +279,15 @@ class VehicleLayer extends _RealtimeLayer {
             ? `track ${properties.next_stop.platform_code}`
             : ""}
         </p>
-        <p>${formatTimestamp(properties.timestamp)}</p>
+        <p>
+          ${formatTimestamp(properties.timestamp)}
+          <i
+            id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
+          ></i>
+        </p>
       </div>
     `;
+
     return vehicleText;
   }
 
@@ -387,12 +393,16 @@ class VehicleLayer extends _RealtimeLayer {
   }
   /**
    * wraps this.#fillPredictionData and this.#fillAlertData
-   * @param {string} trip_id
+   * @param {VehicleProperties} properties
    * @param {this} _this override `this`
    */
-  #fillDataWrapper(trip_id, _this = null) {
+  #fillDataWrapper(properties, _this = null) {
     _this ||= this;
-    _this.#fillAlertData(trip_id);
-    _this.#fillPredictionData(trip_id);
+    _this.#fillAlertData(properties.trip_id);
+    _this.#fillPredictionData(properties.trip_id);
+    _updateTimestamp(
+      `vehicle-${properties.vehicle_id}-timestamp-${_this.iter || 1}`,
+      properties.timestamp
+    );
   }
 }

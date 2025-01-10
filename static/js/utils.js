@@ -436,6 +436,47 @@ function onThemeChange(_theme) {
 }
 
 /**
+ * only works in `await` or `.then` situations
+ * @param {number} time in ms
+ * @returns {Promise<any>}
+ */
+function asyncSleep(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+/**
+ * there's def a better way to do this but fuck im too lazy to google this shit
+ *
+ * async updates the innerHTML of a element to "1 second ago" or something like that
+ * @param {string} _id the id
+ * @param {number} _timestamp the timestamp
+ * @param {number} [sleep=15000] ms to sleep
+ */
+async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
+  console.log(`active: ${_id}`);
+  while (true) {
+    const el = document.getElementById(_id);
+    if (!el) {
+      await asyncSleep(1000);
+      continue;
+    }
+    const _time = new Date().valueOf() / 1000 - _timestamp;
+    let humanReadable;
+    if (_time < 60) {
+      humanReadable = `< 1m`;
+    } else if (_time < 3600) {
+      humanReadable = `~ ${Math.floor(_time / 60)}m`;
+    } else if (_time < 86400) {
+      humanReadable = `~ ${Math.floor(_time / 3600)}h`;
+    } else {
+      humanReadable = `~ ${Math.floor(_time / 86400)}d`;
+    }
+    el.innerHTML = `${humanReadable} ago`;
+    await asyncSleep(sleep);
+  }
+}
+
+/**
  * class for theme management
  * @template {"dark" | "light"} T
  */
