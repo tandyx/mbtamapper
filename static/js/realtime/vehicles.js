@@ -278,7 +278,7 @@ class VehicleLayer extends _RealtimeLayer {
             : ""}
         </p>
         <p>
-          ${formatTimestamp(properties.timestamp)}
+          ${formatTimestamp(properties.timestamp, "%I:%M %P")}
           <i
             id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
           ></i>

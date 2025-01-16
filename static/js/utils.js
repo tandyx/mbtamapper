@@ -470,7 +470,7 @@ async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
     } else {
       humanReadable = `~ ${Math.floor(_time / 86400)}d`;
     }
-    el.innerHTML = `updated ${humanReadable} ago`;
+    el.innerHTML = `${humanReadable} ago`;
     await asyncSleep(sleep);
   }
 }
