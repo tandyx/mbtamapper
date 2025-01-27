@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
  * @exports StopLayer
@@ -178,6 +178,7 @@ class StopLayer extends _RealtimeLayer {
       popupText.classList.add("popuptext");
       popupText.style.minWidth = "350px";
       popupText.id = popupId;
+      /**@type {StopProperty[]} */
       const _data = await (
         await fetch(`/api/stop?stop_id=${stop_id}&include=alerts`)
       ).json();

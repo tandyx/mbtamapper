@@ -165,38 +165,6 @@ function formatTimestamp(timestamp, strf = "") {
   return datetime.toLocaleString();
 }
 
-/** Handle update event for realtime layers
- * @param {(event: RealtimeUpdateEvent) => void} fn - realtime layer to update
- * @returns {void}
- */
-function handleUpdateEvent(fn) {
-  Object.keys(fn.update).forEach(
-    function (id) {
-      const feature = fn.update[id];
-      updateLayer.call(this, id, feature);
-    }.bind(this)
-  );
-}
-
-/** Update layer
- * @param {string} id - id of layer to update
- * @param {L.feature}
- * @returns {void}
- */
-function updateLayer(id, feature) {
-  const layer = this.getLayer(id);
-  const wasOpen = layer.getPopup().isOpen();
-  layer.unbindPopup();
-
-  if (wasOpen) layer.closePopup();
-
-  layer.bindPopup(feature.properties.popupContent, {
-    maxWidth: "auto",
-  });
-
-  if (wasOpen) layer.openPopup();
-}
-
 /**
  * Gets the style of a selector from a stylesheet
  * @param {string} style - The style to get

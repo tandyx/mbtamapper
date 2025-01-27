@@ -64,6 +64,19 @@ class _RealtimeLayer {
    * @returns {void}
    */
   handleUpdateEvent(fn) {
+    /**@type {((id: string, feature: L.FeatureGroup) => void)} */
+    const updateLayer = (id, feature) => {
+      /**@type {L.Layer} */
+      const layer = this.getLayer(id);
+      const wasOpen = layer.getPopup().isOpen();
+      layer.unbindPopup();
+      if (wasOpen) layer.closePopup();
+      layer.bindPopup(feature.properties.popupContent, {
+        maxWidth: "auto",
+      });
+      if (wasOpen) layer.openPopup();
+    };
+
     Object.keys(fn.update).forEach(
       function (id) {
         const feature = fn.update[id];

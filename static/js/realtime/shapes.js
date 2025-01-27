@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, Shape } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
  * @exports ShapeLayer
@@ -45,7 +45,7 @@ class ShapeLayer extends _RealtimeLayer {
         l.feature.properties.searchName = f.properties.route_name;
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.properties.route_name);
-        l.on("click", () => _this.#fillAlertData(f.properties.route_id));
+        l.once("click", () => _this.#fillAlertData(f.properties.route_id));
       },
     });
     realtime.on("update", super.handleUpdateEvent);
@@ -54,7 +54,7 @@ class ShapeLayer extends _RealtimeLayer {
 
   /**
    * text for popup
-   * @param {Shape} properties from geojson
+   * @param {ShapeProperty} properties from geojson
    * @returns {HTMLDivElement} - vehicle props
    */
   #getPopupText(properties) {

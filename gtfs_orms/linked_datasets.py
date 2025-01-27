@@ -182,6 +182,7 @@ class LinkedDataset(Base):
         """
 
         dataframe = self._load_dataframe()
+
         # dataframe = dataframe[
         #     (
         #         dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
