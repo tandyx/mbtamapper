@@ -80,6 +80,7 @@
           this site works the best on firefox <span class="fa">&#xf269;</span>.
         </div>
         <div class="fa link-wrapper">
+          <a id="modeToggle" class="tooltip"> &#xf2bd; </a>
           <a
             href="https://github.com/johan-cho/mbtamapper"
             target="_blank"
@@ -88,21 +89,23 @@
             data-tooltip="github"
             >&#xf09b;</a
           ><a
-            href="https://johan-cho.github.io/"
+            href="https://tandy.xyz/"
             target="_blank"
             rel="noopener"
             class="tooltip"
-            data-tooltip="about me"
+            data-tooltip="tandy.xyz"
           >
-            &#xf2bd;
+            <img
+              src="{{ url_for('static', filename='img/riolu_light_1mb.png')}}"
+              loading="lazy"
+              class="inline-img"
+            />
           </a>
-          <a id="modeToggle" class="tooltip"> &#xf2bd; </a>
-
           <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
           <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
           <script async defer>
             /**
-              @import { Theme } from "js/utils.js"
+              @import { Theme } from "./js/utils.js"
             **/
             window.addEventListener("load", () => {
               const toggle = document.getElementById("modeToggle");
