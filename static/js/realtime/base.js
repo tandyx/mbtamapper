@@ -87,6 +87,91 @@ class _RealtimeLayer {
   }
 
   /**
+   * finds layer based on predicate and options
+   * @typedef {{click?: boolean, autoZoom?: boolean, zoom?: number, latLng?: L.LatLng}} FindLayerOptions
+   * @param {(value: L.LayerGroup<L.GeoJSON<LayerProperty>>, index: number, array: any[]) => L.Layer?} fn
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?}
+   */
+  findLayer(fn, options) {
+    options = { click: true, autoZoom: true, ...options };
+    this.options.map.setZoom(this.options.map.options.minZoom, {
+      animate: false,
+    });
+    /**@type {L.Layer[]} */
+    const initialLayers = Object.values(this.options.map._layers);
+    let layer = initialLayers.find(fn);
+    /** @type {L.MarkerCluster?} */
+    let mcluster;
+    if (!layer) {
+      mcluster = initialLayers
+        .find((a) => a.options.name === "vehicles")
+        ?.disableClustering();
+      layer = Object.values(this.options.map._layers).find(fn);
+      mcluster?.enableClustering();
+    }
+    if (!layer) {
+      console.error(`layer not found`);
+      return layer;
+    }
+    if (this.options.map.options.maxZoom && options.autoZoom) {
+      this.options.map.setView(
+        options.latLng || layer.getLatLng(),
+        options.zoom || this.options.map.options.maxZoom
+      );
+    }
+    if (options.click) layer.fire("click");
+    return layer;
+  }
+
+  /**
+   * fires click event and zooms in on stop
+   * @param {string} stopId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} stop
+   */
+  clickStop(stopId, options) {
+    return (
+      this.findLayer(
+        (e) =>
+          e?.feature?.properties?.child_stops
+            ?.map((c) => c.stop_id)
+            ?.includes(stopId) || e?.feature?.id === stopId
+      ),
+      options
+    );
+  }
+
+  /**
+   * fires click event and zooms in on route
+   * @param {string} routeId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} shape
+   */
+  clickRoute(routeId, options) {
+    return this.findLayer((e) => e?.feature?.properties?.route_id === routeId, {
+      zoom: this.options.map.options.minZoom,
+      latLng: this.options.map.getCenter(),
+      ...options,
+    });
+
+    /**@type {L.Layer?} */
+  }
+  /**
+   * fires click event and zooms in on vehicle
+   * wrapper for `findLayer`
+   * @param {string} vehicleId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} vehicle
+   */
+  clickVehicle(vehicleId, options) {
+    return this.findLayer(
+      (e) => e?.feature?.properties?.vehicle_id === vehicleId,
+      { zoom: 15, ...options }
+    );
+  }
+
+  /**
    * gives a popup icon a loading symbol. this preps the icon
    * @param {HTMLElement} element the icon
    * @param {string} popupId popupId for `togglePopup`

@@ -448,48 +448,14 @@ class VehicleLayer extends _RealtimeLayer {
       const encoded = btoa(JSON.stringify(prop));
       document
         .getElementById(`to-v-${encoded}`)
-        ?.addEventListener("click", () => {
-          /**@type {L.Layer?} */
-          const marker = this.options.layer
-            .getLayers()
-            .filter((e) => e.feature.id === prop.vehicle_id)[0];
-          if (!marker) return;
-          this.options.map.setView(marker.getLatLng(), 16);
-          marker.fire("click");
-        });
+        ?.addEventListener("click", () => super.clickVehicle(prop.vehicle_id));
       document
         .getElementById(`to-r-${encoded}`)
-        ?.addEventListener("click", () => {
-          /**@type {L.Layer?} */
-          const shape = Object.values(this.options.map._layers).filter(
-            (e) => e.id === prop.route_id
-          )[0];
-          if (!shape) return;
-          // this.options.map.setView(this.options.map.getBounds(), 16);
-          this.options.map.setView(
-            this.options.map.getCenter(),
-            this.options.map.options.minZoom
-          );
-
-          shape.fire("click");
-        });
-
+        ?.addEventListener("click", () => super.clickRoute(prop.route_id));
       document
         .getElementById(`to-s-${encoded}`)
-        ?.addEventListener("click", () => {
-          /**@type {L.Layer?} */
-          const stop = Object.values(this.options.map._layers).filter((e) =>
-            e.feature?.properties?.child_stops
-              ?.map((c) => c.stop_id)
-              ?.includes(prop.stop_id)
-          )[0];
-          if (!stop) return;
-          this.options.map.setView(stop.getLatLng(), 16);
-          stop.fire("click");
-        });
+        ?.addEventListener("click", () => super.clickStop(prop.stop_id));
     }
-
-    // const findBox = document.createElement("div");
   }
 
   /**
