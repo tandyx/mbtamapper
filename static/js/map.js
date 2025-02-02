@@ -40,6 +40,7 @@ window.addEventListener("hashchange", () => {
  */
 function createMap(id, routeType) {
   const isMobile = mobileCheck();
+  const isIframe = inIframe();
   const theme = Theme.fromExisting();
 
   const map = L.map(id, {
@@ -79,7 +80,7 @@ function createMap(id, routeType) {
     })
     .addTo(map);
 
-  if (!isMobile) setTimeout(() => sidebar.show(), 500);
+  if (!isMobile || !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
   baseLayers[theme.theme].addTo(map);
