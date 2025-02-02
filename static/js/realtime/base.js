@@ -68,6 +68,7 @@ class _RealtimeLayer {
     const updateLayer = (id, feature) => {
       /**@type {L.Layer} */
       const layer = this.getLayer(id);
+      layer.id = feature.id;
       const wasOpen = layer.getPopup().isOpen();
       layer.unbindPopup();
       if (wasOpen) layer.closePopup();

@@ -410,7 +410,9 @@ noscript {
   width: 100%;
   border-collapse: collapse;
 
-  text-align: left;
+  a {
+    cursor: pointer;
+  }
   tbody,
   thead,
   tr,
@@ -431,6 +433,11 @@ noscript {
   height: var(--size);
   -webkit-animation: spin 1s linear infinite; /* Safari */
   animation: spin 1s linear infinite;
+}
+/* Sortable tables */
+table.sortable thead {
+  font-weight: bold;
+  cursor: default;
 }
 
 /* Safari */

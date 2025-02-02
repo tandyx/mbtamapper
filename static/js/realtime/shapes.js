@@ -42,6 +42,7 @@ class ShapeLayer extends _RealtimeLayer {
           weight: 1.3,
           renderer: polyLineRender,
         });
+        l.id = f.properties.route_id;
         l.feature.properties.searchName = f.properties.route_name;
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.properties.route_name);

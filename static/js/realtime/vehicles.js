@@ -4,6 +4,8 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
+ * @typedef {import("sorttable/sorttable.js").sorttable} sorttable
+ * @import { sorttable } from "sorttable/sorttable.js"
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty } from "../types/index.js"
  * @import { Layer, Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
@@ -105,15 +107,19 @@ class VehicleLayer extends _RealtimeLayer {
         l.once("click", () => _this.#fillDataWrapper(f.properties, _this));
       },
     });
+
     // realtime.on("update", () => _this.iter++);
-    realtime.on("update", function (e) {
+    realtime.on("update", function (event) {
       this.iter++;
-      Object.keys(e.update).forEach(
+      _this.#fillDefaultSidebar(
+        Object.values(event.features).map((e) => e.properties)
+      );
+      Object.keys(event.update).forEach(
         function (id) {
           /**@type {Layer} */
           const layer = this.getLayer(id);
           /**@type {GeoJSON.Feature<GeoJSON.Geometry, VehicleProperties} */
-          const feature = e.update[id];
+          const feature = event.update[id];
           const _onclick = () => {
             _this.#fillDataWrapper(feature.properties, _this);
           };
@@ -391,6 +397,103 @@ class VehicleLayer extends _RealtimeLayer {
       }, 150);
     }
   }
+  /**
+   * fills the default
+   * @param {VehicleProperties[]} properties
+   * @param {string} [_id="sidebar-main"]
+   */
+  #fillDefaultSidebar(properties, _id = "sidebar-main") {
+    const container = document.getElementById(_id);
+    if (!container) return;
+    const findBox = "<div id='findBox'></div>";
+    if (!properties.length) {
+      (container.innerHTML = `${findBox}<h2>no current vehicle data for ${this.options.routeType}</h2>`),
+        "sidebar-default-content";
+      return;
+    }
+    container.innerHTML =
+      findBox +
+      /*HTML*/ `<h2>current vehicles</h2>
+    <table class='sortable data-table'>
+      <thead>
+        <tr><th>route</th><th>trip</th><th>next stop</th><th>delay</th></tr>
+      </thead>
+      <tbody>
+      ${properties
+        .map((prop) => {
+          const encoded = btoa(JSON.stringify(prop));
+          const lStyle = `style="color:#${prop.route.route_color};"`;
+          return /*HTML*/ `<tr>
+          <td><a ${lStyle} id="to-r-${encoded}">${
+            prop.route.route_name
+          }</a></td>
+          <td><a ${lStyle} id="to-v-${encoded}">${prop.trip_short_name}</a></td>
+          <td><a  id="to-s-${encoded}"> ${
+            prop.next_stop?.stop_name || prop.stop_time?.stop_name
+          }</a></td>
+          <td><i class='${getDelayClassName(
+            prop.next_stop?.delay
+          )}'>${getDelayText(prop.next_stop?.delay)}</i></td>
+        </tr>`;
+        })
+        .join("")}
+      </tbody>
+      </table>
+    `;
+
+    for (const el of document.getElementsByClassName("sortable")) {
+      sorttable.makeSortable(el);
+    }
+    for (const prop of properties) {
+      const encoded = btoa(JSON.stringify(prop));
+      document
+        .getElementById(`to-v-${encoded}`)
+        ?.addEventListener("click", () => {
+          /**@type {L.Layer} */
+          const marker = this.options.layer
+            .getLayers()
+            .filter((e) => e.feature.id === prop.vehicle_id)[0];
+          if (!marker) return;
+          this.options.map.setView(marker.getLatLng(), 16);
+          marker.fire("click");
+        });
+      document
+        .getElementById(`to-r-${encoded}`)
+        ?.addEventListener("click", () => {
+          /**@type {L.Layer} */
+          const shape = Object.values(this.options.map._layers).filter(
+            (e) => e.id === prop.route_id
+          )[0];
+          if (!shape) return;
+          // this.options.map.setView(shape.getLatLngs(), 16);
+          shape.fire("click");
+        });
+
+      document
+        .getElementById(`to-s-${encoded}`)
+        ?.addEventListener("click", () => {
+          /**@type {L.Layer} */
+
+          const stop = Object.values(this.options.map._layers).filter((e) => {
+            /**@type {StopProperty[]} */
+            const childStops = e.feature?.properties?.child_stops;
+            return (
+              childStops &&
+              childStops.map((c) => c.stop_id).includes(prop.stop_id)
+            );
+          })[0];
+          // const stop = Object.values(this.options.map._layers).filter(
+          //   (e) => e.id === prop.next_stop?.
+          // )[0];
+          if (!stop) return;
+          this.options.map.setView(stop.getLatLng(), 16);
+          stop.fire("click");
+        });
+    }
+
+    // const findBox = document.createElement("div");
+  }
+
   /**
    * wraps this.#fillPredictionData and this.#fillAlertData
    * @param {VehicleProperties} properties

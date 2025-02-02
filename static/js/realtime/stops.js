@@ -37,6 +37,7 @@ class StopLayer extends _RealtimeLayer {
       removeMissing: true,
       getFeatureId: (f) => f.id,
       onEachFeature(f, l) {
+        l.id = f.id;
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
         l.feature.properties.searchName = f.properties.stop_name;
         if (!options.isMobile) l.bindTooltip(f.properties.stop_name);
@@ -51,6 +52,7 @@ class StopLayer extends _RealtimeLayer {
           /**@type {L.Layer} */
           const layer = realtime.getLayer(id);
           const feature = e.update[id];
+          layer.id = feature.id;
           const _onclick = () => {
             _this.#fillDataWrapper(feature.properties.trip_id, _this);
           };

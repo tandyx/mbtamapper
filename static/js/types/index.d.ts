@@ -1,8 +1,14 @@
+import L from "leaflet";
+import "leaflet-sidebar";
+
 export interface LayerApiRealtimeOptions {
   url: string;
   layer: L.LayerGroup;
   textboxSize: string;
   isMobile: boolean;
+  sidebar: typeof L.Control.Sidebar;
+  routeType: string;
+  map: L.Map;
 }
 
 export interface LayerProperty {
