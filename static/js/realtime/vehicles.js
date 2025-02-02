@@ -449,7 +449,7 @@ class VehicleLayer extends _RealtimeLayer {
       document
         .getElementById(`to-v-${encoded}`)
         ?.addEventListener("click", () => {
-          /**@type {L.Layer} */
+          /**@type {L.Layer?} */
           const marker = this.options.layer
             .getLayers()
             .filter((e) => e.feature.id === prop.vehicle_id)[0];
@@ -460,31 +460,29 @@ class VehicleLayer extends _RealtimeLayer {
       document
         .getElementById(`to-r-${encoded}`)
         ?.addEventListener("click", () => {
-          /**@type {L.Layer} */
+          /**@type {L.Layer?} */
           const shape = Object.values(this.options.map._layers).filter(
             (e) => e.id === prop.route_id
           )[0];
           if (!shape) return;
-          // this.options.map.setView(shape.getLatLngs(), 16);
+          // this.options.map.setView(this.options.map.getBounds(), 16);
+          this.options.map.setView(
+            this.options.map.getCenter(),
+            this.options.map.options.minZoom
+          );
+
           shape.fire("click");
         });
 
       document
         .getElementById(`to-s-${encoded}`)
         ?.addEventListener("click", () => {
-          /**@type {L.Layer} */
-
-          const stop = Object.values(this.options.map._layers).filter((e) => {
-            /**@type {StopProperty[]} */
-            const childStops = e.feature?.properties?.child_stops;
-            return (
-              childStops &&
-              childStops.map((c) => c.stop_id).includes(prop.stop_id)
-            );
-          })[0];
-          // const stop = Object.values(this.options.map._layers).filter(
-          //   (e) => e.id === prop.next_stop?.
-          // )[0];
+          /**@type {L.Layer?} */
+          const stop = Object.values(this.options.map._layers).filter((e) =>
+            e.feature?.properties?.child_stops
+              ?.map((c) => c.stop_id)
+              ?.includes(prop.stop_id)
+          )[0];
           if (!stop) return;
           this.options.map.setView(stop.getLatLng(), 16);
           stop.fire("click");

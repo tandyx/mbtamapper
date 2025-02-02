@@ -43,9 +43,9 @@ function createMap(id, routeType) {
   const theme = Theme.fromExisting();
 
   const map = L.map(id, {
-    minZoom: 9,
+    minZoom: routeType === "commuter_rail" ? 9 : 10,
     maxZoom: 20,
-    maxBounds: L.latLngBounds(L.latLng(40, -74), L.latLng(44, -69)),
+    maxBounds: L.latLngBounds(L.latLng(41, -73), L.latLng(43.5, -68)),
     fullscreenControl: true,
     fullscreenControlOptions: { position: "topleft" },
     attributionControl: true,
@@ -56,7 +56,7 @@ function createMap(id, routeType) {
       storageGet("lat", 42.3519, { parseFloat: true }),
       storageGet("lng", -71.0552, { parseFloat: true }),
     ],
-    storageGet("zoom", routeType == "commuter_rail" ? 10 : 13, {
+    storageGet("zoom", routeType === "commuter_rail" ? 10 : 13, {
       parseFloat: true,
     })
   );
