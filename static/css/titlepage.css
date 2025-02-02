@@ -75,6 +75,13 @@
     text-align: center;
   }
 
+  .inline-img {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-bottom: -2px;
+  }
+
   .link-wrapper {
     margin-top: 10px;
 

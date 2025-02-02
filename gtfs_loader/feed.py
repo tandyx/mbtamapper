@@ -399,7 +399,8 @@ class Feed:
             return gj.FeatureCollection([])
         _routes: list[str] = []
         if key == "rapid_transit":
-            _routes.extend([*self.SL_ROUTES, "Shuttle-Generic"])
+            _routes.extend(self.SL_ROUTES)
+            # _routes.extend([*self.SL_ROUTES, "Shuttle-Generic"])
         data: list[tuple[Vehicle]] = []
         for attempt in range(10):
             try:

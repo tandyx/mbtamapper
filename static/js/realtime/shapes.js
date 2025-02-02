@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, Shape } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
  * @exports ShapeLayer
@@ -42,10 +42,11 @@ class ShapeLayer extends _RealtimeLayer {
           weight: 1.3,
           renderer: polyLineRender,
         });
+        l.id = f.properties.route_id;
         l.feature.properties.searchName = f.properties.route_name;
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.properties.route_name);
-        l.on("click", () => _this.#fillAlertData(f.properties.route_id));
+        l.once("click", () => _this.#fillAlertData(f.properties.route_id));
       },
     });
     realtime.on("update", super.handleUpdateEvent);
@@ -54,7 +55,7 @@ class ShapeLayer extends _RealtimeLayer {
 
   /**
    * text for popup
-   * @param {Shape} properties from geojson
+   * @param {ShapeProperty} properties from geojson
    * @returns {HTMLDivElement} - vehicle props
    */
   #getPopupText(properties) {
@@ -78,7 +79,7 @@ class ShapeLayer extends _RealtimeLayer {
         class="fa hidden popup tooltip slight-delay"
         data-tooltip="alerts"
       >
-        &#xf071;
+        ${_RealtimeLayer.icons.alert}
       </span>
       <p>
         ${properties.route_id} @
@@ -107,7 +108,10 @@ class ShapeLayer extends _RealtimeLayer {
       `alert-shape-${route_id}`
     )) {
       const popupId = `popup-alert-${route_id}`;
-      alertEl.onclick = () => togglePopup(popupId);
+      super.loadingIcon(alertEl, popupId, {
+        style: "border-top: var(--border) solid var(--slight-delay);",
+      });
+
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.style.minWidth = "350px";
@@ -117,12 +121,11 @@ class ShapeLayer extends _RealtimeLayer {
       const _data = await (
         await fetch(`/api/alert?route_id=${route_id}&stop_id=null`)
       ).json();
-      if (!_data.length) return;
-      alertEl.classList.remove("hidden");
+      if (!_data.length) return alertEl.classList.add("hidden");
       popupText.innerHTML =
         "<table class='data-table'><tr><th>alert</th><th style='width:40%;'>period</th></tr>" +
         _data
-          .map(function (d) {
+          .map((d) => {
             const strf = "%m-%d";
             const start = d.active_period_start
               ? formatTimestamp(d.active_period_start, strf)
@@ -137,6 +140,7 @@ class ShapeLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
+      alertEl.innerHTML = _RealtimeLayer.icons.alert;
       alertEl.appendChild(popupText);
       setTimeout(() => {
         if (openPopups.includes(popupId)) togglePopup(popupId, true);

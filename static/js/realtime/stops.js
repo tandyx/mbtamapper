@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
  * @exports StopLayer
@@ -37,6 +37,7 @@ class StopLayer extends _RealtimeLayer {
       removeMissing: true,
       getFeatureId: (f) => f.id,
       onEachFeature(f, l) {
+        l.id = f.id;
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
         l.feature.properties.searchName = f.properties.stop_name;
         if (!options.isMobile) l.bindTooltip(f.properties.stop_name);
@@ -51,6 +52,10 @@ class StopLayer extends _RealtimeLayer {
           /**@type {L.Layer} */
           const layer = realtime.getLayer(id);
           const feature = e.update[id];
+          layer.id = feature.id;
+          const _onclick = () => {
+            _this.#fillDataWrapper(feature.properties.trip_id, _this);
+          };
           layer.feature.properties.searchName = feature.properties.stop_name;
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.unbindPopup();
@@ -61,11 +66,10 @@ class StopLayer extends _RealtimeLayer {
           );
           if (wasOpen) {
             layer.openPopup();
-            _this.fillDataWrapper(feature.properties);
+            setTimeout(_onclick, 200);
           }
-          layer.on("click", () => {
-            setTimeout(_this.fillDataWrapper, 200, feature.properties);
-          });
+          layer.off("click", _onclick);
+          layer.once("click", _onclick);
         }.bind(realtime)
       );
     });
@@ -106,8 +110,8 @@ class StopLayer extends _RealtimeLayer {
         data-tooltip="wheelchair accessible ${
           properties.wheelchair_boarding == "0" ? "w/ caveats" : ""
         }"
-      >&#xf193;
-      </span>&nbsp;&nbsp;&nbsp;`
+      >${_RealtimeLayer.icons.wheelchair}
+      </span>${_RealtimeLayer.icons.space}`
           : ""
       }
         <span
@@ -115,14 +119,14 @@ class StopLayer extends _RealtimeLayer {
           class="fa hidden popup tooltip"
           data-tooltip="predictions"
         >
-          &#xf239;&nbsp;&nbsp;&nbsp;
+          ${_RealtimeLayer.iconSpacing("prediction")}
         </span>
         <span
           name="alert-stop-${properties.stop_id}"
           class="fa hidden popup tooltip slight-delay"
           data-tooltip="alerts"
         >
-          &#xf071;
+          ${_RealtimeLayer.icons.alert}
         </span>
         <p>
           ${properties.routes
@@ -147,7 +151,18 @@ class StopLayer extends _RealtimeLayer {
    */
   fillDataWrapper(properties) {
     this.#fillAlertData(properties.stop_id);
-    this.#fillPredictionsData(properties.stop_id, properties.child_stops);
+    this.#fillPredictionData(properties.stop_id, properties.child_stops);
+  }
+
+  /**
+   * wraps this.#fillPredictionData and this.#fillAlertData
+   * @param {string} trip_id
+   * @param {this} _this override `this`
+   */
+  #fillDataWrapper(trip_id, _this = null) {
+    _this ||= this;
+    _this.#fillAlertData(trip_id);
+    _this.#fillPredictionData(trip_id);
   }
 
   /**
@@ -158,18 +173,20 @@ class StopLayer extends _RealtimeLayer {
     for (const alertEl of document.getElementsByName(`alert-stop-${stop_id}`)) {
       const popupId = `popup-alert-${stop_id}`;
       // const oldTooltip = alertEl.getAttribute("data-tooltip");
-      alertEl.onclick = () => togglePopup(popupId);
+      super.loadingIcon(alertEl, popupId, {
+        style: "border-top: var(--border) solid var(--slight-delay);",
+      });
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.style.minWidth = "350px";
       popupText.id = popupId;
-      // alertEl.setAttribute("data-tooltip", "loading...");
+      /**@type {StopProperty[]} */
       const _data = await (
         await fetch(`/api/stop?stop_id=${stop_id}&include=alerts`)
       ).json();
-      if (!_data || !_data.length || !_data[0].alerts.length) return;
-      alertEl.classList.remove("hidden");
-      // alertEl.setAttribute("data-tooltip", oldTooltip);
+      if (!_data || !_data.length || !_data[0].alerts.length) {
+        return alertEl.classList.add("hidden");
+      }
       popupText.innerHTML =
         "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
         _data[0].alerts
@@ -183,6 +200,7 @@ class StopLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
+      alertEl.innerHTML = _RealtimeLayer.icons.alert;
       alertEl.appendChild(popupText);
       setTimeout(() => {
         if (openPopups.includes(popupId)) togglePopup(popupId, true);
@@ -194,13 +212,14 @@ class StopLayer extends _RealtimeLayer {
    * @param {string} stop_id
    * @param {StopProperty[]} child_stops
    */
-  async #fillPredictionsData(stop_id, child_stops) {
-    for (const alertEl of document.getElementsByName(
+  async #fillPredictionData(stop_id, child_stops) {
+    for (const predEl of document.getElementsByName(
       `predictions-stop-${stop_id}`
     )) {
       const popupId = `popup-predictions-${stop_id}`;
       const currTime = new Date().getTime() / 1000;
-      alertEl.onclick = () => togglePopup(popupId);
+      const prevHtml = super.loadingIcon(predEl, popupId);
+      // alertEl.innerHTML = "<span class='loader'></span>";
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");
       popupText.id = popupId;
@@ -216,8 +235,8 @@ class StopLayer extends _RealtimeLayer {
         );
       }
 
-      if (!_data.length) return;
-      alertEl.classList.remove("hidden");
+      if (!_data.length) return predEl.classList.add("hidden");
+
       popupText.innerHTML =
         "<table class='data-table' style='min-width:400px'><tr><th>route</th><th>trip</th><th>dest</th><th>est</th></tr>" +
         _data
@@ -253,7 +272,8 @@ class StopLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
-      alertEl.appendChild(popupText);
+      predEl.innerHTML = _RealtimeLayer.iconSpacing("prediction");
+      predEl.appendChild(popupText);
       setTimeout(() => {
         if (openPopups.includes(popupId)) togglePopup(popupId, true);
       }, 500);

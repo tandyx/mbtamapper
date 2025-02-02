@@ -6,10 +6,10 @@
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "url": "http://localhost:3000",
+            "url": "http://localhost:5000",
             "pathMappings": [
                 {
-                    "url": "http://localhost:3000/commuter_rail",
+                    "url": "http://localhost:5000/commuter_rail",
                     "path": "${workspaceFolder}"
                 },
             ]

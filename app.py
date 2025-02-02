@@ -8,12 +8,12 @@ see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 johan cho | 2023-2024
 
 """
-
 import argparse
 import difflib
 import json
 import logging
 import os
+import sys
 import threading
 
 import flask
@@ -31,6 +31,14 @@ FEED_LOADER: FeedLoader = FeedLoader(
     keys_dict={k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
+logging.basicConfig(
+    filename="main.log",
+    filemode="a",
+    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.DEBUG,
+)
+
 
 def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, int]:
     """Returns 404.html // should only be used in the\
@@ -45,6 +53,7 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
         logging.error(error)
     _dict_field = "possible_url"
     url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+    logging.error("404: attempt to access %s", url_dict)
     for rule in _app.url_map.iter_rules():
         if not len(rule.defaults or ()) >= len(rule.arguments):
             continue
@@ -333,7 +342,9 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = get_args().parse_args()
-    logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
+    logger = logging.getLogger()
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger.setLevel(getattr(logging, args.log_level.upper()))
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):

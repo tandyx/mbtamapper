@@ -18,19 +18,20 @@
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
   --blur-radius: 25px;
+  --slight-delay: #d19900;
 }
 
 [data-mode="dark"] {
   --text-color: #f2f2f2;
   --background-color: #0e0e0e;
   --popup-background: #252525;
-  --background-color-blur: rgba(0, 0, 0, 0.2);
+  --background-color-blur: rgba(0, 0, 0, 0.75);
 }
 [data-mode="light"] {
   --text-color: #191919;
   --background-color: #e8e8e8;
   --popup-background: #252525;
-  --background-color-blur: rgba(255, 255, 255, 0.2);
+  --background-color-blur: rgba(255, 255, 255, 0.5);
 }
 
 @font-face {
@@ -409,7 +410,9 @@ noscript {
   width: 100%;
   border-collapse: collapse;
 
-  text-align: left;
+  a {
+    cursor: pointer;
+  }
   tbody,
   thead,
   tr,
@@ -420,44 +423,40 @@ noscript {
   }
 }
 
+.loader {
+  --border: 2px;
+  --size: 12px;
+  border: var(--border) solid var(--background-color);
+  border-radius: 50%;
+  border-top: var(--border) solid var(--text-color);
+  width: var(--size);
+  height: var(--size);
+  -webkit-animation: spin 1s linear infinite; /* Safari */
+  animation: spin 1s linear infinite;
+}
+/* Sortable tables */
+table.sortable thead {
+  font-weight: bold;
+  cursor: default;
+}
+
+/* Safari */
 @-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
   100% {
-    /* margin-left: 400px; */
     -webkit-transform: rotate(360deg);
   }
 }
 
 @keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
   100% {
-    /* margin-left: 400px; */
     transform: rotate(360deg);
   }
-}
-.spinner {
-  margin: 20px;
-  width: 100px;
-  height: 100px;
-  z-index: 10000;
-  -webkit-animation: myanimation 5s;
-  animation: myanimation 5s;
-  /* background: #f00;
-  -webkit-animation-name: spin;
-  -webkit-animation-duration: 4000ms;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-timing-function: linear;
-  -moz-animation-name: spin;
-  -moz-animation-duration: 4000ms;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-  -ms-animation-name: spin;
-  -ms-animation-duration: 4000ms;
-  -ms-animation-iteration-count: infinite;
-  -ms-animation-timing-function: linear;
-
-  animation-name: spin;
-  animation-duration: 4000ms;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear; */
 }
 
 .noselect {

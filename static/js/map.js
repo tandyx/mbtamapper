@@ -16,34 +16,29 @@
  * @typedef {import("./realtime/stops.js")}
  */
 "use strict";
-/** @type {L.Map?} */
-// let map;
+
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   createMap("map", ROUTE_TYPE);
 });
 
 window.addEventListener("load", function () {
-  if (inIframe()) setCssVar("--navbar-height", "0px");
+  if (inIframe()) {
+    setCssVar("--navbar-height", "0px");
+    this.document.getElementsByTagName("nav")[0].remove();
+  }
   Theme.fromExisting().set(sessionStorage, onThemeChange);
 });
-/**
- * gets storage or default
- * @param {string} key
- * @param {any} _default
- * @param {Storage} [storage=sessionStorage]
- * @returns {any}
- */
-function storageGet(key, _default, storage = sessionStorage) {
-  return storage.getItem(key) || _default;
-}
 
+window.addEventListener("hashchange", () => {
+  document.getElementById(window.location.hash.slice(1)).click();
+});
 /** map factory function for map.html
  * @param {string} id - id of the map div
- * @param {string} route_type - route type
+ * @param {string} routeType - route type
  * @returns {L.map} map
  */
-function createMap(id, route_type) {
+function createMap(id, routeType) {
   const isMobile = mobileCheck();
   const theme = Theme.fromExisting();
 
@@ -58,13 +53,15 @@ function createMap(id, route_type) {
 
   map.setView(
     [
-      sessionStorage.getItem("lat") || 42.3519,
-      sessionStorage.getItem("lng") || -71.0552,
+      storageGet("lat", 42.3519, { parseFloat: true }),
+      storageGet("lng", -71.0552, { parseFloat: true }),
     ],
-    sessionStorage.getItem("zoom") || route_type == "commuter_rail" ? 10 : 13
+    storageGet("zoom", routeType == "commuter_rail" ? 10 : 13, {
+      parseFloat: true,
+    })
   );
 
-  map.on("move", function () {
+  map.on("move", () => {
     const cords = map.getCenter();
     sessionStorage.setItem("lat", cords.lat);
     sessionStorage.setItem("lng", cords.lng);
@@ -75,10 +72,25 @@ function createMap(id, route_type) {
     new Theme(event.name).set(sessionStorage, onThemeChange);
   });
 
-  const baseLayers = getBaseLayerDict(...Array(2));
-  baseLayers[theme.theme].addTo(map);
+  const sidebar = L.control
+    .sidebar("sidebar", {
+      closeButton: true,
+      position: "right",
+    })
+    .addTo(map);
 
-  const baseOp = { textboxSize: { maxWidth: 375, minWidth: 250 }, isMobile };
+  if (!isMobile) setTimeout(() => sidebar.show(), 500);
+
+  const baseLayers = getBaseLayerDict();
+  baseLayers[theme.theme].addTo(map);
+  /**@type {LayerApiRealtimeOptions} */
+  const baseOp = {
+    textboxSize: { maxWidth: 375, minWidth: 250 },
+    isMobile,
+    sidebar,
+    routeType,
+    map,
+  };
 
   const stopLayer = new StopLayer({
     url: "stops",
@@ -95,7 +107,7 @@ function createMap(id, route_type) {
   const vehicleLayer = new VehicleLayer({
     url: "vehicles?include=route,next_stop,stop_time,trip_properties",
     layer: L.markerClusterGroup({
-      disableClusteringAtZoom: route_type == "commuter_rail" ? 10 : 12,
+      disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",
     }).addTo(map),
     ...baseOp,
@@ -122,6 +134,7 @@ function createMap(id, route_type) {
   if (map.hasLayer(facilityLayer.options.layer)) {
     map.removeLayer(facilityLayer.options.layer);
   }
+
   return map;
 }
 

@@ -1,8 +1,14 @@
+import L from "leaflet";
+import "leaflet-sidebar";
+
 export interface LayerApiRealtimeOptions {
   url: string;
   layer: L.LayerGroup;
   textboxSize: string;
   isMobile: boolean;
+  sidebar: typeof L.Control.Sidebar;
+  routeType: string;
+  map: L.Map;
 }
 
 export interface LayerProperty {
@@ -32,6 +38,7 @@ export interface StopProperty extends LayerProperty {
   zone_id?: ZoneID;
   child_stops?: StopProperty[];
   routes: Route[];
+  alerts?: AlertProperty[];
 }
 
 export enum ZoneID {
@@ -65,7 +72,7 @@ export enum ZoneID {
   SLWaterfrontNonLogan = "SLWaterfrontNonLogan",
 }
 
-export interface Shape extends LayerProperty {
+export interface ShapeProperty extends LayerProperty {
   shape_id: string;
   timestamp: number;
   route_short_name?: string;

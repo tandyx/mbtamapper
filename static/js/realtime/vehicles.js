@@ -4,8 +4,10 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
+ * @typedef {import("sorttable/sorttable.js").sorttable} sorttable
+ * @import { sorttable } from "sorttable/sorttable.js"
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty } from "../types/index.js"
- * @import { Realtime } from "leaflet";
+ * @import { Layer, Realtime } from "leaflet";
  * @import {_RealtimeLayer} from "./base.js"
  * @exports VehicleLayer
  */
@@ -53,18 +55,18 @@ class VehicleLayer extends _RealtimeLayer {
    * @returns {L.DivIcon}
    */
   #getIcon(properties) {
-    const iconHtml = `
+    const iconHtml = /* HTML */ `
       <div class="vehicle_wrapper">
-        <img 
-          src="static/img/icon.png" 
-          loading="lazy" 
-          alt="vehicle" 
-          width="60" 
-          height="60" 
+        <img
+          src="static/img/icon.png"
+          loading="lazy"
+          alt="vehicle"
+          width="60"
+          height="60"
           style="
             ${VehicleLayer.#hex_css_map[properties.route_color] || ""}; 
             transform: rotate(${properties.bearing}deg);
-          " 
+          "
         />
         <span class="vehicle_text">${properties.display_name}</span>
       </div>
@@ -78,6 +80,7 @@ class VehicleLayer extends _RealtimeLayer {
    */
   constructor(options) {
     super(options);
+    this.iter = 0;
   }
 
   /**
@@ -88,6 +91,7 @@ class VehicleLayer extends _RealtimeLayer {
     options = { ..._this.options, ...options };
     const realtime = L.realtime(options.url, {
       interval: 15000,
+      // interval: 500,
       type: "FeatureCollection",
       container: options.layer,
       cache: false,
@@ -100,15 +104,25 @@ class VehicleLayer extends _RealtimeLayer {
         if (!options.isMobile) l.bindTooltip(f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
-        l.on("click", () => _this.#fillDataWrapper(f.properties.trip_id));
+        l.once("click", () => _this.#fillDataWrapper(f.properties, _this));
       },
     });
 
-    realtime.on("update", function (e) {
-      Object.keys(e.update).forEach(
+    // realtime.on("update", () => _this.iter++);
+    realtime.on("update", function (event) {
+      this.iter++;
+      _this.#fillDefaultSidebar(
+        Object.values(event.features).map((e) => e.properties)
+      );
+      Object.keys(event.update).forEach(
         function (id) {
+          /**@type {Layer} */
           const layer = this.getLayer(id);
-          const feature = e.update[id];
+          /**@type {GeoJSON.Feature<GeoJSON.Geometry, VehicleProperties} */
+          const feature = event.update[id];
+          const _onclick = () => {
+            _this.#fillDataWrapper(feature.properties, _this);
+          };
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.id = feature.id;
           layer.feature.properties.searchName = `${feature.properties.trip_short_name} @ ${feature.properties.route?.route_name}`;
@@ -121,11 +135,10 @@ class VehicleLayer extends _RealtimeLayer {
           layer.setIcon(_this.#getIcon(feature.properties));
           if (wasOpen) {
             layer.openPopup();
-            setTimeout(_this.#fillDataWrapper, 200, feature.properties.trip_id);
+            setTimeout(_onclick, 200);
           }
-          layer.on("click", () => {
-            setTimeout(_this.#fillDataWrapper, 200, feature.properties.trip_id);
-          });
+          layer.off("click", _onclick);
+          layer.once("click", _onclick);
         }.bind(this)
       );
     });
@@ -135,12 +148,15 @@ class VehicleLayer extends _RealtimeLayer {
 
   /**
    * gets vehicle text
-   * @param {VehicleProperties} properties
+   * @param {string} properties
    * @returns {HTMLDivElement} - vehicle text
    */
   #getPopupText(properties) {
     const vehicleText = document.createElement("div");
     const fmtmstp = formatTimestamp(properties.timestamp, "%I:%M %P");
+    const delay = Math.round(properties.next_stop?.delay / 60);
+    const dClassName = getDelayClassName(properties.next_stop?.delay);
+    // console.log(`${properties.trip_id}: ${delay}`);
     vehicleText.innerHTML = /* HTML */ `
       <p>
         <a
@@ -156,8 +172,6 @@ class VehicleLayer extends _RealtimeLayer {
       <p>
         ${properties.trip_short_name === "552"
           ? "heart to hub"
-          : properties.trip_short_name === "549"
-          ? "hub to heart"
           : `${
               VehicleLayer.#direction_map[properties.direction_id] || "null"
             } to ${properties.headsign}`}
@@ -165,21 +179,21 @@ class VehicleLayer extends _RealtimeLayer {
       <hr />
       ${properties.bikes_allowed
         ? `<span class="fa tooltip" data-tooltip="bikes allowed"
-        >&#xf206;&nbsp;&nbsp;&nbsp;</span>`
+        >${_RealtimeLayer.iconSpacing("bike")}</span>`
         : ""}
       <span
         name="pred-veh-${properties.trip_id}"
         class="fa hidden popup tooltip"
         data-tooltip="predictions"
       >
-        &#xf239;&nbsp;&nbsp;&nbsp;
+        ${_RealtimeLayer.iconSpacing("prediction")}
       </span>
       <span
         name="alert-veh-${properties.trip_id}"
         class="fa hidden popup tooltip slight-delay"
         data-tooltip="alerts"
       >
-        &#xf071;&nbsp;&nbsp;&nbsp;
+        ${_RealtimeLayer.iconSpacing("alert")}
       </span>
       ${properties.stop_time
         ? `${
@@ -204,18 +218,15 @@ class VehicleLayer extends _RealtimeLayer {
                 }</p>`
           }
     ${
-      properties.next_stop?.delay !== null ||
-      properties.next_stop?.delay !== NaN
+      properties.next_stop?.delay !== null
         ? `
       ${
-        Math.round(properties.next_stop?.delay / 60) !== 0
+        delay !== delay
+          ? ""
+          : delay !== 0
           ? `
-          <i 
-            class='${getDelayClassName(properties.next_stop?.delay)}'
-          > ${Math.abs(Math.round(properties.next_stop?.delay / 60))} minutes ${
-              getDelayClassName(properties.next_stop?.delay) === "on-time"
-                ? "early"
-                : "late"
+          <i class='${dClassName}'> ${Math.abs(delay)} minutes ${
+              dClassName === "on-time" ? "early" : "late"
             }
           </i>`
           : "<i>on time</i>"
@@ -272,9 +283,15 @@ class VehicleLayer extends _RealtimeLayer {
             ? `track ${properties.next_stop.platform_code}`
             : ""}
         </p>
-        <p>${formatTimestamp(properties.timestamp)}</p>
+        <p>
+          ${formatTimestamp(properties.timestamp, "%I:%M %P")}
+          <i
+            id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
+          ></i>
+        </p>
       </div>
     `;
+
     return vehicleText;
   }
 
@@ -285,13 +302,10 @@ class VehicleLayer extends _RealtimeLayer {
    * @param {boolean} popup - whether to show the popup
    * @returns {void}
    */
-  static async fillPredictionData(trip_id) {
+  async #fillPredictionData(trip_id) {
     for (const predEl of document.getElementsByName(`pred-veh-${trip_id}`)) {
       const popupId = `popup-pred-${trip_id}`;
-      predEl.onclick = function () {
-        togglePopup(popupId);
-      };
-
+      super.loadingIcon(predEl, popupId);
       const popupText = document.createElement("span");
 
       popupText.classList.add("popuptext");
@@ -301,8 +315,7 @@ class VehicleLayer extends _RealtimeLayer {
       const _data = await (
         await fetch(`/api/prediction?trip_id=${trip_id}&include=stop_time`)
       ).json();
-      if (!_data.length) return;
-      predEl.classList.remove("hidden");
+      if (!_data.length) return predEl.classList.add("hidden");
       popupText.innerHTML =
         "<table class='data-table'><tr><th>stop</th><th>estimate</th></tr>" +
         _data
@@ -311,7 +324,7 @@ class VehicleLayer extends _RealtimeLayer {
               (a.departure_time || a.arrival_time) -
               (b.departure_time || b.arrival_time)
           )
-          .map(function (d) {
+          .map((d) => {
             const realDeparture = d.departure_time || d.arrival_time;
             if (!realDeparture || realDeparture < Date().valueOf()) return "";
             const delayText = getDelayText(d.delay);
@@ -320,17 +333,17 @@ class VehicleLayer extends _RealtimeLayer {
             if (d.stop_time?.flag_stop) {
               stopTimeClass = "flag_stop tooltip";
               tooltipText = "flag stop";
-              // d.stop_name += " <span class='fa'>&#xf024;</span>";
               d.stop_name += "<i> f</i>";
             } else if (d.stop_time?.early_departure) {
               stopTimeClass = "early_departure tooltip";
               tooltipText = "early departure";
               d.stop_name += "<i> L</i>";
-              // d.stop_name += " <span class='fa'>&#xf023;</span>";
             }
 
             return `<tr>
-              <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${d.stop_name}</td>
+              <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${
+              d.stop_name
+            }</td>
               <td>
                 ${formatTimestamp(realDeparture, "%I:%M %P")}
                 <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
@@ -340,6 +353,7 @@ class VehicleLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
+      predEl.innerHTML = _RealtimeLayer.iconSpacing("prediction");
       predEl.appendChild(popupText);
       setTimeout(() => {
         if (openPopups.includes(popupId)) togglePopup(popupId, true);
@@ -350,22 +364,19 @@ class VehicleLayer extends _RealtimeLayer {
    *  fill alert prediction data
    * @param {string} trip_id - vehicle id
    */
-  static async fillAlertData(trip_id) {
+  async #fillAlertData(trip_id) {
     for (const alertEl of document.getElementsByName(`alert-veh-${trip_id}`)) {
       const popupId = `popup-alert-${trip_id}`;
-      alertEl.onclick = function () {
-        togglePopup(popupId);
-      };
-
+      super.loadingIcon(alertEl, popupId, {
+        style: "border-top: var(--border) solid var(--slight-delay);",
+      });
       const popupText = document.createElement("span");
-
       popupText.classList.add("popuptext");
       popupText.id = popupId;
       popupText.innerHTML = "...";
       /** @type {AlertProperty[]} */
       const _data = await (await fetch(`/api/alert?trip_id=${trip_id}`)).json();
-      if (!_data.length) return;
-      alertEl.classList.remove("hidden");
+      if (!_data.length) return alertEl.classList.add("hidden");
       popupText.innerHTML =
         "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
         _data
@@ -379,6 +390,7 @@ class VehicleLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
+      alertEl.innerHTML = _RealtimeLayer.iconSpacing("alert");
       alertEl.appendChild(popupText);
       setTimeout(() => {
         if (openPopups.includes(popupId)) togglePopup(popupId, true);
@@ -386,11 +398,114 @@ class VehicleLayer extends _RealtimeLayer {
     }
   }
   /**
-   * wraps this.#fillPredictionData and this.#fillAlertData
-   * @param {string} trip_id
+   * fills the default
+   * @param {VehicleProperties[]} properties
+   * @param {string} [_id="sidebar-main"]
    */
-  #fillDataWrapper(trip_id) {
-    VehicleLayer.fillAlertData(trip_id);
-    VehicleLayer.fillPredictionData(trip_id);
+  #fillDefaultSidebar(properties, _id = "sidebar-main") {
+    const container = document.getElementById(_id);
+    if (!container) return;
+    const findBox = "<div id='findBox'></div>";
+    if (!properties.length) {
+      (container.innerHTML = `${findBox}<h2>no current vehicle data for ${this.options.routeType}</h2>`),
+        "sidebar-default-content";
+      return;
+    }
+    container.innerHTML =
+      findBox +
+      /*HTML*/ `<h2>current vehicles</h2>
+    <table class='sortable data-table'>
+      <thead>
+        <tr><th>route</th><th>trip</th><th>next stop</th><th>delay</th></tr>
+      </thead>
+      <tbody>
+      ${properties
+        .map((prop) => {
+          const encoded = btoa(JSON.stringify(prop));
+          const lStyle = `style="color:#${prop.route.route_color};"`;
+          return /*HTML*/ `<tr>
+          <td><a ${lStyle} id="to-r-${encoded}">${
+            prop.route.route_name
+          }</a></td>
+          <td><a ${lStyle} id="to-v-${encoded}">${prop.trip_short_name}</a></td>
+          <td><a  id="to-s-${encoded}"> ${
+            prop.next_stop?.stop_name || prop.stop_time?.stop_name
+          }</a></td>
+          <td><i class='${getDelayClassName(
+            prop.next_stop?.delay
+          )}'>${getDelayText(prop.next_stop?.delay)}</i></td>
+        </tr>`;
+        })
+        .join("")}
+      </tbody>
+      </table>
+    `;
+
+    for (const el of document.getElementsByClassName("sortable")) {
+      sorttable.makeSortable(el);
+    }
+    for (const prop of properties) {
+      const encoded = btoa(JSON.stringify(prop));
+      document
+        .getElementById(`to-v-${encoded}`)
+        ?.addEventListener("click", () => {
+          /**@type {L.Layer} */
+          const marker = this.options.layer
+            .getLayers()
+            .filter((e) => e.feature.id === prop.vehicle_id)[0];
+          if (!marker) return;
+          this.options.map.setView(marker.getLatLng(), 16);
+          marker.fire("click");
+        });
+      document
+        .getElementById(`to-r-${encoded}`)
+        ?.addEventListener("click", () => {
+          /**@type {L.Layer} */
+          const shape = Object.values(this.options.map._layers).filter(
+            (e) => e.id === prop.route_id
+          )[0];
+          if (!shape) return;
+          // this.options.map.setView(shape.getLatLngs(), 16);
+          shape.fire("click");
+        });
+
+      document
+        .getElementById(`to-s-${encoded}`)
+        ?.addEventListener("click", () => {
+          /**@type {L.Layer} */
+
+          const stop = Object.values(this.options.map._layers).filter((e) => {
+            /**@type {StopProperty[]} */
+            const childStops = e.feature?.properties?.child_stops;
+            return (
+              childStops &&
+              childStops.map((c) => c.stop_id).includes(prop.stop_id)
+            );
+          })[0];
+          // const stop = Object.values(this.options.map._layers).filter(
+          //   (e) => e.id === prop.next_stop?.
+          // )[0];
+          if (!stop) return;
+          this.options.map.setView(stop.getLatLng(), 16);
+          stop.fire("click");
+        });
+    }
+
+    // const findBox = document.createElement("div");
+  }
+
+  /**
+   * wraps this.#fillPredictionData and this.#fillAlertData
+   * @param {VehicleProperties} properties
+   * @param {this} _this override `this`
+   */
+  #fillDataWrapper(properties, _this = null) {
+    _this ||= this;
+    _this.#fillAlertData(properties.trip_id);
+    _this.#fillPredictionData(properties.trip_id);
+    _updateTimestamp(
+      `vehicle-${properties.vehicle_id}-timestamp-${_this.iter || 1}`,
+      properties.timestamp
+    );
   }
 }

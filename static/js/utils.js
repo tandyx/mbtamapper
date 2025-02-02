@@ -165,38 +165,6 @@ function formatTimestamp(timestamp, strf = "") {
   return datetime.toLocaleString();
 }
 
-/** Handle update event for realtime layers
- * @param {(event: RealtimeUpdateEvent) => void} fn - realtime layer to update
- * @returns {void}
- */
-function handleUpdateEvent(fn) {
-  Object.keys(fn.update).forEach(
-    function (id) {
-      const feature = fn.update[id];
-      updateLayer.call(this, id, feature);
-    }.bind(this)
-  );
-}
-
-/** Update layer
- * @param {string} id - id of layer to update
- * @param {L.feature}
- * @returns {void}
- */
-function updateLayer(id, feature) {
-  const layer = this.getLayer(id);
-  const wasOpen = layer.getPopup().isOpen();
-  layer.unbindPopup();
-
-  if (wasOpen) layer.closePopup();
-
-  layer.bindPopup(feature.properties.popupContent, {
-    maxWidth: "auto",
-  });
-
-  if (wasOpen) layer.openPopup();
-}
-
 /**
  * Gets the style of a selector from a stylesheet
  * @param {string} style - The style to get
@@ -433,6 +401,71 @@ function onThemeChange(_theme) {
   if (!cLayer.length) return;
   const elements = cLayer[0].getElementsByTagName("input");
   elements[{ light: 0, dark: 1 }[_theme.theme]]?.click();
+}
+
+/**
+ * only works in `await` or `.then` situations
+ * @param {number} time in ms
+ * @returns {Promise<any>}
+ */
+function asyncSleep(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+/**
+ * there's def a better way to do this but fuck im too lazy to google this shit
+ *
+ * async updates the innerHTML of a element to "1 second ago" or something like that
+ * @param {string} _id the id
+ * @param {number} _timestamp the timestamp
+ * @param {number} [sleep=15000] ms to sleep
+ */
+async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
+  while (true) {
+    const el = document.getElementById(_id);
+    if (!el) {
+      await asyncSleep(1000);
+      continue;
+    }
+    const _time = new Date().valueOf() / 1000 - _timestamp;
+    let humanReadable;
+    if (_time < 60) {
+      humanReadable = `< 1m`;
+    } else if (_time < 3600) {
+      humanReadable = `~ ${Math.floor(_time / 60)}m`;
+    } else if (_time < 86400) {
+      humanReadable = `~ ${Math.floor(_time / 3600)}h`;
+    } else {
+      humanReadable = `~ ${Math.floor(_time / 86400)}d`;
+    }
+    el.innerHTML = `${humanReadable} ago`;
+    await asyncSleep(sleep);
+  }
+}
+
+/**
+ * gets storage or default value.
+ *
+ * sets `_default` value into storage
+ *
+ * defaults to sessionStorage
+ *
+ * @param {string} key
+ * @param {any} _default
+ * @param {{storage?: Storage, parseInt?: boolean, parseFloat?: boolean, parseJson?: boolean}} options
+ * @returns {any}
+ */
+function storageGet(key, _default, options) {
+  const _storage = options.storage || sessionStorage;
+  const _item = _storage.getItem(key);
+  if (!_item) {
+    _storage.setItem(key, _default);
+    return _default;
+  }
+  if (options.parseFloat) return parseFloat(_item);
+  if (options.parseInt) return parseInt(_item);
+  if (options.parseJson) return JSON.parse(_item);
+  return _item;
 }
 
 /**

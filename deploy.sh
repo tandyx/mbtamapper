@@ -24,5 +24,6 @@ ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 cd static && npm install && cd ..
 
+sudo pkill .venv -f
 .venv/bin/python3 -m waitress --listen=*:80 --threads=50 --call app:create_main_app &
 wait

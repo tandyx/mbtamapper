@@ -182,13 +182,14 @@ class LinkedDataset(Base):
         """
 
         dataframe = self._load_dataframe()
-        dataframe = dataframe[
-            (
-                dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
-                if "vehicle_timestamp" in dataframe.columns
-                else True
-            )
-        ]
+
+        # dataframe = dataframe[
+        #     (
+        #         dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
+        #         if "vehicle_timestamp" in dataframe.columns
+        #         else True
+        #     )
+        # ]
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
     def _process_service_alerts(self) -> pd.DataFrame:

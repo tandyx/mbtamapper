@@ -7,6 +7,23 @@
   --leaflet-control-icon: 30px;
 }
 
+.leaflet-sidebar {
+  top: var(--navbar-height);
+  padding-bottom: calc(1.15 * var(--navbar-height));
+  background: none !important;
+  color: var(--text-color);
+
+  #sidebar {
+    background-color: var(--background-color-blur);
+    backdrop-filter: blur(var(--blur-radius));
+    -webkit-backdrop-filter: blur(var(--blur-radius));
+  }
+  .close {
+    background: none;
+    color: var(--text-color);
+  }
+}
+
 .leaflet-top {
   top: var(--navbar-height);
 }
@@ -160,14 +177,6 @@
 
 .leaflet-control-locate-location circle {
   animation: leaflet-control-locate-throb 10s ease infinite;
-}
-
-.leaflet-sidebar {
-  background-color: rgba(var(--background-color-blur));
-  backdrop-filter: blur(var(--blur-radius));
-  -webkit-backdrop-filter: blur(var(--blur-radius));
-  z-index: 100000;
-  color: var(--text-color);
 }
 
 @keyframes leaflet-control-locate-throb {
