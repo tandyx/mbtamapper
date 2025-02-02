@@ -24,6 +24,9 @@ const _icons = {
  * base encapsulating class for plotting realtime layers
  */
 class _RealtimeLayer {
+  static sideBarMainId = "sidebar-main";
+  static sideBarOtherId = "sidebar-other";
+
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
   static icons = _icons;
@@ -178,7 +181,7 @@ class _RealtimeLayer {
    * @param {{style?: string, classList?: string[]}?} options
    * @returns {string} original html
    */
-  loadingIcon(element, popupId, options) {
+  popupLoadingIcon(element, popupId, options) {
     const prevHtml = element.innerHTML;
     const classList = ["loader", ...(options?.classList || [])];
     element.onclick = () => togglePopup(popupId);

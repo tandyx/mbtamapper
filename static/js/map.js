@@ -80,7 +80,7 @@ function createMap(id, routeType) {
     })
     .addTo(map);
 
-  if (!isMobile || !isIframe) setTimeout(() => sidebar.show(), 500);
+  if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
   baseLayers[theme.theme].addTo(map);

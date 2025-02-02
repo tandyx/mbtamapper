@@ -305,7 +305,7 @@ class VehicleLayer extends _RealtimeLayer {
   async #fillPredictionData(trip_id) {
     for (const predEl of document.getElementsByName(`pred-veh-${trip_id}`)) {
       const popupId = `popup-pred-${trip_id}`;
-      super.loadingIcon(predEl, popupId);
+      super.popupLoadingIcon(predEl, popupId);
       const popupText = document.createElement("span");
 
       popupText.classList.add("popuptext");
@@ -367,7 +367,7 @@ class VehicleLayer extends _RealtimeLayer {
   async #fillAlertData(trip_id) {
     for (const alertEl of document.getElementsByName(`alert-veh-${trip_id}`)) {
       const popupId = `popup-alert-${trip_id}`;
-      super.loadingIcon(alertEl, popupId, {
+      super.popupLoadingIcon(alertEl, popupId, {
         style: "border-top: var(--border) solid var(--slight-delay);",
       });
       const popupText = document.createElement("span");
@@ -400,15 +400,13 @@ class VehicleLayer extends _RealtimeLayer {
   /**
    * fills the default
    * @param {VehicleProperties[]} properties
-   * @param {string} [_id="sidebar-main"]
    */
-  #fillDefaultSidebar(properties, _id = "sidebar-main") {
-    const container = document.getElementById(_id);
+  #fillDefaultSidebar(properties) {
+    const container = document.getElementById(_RealtimeLayer.sideBarMainId);
     if (!container) return;
     const findBox = "<div id='findBox'></div>";
     if (!properties.length) {
-      (container.innerHTML = `${findBox}<h2>no current vehicle data for ${this.options.routeType}</h2>`),
-        "sidebar-default-content";
+      container.innerHTML = `${findBox}<h2>no current vehicle data for ${this.options.routeType}</h2>`;
       return;
     }
     container.innerHTML =

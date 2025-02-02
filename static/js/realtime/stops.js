@@ -173,7 +173,7 @@ class StopLayer extends _RealtimeLayer {
     for (const alertEl of document.getElementsByName(`alert-stop-${stop_id}`)) {
       const popupId = `popup-alert-${stop_id}`;
       // const oldTooltip = alertEl.getAttribute("data-tooltip");
-      super.loadingIcon(alertEl, popupId, {
+      super.popupLoadingIcon(alertEl, popupId, {
         style: "border-top: var(--border) solid var(--slight-delay);",
       });
       const popupText = document.createElement("span");
@@ -218,7 +218,7 @@ class StopLayer extends _RealtimeLayer {
     )) {
       const popupId = `popup-predictions-${stop_id}`;
       const currTime = new Date().getTime() / 1000;
-      const prevHtml = super.loadingIcon(predEl, popupId);
+      const prevHtml = super.popupLoadingIcon(predEl, popupId);
       // alertEl.innerHTML = "<span class='loader'></span>";
       const popupText = document.createElement("span");
       popupText.classList.add("popuptext");

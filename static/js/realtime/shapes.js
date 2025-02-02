@@ -108,7 +108,7 @@ class ShapeLayer extends _RealtimeLayer {
       `alert-shape-${route_id}`
     )) {
       const popupId = `popup-alert-${route_id}`;
-      super.loadingIcon(alertEl, popupId, {
+      super.popupLoadingIcon(alertEl, popupId, {
         style: "border-top: var(--border) solid var(--slight-delay);",
       });
 
