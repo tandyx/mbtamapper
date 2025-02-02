@@ -138,7 +138,7 @@ class _RealtimeLayer {
             ?.map((c) => c.stop_id)
             ?.includes(stopId) || e?.feature?.id === stopId
       ),
-      options
+      { zoom: 15, ...options }
     );
   }
 
