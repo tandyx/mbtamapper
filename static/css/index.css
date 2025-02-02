@@ -17,7 +17,7 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --blur-radius: 25px;
+  --blur-radius: 15px;
   --slight-delay: #d19900;
 }
 
@@ -25,13 +25,13 @@
   --text-color: #f2f2f2;
   --background-color: #0e0e0e;
   --popup-background: #252525;
-  --background-color-blur: rgba(0, 0, 0, 0.75);
+  --background-color-blur: rgba(0, 0, 0, 0.65);
 }
 [data-mode="light"] {
   --text-color: #191919;
   --background-color: #e8e8e8;
   --popup-background: #252525;
-  --background-color-blur: rgba(255, 255, 255, 0.5);
+  --background-color-blur: rgba(255, 255, 255, 0.35);
 }
 
 @font-face {
