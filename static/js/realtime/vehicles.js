@@ -148,7 +148,7 @@ class VehicleLayer extends _RealtimeLayer {
 
   /**
    * gets vehicle text
-   * @param {string} properties
+   * @param {VehicleProperties} properties
    * @returns {HTMLDivElement} - vehicle text
    */
   #getPopupText(properties) {
@@ -157,8 +157,7 @@ class VehicleLayer extends _RealtimeLayer {
     const delay = Math.round(properties.next_stop?.delay / 60);
     const dClassName = getDelayClassName(properties.next_stop?.delay);
     // console.log(`${properties.trip_id}: ${delay}`);
-    vehicleText.innerHTML = /* HTML */ `
-      <p>
+    vehicleText.innerHTML = /* HTML */ ` <p>
         <a
           href="${properties.route?.route_url ||
           `https://mbta.com/schedules/${properties.route_id}`}"
@@ -198,8 +197,7 @@ class VehicleLayer extends _RealtimeLayer {
       ${properties.stop_time
         ? `${
             properties.current_status != "STOPPED_AT"
-              ? `
-      <p>${almostTitleCase(properties.current_status)} ${
+              ? `<p>${almostTitleCase(properties.current_status)} ${
                   properties.stop_time.stop_name
                 } - ${
                   properties.next_stop?.arrival_time ||
@@ -210,10 +208,8 @@ class VehicleLayer extends _RealtimeLayer {
                         "%I:%M %P"
                       )
                     : ""
-                }</p>
-    `
-              : `
-      <p>${almostTitleCase(properties.current_status)} ${
+                }</p>`
+              : `<p>${almostTitleCase(properties.current_status)} ${
                   properties.stop_time.stop_name
                 }</p>`
           }
@@ -230,31 +226,22 @@ class VehicleLayer extends _RealtimeLayer {
             }
           </i>`
           : "<i>on time</i>"
-      }
-    `
+      }`
         : ""
-    }
-  `
+    }`
         : properties.next_stop
-        ? `
-    ${
-      properties.current_status != "STOPPED_AT"
-        ? `
-      <p>${almostTitleCase(properties.current_status)} ${
-            properties.next_stop.stop_name
-          } - ${fmtmstp}</p>
-    `
-        : `
-      <p>${almostTitleCase(properties.current_status)} ${
-            properties.next_stop.stop_name
-          }</p>
-    `
-    }
-  `
+        ? `${
+            properties.current_status != "STOPPED_AT"
+              ? `<p>${almostTitleCase(properties.current_status)} ${
+                  properties.next_stop.stop_name
+                } - ${fmtmstp}</p>`
+              : `<p>${almostTitleCase(properties.current_status)} ${
+                  properties.next_stop.stop_name
+                }</p>`
+          }`
         : ""}
       ${properties.occupancy_status != null
-        ? `
-    <p>
+        ? `<p>
       <span class="${
         properties.occupancy_percentage >= 80
           ? "severe-delay"
@@ -266,8 +253,7 @@ class VehicleLayer extends _RealtimeLayer {
       }">
         ${properties.occupancy_percentage}% occupancy
       </span>
-    </p>
-  `
+    </p>`
         : ""}
       <p>
         ${properties.speed_mph != null
@@ -289,8 +275,7 @@ class VehicleLayer extends _RealtimeLayer {
             id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
           ></i>
         </p>
-      </div>
-    `;
+      </div>`;
 
     return vehicleText;
   }
