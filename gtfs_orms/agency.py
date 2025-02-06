@@ -28,6 +28,7 @@ class Agency(Base):
     agency_timezone: Mapped[str]
     agency_lang: Mapped[str]
     agency_phone: Mapped[str]
+    agency_fare_url: Mapped[str]
 
     routes: Mapped[list["Route"]] = relationship(
         back_populates="agency", passive_deletes=True
