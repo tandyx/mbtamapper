@@ -192,10 +192,10 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
-    Args:
+    args:
         - `import_data (bool, optional)`: Whether to import data. Defaults to False.
         - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
-    Returns:
+    returns:
         - `Flask`: default app.
     """
 

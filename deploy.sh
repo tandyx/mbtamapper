@@ -9,6 +9,8 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
+git pull
+
 apt-get update && apt-get upgrade -y
 apt-get git tmux python3-venv tzdata npm -y
 
