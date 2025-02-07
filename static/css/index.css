@@ -23,15 +23,19 @@
 
 [data-mode="dark"] {
   --text-color: #f2f2f2;
-  --background-color: #0e0e0e;
+  --background-color: rgb(13, 13, 13);
   --popup-background: #252525;
-  --background-color-blur: rgba(34, 34, 34, 0.76);
+  --background-color-blur: rgba(13, 13, 13, 0.76);
+  --table-even-row: rgba(90, 90, 90, 0.526);
+  --table-odd-row: rgba(50, 50, 50, 0.526);
 }
 [data-mode="light"] {
   --text-color: #191919;
   --background-color: #e8e8e8;
   --popup-background: #252525;
-  --background-color-blur: rgba(255, 255, 255, 0.35);
+  --background-color-blur: rgba(255, 255, 255, 0.4);
+  --table-even-row: rgba(189, 189, 189, 0.526);
+  --table-odd-row: rgba(227, 227, 227, 0.526);
 }
 
 @font-face {
@@ -438,6 +442,24 @@ noscript {
 table.sortable thead {
   font-weight: bold;
   cursor: default;
+}
+
+table.sortable th {
+  background-color: var(--lighter-text-color);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+table.sortable th:hover {
+  background-color: var(--lighter-dark-background);
+}
+
+table.sortable tbody tr:nth-child(odd) {
+  background-color: var(--table-odd-row);
+}
+
+table.sortable tbody tr:nth-child(even) {
+  background-color: var(--table-even-row);
 }
 
 /* Safari */
