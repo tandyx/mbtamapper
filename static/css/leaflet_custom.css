@@ -12,7 +12,8 @@
   padding-bottom: calc(1.15 * var(--navbar-height));
   background: none !important;
   color: var(--text-color);
-
+  text-shadow: -1px 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0),
+    rgb(0, 0, 0) 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0) !important;
   #sidebar {
     background-color: var(--background-color-blur);
     backdrop-filter: blur(var(--blur-radius));
