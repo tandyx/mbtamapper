@@ -8,7 +8,7 @@
  * @import { sorttable } from "sorttable/sorttable.js"
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty } from "../types/index.js"
  * @import { Layer, Realtime } from "leaflet";
- * @import {_RealtimeLayer} from "./base.js"
+ * @import {BaseRealtimeLayer} from "./base.js"
  * @exports VehicleLayer
  */
 
@@ -18,7 +18,7 @@
  * encapsulating class to plot Vehicles on a leaflet map
  * after object creation, you can call `.plot` to plot it
  */
-class VehicleLayer extends _RealtimeLayer {
+class VehicleLayer extends BaseRealtimeLayer {
   static #hex_css_map = {
     FFC72C:
       "filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%);",
@@ -178,21 +178,21 @@ class VehicleLayer extends _RealtimeLayer {
       <hr />
       ${properties.bikes_allowed
         ? `<span class="fa tooltip" data-tooltip="bikes allowed"
-        >${_RealtimeLayer.iconSpacing("bike")}</span>`
+        >${BaseRealtimeLayer.iconSpacing("bike")}</span>`
         : ""}
       <span
         name="pred-veh-${properties.trip_id}"
         class="fa hidden popup tooltip"
         data-tooltip="predictions"
       >
-        ${_RealtimeLayer.iconSpacing("prediction")}
+        ${BaseRealtimeLayer.iconSpacing("prediction")}
       </span>
       <span
         name="alert-veh-${properties.trip_id}"
         class="fa hidden popup tooltip slight-delay"
         data-tooltip="alerts"
       >
-        ${_RealtimeLayer.iconSpacing("alert")}
+        ${BaseRealtimeLayer.iconSpacing("alert")}
       </span>
       ${properties.stop_time
         ? `${
@@ -338,10 +338,12 @@ class VehicleLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
-      predEl.innerHTML = _RealtimeLayer.iconSpacing("prediction");
+      predEl.innerHTML = BaseRealtimeLayer.iconSpacing("prediction");
       predEl.appendChild(popupText);
       setTimeout(() => {
-        if (openPopups.includes(popupId)) togglePopup(popupId, true);
+        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
+          BaseRealtimeLayer.togglePopup(popupId, true);
+        }
       }, 400);
     }
   }
@@ -375,10 +377,12 @@ class VehicleLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
-      alertEl.innerHTML = _RealtimeLayer.iconSpacing("alert");
+      alertEl.innerHTML = BaseRealtimeLayer.iconSpacing("alert");
       alertEl.appendChild(popupText);
       setTimeout(() => {
-        if (openPopups.includes(popupId)) togglePopup(popupId, true);
+        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
+          BaseRealtimeLayer.togglePopup(popupId, true);
+        }
       }, 150);
     }
   }
@@ -387,7 +391,7 @@ class VehicleLayer extends _RealtimeLayer {
    * @param {VehicleProperties[]} properties
    */
   #fillDefaultSidebar(properties) {
-    const container = document.getElementById(_RealtimeLayer.sideBarMainId);
+    const container = document.getElementById(BaseRealtimeLayer.sideBarMainId);
     if (!container) return;
     const findBox = "<div id='findBox'></div>";
     if (!properties.length) {

@@ -4,7 +4,7 @@
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties as string, PredictionProperty, AlertProperty } from "../types/index.js"
- * @exports _RealtimeLayer
+ * @exports BaseRealtimeLayer
  */
 
 "use strict";
@@ -23,9 +23,50 @@ const _icons = {
 /**
  * base encapsulating class for plotting realtime layers
  */
-class _RealtimeLayer {
+class BaseRealtimeLayer {
   static sideBarMainId = "sidebar-main";
   static sideBarOtherId = "sidebar-other";
+
+  static openPopupIds = [];
+
+  /**
+   * Toggles a popup
+   * @param {string | HTMLElement} id - the id of the popup or the popup element
+   * @param {boolean | "auto"} show - whether or not to show the popup
+   * @returns {void}
+   */
+  static togglePopup(id, show = "auto") {
+    const popup = typeof id === "string" ? document.getElementById(id) : id;
+    if (!popup) return;
+    const identifier = popup.id || popup.name;
+    if (window.chrome || navigator.userAgent.indexOf("AppleWebKit") != -1) {
+      popup.classList.add("popup-solid-bg"); // just use firefox
+    }
+    if (!popup.classList.contains("show")) {
+      BaseRealtimeLayer.openPopupIds.push(identifier);
+    } else {
+      BaseRealtimeLayer.openPopupIds.splice(
+        BaseRealtimeLayer.openPopupIds.indexOf(identifier),
+        1
+      );
+    }
+
+    if (show === "auto") {
+      popup.classList.toggle("show");
+      return;
+    }
+    if (show) {
+      popup.classList.add("show");
+      if (!popup.classList.contains("show"))
+        BaseRealtimeLayer.openPopupIds.push(identifier);
+      return;
+    }
+    popup.classList.remove("show");
+    BaseRealtimeLayer.openPopupIds.splice(
+      BaseRealtimeLayer.openPopupIds.indexOf(identifier),
+      1
+    );
+  }
 
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
@@ -157,8 +198,6 @@ class _RealtimeLayer {
       latLng: this.options.map.getCenter(),
       ...options,
     });
-
-    /**@type {L.Layer?} */
   }
   /**
    * fires click event and zooms in on vehicle
@@ -184,7 +223,7 @@ class _RealtimeLayer {
   popupLoadingIcon(element, popupId, options) {
     const prevHtml = element.innerHTML;
     const classList = ["loader", ...(options?.classList || [])];
-    element.onclick = () => togglePopup(popupId);
+    element.onclick = () => BaseRealtimeLayer.togglePopup(popupId, true);
     element.classList.remove("hidden");
     element.innerHTML = /* HTML */ ` <div
       class="${classList.join(" ")}"

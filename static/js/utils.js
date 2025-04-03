@@ -287,39 +287,6 @@ function isLikeMobile(threshold = null) {
   }
   return window.innerWidth <= 768;
 }
-/**@type {string[]} */
-const openPopups = [];
-/**
- * Toggles a popup
- * @param {string | HTMLElement} id - the id of the popup or the popup element
- * @param {boolean | "auto"} show - whether or not to show the popup
- * @returns {void}
- */
-function togglePopup(id, show = "auto") {
-  const popup = typeof id === "string" ? document.getElementById(id) : id;
-  if (!popup) return;
-  const identifier = popup.id || popup.name;
-  if (window.chrome || navigator.userAgent.indexOf("AppleWebKit") != -1) {
-    popup.classList.add("popup-solid-bg"); // just use firefox
-  }
-  if (!popup.classList.contains("show")) {
-    openPopups.push(identifier);
-  } else {
-    openPopups.splice(openPopups.indexOf(identifier), 1);
-  }
-
-  if (show === "auto") {
-    popup.classList.toggle("show");
-    return;
-  }
-  if (show) {
-    popup.classList.add("show");
-    if (!popup.classList.contains("show")) openPopups.push(identifier);
-    return;
-  }
-  popup.classList.remove("show");
-  openPopups.splice(openPopups.indexOf(identifier), 1);
-}
 
 /**
  * gets delay text formatted

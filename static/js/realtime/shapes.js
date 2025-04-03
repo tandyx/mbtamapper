@@ -5,7 +5,7 @@
  * @typedef {import("../utils.js")}
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
- * @import {_RealtimeLayer} from "./base.js"
+ * @import {BaseRealtimeLayer} from "./base.js"
  * @exports ShapeLayer
  */
 "use strict";
@@ -13,7 +13,7 @@
 /**
  * represents the shape layer
  */
-class ShapeLayer extends _RealtimeLayer {
+class ShapeLayer extends BaseRealtimeLayer {
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -79,7 +79,7 @@ class ShapeLayer extends _RealtimeLayer {
         class="fa hidden popup tooltip slight-delay"
         data-tooltip="alerts"
       >
-        ${_RealtimeLayer.icons.alert}
+        ${BaseRealtimeLayer.icons.alert}
       </span>
       <p>
         ${properties.route_id} @
@@ -140,10 +140,12 @@ class ShapeLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
-      alertEl.innerHTML = _RealtimeLayer.icons.alert;
+      alertEl.innerHTML = BaseRealtimeLayer.icons.alert;
       alertEl.appendChild(popupText);
       setTimeout(() => {
-        if (openPopups.includes(popupId)) togglePopup(popupId, true);
+        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
+          BaseRealtimeLayer.togglePopup(popupId, true);
+        }
       }, 500);
     }
   }
