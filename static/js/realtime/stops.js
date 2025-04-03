@@ -3,9 +3,9 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty, StopTime } from "../types/index.js"
  * @import { Realtime } from "leaflet";
- * @import {_RealtimeLayer} from "./base.js"
+ * @import {BaseRealtimeLayer} from "./base.js"
  * @exports StopLayer
  */
 
@@ -14,7 +14,7 @@
 /**
  * encapsulates stops
  */
-class StopLayer extends _RealtimeLayer {
+class StopLayer extends BaseRealtimeLayer {
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -110,8 +110,8 @@ class StopLayer extends _RealtimeLayer {
         data-tooltip="wheelchair accessible ${
           properties.wheelchair_boarding == "0" ? "w/ caveats" : ""
         }"
-      >${_RealtimeLayer.icons.wheelchair}
-      </span>${_RealtimeLayer.icons.space}`
+      >${BaseRealtimeLayer.icons.wheelchair}
+      </span>${BaseRealtimeLayer.icons.space}`
           : ""
       }
         <span
@@ -119,14 +119,14 @@ class StopLayer extends _RealtimeLayer {
           class="fa hidden popup tooltip"
           data-tooltip="predictions"
         >
-          ${_RealtimeLayer.iconSpacing("prediction")}
+          ${BaseRealtimeLayer.iconSpacing("prediction")}
         </span>
         <span
           name="alert-stop-${properties.stop_id}"
           class="fa hidden popup tooltip slight-delay"
           data-tooltip="alerts"
         >
-          ${_RealtimeLayer.icons.alert}
+          ${BaseRealtimeLayer.icons.alert}
         </span>
         <p>
           ${properties.routes
@@ -200,10 +200,12 @@ class StopLayer extends _RealtimeLayer {
           })
           .join("") +
         "</table>";
-      alertEl.innerHTML = _RealtimeLayer.icons.alert;
+      alertEl.innerHTML = BaseRealtimeLayer.icons.alert;
       alertEl.appendChild(popupText);
       setTimeout(() => {
-        if (openPopups.includes(popupId)) togglePopup(popupId, true);
+        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
+          BaseRealtimeLayer.togglePopup(popupId, true);
+        }
       }, 500);
     }
   }
@@ -224,6 +226,7 @@ class StopLayer extends _RealtimeLayer {
       popupText.classList.add("popuptext");
       popupText.id = popupId;
       popupText.innerHTML = "...";
+      /** @type {StopTime[]} */
       const _data = [];
       for (const child of child_stops.filter((s) => s.location_type == 0)) {
         _data.push(
@@ -245,7 +248,7 @@ class StopLayer extends _RealtimeLayer {
               (a.departure_time || a.arrival_time) -
               (b.departure_time || b.arrival_time)
           )
-          .map(function (d) {
+          .map((d) => {
             const realDeparture = d.departure_time || d.arrival_time;
             let delayText = d.delay ? `${Math.floor(d.delay / 60)}` : "";
             if (delayText === "0") {
@@ -257,25 +260,26 @@ class StopLayer extends _RealtimeLayer {
               delayText += " min";
             }
             // const realTime = d.departure_time || d.arrival_time;
-            return `<tr>
-              <td style='color:#${
-                d.route.route_color
-              }'>${d.route.route_name.replace(" Line", "").replace("/", " / ")}</td>
+            return /* HTML */ `<tr>
+              <td style="color:#${d.route.route_color}">
+                ${d.route.route_name.replace(" Line", "").replace("/", " / ")}
+              </td>
               <td>${d.trip?.trip_short_name || d.trip_id}</td>
               <td>${d.headsign}</td>
               <td>
                 ${formatTimestamp(realDeparture, "%I:%M %P")}
-                <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+                <i class="${getDelayClassName(d.delay)}">${delayText}</i>
               </td>
-            </tr>
-            `;
+            </tr> `;
           })
           .join("") +
         "</table>";
-      predEl.innerHTML = _RealtimeLayer.iconSpacing("prediction");
+      predEl.innerHTML = BaseRealtimeLayer.iconSpacing("prediction");
       predEl.appendChild(popupText);
       setTimeout(() => {
-        if (openPopups.includes(popupId)) togglePopup(popupId, true);
+        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
+          BaseRealtimeLayer.togglePopup(popupId, true);
+        }
       }, 500);
     }
   }
