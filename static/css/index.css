@@ -17,7 +17,7 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --blur-radius: 15px;
+  --blur-radius: 25px;
   --slight-delay: #d19900;
 }
 
@@ -25,7 +25,7 @@
   --text-color: #f2f2f2;
   --background-color: rgb(13, 13, 13);
   --popup-background: #252525;
-  --background-color-blur: rgba(13, 13, 13, 0.76);
+  --background-color-blur: rgba(13, 13, 13, 0.75);
   --table-even-row: rgba(90, 90, 90, 0.526);
   --table-odd-row: rgba(50, 50, 50, 0.526);
 }
@@ -33,7 +33,7 @@
   --text-color: #191919;
   --background-color: #e8e8e8;
   --popup-background: #252525;
-  --background-color-blur: rgba(255, 255, 255, 0.4);
+  --background-color-blur: rgba(255, 255, 255, 0.5);
   --table-even-row: rgba(189, 189, 189, 0.526);
   --table-odd-row: rgba(227, 227, 227, 0.526);
 }
