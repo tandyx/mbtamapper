@@ -230,12 +230,21 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     @_app.route("/favicon.ico")
     def favicon() -> flask.Response:
-        """Returns favicon.ico.
+        """returns favicon.ico
 
         returns:
             - `Response`: favicon.ico.
         """
         return _app.send_static_file("img/all_routes.ico")
+
+    @_app.route("/sitemap.xml")
+    def sitemap() -> flask.Response:
+        """returns sitemap.xml
+
+        returns:
+            - `Response`: favicon.ico.
+        """
+        return _app.send_static_file("config/sitemap.xml")
 
     @_app.route("/api/<orm_name>")
     def orm_api(orm_name: str) -> tuple[str | flask.Response, int] | flask.Response:
