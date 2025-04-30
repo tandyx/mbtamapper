@@ -24,15 +24,13 @@
 [data-mode="dark"] {
   --text-color: #f2f2f2;
   --background-color: rgb(13, 13, 13);
-  --popup-background: #252525;
   --background-color-blur: rgba(13, 13, 13, 0.75);
   --table-even-row: rgba(90, 90, 90, 0.526);
   --table-odd-row: rgba(50, 50, 50, 0.526);
 }
 [data-mode="light"] {
   --text-color: #191919;
-  --background-color: #e8e8e8;
-  --popup-background: #252525;
+  --background-color: rgba(255, 255, 255, 1);
   --background-color-blur: rgba(255, 255, 255, 0.5);
   --table-even-row: rgba(189, 189, 189, 0.526);
   --table-odd-row: rgba(227, 227, 227, 0.526);
@@ -298,6 +296,12 @@ h1 {
   transition: opacity 0.1s;
   white-space: nowrap;
   font-family: var(--font-family);
+}
+
+.tooltip-bg-solid::after {
+  background: var(--background-color) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* .tooltip::before {
