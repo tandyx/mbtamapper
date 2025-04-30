@@ -36,14 +36,17 @@ class StopLayer extends BaseRealtimeLayer {
       cache: true,
       removeMissing: true,
       getFeatureId: (f) => f.id,
-      onEachFeature(f, l) {
-        l.id = f.id;
-        l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
-        l.feature.properties.searchName = f.properties.stop_name;
-        if (!options.isMobile) l.bindTooltip(f.properties.stop_name);
-        l.setIcon(_this.#getIcon());
-        l.setZIndexOffset(-100);
-        l.on("click", () => _this.fillDataWrapper(f.properties));
+      onEachFeature(fea, lay) {
+        // lay.setStyle({
+        //   renderer: L.canvas({ padding: 0.5, tolerance: 10 }),
+        // });
+        lay.id = fea.id;
+        lay.bindPopup(_this.#getPopupText(fea.properties), options.textboxSize);
+        lay.feature.properties.searchName = fea.properties.stop_name;
+        if (!options.isMobile) lay.bindTooltip(fea.properties.stop_name);
+        lay.setIcon(_this.#getIcon());
+        lay.setZIndexOffset(-100);
+        lay.on("click", () => _this.fillDataWrapper(fea.properties));
       },
     });
     realtime.on("update", (e) => {

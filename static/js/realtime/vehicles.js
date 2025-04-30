@@ -49,6 +49,11 @@ class VehicleLayer extends BaseRealtimeLayer {
     1.0: "Inbound",
   };
 
+  static #worcester_map = {
+    515: "hub to heart",
+    520: "heart to hub",
+  };
+
   /**
    * string or html element of vehicle
    * @param {VehicleProperties} properties from geojson
@@ -169,11 +174,10 @@ class VehicleLayer extends BaseRealtimeLayer {
         </a>
       </p>
       <p>
-        ${properties.trip_short_name === "552"
-          ? "heart to hub"
-          : `${
-              VehicleLayer.#direction_map[properties.direction_id] || "null"
-            } to ${properties.headsign}`}
+        ${VehicleLayer.#worcester_map[properties.trip_short_name] ||
+        `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
+          properties.headsign
+        }`}
       </p>
       <hr />
       ${properties.bikes_allowed
@@ -182,14 +186,16 @@ class VehicleLayer extends BaseRealtimeLayer {
         : ""}
       <span
         name="pred-veh-${properties.trip_id}"
-        class="fa hidden popup tooltip"
+        class="fa hidden popup ${this.options?.isMobile ? "" : "tooltip"}"
         data-tooltip="predictions"
       >
         ${BaseRealtimeLayer.iconSpacing("prediction")}
       </span>
       <span
         name="alert-veh-${properties.trip_id}"
-        class="fa hidden popup tooltip slight-delay"
+        class="fa hidden popup ${this.options?.isMobile
+          ? ""
+          : "tooltip"} slight-delay"
         data-tooltip="alerts"
       >
         ${BaseRealtimeLayer.iconSpacing("alert")}

@@ -16,10 +16,12 @@
  * @typedef {import("./realtime/stops.js")}
  */
 "use strict";
+/**@type {L.Map?} for debug purposes*/
+let _map;
 
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
-  createMap("map", ROUTE_TYPE);
+  _map = createMap("map", ROUTE_TYPE);
 });
 
 window.addEventListener("load", function () {

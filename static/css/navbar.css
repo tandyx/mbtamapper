@@ -20,7 +20,7 @@ nav {
   justify-content: space-between;
   height: var(--navbar-height);
   padding: 1em;
-  font-weight: bolder;
+  font-weight: 550;
   font-size: 12pt;
   z-index: 1000;
   color: var(--text-color);

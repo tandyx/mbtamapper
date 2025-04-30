@@ -50,15 +50,15 @@ class BaseRealtimeLayer {
         1
       );
     }
-
     if (show === "auto") {
       popup.classList.toggle("show");
       return;
     }
     if (show) {
       popup.classList.add("show");
-      if (!popup.classList.contains("show"))
+      if (!popup.classList.contains("show")) {
         BaseRealtimeLayer.openPopupIds.push(identifier);
+      }
       return;
     }
     popup.classList.remove("show");
@@ -223,7 +223,7 @@ class BaseRealtimeLayer {
   popupLoadingIcon(element, popupId, options) {
     const prevHtml = element.innerHTML;
     const classList = ["loader", ...(options?.classList || [])];
-    element.onclick = () => BaseRealtimeLayer.togglePopup(popupId, true);
+    element.onclick = () => BaseRealtimeLayer.togglePopup(popupId);
     element.classList.remove("hidden");
     element.innerHTML = /* HTML */ ` <div
       class="${classList.join(" ")}"
