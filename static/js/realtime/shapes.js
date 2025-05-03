@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports ShapeLayer
@@ -60,6 +60,7 @@ class ShapeLayer extends BaseRealtimeLayer {
    */
   #getPopupText(properties) {
     const shapeHtml = document.createElement("div");
+    const toolTipClass = this.options?.isMobile ? "" : "tooltip";
     shapeHtml.innerHTML = /* HTML */ `
       <p>
         <a
@@ -76,7 +77,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       <hr />
       <span
         name="alert-shape-${properties.route_id}"
-        class="fa hidden popup tooltip slight-delay"
+        class="fa hidden popup ${toolTipClass} slight-delay"
         data-tooltip="alerts"
       >
         ${BaseRealtimeLayer.icons.alert}

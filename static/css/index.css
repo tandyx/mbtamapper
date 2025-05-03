@@ -24,9 +24,10 @@
 [data-mode="dark"] {
   --text-color: #f2f2f2;
   --background-color: rgb(13, 13, 13);
-  --background-color-blur: rgba(13, 13, 13, 0.75);
-  --table-even-row: rgba(90, 90, 90, 0.526);
-  --table-odd-row: rgba(50, 50, 50, 0.526);
+  --background-color-blur: rgba(13, 13, 13, 0.8);
+  --table-even-row: rgba(50, 50, 50, 0.526);
+  --table-odd-row: rgba(30, 30, 30, 0.526);
+  --box-shadow: 0 1px 8px rgba(255, 255, 255, 0.2);
 }
 [data-mode="light"] {
   --text-color: #191919;
@@ -34,6 +35,7 @@
   --background-color-blur: rgba(255, 255, 255, 0.5);
   --table-even-row: rgba(189, 189, 189, 0.526);
   --table-odd-row: rgba(227, 227, 227, 0.526);
+  --box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
 }
 
 @font-face {
@@ -108,6 +110,10 @@ noscript {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+table {
+  border-radius: var(--border-radius);
 }
 
 h4 {
@@ -296,6 +302,7 @@ h1 {
   transition: opacity 0.1s;
   white-space: nowrap;
   font-family: var(--font-family);
+  box-shadow: var(--box-shadow) !important;
 }
 
 .tooltip-bg-solid::after {
@@ -464,6 +471,16 @@ table.sortable tbody tr:nth-child(odd) {
 
 table.sortable tbody tr:nth-child(even) {
   background-color: var(--table-even-row);
+}
+
+#sidebar-other {
+  display: none;
+}
+
+.sidebar-title {
+  font-size: xx-large;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 /* Safari */

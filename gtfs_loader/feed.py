@@ -152,12 +152,7 @@ class Feed:
         session = self.scoped_session(**kwargs)
         if not readonly:
             return session
-
-        def _abort(*args, **kwargs) -> None:
-            """abort the flush call to enforce readonly"""
-            logging.warning("readonly session: aborting flush")
-
-        session.flush = _abort
+        session.flush = lambda *a, **kw: logging.warning("flush on readonly session")
         return session
 
     def __init__(self, url: str, gtfs_name: str | None = None) -> None:
@@ -381,7 +376,12 @@ class Feed:
 
     @removes_session
     def get_vehicles_feature(
-        self, key: str, query_obj: Query, *include: str
+        self,
+        key: str,
+        query_obj: Query,
+        *include: str,
+        attempts: int = 10,
+        timeout: int = 0.5,
     ) -> gj.FeatureCollection:
         """Returns vehicles as FeatureCollection.
         notes:
@@ -390,7 +390,9 @@ class Feed:
         args:
             - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
             - `query_obj (Query)`: Query object
-            - `*include (str)`: other orms to include \n
+            - `*include (str)`: other orms to include
+            - `attemps (int)`: num attempts default: 10
+            - `timeout (float)`: timeout to take between attempts default 0.5 seconds \n
         returns:
             - `FeatureCollection`: vehicles as FeatureCollection
         """
@@ -402,16 +404,16 @@ class Feed:
             _routes.extend(self.SL_ROUTES)
             # _routes.extend([*self.SL_ROUTES, "Shuttle-Generic"])
         data: list[tuple[Vehicle]] = []
-        for attempt in range(10):
+        for _ in range(attempts):
             try:
                 data = session.execute(query_obj.get_vehicles_query(*_routes)).all()
             except (exc.OperationalError, exc.DatabaseError) as error:
                 logging.error("Failed to get vehicle data: %s", error)
             if any(v[0].predictions for v in data):
                 break
-            time.sleep(0.5)
+            time.sleep(timeout)
         if not data:
-            logging.error("No data returned in %s attemps", attempt + 1)
+            logging.error("No pred data returned in %s attemps", attempts)
         return gj.FeatureCollection([v[0].as_feature(*include) for v in data])
 
     @removes_session

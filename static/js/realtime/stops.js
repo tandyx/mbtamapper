@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty, StopTime } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty, StopTime } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports StopLayer
@@ -93,6 +93,8 @@ class StopLayer extends BaseRealtimeLayer {
     const primeRoute = properties.routes
       .sort((a, b) => a.route_type - b.route_type)
       ?.at(0);
+    const toolTipClass = this.options?.isMobile ? "" : "tooltip";
+
     stopHtml.innerHTML = /* HTML */ ` <p>
         <a
           href="${properties.stop_url}"
@@ -119,14 +121,14 @@ class StopLayer extends BaseRealtimeLayer {
       }
         <span
           name="predictions-stop-${properties.stop_id}"
-          class="fa hidden popup tooltip"
+          class="fa hidden popup ${toolTipClass}"
           data-tooltip="predictions"
         >
           ${BaseRealtimeLayer.iconSpacing("prediction")}
         </span>
         <span
           name="alert-stop-${properties.stop_id}"
-          class="fa hidden popup tooltip slight-delay"
+          class="fa hidden popup ${toolTipClass} slight-delay"
           data-tooltip="alerts"
         >
           ${BaseRealtimeLayer.icons.alert}

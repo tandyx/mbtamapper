@@ -9,6 +9,7 @@ export interface LayerApiRealtimeOptions {
   sidebar: typeof L.Control.Sidebar;
   routeType: string;
   map: L.Map;
+  interval?: number;
 }
 
 export interface LayerProperty {
@@ -138,7 +139,7 @@ export interface Facility extends LayerProperty {
   "car-sharing"?: "Zipcar";
 }
 
-export interface VehicleProperties extends LayerProperty {
+export interface VehicleProperty extends LayerProperty {
   bearing: number;
   bikes_allowed: boolean;
   current_status: "IN_TRANSIT_TO" | "INCOMING_AT" | "STOPPED_AT";

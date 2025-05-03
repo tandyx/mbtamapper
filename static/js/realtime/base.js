@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties as string, PredictionProperty, AlertProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty as string, PredictionProperty, AlertProperty } from "../types/index.js"
  * @exports BaseRealtimeLayer
  */
 
@@ -76,6 +76,7 @@ class BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
+    options.interval = options.interval || 15000;
     this.options = options;
   }
   /**
@@ -91,6 +92,7 @@ class BaseRealtimeLayer {
    * @returns {string | HTMLElement}
    */
   #getIcon(properties) {}
+
   /**
    * text for popup
    * @param {LayerProperty} properties from geojson
@@ -102,6 +104,12 @@ class BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions} options
    */
   #getRealtime(options) {}
+
+  /**
+   * fills the sidebar with the properties
+   * @param {LayerProperty} options
+   */
+  #fillSidebar(properties) {}
 
   /** Handle update event for realtime layers
    * @param {(event: RealtimeUpdateEvent) => void} fn - realtime layer to update
@@ -225,6 +233,7 @@ class BaseRealtimeLayer {
     const classList = ["loader", ...(options?.classList || [])];
     element.onclick = () => BaseRealtimeLayer.togglePopup(popupId);
     element.classList.remove("hidden");
+    console.log("loading icon", element);
     element.innerHTML = /* HTML */ ` <div
       class="${classList.join(" ")}"
       style="${options?.style}"
