@@ -436,6 +436,47 @@ function storageGet(key, _default, options) {
 }
 
 /**
+ * cache fetch requests in local or session storage
+ *
+ * auto assumes json but will default to text if failed
+ *
+ * `out` defaults to json, `storage` defaults to sessionStorage, `clearAfter` defaults to indefinite (ms)
+ *
+ * @template {"text" | "json"} T
+ *
+ * @param {string} url
+ * @param {RequestInit} fetchParams
+ * @param {{storage?: Storage, out?: T, clearAfter?: number}} options
+ * @returns {Promise<T extends "json" ? any : string>}
+ */
+async function fetchCache(url, fetchParams, options = {}) {
+  const { storage = sessionStorage, out = "json", clearAfter } = options;
+  const cacheData = storage?.getItem(url);
+  if (cacheData && storage) {
+    if (out === "text") return cacheData;
+    return JSON.parse(cacheData);
+  }
+  const resp = await fetch(url, fetchParams);
+  if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`);
+  if (!storage) {
+    return out === "json" ? await resp.json() : await resp.text();
+  }
+  let data;
+  if (out === "json") {
+    data = await resp.json();
+    storage.setItem(url, JSON.stringify(data));
+  } else {
+    data = await resp.text();
+    storage.setItem(url, data);
+  }
+  if (clearAfter) {
+    setTimeout(() => storage.removeItem(url), clearAfter);
+  }
+
+  return data;
+}
+
+/**
  * class for theme management
  * @template {"dark" | "light"} T
  */

@@ -22,9 +22,6 @@ let _map;
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   _map = createMap("map", ROUTE_TYPE);
-});
-
-window.addEventListener("load", function () {
   if (inIframe()) {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
@@ -32,9 +29,6 @@ window.addEventListener("load", function () {
   Theme.fromExisting().set(sessionStorage, onThemeChange);
 });
 
-window.addEventListener("hashchange", () => {
-  document.getElementById(window.location.hash.slice(1)).click();
-});
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {string} routeType - route type
@@ -137,6 +131,12 @@ function createMap(id, routeType) {
   if (map.hasLayer(facilityLayer.options.layer)) {
     map.removeLayer(facilityLayer.options.layer);
   }
+  map.on("click", (event) => {
+    document.getElementById(BaseRealtimeLayer.sideBarMainId).style.display =
+      "block";
+    document.getElementById(BaseRealtimeLayer.sideBarOtherId).style.display =
+      "none";
+  });
 
   return map;
 }

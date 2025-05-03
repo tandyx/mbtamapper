@@ -12,6 +12,7 @@
   padding-bottom: calc(1.15 * var(--navbar-height));
   background: none !important;
   color: var(--text-color);
+  /* box-shadow: var(--box-shadow) !important; */
   text-shadow: -1px 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0),
     rgb(0, 0, 0) 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0) !important;
   #sidebar {
@@ -52,6 +53,7 @@
   color: var(--text-color) !important;
   font-family: var(--font-family) !important;
   text-align: left !important;
+  box-shadow: var(--box-shadow) !important;
 }
 
 .leaflet-control-layers-expanded {
