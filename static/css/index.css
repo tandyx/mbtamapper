@@ -483,6 +483,18 @@ table.sortable tbody tr:nth-child(even) {
   margin-bottom: 0px;
 }
 
+.alert-box {
+  /* background-color: var(--background-color-blur); */
+  border-radius: var(--border-radius);
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 2px solid var(--slight-delay);
+  .alert-timestamp {
+    font-size: 10pt;
+    font-style: italic;
+  }
+}
+
 /* Safari */
 @-webkit-keyframes spin {
   0% {

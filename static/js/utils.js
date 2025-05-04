@@ -3,6 +3,7 @@
  * @module utils
  * @import {strftime} from "strftime";
  * @import { Realtime, RealtimeUpdateEvent } from "leaflet";
+ * @import { FetchCacheOptions } from "./types";
  * @exports *
  */
 
@@ -436,18 +437,19 @@ function storageGet(key, _default, options) {
 }
 
 /**
+ *
  * cache fetch requests in local or session storage
  *
  * auto assumes json but will default to text if failed
  *
  * `out` defaults to json, `storage` defaults to sessionStorage, `clearAfter` defaults to indefinite (ms)
  *
- * @template {"text" | "json"} T
+ * @template {"json" | "text"} T
  *
  * @param {string} url
  * @param {RequestInit} fetchParams
- * @param {{storage?: Storage, out?: T, clearAfter?: number}} options
- * @returns {Promise<T extends "json" ? any : string>}
+ * @param {FetchCacheOptions<T>} options
+ * @returns {Promise<FetchCacheOptions<T> extends "json" ? any : string>}
  */
 async function fetchCache(url, fetchParams, options = {}) {
   const { storage = sessionStorage, out = "json", clearAfter } = options;
@@ -581,3 +583,68 @@ class Theme {
     return this.opposite.set(storage, onSave);
   }
 }
+/**
+ * memory storage class
+ *
+ * basically just a wrapper for Map, but with the same methods as builtin `Storage`
+ *
+ * @template {Map<keyof, string>} M
+ */
+class MemoryStorage {
+  /**
+   * @param {M} map - the map to use as storage
+   */
+  constructor(map = new Map()) {
+    this.store = map;
+  }
+
+  /**
+   * length of the store
+   */
+  get length() {
+    return this.store.size;
+  }
+
+  /**
+   * gets the key at the index
+   * @param {number} index
+   * @returns
+   */
+  key(index) {
+    return Array.from(this.store.keys())[index] || null;
+  }
+  /**
+   *
+   * @param {keyof M} key
+   * @returns
+   */
+  getItem(key) {
+    return this.store.has(key) ? this.store.get(key) : null;
+  }
+
+  /**
+   * sets the item in the store
+   * @param {keyof M | keyof} key
+   * @param {any} value (cast to string)
+   */
+  setItem(key, value) {
+    this.store.set(key, `${value}`);
+  }
+
+  /**
+   * removes the item from the store
+   * @param {keyof M} key
+   */
+  removeItem(key) {
+    this.store.delete(key);
+  }
+
+  /**
+   * clears the store
+   */
+  clear() {
+    this.store.clear();
+  }
+}
+
+const memStorage = new MemoryStorage();

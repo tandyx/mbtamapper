@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty as string, PredictionProperty, AlertProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty as string, PredictionProperty, AlertProperty, FetchCacheOptions } from "../types/index.js"
  * @exports BaseRealtimeLayer
  */
 
@@ -233,12 +233,22 @@ class BaseRealtimeLayer {
     const classList = ["loader", ...(options?.classList || [])];
     element.onclick = () => BaseRealtimeLayer.togglePopup(popupId);
     element.classList.remove("hidden");
-    console.log("loading icon", element);
     element.innerHTML = /* HTML */ ` <div
       class="${classList.join(" ")}"
       style="${options?.style}"
     ></div>`;
     return prevHtml;
+  }
+  /**
+   * @returns {FetchCacheOptions} default fetch cache options
+   */
+  get defaultFetchCacheOpt() {
+    /**@type {FetchCacheOptions} */
+    return {
+      clearAfter: this.options.interval - 50,
+      type: "json",
+      storage: memStorage,
+    };
   }
 
   /**
