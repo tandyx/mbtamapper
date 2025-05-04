@@ -12,6 +12,24 @@ export interface LayerApiRealtimeOptions {
   interval?: number;
 }
 
+export interface FetchCacheOptions<T extends "text" | "json"> {
+  /**
+   * sessionStorage or localStorage or null (no cache)
+   * @default sessionStorage
+   */
+  storage?: Storage | MemoryStorage;
+  /**
+   * store and fetch as text or json
+   * @default json
+   */
+  out?: T;
+  /**
+   * time (ms) to cache the response
+   * @default null (indefinite)
+   */
+  clearAfter?: number;
+}
+
 export interface LayerProperty {
   [key = string]: any;
 }
@@ -297,7 +315,7 @@ export interface PredictionProperty {
   stop_id: string;
   stop_name: string;
   stop_sequence: number;
-  stop_time: null;
+  stop_time: StopTime?;
   timestamp: number;
   trip_id: string;
   vehicle_id: string;

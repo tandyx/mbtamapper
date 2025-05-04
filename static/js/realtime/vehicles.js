@@ -144,6 +144,11 @@ class VehicleLayer extends BaseRealtimeLayer {
           layer.setIcon(_this.#getIcon(feature.properties));
           if (wasOpen) {
             layer.openPopup();
+            _this.options.map.setView(
+              layer.getLatLng(),
+              _this.options.map.getZoom(),
+              { animate: true }
+            );
             setTimeout(_onclick, 200);
           }
           layer.on("click", _onclick);
@@ -165,8 +170,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const delay = Math.round(properties.next_stop?.delay / 60);
     const dClassName = getDelayClassName(properties.next_stop?.delay);
     const toolTipClass = this.options?.isMobile ? "" : "tooltip";
-    // console.log(`${properties.trip_id}: ${delay}`);
-    vehicleText.innerHTML = /* HTML */ ` <p>
+    vehicleText.innerHTML = /* HTML */ `<p>
         <a
           href="${properties.route?.route_url ||
           `https://mbta.com/schedules/${properties.route_id}`}"
@@ -174,7 +178,7 @@ class VehicleLayer extends BaseRealtimeLayer {
           style="color:#${properties.route_color}"
           class="popup_header"
         >
-          ${properties.trip_short_name}
+          ${properties.display_name}
         </a>
       </p>
       <p>
@@ -289,6 +293,52 @@ class VehicleLayer extends BaseRealtimeLayer {
   }
 
   /**
+   *
+   * @param {PredictionProperty[]} _data
+   */
+  #predictionTable(_data) {
+    if (!_data?.length) return "";
+
+    return `<table class='data-table'><tr><th>stop</th><th>estimate</th></tr>
+    ${_data
+      .sort(
+        (a, b) =>
+          (a.departure_time || a.arrival_time) -
+          (b.departure_time || b.arrival_time)
+      )
+      .map((d) => {
+        const realDeparture = d.departure_time || d.arrival_time;
+        if (!realDeparture || realDeparture < Date().valueOf()) return "";
+        const delayText = getDelayText(d.delay);
+        let stopTimeClass,
+          tooltipText,
+          htmlLogo = "";
+        if (d.stop_time?.flag_stop) {
+          stopTimeClass = "flag_stop tooltip";
+          tooltipText = "flag stop";
+          htmlLogo = "<i> f</i>";
+        } else if (d.stop_time?.early_departure) {
+          stopTimeClass = "early_departure tooltip";
+          tooltipText = "early departure";
+          htmlLogo = "<i> L</i>";
+        }
+
+        return `<tr>
+          <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${
+          d.stop_name
+        } ${htmlLogo}</td>
+          <td>
+            ${formatTimestamp(realDeparture, "%I:%M %P")}
+            <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+          </td>
+        </tr>
+        `;
+      })
+      .join("")}
+    </table>`;
+  }
+
+  /**
    * fill prediction data in for `pred-veh-{trip_id}` element
    * this appears as a popup on the map
    * @param {string} trip_id - vehicle id
@@ -304,55 +354,18 @@ class VehicleLayer extends BaseRealtimeLayer {
       popupText.id = popupId;
       popupText.innerHTML = "...";
       /**@type {PredictionProperty[]}*/
-      const _data = fetchCache(
+      const _data = await fetchCache(
         `/api/prediction?trip_id=${trip_id}&include=stop_time`,
         {},
-        {
-          clearAfter: this.options.interval - 50,
-        }
+        super.defaultFetchCacheOpt
       );
+      // const _data = fe
 
       if (!_data.length) {
         predEl.classList.add("hidden");
         return [];
       }
-      popupText.innerHTML =
-        "<table class='data-table'><tr><th>stop</th><th>estimate</th></tr>" +
-        _data
-          .sort(
-            (a, b) =>
-              (a.departure_time || a.arrival_time) -
-              (b.departure_time || b.arrival_time)
-          )
-          .map((d) => {
-            const realDeparture = d.departure_time || d.arrival_time;
-            if (!realDeparture || realDeparture < Date().valueOf()) return "";
-            const delayText = getDelayText(d.delay);
-            let stopTimeClass,
-              tooltipText = "";
-            if (d.stop_time?.flag_stop) {
-              stopTimeClass = "flag_stop tooltip";
-              tooltipText = "flag stop";
-              d.stop_name += "<i> f</i>";
-            } else if (d.stop_time?.early_departure) {
-              stopTimeClass = "early_departure tooltip";
-              tooltipText = "early departure";
-              d.stop_name += "<i> L</i>";
-            }
-
-            return `<tr>
-              <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${
-              d.stop_name
-            }</td>
-              <td>
-                ${formatTimestamp(realDeparture, "%I:%M %P")}
-                <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
-              </td>
-            </tr>
-            `;
-          })
-          .join("") +
-        "</table>";
+      popupText.innerHTML = this.#predictionTable(_data);
       predEl.innerHTML = BaseRealtimeLayer.iconSpacing("prediction");
       predEl.appendChild(popupText);
       setTimeout(() => {
@@ -419,15 +432,21 @@ class VehicleLayer extends BaseRealtimeLayer {
     document.getElementById(BaseRealtimeLayer.sideBarMainId).style.display =
       "none";
     container.style.display = "block";
-    // container.innerHTML = /*HTML*/``; <span class="fa subheader">&#xf08e;</span>
     container.innerHTML = /*HTML*/ `
     <div>
-      <a href="${properties.route?.route_url}" target="_blank" rel="noopener">
-         <h2  class="sidebar-title" style="color:#${properties.route_color};">${
-      properties.display_name
-    }</h2>
-      </a>
-      <span>${
+
+      <a
+        href="${
+          properties.route?.route_url ||
+          `https://mbta.com/schedules/${properties.route_id}`
+        }"
+        target="_blank"
+        style="color:#${properties.route_color}"
+        class="popup_header sidebar-title"
+      >
+          ${properties.display_name}
+        </a>
+      <div style="margin-top:-5px;">${
         VehicleLayer.#worcester_map[properties.trip_short_name] ||
         `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
           properties.headsign
@@ -435,6 +454,25 @@ class VehicleLayer extends BaseRealtimeLayer {
       }
       </span>
       <hr />
+      ${
+        alerts?.length
+          ? `
+        <div>
+          ${alerts
+            .map((a) => {
+              return `<div class="alert-box">
+              <div class="alert-header">${a.header}</div>
+              <div class="alert-timestamp">last updated ${formatTimestamp(
+                a.timestamp,
+                "%I:%M %P"
+              )}</div>
+            </div>`;
+            })
+            .join("")}
+        </div>`
+          : ""
+      }
+      <div>${this.#predictionTable(predictions)} </div>  
     </div>  
   `;
   }
@@ -463,6 +501,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       <tbody>
       ${properties
         .map((prop) => {
+          div;
           const encoded = btoa(JSON.stringify(prop));
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
           return /*HTML*/ `<tr>
@@ -515,8 +554,6 @@ class VehicleLayer extends BaseRealtimeLayer {
       _this.#fillPredictionData(properties.trip_id),
       _this.#fillAlertData(properties.trip_id),
     ]).then(([pred, alerts]) => _this.#fillSidebar(properties, alerts, pred));
-    // _this.#fillAlertData(properties.trip_id);
-    // _this.#fillPredictionData(properties.trip_id);
     _updateTimestamp(
       `vehicle-${properties.vehicle_id}-timestamp-${_this.iter || 1}`,
       properties.timestamp
