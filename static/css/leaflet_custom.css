@@ -10,15 +10,19 @@
 .leaflet-sidebar {
   top: var(--navbar-height);
   padding-bottom: calc(1.15 * var(--navbar-height));
+
   background: none !important;
   color: var(--text-color);
   /* box-shadow: var(--box-shadow) !important; */
   text-shadow: -1px 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0),
     rgb(0, 0, 0) 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0) !important;
+  @media (max-width: 786px) {
+    padding-bottom: unset;
+  }
   #sidebar {
     background-color: var(--background-color-blur);
-    backdrop-filter: blur(var(--blur-radius));
     -webkit-backdrop-filter: blur(var(--blur-radius));
+    backdrop-filter: blur(var(--blur-radius));
   }
   .close {
     background: none;
@@ -46,8 +50,8 @@
 .leaflet-tooltip::after,
 .leaflet-popup-content::after {
   background-color: var(--background-color-blur);
-  backdrop-filter: blur(var(--blur-radius));
   -webkit-backdrop-filter: blur(var(--blur-radius));
+  backdrop-filter: blur(var(--blur-radius));
   border-radius: var(--border-radius) !important;
   /* background: var(--background-color) !important; */
   color: var(--text-color) !important;
@@ -136,8 +140,8 @@
   font-family: var(--font-family) !important;
 
   font-size: 8pt !important;
-  backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px) !important;
   background-color: var(--background-color-blur) !important;
   color: var(--text-color) !important;
   border-top-left-radius: 2px !important;

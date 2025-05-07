@@ -14,10 +14,13 @@
  * @typedef {import("./realtime/facilities.js")}
  * @typedef {import("./realtime/shapes.js")}
  * @typedef {import("./realtime/stops.js")}
+ * @import {LeafletSidebar} from "./types"
  */
 "use strict";
 /**@type {L.Map?} for debug purposes*/
 let _map;
+/**@type {LeafletSidebar?} for reference purposes */
+let _sidebar;
 
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
@@ -68,13 +71,22 @@ function createMap(id, routeType) {
   map.on("baselayerchange", (event) => {
     new Theme(event.name).set(sessionStorage, onThemeChange);
   });
-
+  /**@type {LeafletSidebar?} */
   const sidebar = L.control
     .sidebar("sidebar", {
       closeButton: true,
       position: "right",
     })
     .addTo(map);
+  _sidebar = sidebar;
+  sidebar.on("hide", () => {
+    document.documentElement.style.setProperty("--more-info-display", "unset");
+  });
+  sidebar.on("show", () => {
+    document.documentElement.style.setProperty("--more-info-display", "none");
+  });
+
+  // sidebar.
 
   if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
@@ -131,11 +143,8 @@ function createMap(id, routeType) {
   if (map.hasLayer(facilityLayer.options.layer)) {
     map.removeLayer(facilityLayer.options.layer);
   }
-  map.on("click", (event) => {
-    document.getElementById(BaseRealtimeLayer.sideBarMainId).style.display =
-      "block";
-    document.getElementById(BaseRealtimeLayer.sideBarOtherId).style.display =
-      "none";
+  map.on("click", () => {
+    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
   });
 
   return map;
