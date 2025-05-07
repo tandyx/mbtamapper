@@ -381,37 +381,6 @@ function asyncSleep(time) {
 }
 
 /**
- * there's def a better way to do this but fuck im too lazy to google this shit
- *
- * async updates the innerHTML of a element to "1 second ago" or something like that
- * @param {string} _id the id
- * @param {number} _timestamp the timestamp
- * @param {number} [sleep=15000] ms to sleep
- */
-async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
-  while (true) {
-    const el = document.getElementById(_id);
-    if (!el) {
-      await asyncSleep(1000);
-      continue;
-    }
-    const _time = new Date().valueOf() / 1000 - _timestamp;
-    let humanReadable;
-    if (_time < 60) {
-      humanReadable = `< 1m`;
-    } else if (_time < 3600) {
-      humanReadable = `~ ${Math.floor(_time / 60)}m`;
-    } else if (_time < 86400) {
-      humanReadable = `~ ${Math.floor(_time / 3600)}h`;
-    } else {
-      humanReadable = `~ ${Math.floor(_time / 86400)}d`;
-    }
-    el.innerHTML = `${humanReadable} ago`;
-    await asyncSleep(sleep);
-  }
-}
-
-/**
  * gets storage or default value.
  *
  * sets `_default` value into storage
@@ -423,7 +392,7 @@ async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
  * @param {{storage?: Storage, parseInt?: boolean, parseFloat?: boolean, parseJson?: boolean}} options
  * @returns {any}
  */
-function storageGet(key, _default, options) {
+function storageGet(key, _default, options = {}) {
   const _storage = options.storage || sessionStorage;
   const _item = _storage.getItem(key);
   if (!_item) {
@@ -459,7 +428,11 @@ async function fetchCache(url, fetchParams, options = {}) {
     return JSON.parse(cacheData);
   }
   const resp = await fetch(url, fetchParams);
-  if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`);
+  if (!resp.ok) {
+    if (options.onError) return options.onError(resp);
+    console.error(`${resp.status}: ${await resp.text()}`);
+    return [];
+  }
   if (!storage) {
     return out === "json" ? await resp.json() : await resp.text();
   }
@@ -476,6 +449,15 @@ async function fetchCache(url, fetchParams, options = {}) {
   }
 
   return data;
+}
+
+/**
+ * html element from string
+ * @param {string} htmlString
+ */
+function createElementFromHTML(htmlString) {
+  return new DOMParser().parseFromString(htmlString, "text/xml").children[0];
+  // Change this to div.childNodes to support multiple top-level nodes.
 }
 
 /**

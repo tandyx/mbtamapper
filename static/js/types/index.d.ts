@@ -1,15 +1,47 @@
 import L from "leaflet";
 import "leaflet-sidebar";
 
+export type LeafletSidebar = (ReturnType<
+  typeof L.control.sidebar
+> extends L.Control
+  ? ReturnType<typeof L.control.sidebar>
+  : never) &
+  L.Evented;
+
 export interface LayerApiRealtimeOptions {
   url: string;
   layer: L.LayerGroup;
   textboxSize: string;
   isMobile: boolean;
-  sidebar: typeof L.Control.Sidebar;
+  sidebar: LeafletSidebar;
   routeType: string;
   map: L.Map;
   interval?: number;
+}
+
+export interface RealtimeLayerOnClickOptions<T extends LayerProperty> {
+  /**
+   * stops pagination for the event to other map listeners
+   * @default true
+   */
+  stopPropagation?: boolean;
+
+  /**
+   * feature's properties
+   */
+  properties: T;
+
+  /**
+   * because javascript is an AMAZING language
+   * @default this
+   */
+  _this?: this;
+
+  /**
+   * id field, sets window hash, can be ignored by passing null
+   * @default "id"
+   */
+  idField?: keyof T | "id";
 }
 
 export interface FetchCacheOptions<T extends "text" | "json"> {
@@ -28,6 +60,14 @@ export interface FetchCacheOptions<T extends "text" | "json"> {
    * @default null (indefinite)
    */
   clearAfter?: number;
+  /**
+   * what to do on error? returns result of this function if errors
+   *
+   * by default returns an empty array and `console.errors`
+   *
+   * @default (resp: Response) => []
+   */
+  onError?: (resp: Response) => any;
 }
 
 export interface LayerProperty {

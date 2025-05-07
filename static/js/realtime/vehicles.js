@@ -6,7 +6,7 @@
  * @typedef {import("../utils.js")}
  * @typedef {import("sorttable/sorttable.js").sorttable} sorttable
  * @import { sorttable } from "sorttable/sorttable.js"
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, VehicleProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, VehicleProperty, RealtimeLayerOnClickOptions, NextStop } from "../types/index.js"
  * @import { Layer, Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports VehicleLayer
@@ -94,6 +94,7 @@ class VehicleLayer extends BaseRealtimeLayer {
   plot(options) {
     const _this = this;
     options = { ..._this.options, ...options };
+    const onClickOpts = { _this, idField: "vehicle_id" };
     const realtime = L.realtime(options.url, {
       interval: this.options.interval,
       // interval: 500,
@@ -109,28 +110,30 @@ class VehicleLayer extends BaseRealtimeLayer {
         if (!options.isMobile) l.bindTooltip(f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
-        l.on("click", (event) => {
-          L.DomEvent.stopPropagation(event);
-          _this.#fillDataWrapper(f.properties, _this);
+        l.on("click", (_e) => {
+          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties });
         });
       },
     });
 
     // realtime.on("update", () => _this.iter++);
-    realtime.on("update", function (event) {
+    realtime.on("update", function (_e) {
       this.iter++;
       _this.#fillDefaultSidebar(
-        Object.values(event.features).map((e) => e.properties)
+        Object.values(_e.features).map((e) => e.properties)
       );
-      Object.keys(event.update).forEach(
+      Object.keys(_e.update).forEach(
         function (id) {
           /**@type {Layer} */
           const layer = this.getLayer(id);
           /**@type {GeoJSON.Feature<GeoJSON.Geometry, VehicleProperty} */
-          const feature = event.update[id];
+          const feature = _e.update[id];
+          // const properties = feature.properties;
           const _onclick = () => {
-            L.DomEvent.stopPropagation(event);
-            _this.#fillDataWrapper(feature.properties, _this);
+            _this.#_onclick(_e, {
+              ...onClickOpts,
+              properties: feature.properties,
+            });
           };
           const wasOpen = layer.getPopup()?.isOpen() || false;
           layer.id = feature.id;
@@ -143,12 +146,12 @@ class VehicleLayer extends BaseRealtimeLayer {
           );
           layer.setIcon(_this.#getIcon(feature.properties));
           if (wasOpen) {
-            layer.openPopup();
             _this.options.map.setView(
               layer.getLatLng(),
               _this.options.map.getZoom(),
               { animate: true }
             );
+            layer.openPopup();
             setTimeout(_onclick, 200);
           }
           layer.on("click", _onclick);
@@ -158,6 +161,127 @@ class VehicleLayer extends BaseRealtimeLayer {
 
     return realtime;
   }
+  /**
+   *
+   * @param {VehicleProperty} properties
+   * @returns
+   */
+  #getHeaderHTML(properties) {
+    return /* HTML */ `<div>
+      <div>
+        <a
+          href="${properties.route?.route_url}"
+          target="_blank"
+          style="color:#${properties.route_color};line-height: 1.35;"
+          class="popup_header"
+        >
+          ${properties.trip_short_name}
+        </a>
+      </div>
+      <div>
+        ${VehicleLayer.#worcester_map[properties.trip_short_name] ||
+        `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
+          properties.headsign
+        }`}
+      </div>
+      <hr />
+    </div>`;
+  }
+
+  /**
+   * sometimes the next stop on a vehicle is not available, so we infill it asynchronously
+   *
+   * MUTATES properties
+   *
+   * @param {VehicleProperty} properties pointer to this property
+   * @param {{count?: number, delay?: number}} options
+   * @returns {Promise<NextStop?>} pointer to `properties.next_stop`
+   */
+  async #infillNextStop(properties, options = {}) {
+    if (!properties) return;
+    if (properties.next_stop) return properties.next_stop;
+    const { count = 5, delay = 1000 } = options || {};
+    let _count = 0;
+    while (!properties.next_stop && _count < count) {
+      await asyncSleep(delay);
+      properties.next_stop = (
+        await fetchCache(
+          `/api/vehicles?vehicle_id=${properties.vehicle_id}&include=next_stop`,
+          {},
+          { storage: null }
+        )
+      )?.at(0)?.next_stop;
+    }
+    return properties.next_stop;
+  }
+
+  /**
+   * @param {VehicleProperty} properties
+   */
+  #getStatusHTML(properties) {
+    const dominant =
+      properties.next_stop?.arrival_time ||
+      properties.next_stop?.departure_time;
+    // for scheduled stops
+    if (properties.stop_time) {
+      if (properties.current_status !== "STOPPED_AT") {
+        return `<div>${almostTitleCase(properties.current_status)} ${
+          properties.stop_time.stop_name
+        } - ${dominant ? formatTimestamp(dominant, "%I:%M %P") : ""}</div>`;
+      }
+      return `<div>${almostTitleCase(properties.current_status)} ${
+        properties.stop_time.stop_name
+      }</div>`;
+    }
+    if (!properties.next_stop) return "";
+    // for added stops
+    if (properties.current_status !== "STOPPED_AT") {
+      return `<div>${almostTitleCase(properties.current_status)} ${
+        properties.next_stop.stop_name
+      } - ${dominant ? formatTimestamp(dominant, "%I:%M %P") : ""}</div>`;
+    }
+    return `<div>${almostTitleCase(properties.current_status)} ${
+      properties.next_stop.stop_name
+    }</div>`;
+  }
+  /**
+   *
+   * @param {VehicleProperty} properties
+   * @returns
+   */
+  #getDelayHTML(properties) {
+    if (!properties?.stop_time) return "";
+    if ([null, undefined].includes(properties?.next_stop?.delay)) return "";
+    const delay = Math.round(properties.next_stop.delay / 60);
+    if (delay < 2 && delay >= 0) return "<i>on time</i>";
+    const dClassName = getDelayClassName(properties.next_stop.delay);
+    return /* HTML */ ` <i class="${dClassName}">
+      ${Math.abs(delay)} minutes
+      ${dClassName === "on-time" ? "early" : "late"}</i
+    >`;
+  }
+
+  /**
+   * @param {VehicleProperty} properties
+   */
+  #getOccupancyHTML(properties) {
+    if (properties.occupancy_status === null) return "";
+    // if (delay)
+
+    return /* HTML */ `<div>
+      <span
+        class="${properties.occupancy_percentage >= 80
+          ? "severe-delay"
+          : properties.occupancy_percentage >= 60
+          ? "moderate-delay"
+          : properties.occupancy_percentage >= 40
+          ? "slight-delay"
+          : ""}"
+      >
+        ${properties.occupancy_percentage}% occupancy
+      </span>
+    </div>`;
+  }
 
   /**
    * gets vehicle text
@@ -166,258 +290,40 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   #getPopupText(properties) {
     const vehicleText = document.createElement("div");
-    const fmtmstp = formatTimestamp(properties.timestamp, "%I:%M %P");
-    const delay = Math.round(properties.next_stop?.delay / 60);
-    const dClassName = getDelayClassName(properties.next_stop?.delay);
-    const toolTipClass = this.options?.isMobile ? "" : "tooltip";
-    vehicleText.innerHTML = /* HTML */ `<p>
-        <a
-          href="${properties.route?.route_url ||
-          `https://mbta.com/schedules/${properties.route_id}`}"
-          target="_blank"
-          style="color:#${properties.route_color}"
-          class="popup_header"
-        >
-          ${properties.display_name}
-        </a>
-      </p>
-      <p>
-        ${VehicleLayer.#worcester_map[properties.trip_short_name] ||
-        `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
-          properties.headsign
-        }`}
-      </p>
-      <hr />
-      ${properties.bikes_allowed
-        ? `<span class="fa tooltip" data-tooltip="bikes allowed"
+    vehicleText.innerHTML = /* HTML */ ` ${this.#getHeaderHTML(properties)}
+      <div style="margin-bottom: 3px;">
+        ${properties.bikes_allowed
+          ? `<span class="fa tooltip" data-tooltip="bikes allowed"
         >${BaseRealtimeLayer.iconSpacing("bike")}</span>`
-        : ""}
-      <span
-        name="pred-veh-${properties.trip_id}"
-        class="fa hidden popup ${toolTipClass}"
-        data-tooltip="predictions"
-      >
-        ${BaseRealtimeLayer.iconSpacing("prediction")}
-      </span>
-      <span
-        name="alert-veh-${properties.trip_id}"
-        class="fa hidden popup ${toolTipClass} slight-delay"
-        data-tooltip="alerts"
-      >
-        ${BaseRealtimeLayer.iconSpacing("alert")}
-      </span>
-      ${properties.stop_time
-        ? `${
-            properties.current_status != "STOPPED_AT"
-              ? `<p>${almostTitleCase(properties.current_status)} ${
-                  properties.stop_time.stop_name
-                } - ${
-                  properties.next_stop?.arrival_time ||
-                  properties.next_stop?.departure_time
-                    ? formatTimestamp(
-                        properties.next_stop?.arrival_time ||
-                          properties.next_stop?.departure_time,
-                        "%I:%M %P"
-                      )
-                    : ""
-                }</p>`
-              : `<p>${almostTitleCase(properties.current_status)} ${
-                  properties.stop_time.stop_name
-                }</p>`
-          }
-    ${
-      properties.next_stop?.delay !== null
-        ? `
-      ${
-        delay !== delay
-          ? ""
-          : delay !== 0
-          ? `
-          <i class='${dClassName}'> ${Math.abs(delay)} minutes ${
-              dClassName === "on-time" ? "early" : "late"
-            }
-          </i>`
-          : "<i>on time</i>"
-      }`
-        : ""
-    }`
-        : properties.next_stop
-        ? `${
-            properties.current_status != "STOPPED_AT"
-              ? `<p>${almostTitleCase(properties.current_status)} ${
-                  properties.next_stop.stop_name
-                } - ${fmtmstp}</p>`
-              : `<p>${almostTitleCase(properties.current_status)} ${
-                  properties.next_stop.stop_name
-                }</p>`
-          }`
-        : ""}
-      ${properties.occupancy_status != null
-        ? `<p>
-      <span class="${
-        properties.occupancy_percentage >= 80
-          ? "severe-delay"
-          : properties.occupancy_percentage >= 60
-          ? "moderate-delay"
-          : properties.occupancy_percentage >= 40
-          ? "slight-delay"
-          : ""
-      }">
-        ${properties.occupancy_percentage}% occupancy
-      </span>
-    </p>`
-        : ""}
-      <p>
+          : ""}
+        ${super.moreInfoButton(properties.vehicle_id)}
+      </div>
+      ${this.#getStatusHTML(properties)}
+      <div>${this.#getDelayHTML(properties)}</div>
+      ${this.#getOccupancyHTML(properties)}
+      <div>
         ${properties.speed_mph != null
           ? Math.round(properties.speed_mph)
           : properties.speed_mph}
         mph
-      </p>
+      </div>
       <div class="popup_footer">
-        <p>
+        <div>
           ${properties.vehicle_id} @
-          ${properties.route ? properties.route.route_name : "unknown"}
+          ${properties?.route?.route_name || "unknown"}
           ${properties.next_stop?.platform_code
             ? `track ${properties.next_stop.platform_code}`
             : ""}
-        </p>
-        <p>
+        </div>
+        <div>
           ${formatTimestamp(properties.timestamp, "%I:%M %P")}
           <i
             id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
           ></i>
-        </p>
+        </div>
       </div>`;
 
     return vehicleText;
-  }
-
-  /**
-   *
-   * @param {PredictionProperty[]} _data
-   */
-  #predictionTable(_data) {
-    if (!_data?.length) return "";
-
-    return `<table class='data-table'><tr><th>stop</th><th>estimate</th></tr>
-    ${_data
-      .sort(
-        (a, b) =>
-          (a.departure_time || a.arrival_time) -
-          (b.departure_time || b.arrival_time)
-      )
-      .map((d) => {
-        const realDeparture = d.departure_time || d.arrival_time;
-        if (!realDeparture || realDeparture < Date().valueOf()) return "";
-        const delayText = getDelayText(d.delay);
-        let stopTimeClass,
-          tooltipText,
-          htmlLogo = "";
-        if (d.stop_time?.flag_stop) {
-          stopTimeClass = "flag_stop tooltip";
-          tooltipText = "flag stop";
-          htmlLogo = "<i> f</i>";
-        } else if (d.stop_time?.early_departure) {
-          stopTimeClass = "early_departure tooltip";
-          tooltipText = "early departure";
-          htmlLogo = "<i> L</i>";
-        }
-
-        return `<tr>
-          <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${
-          d.stop_name
-        } ${htmlLogo}</td>
-          <td>
-            ${formatTimestamp(realDeparture, "%I:%M %P")}
-            <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
-          </td>
-        </tr>
-        `;
-      })
-      .join("")}
-    </table>`;
-  }
-
-  /**
-   * fill prediction data in for `pred-veh-{trip_id}` element
-   * this appears as a popup on the map
-   * @param {string} trip_id - vehicle id
-   * @param {boolean} popup - whether to show the popup
-   */
-  async #fillPredictionData(trip_id) {
-    for (const predEl of document.getElementsByName(`pred-veh-${trip_id}`)) {
-      const popupId = `popup-pred-${trip_id}`;
-      super.popupLoadingIcon(predEl, popupId);
-      const popupText = document.createElement("span");
-
-      popupText.classList.add("popuptext");
-      popupText.id = popupId;
-      popupText.innerHTML = "...";
-      /**@type {PredictionProperty[]}*/
-      const _data = await fetchCache(
-        `/api/prediction?trip_id=${trip_id}&include=stop_time`,
-        {},
-        super.defaultFetchCacheOpt
-      );
-      // const _data = fe
-
-      if (!_data.length) {
-        predEl.classList.add("hidden");
-        return [];
-      }
-      popupText.innerHTML = this.#predictionTable(_data);
-      predEl.innerHTML = BaseRealtimeLayer.iconSpacing("prediction");
-      predEl.appendChild(popupText);
-      setTimeout(() => {
-        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
-          BaseRealtimeLayer.togglePopup(popupId, true);
-        }
-      }, 400);
-      return _data;
-    }
-  }
-  /**
-   *  fill alert prediction data
-   * @param {string} trip_id - vehicle id
-   */
-  async #fillAlertData(trip_id) {
-    for (const alertEl of document.getElementsByName(`alert-veh-${trip_id}`)) {
-      const popupId = `popup-alert-${trip_id}`;
-      super.popupLoadingIcon(alertEl, popupId, {
-        style: "border-top: var(--border) solid var(--slight-delay);",
-      });
-      const popupText = document.createElement("span");
-      popupText.classList.add("popuptext");
-      popupText.id = popupId;
-      popupText.innerHTML = "...";
-      /** @type {AlertProperty[]} */
-      const _data = await (await fetch(`/api/alert?trip_id=${trip_id}`)).json();
-      if (!_data.length) {
-        alertEl.classList.add("hidden");
-        return [];
-      }
-      popupText.innerHTML =
-        "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
-        _data
-          .sort((a, b) => b.timestamp || 0 - a.timestamp || 0)
-          .map(function (d) {
-            return `<tr>
-              <td>${d.header}</td>
-              <td>${formatTimestamp(d.timestamp)}</td>
-            </tr>
-            `;
-          })
-          .join("") +
-        "</table>";
-      alertEl.innerHTML = BaseRealtimeLayer.iconSpacing("alert");
-      alertEl.appendChild(popupText);
-      setTimeout(() => {
-        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
-          BaseRealtimeLayer.togglePopup(popupId, true);
-        }
-      }, 150);
-      return _data;
-    }
   }
 
   /**
@@ -426,54 +332,75 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {AlertProperty[]} alerts
    * @param {PredictionProperty[]} predictions
    */
-  #fillSidebar(properties, alerts, predictions) {
-    const container = document.getElementById(BaseRealtimeLayer.sideBarOtherId);
+  async #fillSidebar(properties) {
+    const container = BaseRealtimeLayer.toggleSidebarDisplay(
+      BaseRealtimeLayer.sideBarOtherId
+    );
     if (!container) return;
-    document.getElementById(BaseRealtimeLayer.sideBarMainId).style.display =
-      "none";
-    container.style.display = "block";
-    container.innerHTML = /*HTML*/ `
-    <div>
+    super.moreInfoButton(properties.vehicle_id, { loading: true });
+    /**@type {PredictionProperty[]}*/
+    const predictions = await fetchCache(
+      `/api/prediction?trip_id=${properties.trip_id}&include=stop_time`,
+      {},
+      super.defaultFetchCacheOpt
+    );
+    /** @type {AlertProperty[]} */
+    const alerts = await fetchCache(
+      `/api/alert?trip_id=${properties.trip_id}`,
+      {},
+      super.defaultFetchCacheOpt
+    );
+    super.moreInfoButton(properties.vehicle_id, {
+      alert: Boolean(alerts.length),
+    });
 
-      <a
-        href="${
-          properties.route?.route_url ||
-          `https://mbta.com/schedules/${properties.route_id}`
-        }"
-        target="_blank"
-        style="color:#${properties.route_color}"
-        class="popup_header sidebar-title"
-      >
-          ${properties.display_name}
-        </a>
-      <div style="margin-top:-5px;">${
-        VehicleLayer.#worcester_map[properties.trip_short_name] ||
-        `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
-          properties.headsign
-        }`
-      }
-      </span>
-      <hr />
-      ${
-        alerts?.length
-          ? `
-        <div>
-          ${alerts
-            .map((a) => {
-              return `<div class="alert-box">
-              <div class="alert-header">${a.header}</div>
-              <div class="alert-timestamp">last updated ${formatTimestamp(
-                a.timestamp,
-                "%I:%M %P"
-              )}</div>
-            </div>`;
-            })
-            .join("")}
-        </div>`
-          : ""
-      }
-      <div>${this.#predictionTable(predictions)} </div>  
-    </div>  
+    container.innerHTML = /*HTML*/ `<div>
+      ${this.#getHeaderHTML(properties)}
+      ${this.#getStatusHTML(properties)}
+      ${super.getAlertsHTML(alerts)}
+      ${this.#getOccupancyHTML(properties)}
+      <div style='margin-top:5px;'>
+        <table class='data-table'>
+        <tr><th>Stop</th><th>Estimate</th></tr>
+        ${predictions
+          ?.sort(
+            (a, b) =>
+              (a.departure_time || a.arrival_time) -
+              (b.departure_time || b.arrival_time)
+          )
+          ?.map((d) => {
+            const realDeparture = d.departure_time || d.arrival_time;
+            if (!realDeparture || realDeparture < Date().valueOf()) return "";
+            const delayText = getDelayText(d.delay);
+            let stopTimeClass,
+              tooltipText,
+              htmlLogo = "";
+            if (d.stop_time?.flag_stop) {
+              stopTimeClass = "flag_stop tooltip";
+              tooltipText = "flag stop";
+              htmlLogo = "<i> f</i>";
+            } else if (d.stop_time?.early_departure) {
+              stopTimeClass = "early_departure tooltip";
+              tooltipText = "early departure";
+              htmlLogo = "<i> L</i>";
+            }
+
+            return `<tr>
+              <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${
+              d.stop_name
+            } ${htmlLogo}</td>
+              <td>
+                ${formatTimestamp(realDeparture, "%I:%M %P")}
+                <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+              </td>
+            </tr>
+            `;
+          })
+          .join("")}
+        </table>
+      </div>  
+    </div>
+  </div>
   `;
   }
 
@@ -501,7 +428,6 @@ class VehicleLayer extends BaseRealtimeLayer {
       <tbody>
       ${properties
         .map((prop) => {
-          div;
           const encoded = btoa(JSON.stringify(prop));
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
           return /*HTML*/ `<tr>
@@ -540,23 +466,23 @@ class VehicleLayer extends BaseRealtimeLayer {
   }
 
   /**
-   * wraps this.#fillPredictionData and this.#fillAlertData for a single vehicle
+   * to be called `onclick`
    *
-   * basically, `onclick`
+   * supposed to be private but :P
    *
-   * @param {VehicleProperty} properties
-   * @param {this} _this override `this`
+   * @param {DomEvent.PropagableEvent} event
+   * @param {RealtimeLayerOnClickOptions<VehicleProperty>} options
    */
-  #fillDataWrapper(properties, _this = null) {
-    _this ||= this;
-    window.location.hash = `#${properties.vehicle_id}`;
-    Promise.all([
-      _this.#fillPredictionData(properties.trip_id),
-      _this.#fillAlertData(properties.trip_id),
-    ]).then(([pred, alerts]) => _this.#fillSidebar(properties, alerts, pred));
-    _updateTimestamp(
-      `vehicle-${properties.vehicle_id}-timestamp-${_this.iter || 1}`,
-      properties.timestamp
+  #_onclick(event, options = {}) {
+    super._onclick(event, options);
+    /**@type {this} */
+    const _this = options._this || this;
+    _this.#infillNextStop(options.properties);
+    _this.#fillSidebar(options.properties);
+
+    super._updateTimestamp(
+      `vehicle-${options.properties.vehicle_id}-timestamp-${_this.iter || 1}`,
+      options.properties.timestamp
     );
   }
 }
