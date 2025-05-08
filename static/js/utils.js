@@ -292,16 +292,17 @@ function isLikeMobile(threshold = null) {
 /**
  * gets delay text formatted
  * @param {int} delay
+ * @param {boolean} [addMin=true] adds `" min"` to the end of the string
  * @returns {string} - the delay text
  */
-function getDelayText(delay) {
+function getDelayText(delay, addMin = true) {
   let delayText = delay ? `${Math.floor(delay / 60)}` : "";
   if (delayText === "0") {
     delayText = "";
   } else if (delay > 0) {
     delayText = `+${delayText}`;
   }
-  if (delayText) {
+  if (delayText && addMin) {
     delayText += " min";
   }
   return delayText;
@@ -444,9 +445,7 @@ async function fetchCache(url, fetchParams, options = {}) {
     data = await resp.text();
     storage.setItem(url, data);
   }
-  if (clearAfter) {
-    setTimeout(() => storage.removeItem(url), clearAfter);
-  }
+  if (clearAfter) setTimeout(() => storage.removeItem(url), clearAfter);
 
   return data;
 }

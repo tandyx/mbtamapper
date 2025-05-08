@@ -4,8 +4,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @typedef {import("sorttable/sorttable.js").sorttable} sorttable
- * @import { sorttable } from "sorttable/sorttable.js"
+ * @import { * } from "sorttable/sorttable.js"
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, VehicleProperty, RealtimeLayerOnClickOptions, NextStop } from "../types/index.js"
  * @import { Layer, Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
@@ -106,7 +105,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       onEachFeature(f, l) {
         l.id = f.id;
         l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
-        l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
+        l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
@@ -128,23 +127,14 @@ class VehicleLayer extends BaseRealtimeLayer {
           const layer = this.getLayer(id);
           /**@type {GeoJSON.Feature<GeoJSON.Geometry, VehicleProperty} */
           const feature = _e.update[id];
-          // const properties = feature.properties;
-          const _onclick = () => {
-            _this.#_onclick(_e, {
-              ...onClickOpts,
-              properties: feature.properties,
-            });
-          };
           const wasOpen = layer.getPopup()?.isOpen() || false;
+          const properties = feature.properties;
           layer.id = feature.id;
-          layer.feature.properties.searchName = `${feature.properties.trip_short_name} @ ${feature.properties.route?.route_name}`;
+          layer.feature.properties.searchName = `${properties.trip_short_name} @ ${properties.route?.route_name}`;
           layer.unbindPopup();
           if (wasOpen) layer.closePopup();
-          layer.bindPopup(
-            _this.#getPopupText(feature.properties),
-            options.textboxSize
-          );
-          layer.setIcon(_this.#getIcon(feature.properties));
+          layer.bindPopup(_this.#getPopupHTML(properties), options.textboxSize);
+          layer.setIcon(_this.#getIcon(properties));
           if (wasOpen) {
             _this.options.map.setView(
               layer.getLatLng(),
@@ -152,9 +142,10 @@ class VehicleLayer extends BaseRealtimeLayer {
               { animate: true }
             );
             layer.openPopup();
-            setTimeout(_onclick, 200);
+            setTimeout(() => {
+              _this.#_onclick(_e, { ...onClickOpts, properties: properties });
+            }, 200);
           }
-          layer.on("click", _onclick);
         }.bind(this)
       );
     });
@@ -191,8 +182,6 @@ class VehicleLayer extends BaseRealtimeLayer {
   /**
    * sometimes the next stop on a vehicle is not available, so we infill it asynchronously
    *
-   * MUTATES properties
-   *
    * @param {VehicleProperty} properties pointer to this property
    * @param {{count?: number, delay?: number}} options
    * @returns {Promise<NextStop?>} pointer to `properties.next_stop`
@@ -200,7 +189,7 @@ class VehicleLayer extends BaseRealtimeLayer {
   async #infillNextStop(properties, options = {}) {
     if (!properties) return;
     if (properties.next_stop) return properties.next_stop;
-    const { count = 5, delay = 1000 } = options || {};
+    const { count = 1, delay = 1000 } = options || {};
     let _count = 0;
     while (!properties.next_stop && _count < count) {
       await asyncSleep(delay);
@@ -284,11 +273,11 @@ class VehicleLayer extends BaseRealtimeLayer {
   }
 
   /**
-   * gets vehicle text
+   * returns the vehicle popup html
    * @param {VehicleProperty} properties
-   * @returns {HTMLDivElement} - vehicle text
+   * @returns {HTMLDivElement} vehicle text
    */
-  #getPopupText(properties) {
+  #getPopupHTML(properties) {
     const vehicleText = document.createElement("div");
     vehicleText.innerHTML = /* HTML */ ` ${this.#getHeaderHTML(properties)}
       <div style="margin-bottom: 3px;">
@@ -327,18 +316,23 @@ class VehicleLayer extends BaseRealtimeLayer {
   }
 
   /**
+   * fills the vehicle-specific sidebar
    *
    * @param {VehicleProperty} properties
-   * @param {AlertProperty[]} alerts
-   * @param {PredictionProperty[]} predictions
    */
   async #fillSidebar(properties) {
     const container = BaseRealtimeLayer.toggleSidebarDisplay(
       BaseRealtimeLayer.sideBarOtherId
     );
-    if (!container) return;
+    const sidebar = document.getElementById("sidebar");
+    if (!container || !sidebar) return;
     super.moreInfoButton(properties.vehicle_id, { loading: true });
     /**@type {PredictionProperty[]}*/
+    sidebar.style.display = "flex";
+    container.innerHTML = /* HTML */ `<div class="centered-parent">
+      <div class="loader-large"></div>
+    </div>`;
+    /** @type {PredictionProperty[]} */
     const predictions = await fetchCache(
       `/api/prediction?trip_id=${properties.trip_id}&include=stop_time`,
       {},
@@ -353,55 +347,57 @@ class VehicleLayer extends BaseRealtimeLayer {
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
     });
-
+    sidebar.style.display = "initial";
     container.innerHTML = /*HTML*/ `<div>
-      ${this.#getHeaderHTML(properties)}
-      ${this.#getStatusHTML(properties)}
-      ${super.getAlertsHTML(alerts)}
-      ${this.#getOccupancyHTML(properties)}
-      <div style='margin-top:5px;'>
-        <table class='data-table'>
-        <tr><th>Stop</th><th>Estimate</th></tr>
-        ${predictions
-          ?.sort(
-            (a, b) =>
-              (a.departure_time || a.arrival_time) -
-              (b.departure_time || b.arrival_time)
-          )
-          ?.map((d) => {
-            const realDeparture = d.departure_time || d.arrival_time;
-            if (!realDeparture || realDeparture < Date().valueOf()) return "";
-            const delayText = getDelayText(d.delay);
-            let stopTimeClass,
-              tooltipText,
-              htmlLogo = "";
-            if (d.stop_time?.flag_stop) {
-              stopTimeClass = "flag_stop tooltip";
-              tooltipText = "flag stop";
-              htmlLogo = "<i> f</i>";
-            } else if (d.stop_time?.early_departure) {
-              stopTimeClass = "early_departure tooltip";
-              tooltipText = "early departure";
-              htmlLogo = "<i> L</i>";
-            }
+        ${this.#getHeaderHTML(properties)}
+        ${this.#getStatusHTML(properties)}
+        ${super.getAlertsHTML(alerts)}
+        ${this.#getOccupancyHTML(properties)}
+        <div style='margin-top:5px;'>
+          <table class='data-table'>
+          <tr><th>Stop</th><th>Estimate</th></tr>
+          ${predictions
+            ?.sort(
+              (a, b) =>
+                (a.departure_time || a.arrival_time) -
+                (b.departure_time || b.arrival_time)
+            )
+            ?.map((d) => {
+              const realDeparture = d.departure_time || d.arrival_time;
+              if (!realDeparture || realDeparture < Date().valueOf()) return "";
+              const delayText = getDelayText(d.delay);
+              let _class,
+                tooltip,
+                htmlLogo = "";
+              if (d.stop_time?.flag_stop) {
+                _class = "flag_stop";
+                tooltip = "flag stop";
+                htmlLogo = "<i> f</i>";
+              } else if (d.stop_time?.early_departure) {
+                _class = "early_departure";
+                tooltip = "early departure";
+                htmlLogo = "<i> L</i>";
+              }
 
-            return `<tr>
-              <td class='${stopTimeClass}' data-tooltip='${tooltipText}'>${
-              d.stop_name
-            } ${htmlLogo}</td>
-              <td>
-                ${formatTimestamp(realDeparture, "%I:%M %P")}
-                <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
-              </td>
-            </tr>
-            `;
-          })
-          .join("")}
-        </table>
-      </div>  
+              return `<tr>
+                <td class='${
+                  tooltip && "tooltip"
+                }' data-tooltip='${tooltip}'><a class='${_class}' onclick="new BaseRealtimeLayer({map: _map}).clickStop('${
+                d.stop_id
+              }')">${d.stop_name} ${htmlLogo}</a></td>
+                <td>
+                  ${formatTimestamp(realDeparture, "%I:%M %P")}
+                  <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+                </td>
+              </tr>
+              `;
+            })
+            .join("")}
+          </table>
+        </div>
+      </div>
     </div>
-  </div>
-  `;
+    `;
   }
 
   /**
@@ -430,17 +426,23 @@ class VehicleLayer extends BaseRealtimeLayer {
         .map((prop) => {
           const encoded = btoa(JSON.stringify(prop));
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
+          const _onclickObj = "new BaseRealtimeLayer({map: _map})";
           return /*HTML*/ `<tr>
-          <td><a ${lStyle} id="to-r-${encoded}">${
-            prop.route.route_name
-          }</a></td>
-          <td><a ${lStyle} id="to-v-${encoded}">${prop.trip_short_name}</a></td>
-          <td><a  id="to-s-${encoded}"> ${
+          <td><a ${lStyle} id="to-r-${encoded}" onclick="${_onclickObj}.clickRoute('${
+            prop.route_id
+          }')">${prop.route.route_name}</a></td>
+          <td><a ${lStyle} onclick="${_onclickObj}.clickVehicle('${
+            prop.vehicle_id
+          }')">${prop.trip_short_name}
+          </a></td>
+          <td><a id="to-s-${encoded}" onclick="${_onclickObj}.clickStop('${
+            prop.stop_id
+          }')"> ${
             prop.next_stop?.stop_name || prop.stop_time?.stop_name
           }</a></td>
           <td><i class='${getDelayClassName(
             prop.next_stop?.delay
-          )}'>${getDelayText(prop.next_stop?.delay)}</i></td>
+          )}'>${getDelayText(prop.next_stop?.delay, false)}</i></td>
         </tr>`;
         })
         .join("")}
@@ -451,24 +453,12 @@ class VehicleLayer extends BaseRealtimeLayer {
     for (const el of document.getElementsByClassName("sortable")) {
       sorttable.makeSortable(el);
     }
-    for (const prop of properties) {
-      const encoded = btoa(JSON.stringify(prop));
-      document
-        .getElementById(`to-v-${encoded}`)
-        ?.addEventListener("click", () => super.clickVehicle(prop.vehicle_id));
-      document
-        .getElementById(`to-r-${encoded}`)
-        ?.addEventListener("click", () => super.clickRoute(prop.route_id));
-      document
-        .getElementById(`to-s-${encoded}`)
-        ?.addEventListener("click", () => super.clickStop(prop.stop_id));
-    }
   }
 
   /**
    * to be called `onclick`
    *
-   * supposed to be private but :P
+   * supercedes public super method
    *
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<VehicleProperty>} options

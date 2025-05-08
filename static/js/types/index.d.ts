@@ -1,5 +1,6 @@
 import L from "leaflet";
 import "leaflet-sidebar";
+import * as util from "../utils.js";
 
 export type LeafletSidebar = (ReturnType<
   typeof L.control.sidebar
@@ -49,7 +50,7 @@ export interface FetchCacheOptions<T extends "text" | "json"> {
    * sessionStorage or localStorage or null (no cache)
    * @default sessionStorage
    */
-  storage?: Storage | MemoryStorage;
+  storage?: Storage;
   /**
    * store and fetch as text or json
    * @default json
