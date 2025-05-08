@@ -382,7 +382,7 @@ class VehicleLayer extends BaseRealtimeLayer {
               return `<tr>
                 <td class='${
                   tooltip && "tooltip"
-                }' data-tooltip='${tooltip}'><a class='${_class}' onclick="new BaseRealtimeLayer({map: _map}).clickStop('${
+                }' data-tooltip='${tooltip}'><a class='${_class}' onclick="new LayerFinder(_map).clickStop('${
                 d.stop_id
               }')">${d.stop_name} ${htmlLogo}</a></td>
                 <td>
@@ -426,16 +426,15 @@ class VehicleLayer extends BaseRealtimeLayer {
         .map((prop) => {
           const encoded = btoa(JSON.stringify(prop));
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
-          const _onclickObj = "new BaseRealtimeLayer({map: _map})";
           return /*HTML*/ `<tr>
-          <td><a ${lStyle} id="to-r-${encoded}" onclick="${_onclickObj}.clickRoute('${
+          <td><a ${lStyle} id="to-r-${encoded}" onclick="new LayerFinder(_map).clickRoute('${
             prop.route_id
           }')">${prop.route.route_name}</a></td>
-          <td><a ${lStyle} onclick="${_onclickObj}.clickVehicle('${
+          <td><a ${lStyle} onclick="new LayerFinder(_map).clickVehicle('${
             prop.vehicle_id
           }')">${prop.trip_short_name}
           </a></td>
-          <td><a id="to-s-${encoded}" onclick="${_onclickObj}.clickStop('${
+          <td><a id="to-s-${encoded}" onclick="new LayerFinder(_map).clickStop('${
             prop.stop_id
           }')"> ${
             prop.next_stop?.stop_name || prop.stop_time?.stop_name

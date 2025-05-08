@@ -629,3 +629,99 @@ class MemoryStorage {
 }
 
 const memStorage = new MemoryStorage();
+
+/**
+ * class that interacts with a leaflet map and provides methods to action upon specific layers
+ */
+class LayerFinder {
+  /**
+   *
+   * @param {L.Map} map
+   */
+  constructor(map) {
+    this.map = map;
+  }
+
+  /**
+   * finds layer based on predicate and options
+   * @typedef {{click?: boolean, autoZoom?: boolean, zoom?: number, latLng?: L.LatLng}} FindLayerOptions
+   * @param {(value: L.LayerGroup<L.GeoJSON<LayerProperty>>, index: number, array: any[]) => L.Layer?} fn
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?}
+   */
+  findLayer(fn, options = {}) {
+    options = { click: true, autoZoom: true, ...options };
+    this.map.setZoom(this.map.options.minZoom, {
+      animate: false,
+    });
+    /**@type {L.Layer[]} */
+    const initialLayers = Object.values(this.map._layers);
+    let layer = initialLayers.find(fn);
+    /** @type {L.MarkerCluster?} */
+    let mcluster;
+    if (!layer) {
+      mcluster = initialLayers
+        .find((a) => a.options.name === "vehicles")
+        ?.disableClustering();
+      layer = Object.values(this.map._layers).find(fn);
+      mcluster?.enableClustering();
+    }
+    if (!layer) {
+      console.error(`layer not found`);
+      return layer;
+    }
+    if (this.map.options.maxZoom && options.autoZoom) {
+      this.map.setView(
+        options.latLng || layer.getLatLng(),
+        options.zoom || this.map.options.maxZoom
+      );
+    }
+    if (options.click) layer.fire("click");
+    return layer;
+  }
+
+  /**
+   * fires click event and zooms in on stop
+   * @param {string} stopId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} stop
+   */
+  clickStop(stopId, options = {}) {
+    return (
+      this.findLayer(
+        (e) =>
+          e?.feature?.properties?.child_stops
+            ?.map((c) => c.stop_id)
+            ?.includes(stopId) || e?.feature?.id === stopId
+      ),
+      { zoom: 15, ...options }
+    );
+  }
+
+  /**
+   * fires click event and zooms in on route
+   * @param {string} routeId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} shape
+   */
+  clickRoute(routeId, options = {}) {
+    return this.findLayer((e) => e?.feature?.properties?.route_id === routeId, {
+      zoom: this.map.options.minZoom,
+      latLng: this.map.getCenter(),
+      ...options,
+    });
+  }
+  /**
+   * fires click event and zooms in on vehicle
+   * wrapper for `findLayer`
+   * @param {string} vehicleId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} vehicle
+   */
+  clickVehicle(vehicleId, options = {}) {
+    return this.findLayer(
+      (e) => e?.feature?.properties?.vehicle_id === vehicleId,
+      { zoom: 15, ...options }
+    );
+  }
+}
