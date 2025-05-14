@@ -132,6 +132,8 @@ class VehicleLayer extends BaseRealtimeLayer {
           layer.id = feature.id;
           layer.feature.properties.searchName = `${properties.trip_short_name} @ ${properties.route?.route_name}`;
           layer.unbindPopup();
+          const onClick = () =>
+            _this.#_onclick(_e, { ...onClickOpts, properties: properties });
           if (wasOpen) layer.closePopup();
           layer.bindPopup(_this.#getPopupHTML(properties), options.textboxSize);
           layer.setIcon(_this.#getIcon(properties));
@@ -142,10 +144,15 @@ class VehicleLayer extends BaseRealtimeLayer {
               { animate: true }
             );
             layer.openPopup();
-            setTimeout(() => {
-              _this.#_onclick(_e, { ...onClickOpts, properties: properties });
-            }, 200);
+            setTimeout(onClick, 200);
           }
+          // onClick();
+          // layer.off("click", () => {
+          // _this.#_onclick(_e, { ...onClickOpts, properties: properties });
+          // });
+          layer.once("click", onClick);
+          // layer.once("click", onClick);
+          // layer.off("click", onClick);
         }.bind(this)
       );
     });
@@ -211,27 +218,30 @@ class VehicleLayer extends BaseRealtimeLayer {
     const dominant =
       properties.next_stop?.arrival_time ||
       properties.next_stop?.departure_time;
+    const _status = almostTitleCase(properties.current_status);
+    const tmstmp =
+      properties.current_status !== "STOPPED_AT" && dominant
+        ? formatTimestamp(dominant, "%I:%M %P")
+        : "";
+
+    const stopHTML = `<a style="cursor: pointer;" onclick="new LayerFinder(_map).clickStop('${
+      properties.stop_id
+    }')">${
+      properties.stop_time
+        ? properties.stop_time.stop_name
+        : properties?.next_stop?.stop_name
+    }</a>`;
+
     // for scheduled stops
     if (properties.stop_time) {
-      if (properties.current_status !== "STOPPED_AT") {
-        return `<div>${almostTitleCase(properties.current_status)} ${
-          properties.stop_time.stop_name
-        } - ${dominant ? formatTimestamp(dominant, "%I:%M %P") : ""}</div>`;
-      }
-      return `<div>${almostTitleCase(properties.current_status)} ${
-        properties.stop_time.stop_name
-      }</div>`;
+      if (tmstmp) return `<div>${_status} ${stopHTML} - ${tmstmp}</div>`;
+      return `<div>${_status} ${stopHTML}</div>`;
     }
+
     if (!properties.next_stop) return "";
     // for added stops
-    if (properties.current_status !== "STOPPED_AT") {
-      return `<div>${almostTitleCase(properties.current_status)} ${
-        properties.next_stop.stop_name
-      } - ${dominant ? formatTimestamp(dominant, "%I:%M %P") : ""}</div>`;
-    }
-    return `<div>${almostTitleCase(properties.current_status)} ${
-      properties.next_stop.stop_name
-    }</div>`;
+    if (tmstmp) return `<div>${_status} ${stopHTML} - ${tmstmp}</div>`;
+    return `<div>${_status} ${stopHTML}</div>`;
   }
   /**
    *
@@ -271,6 +281,26 @@ class VehicleLayer extends BaseRealtimeLayer {
       </span>
     </div>`;
   }
+  /**
+   * bike icon html
+   * @param {VehicleProperty} properties
+   */
+  #getBikeHTML(properties) {
+    if (!properties.bikes_allowed) return "";
+    return /* HTML */ `<span class="fa tooltip" data-tooltip="bikes allowed"
+      >${BaseRealtimeLayer.iconSpacing("bike")}</span
+    >`;
+  }
+  /**
+   * speed text
+   * @param {VehicleProperty} properties
+   */
+  #getSpeedText(properties) {
+    if (properties.speed_mph === undefined || properties.speed_mph === null) {
+      return "unknown mph";
+    }
+    return `${Math.round(properties.speed_mph)} mph`;
+  }
 
   /**
    * returns the vehicle popup html
@@ -281,21 +311,13 @@ class VehicleLayer extends BaseRealtimeLayer {
     const vehicleText = document.createElement("div");
     vehicleText.innerHTML = /* HTML */ ` ${this.#getHeaderHTML(properties)}
       <div style="margin-bottom: 3px;">
-        ${properties.bikes_allowed
-          ? `<span class="fa tooltip" data-tooltip="bikes allowed"
-        >${BaseRealtimeLayer.iconSpacing("bike")}</span>`
-          : ""}
+        ${this.#getBikeHTML(properties)}
         ${super.moreInfoButton(properties.vehicle_id)}
       </div>
       ${this.#getStatusHTML(properties)}
       <div>${this.#getDelayHTML(properties)}</div>
       ${this.#getOccupancyHTML(properties)}
-      <div>
-        ${properties.speed_mph != null
-          ? Math.round(properties.speed_mph)
-          : properties.speed_mph}
-        mph
-      </div>
+      <div>${this.#getSpeedText(properties)}</div>
       <div class="popup_footer">
         <div>
           ${properties.vehicle_id} @
@@ -325,6 +347,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       BaseRealtimeLayer.sideBarOtherId
     );
     const sidebar = document.getElementById("sidebar");
+    const timestamp = Math.round(new Date().valueOf() / 1000);
     if (!container || !sidebar) return;
     super.moreInfoButton(properties.vehicle_id, { loading: true });
     /**@type {PredictionProperty[]}*/
@@ -334,14 +357,14 @@ class VehicleLayer extends BaseRealtimeLayer {
     </div>`;
     /** @type {PredictionProperty[]} */
     const predictions = await fetchCache(
-      `/api/prediction?trip_id=${properties.trip_id}&include=stop_time`,
-      {},
+      `/api/prediction?trip_id=${properties.trip_id}&include=stop_time&_=${timestamp}`,
+      { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
     /** @type {AlertProperty[]} */
     const alerts = await fetchCache(
-      `/api/alert?trip_id=${properties.trip_id}`,
-      {},
+      `/api/alert?trip_id=${properties.trip_id}&_=${timestamp}`,
+      { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
     super.moreInfoButton(properties.vehicle_id, {
@@ -350,8 +373,11 @@ class VehicleLayer extends BaseRealtimeLayer {
     sidebar.style.display = "initial";
     container.innerHTML = /*HTML*/ `<div>
         ${this.#getHeaderHTML(properties)}
-        ${this.#getStatusHTML(properties)}
         ${super.getAlertsHTML(alerts)}
+        ${this.#getBikeHTML(properties)}
+        ${this.#getStatusHTML(properties)}
+        <div>${this.#getDelayHTML(properties)}</div>
+      <div>${this.#getSpeedText(properties)}</div>
         ${this.#getOccupancyHTML(properties)}
         <div style='margin-top:5px;'>
           <table class='data-table'>
@@ -466,7 +492,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-    _this.#infillNextStop(options.properties);
+    // _this.#infillNextStop(options.properties);
     _this.#fillSidebar(options.properties);
 
     super._updateTimestamp(

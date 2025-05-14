@@ -186,9 +186,8 @@ class BaseRealtimeLayer {
   get defaultFetchCacheOpt() {
     /**@type {FetchCacheOptions} */
     return {
-      clearAfter: this.options.interval - 50,
       type: "json",
-      storage: memStorage,
+      storage: null,
     };
   }
 

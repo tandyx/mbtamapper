@@ -36,6 +36,10 @@
   --box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
 }
 
+/* *:has(onclick) {
+  cursor: pointer !important;
+} */
+
 @font-face {
   font-family: "montserrat";
   src: url("../fonts/montserrat.ttf");
