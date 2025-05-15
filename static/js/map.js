@@ -30,6 +30,13 @@ window.addEventListener("load", function () {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
+  // this.setTimeout(() => {
+  //   const _hash = window.location.hash.slice(1);
+  //   const lf = new LayerFinder(_map);
+  //   if (lf.clickVehicle(_hash)) return;
+  //   if (lf.clickStop(_hash)) return;
+  //   if (lf.clickRoute(_hash)) return;
+  // }, 1000);
   Theme.fromExisting().set(sessionStorage, onThemeChange);
 });
 

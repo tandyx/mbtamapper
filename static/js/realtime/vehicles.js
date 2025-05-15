@@ -93,6 +93,7 @@ class VehicleLayer extends BaseRealtimeLayer {
   plot(options) {
     const _this = this;
     options = { ..._this.options, ...options };
+    /**@type {BaseRealtimeOnClickOptions<VehicleProperty>} */
     const onClickOpts = { _this, idField: "vehicle_id" };
     const realtime = L.realtime(options.url, {
       interval: this.options.interval,
@@ -394,32 +395,24 @@ class VehicleLayer extends BaseRealtimeLayer {
                 (a.departure_time || a.arrival_time) -
                 (b.departure_time || b.arrival_time)
             )
-            ?.map((d) => {
-              const realDeparture = d.departure_time || d.arrival_time;
+            ?.map((p) => {
+              const realDeparture = p.departure_time || p.arrival_time;
               if (!realDeparture || realDeparture < Date().valueOf()) return "";
-              const delayText = getDelayText(d.delay);
-              let _class,
-                tooltip,
-                htmlLogo = "";
-              if (d.stop_time?.flag_stop) {
-                _class = "flag_stop";
-                tooltip = "flag stop";
-                htmlLogo = "<i> f</i>";
-              } else if (d.stop_time?.early_departure) {
-                _class = "early_departure";
-                tooltip = "early departure";
-                htmlLogo = "<i> L</i>";
-              }
+              const delayText = getDelayText(p.delay);
+
+              const stAttrs = specialStopTimeAttrs(p.stop_time);
 
               return `<tr>
-                <td class='${
-                  tooltip && "tooltip"
-                }' data-tooltip='${tooltip}'><a class='${_class}' onclick="new LayerFinder(_map).clickStop('${
-                d.stop_id
-              }')">${d.stop_name} ${htmlLogo}</a></td>
+                <td class='${stAttrs.tooltip && "tooltip"}' data-tooltip='${
+                stAttrs.tooltip
+              }'><a class='${
+                stAttrs.cssClass
+              }' onclick="new LayerFinder(_map).clickStop('${p.stop_id}')">${
+                p.stop_name
+              } ${stAttrs.htmlLogo}</a></td>
                 <td>
                   ${formatTimestamp(realDeparture, "%I:%M %P")}
-                  <i class='${getDelayClassName(d.delay)}'>${delayText}</i>
+                  <i class='${getDelayClassName(p.delay)}'>${delayText}</i>
                 </td>
               </tr>
               `;

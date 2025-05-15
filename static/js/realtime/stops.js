@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty, StopTime } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty, StopTimeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports StopLayer
@@ -29,6 +29,7 @@ class StopLayer extends BaseRealtimeLayer {
   plot(options) {
     const _this = this;
     options = { ...this.options, ...options };
+    /** @type {BaseRealtimeOnClickOptions<StopProperty>} */
     const onClickOpts = { _this, idField: "stop_id" };
     const realtime = L.realtime(options.url, {
       interval: 45000,
@@ -205,11 +206,14 @@ class StopLayer extends BaseRealtimeLayer {
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
-    /**@type {StopTime[]} */
+    /**@type {StopTimeProperty[]} */
     const stopTimes = (
       await Promise.all(
         properties.child_stops
-          .filter((cs) => cs.location_type == 0 && cs.vehicle_type == 2)
+          .filter(
+            (cs) =>
+              cs.location_type == 0 && ["2", "4"].includes(cs.vehicle_type)
+          )
           .map(
             async (cs) =>
               await fetchCache(
@@ -270,14 +274,26 @@ class StopLayer extends BaseRealtimeLayer {
                       const st = stopTimes
                         .filter((st) => pred.trip_id === st.trip_id)
                         .at(0);
+                      const dom = pred.arrival_time || pred.departure_time; // sometimes i want one
+                      const stAttrs = specialStopTimeAttrs(st, route);
                       return /* HTML */ `<tr>
                         <td>
                           <a
+                            class="${stAttrs.cssClass} ${stAttrs.tooltip &&
+                            "tooltip"}"
+                            data-tooltip="${stAttrs.tooltip}"
                             onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
-                            >${st?.trip?.trip_short_name || pred.trip_id}</a
-                          >
+                            >${st?.trip?.trip_short_name || pred.trip_id}
+                          </a>
                         </td>
                         <td>
+                          <span
+                            class="tooltip fa"
+                            data-tooltip="${Math.round(
+                              (dom - timestamp * 10) / 60
+                            )} Minutes Away"
+                            >${BaseRealtimeLayer.icons.prediction}</span
+                          >
                           ${formatTimestamp(
                             pred.arrival_time || pred.departure_time,
                             "%I:%M %P"
@@ -291,21 +307,31 @@ class StopLayer extends BaseRealtimeLayer {
                     })
                     .join("")}
                   ${_stoptimes
-                    .map(
-                      (st) => /* HTML */ `<tr>
-                        <td>${st.trip?.trip_short_name || st.trip_id}</td>
+                    .map((st) => {
+                      const stAttrs = specialStopTimeAttrs(st, route);
+                      const dom =
+                        st.arrival_timestamp || st.departure_timestamp; // mommy?
+                      return /* HTML */ `<tr>
+                        <td
+                          class="${stAttrs.cssClass} ${stAttrs.tooltip &&
+                          "tooltip"}"
+                          data-tooltip="${stAttrs.tooltip}"
+                        >
+                          ${st.trip?.trip_short_name || st.trip_id}
+                        </td>
                         <td>
-                          ${formatTimestamp(
-                            st.arrival_timestamp || st.departure_timestamp,
-                            "%I:%M %P"
-                          )}
-                          <span class="tooltip fa" data-tooltip="Scheduled Only"
-                            >&#xf017;</span
+                          <span
+                            class="tooltip fa"
+                            data-tooltip="Scheduled in ${Math.round(
+                              (dom - timestamp * 10) / 60
+                            )} Min"
+                            >${BaseRealtimeLayer.icons.clock}</span
                           >
+                          ${formatTimestamp(dom, "%I:%M %P")}
                         </td>
                         <td>${st.stop_headsign || st.trip?.trip_headsign}</td>
-                      </tr>`
-                    )
+                      </tr>`;
+                    })
                     .join("")}
                 </tbody>
               </table>
