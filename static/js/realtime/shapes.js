@@ -252,13 +252,22 @@ class ShapeLayer extends BaseRealtimeLayer {
                     ?.at(0)?.stop_name;
 
                 return /* HTML */ `<tr>
-                  <td>${trip?.trip_short_name || pred.trip_id}</td>
+                  <td>
+                    <a
+                      onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                      >${trip?.trip_short_name || pred.trip_id}</a
+                    >
+                  </td>
                   <td>${headsign}</td>
                   <td>
                     <span class="fa tooltip" data-tooltip="Next Stop"
                       >${BaseRealtimeLayer.icons.prediction}</span
                     >
-                    ${pred.stop_name} @
+                    <a
+                      onclick="new LayerFinder(_map).clickStop('${pred.stop_id}')"
+                      >${pred.stop_name}</a
+                    >
+                    @
                     ${formatTimestamp(
                       pred.arrival_time || pred.departure_time,
                       "%I:%M %P"

@@ -25,7 +25,10 @@
     backdrop-filter: blur(var(--blur-radius));
     align-items: center;
     justify-content: center;
-    padding-bottom: 25px;
+    padding-bottom: 20px;
+    @media (max-width: 786px) {
+      padding-bottom: 100px;
+    }
   }
   .close {
     background: none;
