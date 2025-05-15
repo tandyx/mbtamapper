@@ -121,7 +121,7 @@ class StopLayer extends BaseRealtimeLayer {
     if (["0", "1"].includes(properties.wheelchair_boarding)) {
       return /* HTML */ `<span
         class="fa tooltip"
-        data-tooltip="wheelchair accessible ${properties.wheelchair_boarding ==
+        data-tooltip="Wheelchair Accessible ${properties.wheelchair_boarding ==
         "0"
           ? "w/ caveats"
           : ""}"
@@ -223,10 +223,7 @@ class StopLayer extends BaseRealtimeLayer {
       )
     ).flat();
 
-    console.log(stopTimes);
-
     const alerts = stop.flatMap((s) => s.alerts);
-    const predictions = stop.flatMap((s) => s.predictions);
     super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
     sidebar.style.display = "initial";
 
@@ -235,18 +232,25 @@ class StopLayer extends BaseRealtimeLayer {
       <div>
         ${properties.routes
           .map((route) => {
-            const _predictions = predictions
+            const _predictions = stop
+              .flatMap((s) => s.predictions)
               .filter((p) => p.route_id === route.route_id)
               .sort(
                 (a, b) =>
                   a.arrival_time - b.arrival_time ||
                   a.departure_time - b.departure_time
               );
-            const _stoptimes = stopTimes.filter(
-              (st) =>
-                st.trip?.route_id === route.route_id &&
-                !_predictions.map((p) => p.trip_id).includes(st.trip_id)
-            );
+            const _stoptimes = stopTimes
+              .filter(
+                (st) =>
+                  st.trip?.route_id === route.route_id &&
+                  !_predictions.map((p) => p.trip_id).includes(st.trip_id)
+              )
+              .sort(
+                (a, b) =>
+                  a.arrival_timestamp - b.arrival_timestamp ||
+                  a.departure_timestamp - b.departure_timestamp
+              );
 
             return /* HTML */ `<div style="margin-bottom: 5px;">
               <table class="data-table">
