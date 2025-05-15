@@ -147,7 +147,7 @@ class VehicleLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
-          layer.once("click", onClick);
+          layer.on("click", onClick);
         }.bind(this)
       );
     });
@@ -328,7 +328,9 @@ class VehicleLayer extends BaseRealtimeLayer {
       ${this.#getHeaderHTML(properties)}
       <div style="margin-bottom: 3px;">
         ${this.#getBikeHTML(properties)}
-        ${super.moreInfoButton(properties.vehicle_id)}
+        ${super.moreInfoButton(properties.vehicle_id, {
+          coords: [properties.latitude, properties.longitude],
+        })}
       </div>
       ${this.#getStatusHTML(properties)}
       <div>${this.#getDelayHTML(properties)}</div>
@@ -352,7 +354,10 @@ class VehicleLayer extends BaseRealtimeLayer {
     const sidebar = document.getElementById("sidebar");
     const timestamp = Math.round(new Date().valueOf() / 1000);
     if (!container || !sidebar) return;
-    super.moreInfoButton(properties.vehicle_id, { loading: true });
+    super.moreInfoButton(properties.vehicle_id, {
+      loading: true,
+      coords: [properties.latitude, properties.longitude],
+    });
     /**@type {PredictionProperty[]}*/
     sidebar.style.display = "flex";
     container.innerHTML = /* HTML */ `<div class="centered-parent">
@@ -372,6 +377,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     );
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
+      coords: [properties.latitude, properties.longitude],
     });
     sidebar.style.display = "initial";
     container.innerHTML = /*HTML*/ `<div>

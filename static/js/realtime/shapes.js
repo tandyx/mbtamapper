@@ -78,7 +78,7 @@ class ShapeLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
-          layer.once("click", onClick);
+          layer.on("click", onClick);
         }.bind(this)
       );
     });

@@ -79,7 +79,7 @@ class StopLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
-          layer.once("click", onClick);
+          layer.on("click", onClick);
         }.bind(this)
       );
     });
@@ -152,7 +152,9 @@ class StopLayer extends BaseRealtimeLayer {
 
     stopHtml.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${this.#getWheelchairHTML(properties)}
-      ${super.moreInfoButton(properties.stop_id)}
+      ${super.moreInfoButton(properties.stop_id, {
+        coords: [properties.stop_lat, properties.stop_lon],
+      })}
       <div>
         ${properties.routes
           .map(
@@ -193,7 +195,10 @@ class StopLayer extends BaseRealtimeLayer {
     const sidebar = document.getElementById("sidebar");
     const timestamp = Math.round(new Date().valueOf() / 10000);
     if (!container || !sidebar) return;
-    super.moreInfoButton(properties.stop_id, { loading: true });
+    super.moreInfoButton(properties.stop_id, {
+      loading: true,
+      coords: [properties.stop_lat, properties.stop_lon],
+    });
     /**@type {PredictionProperty[]}*/
     sidebar.style.display = "flex";
     container.innerHTML = /* HTML */ `<div class="centered-parent">
@@ -228,9 +233,11 @@ class StopLayer extends BaseRealtimeLayer {
     ).flat();
 
     const alerts = stop.flatMap((s) => s.alerts);
-    super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
+    super.moreInfoButton(properties.stop_id, {
+      alert: Boolean(alerts.length),
+      coords: [properties.stop_lat, properties.stop_lon],
+    });
     sidebar.style.display = "initial";
-
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
       <div>
