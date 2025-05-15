@@ -217,7 +217,12 @@ class ShapeLayer extends BaseRealtimeLayer {
           .filter((_st) => _st.trip_id === st.trip_id)
           .map((_st) => _st.stop_sequence);
         return st.stop_sequence === Math.min(...subst);
-      });
+      })
+      .filter(
+        (st) =>
+          (st.arrival_timestamp || st.departure_timestamp) >
+          10 * timestamp - 300
+      );
 
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
