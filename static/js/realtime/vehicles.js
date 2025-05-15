@@ -281,7 +281,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   #getBikeHTML(properties) {
     if (!properties.bikes_allowed) return "";
-    return /* HTML */ `<span class="fa tooltip" data-tooltip="bikes allowed"
+    return /* HTML */ `<span class="fa tooltip" data-tooltip="Bikes Allowed"
       >${BaseRealtimeLayer.iconSpacing("bike")}</span
     >`;
   }
