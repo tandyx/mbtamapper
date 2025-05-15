@@ -14,8 +14,8 @@
   background: none !important;
   color: var(--text-color);
   /* box-shadow: var(--box-shadow) !important; */
-  text-shadow: -1px 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0),
-    rgb(0, 0, 0) 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0) !important;
+  /* text-shadow: -1px 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0),
+    rgb(0, 0, 0) 0 rgb(0, 0, 0), rgb(0, 0, 0) x rgb(0, 0, 0) !important; */
   @media (max-width: 786px) {
     padding-bottom: unset;
   }
@@ -25,6 +25,7 @@
     backdrop-filter: blur(var(--blur-radius));
     align-items: center;
     justify-content: center;
+    padding-bottom: 25px;
   }
   .close {
     background: none;

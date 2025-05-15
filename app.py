@@ -260,7 +260,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
-        params.pop("_")
+        params.pop("_", "")
         geojson = (
             bool(params.pop("geojson", False))  # this will be removed in the future
             or params.pop("file_type", "").lower() == "geojson"

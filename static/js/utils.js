@@ -458,6 +458,22 @@ function createElementFromHTML(htmlString) {
   return new DOMParser().parseFromString(htmlString, "text/xml").children[0];
   // Change this to div.childNodes to support multiple top-level nodes.
 }
+/**
+ * gets the best constrasting text color from a hex
+ * @param {`${'#'}${string}`} hexcolor
+ * @param {number} [tresh=128] treshhold
+ * @returns {"dark" | "light"}
+ */
+function getContrastYIQ(hexcolor, tresh = 128) {
+  while (hexcolor.charAt(0) === "#") {
+    hexcolor = hexcolor.substring(1);
+  }
+  var r = parseInt(hexcolor.substring(1, 3), 16);
+  var g = parseInt(hexcolor.substring(3, 5), 16);
+  var b = parseInt(hexcolor.substring(5, 7), 16);
+  var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= tresh ? "dark" : "light";
+}
 
 /**
  * class for theme management
@@ -651,6 +667,7 @@ class LayerFinder {
    */
   findLayer(fn, options = {}) {
     options = { click: true, autoZoom: true, ...options };
+    const _zoom = this.map.getZoom();
     this.map.setZoom(this.map.options.minZoom, {
       animate: false,
     });
@@ -668,6 +685,7 @@ class LayerFinder {
     }
     if (!layer) {
       console.error(`layer not found`);
+      this.map.setZoom(_zoom, { animate: false });
       return layer;
     }
     if (this.map.options.maxZoom && options.autoZoom) {
