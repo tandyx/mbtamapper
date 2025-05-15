@@ -89,6 +89,7 @@ class StopTime(Base):
         self.destination_label = self.stop_headsign or self.trip.trip_headsign
         self.departure_timestamp = to_seconds(self.departure_time) + _unix_time
         self.arrival_timestamp = to_seconds(self.arrival_time) + _unix_time
+        self.stop_name = self.stop.stop_name
 
     def __lt__(self, other: "StopTime") -> bool:
         """Implements less than operator.
@@ -159,5 +160,4 @@ class StopTime(Base):
         return super()._as_json_dict() | {
             "flag_stop": self.is_flag_stop(),
             "early_departure": self.is_early_departure(),
-            "stop_name": self.stop.stop_name,
         }

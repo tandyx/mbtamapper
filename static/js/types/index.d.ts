@@ -141,7 +141,7 @@ export interface ShapeProperty extends LayerProperty {
   route_long_name: string;
   line_id: string;
   route_desc: string;
-  listed_route?: string;
+  listed_route?: boolean;
   route_type: string;
   network_id: string;
   route_url: string;
@@ -219,7 +219,7 @@ export interface VehicleProperty extends LayerProperty {
   speed: number | null;
   speed_mph: number | null;
   stop_id: null | string;
-  stop_time?: StopTime;
+  stop_time?: StopTimeProperty;
   timestamp: number;
   trip_id: string;
   trip_properties: any[];
@@ -283,6 +283,11 @@ export interface RouteProperty {
   route_text_color: RouteTextColor;
   route_type: string;
   route_url: string;
+
+  stop_times?: StopTimeProperty[];
+  alerts?: AlertProperty[];
+  predictions?: PredictionProperty[];
+  trips?: TripProperty[];
 }
 
 export enum LineID {
@@ -323,7 +328,7 @@ export enum RouteTextColor {
   Ffffff = "FFFFFF",
 }
 
-export interface StopTime {
+export interface StopTimeProperty {
   arrival_time: string;
   arrival_timestamp: number;
   checkpoint_id: string;
@@ -373,7 +378,7 @@ export interface PredictionProperty {
   stop_id: string;
   stop_name: string;
   stop_sequence: number;
-  stop_time: StopTime?;
+  stop_time: StopTimeProperty?;
   timestamp: number;
   trip_id: string;
   vehicle_id: string;

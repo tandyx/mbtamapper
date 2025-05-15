@@ -283,6 +283,11 @@ h1 {
   background-color: #636363;
   opacity: 1;
 }
+
+.tooltip {
+  cursor: default;
+}
+
 .tooltip::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -534,7 +539,7 @@ table.sortable th:hover {
   border-radius: var(--border-radius);
   padding: 2px; */
   display: var(--more-info-display);
-  cursor: pointer;
+  cursor: pointer !important;
 }
 
 .sidebar-title {

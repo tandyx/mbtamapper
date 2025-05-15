@@ -18,7 +18,7 @@ const _icons = {
   wheelchair: "&#xf193;",
   parking: "&#xf1b9;",
   space: "&nbsp;",
-  clock: "&#f017;",
+  clock: "&#xf017;",
 };
 
 /** @typedef {typeof _icons} Icons */
@@ -29,47 +29,6 @@ const _icons = {
 class BaseRealtimeLayer {
   static sideBarMainId = "sidebar-main";
   static sideBarOtherId = "sidebar-other";
-
-  static openPopupIds = [];
-
-  /**
-   * Toggles a popup
-   * @param {string | HTMLElement} id - the id of the popup or the popup element
-   * @param {boolean | "auto"} show - whether or not to show the popup
-   * @returns {void}
-   */
-  static togglePopup(id, show = "auto") {
-    const popup = typeof id === "string" ? document.getElementById(id) : id;
-    if (!popup) return;
-    const identifier = popup.id || popup.name;
-    if (window.chrome || navigator.userAgent.indexOf("AppleWebKit") != -1) {
-      popup.classList.add("popup-solid-bg"); // just use firefox
-    }
-    if (!popup.classList.contains("show")) {
-      BaseRealtimeLayer.openPopupIds.push(identifier);
-    } else {
-      BaseRealtimeLayer.openPopupIds.splice(
-        BaseRealtimeLayer.openPopupIds.indexOf(identifier),
-        1
-      );
-    }
-    if (show === "auto") {
-      popup.classList.toggle("show");
-      return;
-    }
-    if (show) {
-      popup.classList.add("show");
-      if (!popup.classList.contains("show")) {
-        BaseRealtimeLayer.openPopupIds.push(identifier);
-      }
-      return;
-    }
-    popup.classList.remove("show");
-    BaseRealtimeLayer.openPopupIds.splice(
-      BaseRealtimeLayer.openPopupIds.indexOf(identifier),
-      1
-    );
-  }
 
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
@@ -97,6 +56,13 @@ class BaseRealtimeLayer {
   #getIcon(properties) {}
 
   /**
+   * returns the html for the popup && || sidebar footer
+   * @param {LayerProperty} properties
+   * @returns {string}
+   */
+  #getFooterHTML(properties) {}
+
+  /**
    * text for popup
    * @param {LayerProperty} properties from geojson
    * @returns {HTMLDivElement} - vehicle props
@@ -113,6 +79,13 @@ class BaseRealtimeLayer {
    * @param {LayerProperty} options
    */
   #fillSidebar(properties) {}
+
+  /**
+   * returns the header for the popup and sidebar
+   * @param {LayerProperty} options
+   * @returns {string}
+   */
+  #getHeaderHTML() {}
 
   /** Handle update event for realtime layers
    * @param {(event: RealtimeUpdateEvent) => void} fn - realtime layer to update
@@ -164,24 +137,6 @@ class BaseRealtimeLayer {
   }
 
   /**
-   * gives a popup icon a loading symbol. this preps the icon
-   * @param {HTMLElement} element the icon
-   * @param {string} popupId popupId for `togglePopup`
-   * @param {{style?: string, classList?: string[]}?} options
-   * @returns {string} original html
-   */
-  popupLoadingIcon(element, popupId, options = {}) {
-    const prevHtml = element.innerHTML;
-    const classList = ["loader", ...(options?.classList || [])];
-    element.onclick = () => BaseRealtimeLayer.togglePopup(popupId);
-    element.classList.remove("hidden");
-    element.innerHTML = /* HTML */ ` <div
-      class="${classList.join(" ")}"
-      style="${options?.style}"
-    ></div>`;
-    return prevHtml;
-  }
-  /**
    * @returns {FetchCacheOptions} default fetch cache options
    */
   get defaultFetchCacheOpt() {
@@ -207,14 +162,18 @@ class BaseRealtimeLayer {
   }
 
   /**
+   *
+   * @template {LayerProperty} T
+   *
+   * @typedef {{stopPropagation?: boolean, properties: T, _this?: this, idField?: keyof T}} BaseRealtimeOnClickOptions
+   *
    * to be called `onclick`
    *
    * supposed to be private but :P
    *
-   * @template {LayerProperty} T
    *
    * @param {DomEvent.PropagableEvent} event
-   * @param {{stopPropagation?: boolean, properties: T, _this?: this, idField?: keyof T}} options
+   * @param {BaseRealtimeOnClickOptions<T>} options
    */
   _onclick(event, options = {}) {
     const {
@@ -250,14 +209,19 @@ class BaseRealtimeLayer {
     const _id = `infobutton-${idfield}`;
     let _icon = loading
       ? "<div style='display: inline-block;' class='loader'></div>"
-      : `<span class='fa tooltip' data-tooltip='View Info'>${BaseRealtimeLayer.iconSpacing(
-          "prediction",
-          3
-        )}</span>`;
+      : /* HTML */ `<span
+          class="fa tooltip"
+          data-tooltip="View Info"
+          style="cursor: pointer;"
+          >${BaseRealtimeLayer.iconSpacing("prediction", 3)}</span
+        >`;
     if (alert && !loading)
-      _icon += `<span class='fa slight-delay tooltip' data-tooltip='open alerts'>${BaseRealtimeLayer.iconSpacing(
-        "alert"
-      )}</span>`;
+      _icon += /* HTML */ `<span
+        class="fa slight-delay tooltip"
+        data-tooltip="open alerts"
+        style="cursor: pointer;"
+        >${BaseRealtimeLayer.iconSpacing("alert")}</span
+      >`;
 
     const _html = `<span
       name="${_id}"

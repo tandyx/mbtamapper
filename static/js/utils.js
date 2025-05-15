@@ -257,6 +257,36 @@ function getDefaultCookie(name, value = "", numDays = null) {
   }
   return cookie;
 }
+/**
+ * for flag, early departure stops
+ * @param {StopTimeProperty?} properties
+ * @param {RouteProperty} route
+ */
+function specialStopTimeAttrs(properties, route) {
+  let _class = "",
+    tooltip = "",
+    htmlLogo = "";
+  if (!properties) return { cssClass: _class, tooltip, htmlLogo };
+
+  const flag_stop =
+    properties?.flag_stop ??
+    [properties.pickup_type, properties.drop_off_type].includes("3");
+
+  const early_departure =
+    properties?.early_departure ??
+    (properties.timepoint == "0" && route?.route_type == "2");
+
+  if (flag_stop) {
+    _class = "flag_stop";
+    tooltip = "Flag Stop";
+    htmlLogo = "<i> f</i>";
+  } else if (early_departure) {
+    _class = "early_departure";
+    tooltip = "Early Departure";
+    htmlLogo = "<i> L</i>";
+  }
+  return { cssClass: _class, tooltip, htmlLogo };
+}
 
 /**
  * gets the value (style) of a css var
@@ -668,6 +698,7 @@ class LayerFinder {
   findLayer(fn, options = {}) {
     options = { click: true, autoZoom: true, ...options };
     const _zoom = this.map.getZoom();
+    const _coords = this.map.getCenter();
     this.map.setZoom(this.map.options.minZoom, {
       animate: false,
     });
@@ -685,8 +716,8 @@ class LayerFinder {
     }
     if (!layer) {
       console.error(`layer not found`);
-      this.map.setZoom(_zoom, { animate: false });
-      return layer;
+      this.map.setView(_coords, _zoom, { animate: false });
+      return;
     }
     if (this.map.options.maxZoom && options.autoZoom) {
       this.map.setView(
