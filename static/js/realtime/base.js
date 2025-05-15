@@ -200,7 +200,7 @@ class BaseRealtimeLayer {
    * if no parent element is specified and the element doesn't exist, click events may not work.
    *
    * @param {string} idfield
-   * @param {{parent?: string | HTMLElement, loading: boolean, alert: boolean, coords?: [number, number]}} options
+   * @param {{parent?: string | HTMLElement, loading: boolean, alert: boolean}} options
    * @returns {string}
    */
   moreInfoButton(idfield, options = {}) {
@@ -226,7 +226,7 @@ class BaseRealtimeLayer {
     const _html = `<span
       name="${_id}"
       class="more-info-button"
-      onclick="_sidebar.show();${(coords && `_map.setView([${coords}])`) || ""}"
+      onclick="_sidebar.show()"
     >
       ${_icon}
     </span>`;
