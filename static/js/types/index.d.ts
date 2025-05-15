@@ -97,8 +97,9 @@ export interface StopProperty extends LayerProperty {
   wheelchair_boarding: string;
   zone_id?: ZoneID;
   child_stops?: StopProperty[];
-  routes: Route[];
+  routes: RouteProperty[];
   alerts?: AlertProperty[];
+  predictions?: PredictionProperty[];
 }
 
 export enum ZoneID {
@@ -212,7 +213,7 @@ export interface VehicleProperty extends LayerProperty {
   next_stop?: NextStop;
   occupancy_percentage: null;
   occupancy_status: null;
-  route: Route;
+  route: RouteProperty;
   route_color: RouteColor;
   route_id: RouteID;
   speed: number | null;
@@ -266,7 +267,7 @@ export enum RouteID {
   Red = "Red",
 }
 
-export interface Route {
+export interface RouteProperty {
   agency_id: string;
   line_id: LineID;
   listed_route: null;
@@ -341,6 +342,22 @@ export interface StopTime {
   stop_sequence: number;
   timepoint: string;
   trip_id: string;
+  trip?: TripProperty;
+}
+
+export interface TripProperty {
+  bikes_allowed: boolean;
+  block_id: null;
+  direction_id: number;
+  route_id: string;
+  route_pattern_id: string;
+  service_id: string;
+  shape_id: string;
+  trip_headsign: string;
+  trip_id: string;
+  trip_route_type: null;
+  trip_short_name: string;
+  wheelchair_accessible: number;
 }
 
 export interface PredictionProperty {

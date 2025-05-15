@@ -275,12 +275,12 @@ class Feed:
 
     @timeit
     def export_geojsons(self, key: str, *route_types: str, file_path: str) -> None:
-        """Generates geojsons for stops and shapes.
+        """exports static geojson files for routes, facilities and shapes
 
-        Args:
-            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `*route_types (str)`: route types to export
-            - `file_path (str)`: path to export files to
+        args:
+            - key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            - *route_types (str): route types to export
+            - file_path (str): path to export files to
         """
         # pylint:disable=unspecified-encoding
         query_obj = Query(*route_types)

@@ -5,7 +5,7 @@
  * @typedef {import("../utils.js")}
  * @typedef {import("../map.js")}
  * @import { DomEvent } from "leaflet";
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty as string, PredictionProperty, AlertProperty, FetchCacheOptions } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty as string, PredictionProperty, AlertProperty, FetchCacheOptions, RouteProperty } from "../types/index.js"
  * @exports BaseRealtimeLayer
  */
 
@@ -18,6 +18,7 @@ const _icons = {
   wheelchair: "&#xf193;",
   parking: "&#xf1b9;",
   space: "&nbsp;",
+  clock: "&#f017;",
 };
 
 /** @typedef {typeof _icons} Icons */
@@ -100,7 +101,7 @@ class BaseRealtimeLayer {
    * @param {LayerProperty} properties from geojson
    * @returns {HTMLDivElement} - vehicle props
    */
-  #getPopupText() {}
+  #getPopupHTML() {}
 
   /**
    * @param {LayerApiRealtimeOptions} options
@@ -185,10 +186,7 @@ class BaseRealtimeLayer {
    */
   get defaultFetchCacheOpt() {
     /**@type {FetchCacheOptions} */
-    return {
-      type: "json",
-      storage: null,
-    };
+    return { type: "json", storage: null };
   }
 
   /**
@@ -281,37 +279,31 @@ class BaseRealtimeLayer {
 
     return _html;
   }
-
   /**
-   * there's def a better way to do this but fuck im too lazy to google this shit
-   *
-   * async updates the innerHTML of a element to "1 second ago" or something like that
-   * @param {string} _id the id
-   * @param {number} _timestamp the timestamp
-   * @param {number} [sleep=15000] ms to sleep
+   * table header html
+   * @param {RouteProperty} properties
+   * @param {number} [colspan=2]
    */
-  async _updateTimestamp(_id, _timestamp, sleep = 15000) {
-    while (true) {
-      const el = document.getElementById(_id);
-      if (!el) {
-        await asyncSleep(1000);
-        continue;
-      }
-      const _time = new Date().valueOf() / 1000 - _timestamp;
-      let humanReadable;
-      if (_time < 60) {
-        humanReadable = `< 1m`;
-      } else if (_time < 3600) {
-        humanReadable = `~ ${Math.floor(_time / 60)}m`;
-      } else if (_time < 86400) {
-        humanReadable = `~ ${Math.floor(_time / 3600)}h`;
-      } else {
-        humanReadable = `~ ${Math.floor(_time / 86400)}d`;
-      }
-      el.innerHTML = `${humanReadable} ago`;
-      await asyncSleep(sleep);
-    }
+  tableHeaderHTML(properties, colspan = 2) {
+    return /* HTML */ `<tr>
+      <th
+        colspan="${colspan}"
+        style="background-color: #${properties.route_color};border-bottom: none; cursor:pointer;"
+        class="text-align-center"
+        onclick="[...this.parentElement.parentElement.parentElement.children].filter(c => c.tagName === 'TBODY').at(0).classList.toggle('hidden')"
+      >
+        <a
+          onclick="new LayerFinder(_map).clickRoute('${properties.route_id}')"
+          style="color:var(--${getContrastYIQ(
+            properties.route_color,
+            138
+          )}-text-color);"
+          >${properties.route_name}</a
+        >
+      </th>
+    </tr>`;
   }
+
   /**
    * toggles the sidebar display
    * @param {typeof this.sideBarMainId | typeof this.sideBarOtherId | undefined} id force show this one and hide the other

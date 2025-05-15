@@ -3,7 +3,7 @@
   --light-text-color: #f2f2f2;
   --lighter-text-color: #9b9b9b;
   --lighter-dark-background: #727272;
-  --dark-text-color: #060606;
+  --dark-text-color: #191919;
   --tooltip-background: #333;
 
   --accent-color: #00acff;
@@ -24,13 +24,13 @@
 }
 
 [data-mode="dark"] {
-  --text-color: #f2f2f2;
+  --text-color: var(--light-text-color);
   --background-color: rgb(13, 13, 13);
   --background-color-blur: rgba(13, 13, 13, 0.8);
   --box-shadow: 0 1px 8px rgba(255, 255, 255, 0.2);
 }
 [data-mode="light"] {
-  --text-color: #191919;
+  --text-color: var(--dark-text-color);
   --background-color: rgba(255, 255, 255, 1);
   --background-color-blur: rgba(255, 255, 255, 0.5);
   --box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
@@ -429,9 +429,9 @@ noscript {
   --table-odd-row: rgba(30, 30, 30, 0.526);
 }
 [data-mode="light"] {
-  --table-header: rgb(170, 170, 170);
+  --table-header: rgb(210, 210, 210);
   --table-even-row: rgba(255, 255, 255, 0);
-  --table-odd-row: rgba(227, 227, 227, 0.782);
+  --table-odd-row: rgba(227, 227, 227, 0.437);
 }
 
 .data-table {

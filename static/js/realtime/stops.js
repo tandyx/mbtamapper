@@ -29,8 +29,9 @@ class StopLayer extends BaseRealtimeLayer {
   plot(options) {
     const _this = this;
     options = { ...this.options, ...options };
+    const onClickOpts = { _this, idField: "stop_id" };
     const realtime = L.realtime(options.url, {
-      interval: 120000,
+      interval: 45000,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
@@ -41,39 +42,44 @@ class StopLayer extends BaseRealtimeLayer {
         //   renderer: L.canvas({ padding: 0.5, tolerance: 10 }),
         // });
         lay.id = fea.id;
-        lay.bindPopup(_this.#getPopupText(fea.properties), options.textboxSize);
+        lay.bindPopup(_this.#getPopupHTML(fea.properties), options.textboxSize);
         lay.feature.properties.searchName = fea.properties.stop_name;
         if (!options.isMobile) lay.bindTooltip(fea.properties.stop_name);
         lay.setIcon(_this.#getIcon());
         lay.setZIndexOffset(-100);
-        lay.on("click", () => _this.fillDataWrapper(fea.properties));
+        lay.on("click", (_e) =>
+          _this.#_onclick(_e, { ...onClickOpts, properties: fea.properties })
+        );
       },
     });
-    realtime.on("update", (e) => {
-      Object.keys(e.update).forEach(
+    realtime.on("update", (_e) => {
+      Object.keys(_e.update).forEach(
         function (id) {
-          /**@type {L.Layer} */
+          /**@type {Layer} */
           const layer = realtime.getLayer(id);
-          const feature = e.update[id];
-          layer.id = feature.id;
-          const _onclick = () => {
-            _this.#fillDataWrapper(feature.properties.trip_id, _this);
-          };
-          layer.feature.properties.searchName = feature.properties.stop_name;
+          /**@type {GeoJSON.Feature<GeoJSON.Geometry, StopProperty} */
+          const feature = _e.update[id];
           const wasOpen = layer.getPopup()?.isOpen() || false;
+          const properties = feature.properties;
+          layer.id = feature.id;
+          layer.feature.properties.searchName = feature.properties.stop_name;
           layer.unbindPopup();
+          const onClick = () =>
+            _this.#_onclick(_e, { ...onClickOpts, properties: properties });
           if (wasOpen) layer.closePopup();
-          layer.bindPopup(
-            _this.#getPopupText(feature.properties),
-            options.textboxSize
-          );
+          layer.bindPopup(_this.#getPopupHTML(properties), options.textboxSize);
+          layer.setIcon(_this.#getIcon(properties));
           if (wasOpen) {
+            _this.options.map.setView(
+              layer.getLatLng(),
+              _this.options.map.getZoom(),
+              { animate: true }
+            );
             layer.openPopup();
-            setTimeout(_onclick, 200);
+            setTimeout(onClick, 200);
           }
-          layer.off("click", _onclick);
-          layer.once("click", _onclick);
-        }.bind(realtime)
+          layer.once("click", onClick);
+        }.bind(this)
       );
     });
     return realtime;
@@ -82,20 +88,17 @@ class StopLayer extends BaseRealtimeLayer {
   #getIcon() {
     return L.icon({ iconUrl: "static/img/mbta.png", iconSize: [12, 12] });
   }
-
   /**
-   * text for popup
-   * @param {StopProperty} properties from geojson
-   * @returns {HTMLDivElement} - vehicle props
+   *
+   * @param {StopProperty} properties
    */
-  #getPopupText(properties) {
-    const stopHtml = document.createElement("div");
+  #getHeaderHTML(properties) {
     const primeRoute = properties.routes
       .sort((a, b) => a.route_type - b.route_type)
       ?.at(0);
-    const toolTipClass = this.options?.isMobile ? "" : "tooltip";
 
-    stopHtml.innerHTML = /* HTML */ ` <p>
+    return /* HTML */ `<div>
+      <div>
         <a
           href="${properties.stop_url}"
           rel="noopener"
@@ -105,187 +108,208 @@ class StopLayer extends BaseRealtimeLayer {
         >
           ${properties.stop_name.replace("/", " / ")}
         </a>
-      </p>
-      <p class="popup_subheader">${properties.zone_id || "zone-1A"}</p>
+      </div>
+      <div class="popup_subheader">${properties.zone_id || "zone-1A"}</div>
       <hr />
-      ${
-        ["0", "1"].includes(properties.wheelchair_boarding)
-          ? `<span
+    </div>`;
+  }
+  /**
+   *
+   * @param {StopProperty} properties
+   */
+  #getWheelchairHTML(properties) {
+    if (["0", "1"].includes(properties.wheelchair_boarding)) {
+      return /* HTML */ `<span
         class="fa tooltip"
-        data-tooltip="wheelchair accessible ${
-          properties.wheelchair_boarding == "0" ? "w/ caveats" : ""
-        }"
-      >${BaseRealtimeLayer.icons.wheelchair}
-      </span>${BaseRealtimeLayer.icons.space}`
-          : ""
-      }
-        <span
-          name="predictions-stop-${properties.stop_id}"
-          class="fa hidden popup ${toolTipClass}"
-          data-tooltip="predictions"
-        >
-          ${BaseRealtimeLayer.iconSpacing("prediction")}
-        </span>
-        <span
-          name="alert-stop-${properties.stop_id}"
-          class="fa hidden popup ${toolTipClass} slight-delay"
-          data-tooltip="alerts"
-        >
-          ${BaseRealtimeLayer.icons.alert}
-        </span>
-        <p>
-          ${properties.routes
-            .map(
-              (r) =>
-                `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name}</a>`
-            )
-            .join(", ")}
-        </p>
-        <div class="popup_footer">
-          <p>${properties.stop_id} @ ${properties.stop_address}</p>
-          <p>${formatTimestamp(properties.timestamp)}</p>
-        </div></span
+        data-tooltip="wheelchair accessible ${properties.wheelchair_boarding ==
+        "0"
+          ? "w/ caveats"
+          : ""}"
+        >${BaseRealtimeLayer.iconSpacing("wheelchair")}</span
       >`;
+    }
+    return "";
+  }
+  /**
+   *
+   * @param {StopProperty} properties
+   */
+  #getFooterHTML(properties) {
+    return /* HTML */ ` <div class="popup_footer">
+      <p>${properties.stop_id} @ ${properties.stop_address}</p>
+      <p>${formatTimestamp(properties.timestamp)}</p>
+    </div>`;
+  }
+
+  /**
+   * text for popup
+   * @param {StopProperty} properties from geojson
+   * @returns {HTMLDivElement} - vehicle props
+   */
+  #getPopupHTML(properties) {
+    const stopHtml = document.createElement("div");
+
+    stopHtml.innerHTML = /* HTML */ `<div>
+      ${this.#getHeaderHTML(properties)} ${this.#getWheelchairHTML(properties)}
+      ${super.moreInfoButton(properties.stop_id)}
+      <div>
+        ${properties.routes
+          .map(
+            (r) =>
+              `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name}</a>`
+          )
+          .join(", ")}
+      </div>
+      ${this.#getFooterHTML(properties)}
+    </div>`;
 
     return stopHtml;
   }
 
   /**
-   * wrapper for this.#fillAlertData and this.#fillPredictionsData
+   * to be called `onclick`
+   *
+   * supercedes public super method
+   *
+   * @param {DomEvent.PropagableEvent} event
+   * @param {RealtimeLayerOnClickOptions<StopProperty>} options
+   */
+  #_onclick(event, options = {}) {
+    super._onclick(event, options);
+    /**@type {this} */
+    const _this = options._this || this;
+
+    _this.#fillSidebar(options.properties);
+  }
+  /**
+   *
    * @param {StopProperty} properties
    */
-  fillDataWrapper(properties) {
-    this.#fillAlertData(properties.stop_id);
-    this.#fillPredictionData(properties.stop_id, properties.child_stops);
-  }
+  async #fillSidebar(properties) {
+    const container = BaseRealtimeLayer.toggleSidebarDisplay(
+      BaseRealtimeLayer.sideBarOtherId
+    );
+    const sidebar = document.getElementById("sidebar");
+    const timestamp = Math.round(new Date().valueOf() / 10000);
+    if (!container || !sidebar) return;
+    super.moreInfoButton(properties.stop_id, { loading: true });
+    /**@type {PredictionProperty[]}*/
+    sidebar.style.display = "flex";
+    container.innerHTML = /* HTML */ `<div class="centered-parent">
+      <div class="loader-large"></div>
+    </div>`;
 
-  /**
-   * wraps this.#fillPredictionData and this.#fillAlertData
-   * @param {string} trip_id
-   * @param {this} _this override `this`
-   */
-  #fillDataWrapper(trip_id, _this = null) {
-    _this ||= this;
-    _this.#fillAlertData(trip_id);
-    _this.#fillPredictionData(trip_id);
-  }
-
-  /**
-   *
-   * @param {string} stop_id
-   */
-  async #fillAlertData(stop_id) {
-    for (const alertEl of document.getElementsByName(`alert-stop-${stop_id}`)) {
-      const popupId = `popup-alert-${stop_id}`;
-      // const oldTooltip = alertEl.getAttribute("data-tooltip");
-      super.popupLoadingIcon(alertEl, popupId, {
-        style: "border-top: var(--border) solid var(--slight-delay);",
-      });
-      const popupText = document.createElement("span");
-      popupText.classList.add("popuptext");
-      popupText.style.minWidth = "350px";
-      popupText.id = popupId;
-      /**@type {StopProperty[]} */
-      const _data = await (
-        await fetch(`/api/stop?stop_id=${stop_id}&include=alerts`)
-      ).json();
-      if (!_data || !_data.length || !_data[0].alerts.length) {
-        return alertEl.classList.add("hidden");
-      }
-      popupText.innerHTML =
-        "<table class='data-table'><tr><th>alert</th><th>timestamp</th></tr>" +
-        _data[0].alerts
-          .sort((a, b) => b.timestamp || 0 - a.timestamp || 0)
-          .map(function (d) {
-            return `<tr>
-              <td>${d.header}</td>
-              <td>${formatTimestamp(d.timestamp)}</td>
-            </tr>
-            `;
-          })
-          .join("") +
-        "</table>";
-      alertEl.innerHTML = BaseRealtimeLayer.icons.alert;
-      alertEl.appendChild(popupText);
-      setTimeout(() => {
-        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
-          BaseRealtimeLayer.togglePopup(popupId, true);
-        }
-      }, 500);
-    }
-  }
-  /**
-   *
-   * @param {string} stop_id
-   * @param {StopProperty[]} child_stops
-   */
-  async #fillPredictionData(stop_id, child_stops) {
-    for (const predEl of document.getElementsByName(
-      `predictions-stop-${stop_id}`
-    )) {
-      const popupId = `popup-predictions-${stop_id}`;
-      const currTime = new Date().getTime() / 1000;
-      const prevHtml = super.popupLoadingIcon(predEl, popupId);
-      // alertEl.innerHTML = "<span class='loader'></span>";
-      const popupText = document.createElement("span");
-      popupText.classList.add("popuptext");
-      popupText.id = popupId;
-      popupText.innerHTML = "...";
-      /** @type {StopTime[]} */
-      const _data = [];
-      for (const child of child_stops.filter((s) => s.location_type == 0)) {
-        _data.push(
-          ...(await (
-            await fetch(
-              `/api/prediction?stop_id=${child.stop_id}&departure_time>${currTime}&include=route,stop_time,trip`
-            )
-          ).json())
-        );
-      }
-
-      if (!_data.length) return predEl.classList.add("hidden");
-
-      popupText.innerHTML =
-        "<table class='data-table' style='min-width:400px'><tr><th>route</th><th>trip</th><th>dest</th><th>est</th></tr>" +
-        _data
-          .sort(
-            (a, b) =>
-              (a.departure_time || a.arrival_time) -
-              (b.departure_time || b.arrival_time)
+    /** @type {StopProperty[]} */
+    const stop = await fetchCache(
+      `/api/stop?stop_id=${properties.stop_id}&_=${timestamp}&include=alerts,predictions`,
+      { cache: "force-cache" },
+      super.defaultFetchCacheOpt
+    );
+    /**@type {StopTime[]} */
+    const stopTimes = (
+      await Promise.all(
+        properties.child_stops
+          .filter((cs) => cs.location_type == 0 && cs.vehicle_type == 2)
+          .map(
+            async (cs) =>
+              await fetchCache(
+                `/api/stoptime?stop_id=${cs.stop_id}&departure_timestamp>${
+                  timestamp * 10 - 60
+                }&include=trip`,
+                { cache: "force-cache" },
+                super.defaultFetchCacheOpt
+              )
           )
-          .map((d) => {
-            const realDeparture = d.departure_time || d.arrival_time;
-            let delayText = d.delay ? `${Math.floor(d.delay / 60)}` : "";
-            if (delayText === "0") {
-              delayText = "";
-            } else if (d.delay > 0) {
-              delayText = `+${delayText}`;
-            }
-            if (delayText) {
-              delayText += " min";
-            }
-            // const realTime = d.departure_time || d.arrival_time;
-            return /* HTML */ `<tr>
-              <td style="color:#${d.route.route_color}">
-                ${d.route.route_name.replace(" Line", "").replace("/", " / ")}
-              </td>
-              <td>${d.trip?.trip_short_name || d.trip_id}</td>
-              <td>${d.headsign}</td>
-              <td>
-                ${formatTimestamp(realDeparture, "%I:%M %P")}
-                <i class="${getDelayClassName(d.delay)}">${delayText}</i>
-              </td>
-            </tr> `;
+      )
+    ).flat();
+
+    console.log(stopTimes);
+
+    const alerts = stop.flatMap((s) => s.alerts);
+    const predictions = stop.flatMap((s) => s.predictions);
+    super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
+    sidebar.style.display = "initial";
+
+    container.innerHTML = /* HTML */ `<div>
+      ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
+      <div>
+        ${properties.routes
+          .map((route) => {
+            const _predictions = predictions
+              .filter((p) => p.route_id === route.route_id)
+              .sort(
+                (a, b) =>
+                  a.arrival_time - b.arrival_time ||
+                  a.departure_time - b.departure_time
+              );
+            const _stoptimes = stopTimes.filter(
+              (st) =>
+                st.trip?.route_id === route.route_id &&
+                !_predictions.map((p) => p.trip_id).includes(st.trip_id)
+            );
+
+            return /* HTML */ `<div style="margin-bottom: 5px;">
+              <table class="data-table">
+                <thead>
+                  ${super.tableHeaderHTML(route, 3)}
+                  ${((_predictions.length || _stoptimes.length) &&
+                    `<tr>
+                    <th>Trip</th>
+                    <th>Time</th>
+                    <th>Destination</th>
+                  </tr>`) ||
+                  ""}
+                </thead>
+                <tbody>
+                  ${_predictions
+                    .map((pred) => {
+                      const st = stopTimes
+                        .filter((st) => pred.trip_id === st.trip_id)
+                        .at(0);
+                      return /* HTML */ `<tr>
+                        <td>
+                          <a
+                            onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                            >${st?.trip?.trip_short_name || pred.trip_id}</a
+                          >
+                        </td>
+                        <td>
+                          ${formatTimestamp(
+                            pred.arrival_time || pred.departure_time,
+                            "%I:%M %P"
+                          )}
+                          <i class="${getDelayClassName(pred.delay)}"
+                            >${getDelayText(pred.delay)}</i
+                          >
+                        </td>
+                        <td>${st?.stop_headsign || pred.headsign}</td>
+                      </tr>`;
+                    })
+                    .join("")}
+                  ${_stoptimes
+                    .map(
+                      (st) => /* HTML */ `<tr>
+                        <td>${st.trip?.trip_short_name || st.trip_id}</td>
+                        <td>
+                          ${formatTimestamp(
+                            st.arrival_timestamp || st.departure_timestamp,
+                            "%I:%M %P"
+                          )}
+                          <span class="tooltip fa" data-tooltip="Scheduled Only"
+                            >&#xf017;</span
+                          >
+                        </td>
+                        <td>${st.stop_headsign || st.trip?.trip_headsign}</td>
+                      </tr>`
+                    )
+                    .join("")}
+                </tbody>
+              </table>
+            </div>`;
           })
-          .join("") +
-        "</table>";
-      predEl.innerHTML = BaseRealtimeLayer.iconSpacing("prediction");
-      predEl.appendChild(popupText);
-      setTimeout(() => {
-        if (BaseRealtimeLayer.openPopupIds.includes(popupId)) {
-          BaseRealtimeLayer.togglePopup(popupId, true);
-        }
-      }, 500);
-    }
+          .join("")}
+      </div>
+      ${this.#getFooterHTML(properties)}
+    </div>`;
   }
 }
