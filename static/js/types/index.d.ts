@@ -1,14 +1,74 @@
 import L from "leaflet";
 import "leaflet-sidebar";
+import * as util from "../utils.js";
+
+export type LeafletSidebar = (ReturnType<
+  typeof L.control.sidebar
+> extends L.Control
+  ? ReturnType<typeof L.control.sidebar>
+  : never) &
+  L.Evented;
 
 export interface LayerApiRealtimeOptions {
   url: string;
   layer: L.LayerGroup;
   textboxSize: string;
   isMobile: boolean;
-  sidebar: typeof L.Control.Sidebar;
+  sidebar: LeafletSidebar;
   routeType: string;
   map: L.Map;
+  interval?: number;
+}
+
+export interface RealtimeLayerOnClickOptions<T extends LayerProperty> {
+  /**
+   * stops pagination for the event to other map listeners
+   * @default true
+   */
+  stopPropagation?: boolean;
+
+  /**
+   * feature's properties
+   */
+  properties: T;
+
+  /**
+   * because javascript is an AMAZING language
+   * @default this
+   */
+  _this?: this;
+
+  /**
+   * id field, sets window hash, can be ignored by passing null
+   * @default "id"
+   */
+  idField?: keyof T | "id";
+}
+
+export interface FetchCacheOptions<T extends "text" | "json"> {
+  /**
+   * sessionStorage or localStorage or null (no cache)
+   * @default sessionStorage
+   */
+  storage?: Storage;
+  /**
+   * store and fetch as text or json
+   * @default json
+   */
+  out?: T;
+  /**
+   * time (ms) to cache the response
+   * @default null (indefinite)
+   */
+  clearAfter?: number;
+  /**
+   * what to do on error? returns result of this function if errors
+   *
+   * by default returns an empty array and `console.errors`
+   *
+   * @default (resp: Response) => []
+   */
+  onError?: (resp: Response) => any;
 }
 
 export interface LayerProperty {
@@ -37,8 +97,9 @@ export interface StopProperty extends LayerProperty {
   wheelchair_boarding: string;
   zone_id?: ZoneID;
   child_stops?: StopProperty[];
-  routes: Route[];
+  routes: RouteProperty[];
   alerts?: AlertProperty[];
+  predictions?: PredictionProperty[];
 }
 
 export enum ZoneID {
@@ -80,7 +141,7 @@ export interface ShapeProperty extends LayerProperty {
   route_long_name: string;
   line_id: string;
   route_desc: string;
-  listed_route?: string;
+  listed_route?: boolean;
   route_type: string;
   network_id: string;
   route_url: string;
@@ -138,7 +199,7 @@ export interface Facility extends LayerProperty {
   "car-sharing"?: "Zipcar";
 }
 
-export interface VehicleProperties extends LayerProperty {
+export interface VehicleProperty extends LayerProperty {
   bearing: number;
   bikes_allowed: boolean;
   current_status: "IN_TRANSIT_TO" | "INCOMING_AT" | "STOPPED_AT";
@@ -152,13 +213,13 @@ export interface VehicleProperties extends LayerProperty {
   next_stop?: NextStop;
   occupancy_percentage: null;
   occupancy_status: null;
-  route: Route;
+  route: RouteProperty;
   route_color: RouteColor;
   route_id: RouteID;
   speed: number | null;
   speed_mph: number | null;
   stop_id: null | string;
-  stop_time?: StopTime;
+  stop_time?: StopTimeProperty;
   timestamp: number;
   trip_id: string;
   trip_properties: any[];
@@ -206,7 +267,7 @@ export enum RouteID {
   Red = "Red",
 }
 
-export interface Route {
+export interface RouteProperty {
   agency_id: string;
   line_id: LineID;
   listed_route: null;
@@ -222,6 +283,11 @@ export interface Route {
   route_text_color: RouteTextColor;
   route_type: string;
   route_url: string;
+
+  stop_times?: StopTimeProperty[];
+  alerts?: AlertProperty[];
+  predictions?: PredictionProperty[];
+  trips?: TripProperty[];
 }
 
 export enum LineID {
@@ -262,7 +328,7 @@ export enum RouteTextColor {
   Ffffff = "FFFFFF",
 }
 
-export interface StopTime {
+export interface StopTimeProperty {
   arrival_time: string;
   arrival_timestamp: number;
   checkpoint_id: string;
@@ -281,6 +347,22 @@ export interface StopTime {
   stop_sequence: number;
   timepoint: string;
   trip_id: string;
+  trip?: TripProperty;
+}
+
+export interface TripProperty {
+  bikes_allowed: boolean;
+  block_id: null;
+  direction_id: number;
+  route_id: string;
+  route_pattern_id: string;
+  service_id: string;
+  shape_id: string;
+  trip_headsign: string;
+  trip_id: string;
+  trip_route_type: null;
+  trip_short_name: string;
+  wheelchair_accessible: number;
 }
 
 export interface PredictionProperty {
@@ -296,7 +378,7 @@ export interface PredictionProperty {
   stop_id: string;
   stop_name: string;
   stop_sequence: number;
-  stop_time: null;
+  stop_time: StopTimeProperty?;
   timestamp: number;
   trip_id: string;
   vehicle_id: string;

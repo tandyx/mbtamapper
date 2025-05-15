@@ -192,10 +192,10 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
-    Args:
+    args:
         - `import_data (bool, optional)`: Whether to import data. Defaults to False.
         - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
-    Returns:
+    returns:
         - `Flask`: default app.
     """
 
@@ -230,12 +230,21 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     @_app.route("/favicon.ico")
     def favicon() -> flask.Response:
-        """Returns favicon.ico.
+        """returns favicon.ico
 
         returns:
             - `Response`: favicon.ico.
         """
         return _app.send_static_file("img/all_routes.ico")
+
+    @_app.route("/sitemap.xml")
+    def sitemap() -> flask.Response:
+        """returns sitemap.xml
+
+        returns:
+            - `Response`: favicon.ico.
+        """
+        return _app.send_static_file("config/sitemap.xml")
 
     @_app.route("/api/<orm_name>")
     def orm_api(orm_name: str) -> tuple[str | flask.Response, int] | flask.Response:
@@ -251,6 +260,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
         params = flask.request.args.to_dict()
         include = params.pop("include", "").split(",")
+        params.pop("_", "")
         geojson = (
             bool(params.pop("geojson", False))  # this will be removed in the future
             or params.pop("file_type", "").lower() == "geojson"

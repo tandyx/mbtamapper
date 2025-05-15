@@ -3,6 +3,7 @@
  * @module utils
  * @import {strftime} from "strftime";
  * @import { Realtime, RealtimeUpdateEvent } from "leaflet";
+ * @import { FetchCacheOptions } from "./types";
  * @exports *
  */
 
@@ -256,6 +257,36 @@ function getDefaultCookie(name, value = "", numDays = null) {
   }
   return cookie;
 }
+/**
+ * for flag, early departure stops
+ * @param {StopTimeProperty?} properties
+ * @param {RouteProperty} route
+ */
+function specialStopTimeAttrs(properties, route) {
+  let _class = "",
+    tooltip = "",
+    htmlLogo = "";
+  if (!properties) return { cssClass: _class, tooltip, htmlLogo };
+
+  const flag_stop =
+    properties?.flag_stop ??
+    [properties.pickup_type, properties.drop_off_type].includes("3");
+
+  const early_departure =
+    properties?.early_departure ??
+    (properties.timepoint == "0" && route?.route_type == "2");
+
+  if (flag_stop) {
+    _class = "flag_stop";
+    tooltip = "Flag Stop";
+    htmlLogo = "<i> f</i>";
+  } else if (early_departure) {
+    _class = "early_departure";
+    tooltip = "Early Departure";
+    htmlLogo = "<i> L</i>";
+  }
+  return { cssClass: _class, tooltip, htmlLogo };
+}
 
 /**
  * gets the value (style) of a css var
@@ -287,53 +318,21 @@ function isLikeMobile(threshold = null) {
   }
   return window.innerWidth <= 768;
 }
-/**@type {string[]} */
-const openPopups = [];
-/**
- * Toggles a popup
- * @param {string | HTMLElement} id - the id of the popup or the popup element
- * @param {boolean | "auto"} show - whether or not to show the popup
- * @returns {void}
- */
-function togglePopup(id, show = "auto") {
-  const popup = typeof id === "string" ? document.getElementById(id) : id;
-  if (!popup) return;
-  const identifier = popup.id || popup.name;
-  if (window.chrome || navigator.userAgent.indexOf("AppleWebKit") != -1) {
-    popup.classList.add("popup-solid-bg"); // just use firefox
-  }
-  if (!popup.classList.contains("show")) {
-    openPopups.push(identifier);
-  } else {
-    openPopups.splice(openPopups.indexOf(identifier), 1);
-  }
-
-  if (show === "auto") {
-    popup.classList.toggle("show");
-    return;
-  }
-  if (show) {
-    popup.classList.add("show");
-    if (!popup.classList.contains("show")) openPopups.push(identifier);
-    return;
-  }
-  popup.classList.remove("show");
-  openPopups.splice(openPopups.indexOf(identifier), 1);
-}
 
 /**
  * gets delay text formatted
  * @param {int} delay
+ * @param {boolean} [addMin=true] adds `" min"` to the end of the string
  * @returns {string} - the delay text
  */
-function getDelayText(delay) {
+function getDelayText(delay, addMin = true) {
   let delayText = delay ? `${Math.floor(delay / 60)}` : "";
   if (delayText === "0") {
     delayText = "";
   } else if (delay > 0) {
     delayText = `+${delayText}`;
   }
-  if (delayText) {
+  if (delayText && addMin) {
     delayText += " min";
   }
   return delayText;
@@ -413,37 +412,6 @@ function asyncSleep(time) {
 }
 
 /**
- * there's def a better way to do this but fuck im too lazy to google this shit
- *
- * async updates the innerHTML of a element to "1 second ago" or something like that
- * @param {string} _id the id
- * @param {number} _timestamp the timestamp
- * @param {number} [sleep=15000] ms to sleep
- */
-async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
-  while (true) {
-    const el = document.getElementById(_id);
-    if (!el) {
-      await asyncSleep(1000);
-      continue;
-    }
-    const _time = new Date().valueOf() / 1000 - _timestamp;
-    let humanReadable;
-    if (_time < 60) {
-      humanReadable = `< 1m`;
-    } else if (_time < 3600) {
-      humanReadable = `~ ${Math.floor(_time / 60)}m`;
-    } else if (_time < 86400) {
-      humanReadable = `~ ${Math.floor(_time / 3600)}h`;
-    } else {
-      humanReadable = `~ ${Math.floor(_time / 86400)}d`;
-    }
-    el.innerHTML = `${humanReadable} ago`;
-    await asyncSleep(sleep);
-  }
-}
-
-/**
  * gets storage or default value.
  *
  * sets `_default` value into storage
@@ -455,7 +423,7 @@ async function _updateTimestamp(_id, _timestamp, sleep = 15000) {
  * @param {{storage?: Storage, parseInt?: boolean, parseFloat?: boolean, parseJson?: boolean}} options
  * @returns {any}
  */
-function storageGet(key, _default, options) {
+function storageGet(key, _default, options = {}) {
   const _storage = options.storage || sessionStorage;
   const _item = _storage.getItem(key);
   if (!_item) {
@@ -466,6 +434,75 @@ function storageGet(key, _default, options) {
   if (options.parseInt) return parseInt(_item);
   if (options.parseJson) return JSON.parse(_item);
   return _item;
+}
+
+/**
+ *
+ * cache fetch requests in local or session storage
+ *
+ * auto assumes json but will default to text if failed
+ *
+ * `out` defaults to json, `storage` defaults to sessionStorage, `clearAfter` defaults to indefinite (ms)
+ *
+ * @template {"json" | "text"} T
+ *
+ * @param {string} url
+ * @param {RequestInit} fetchParams
+ * @param {FetchCacheOptions<T>} options
+ * @returns {Promise<FetchCacheOptions<T> extends "json" ? any : string>}
+ */
+async function fetchCache(url, fetchParams, options = {}) {
+  const { storage = sessionStorage, out = "json", clearAfter } = options;
+  const cacheData = storage?.getItem(url);
+  if (cacheData && storage) {
+    if (out === "text") return cacheData;
+    return JSON.parse(cacheData);
+  }
+  const resp = await fetch(url, fetchParams);
+  if (!resp.ok) {
+    if (options.onError) return options.onError(resp);
+    console.error(`${resp.status}: ${await resp.text()}`);
+    return [];
+  }
+  if (!storage) {
+    return out === "json" ? await resp.json() : await resp.text();
+  }
+  let data;
+  if (out === "json") {
+    data = await resp.json();
+    storage.setItem(url, JSON.stringify(data));
+  } else {
+    data = await resp.text();
+    storage.setItem(url, data);
+  }
+  if (clearAfter) setTimeout(() => storage.removeItem(url), clearAfter);
+
+  return data;
+}
+
+/**
+ * html element from string
+ * @param {string} htmlString
+ */
+function createElementFromHTML(htmlString) {
+  return new DOMParser().parseFromString(htmlString, "text/xml").children[0];
+  // Change this to div.childNodes to support multiple top-level nodes.
+}
+/**
+ * gets the best constrasting text color from a hex
+ * @param {`${'#'}${string}`} hexcolor
+ * @param {number} [tresh=128] treshhold
+ * @returns {"dark" | "light"}
+ */
+function getContrastYIQ(hexcolor, tresh = 128) {
+  while (hexcolor.charAt(0) === "#") {
+    hexcolor = hexcolor.substring(1);
+  }
+  var r = parseInt(hexcolor.substring(1, 3), 16);
+  var g = parseInt(hexcolor.substring(3, 5), 16);
+  var b = parseInt(hexcolor.substring(5, 7), 16);
+  var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= tresh ? "dark" : "light";
 }
 
 /**
@@ -571,5 +608,169 @@ class Theme {
    */
   reverse(storage = null, onSave = null) {
     return this.opposite.set(storage, onSave);
+  }
+}
+/**
+ * memory storage class
+ *
+ * basically just a wrapper for Map, but with the same methods as builtin `Storage`
+ *
+ * @template {Map<keyof, string>} M
+ */
+class MemoryStorage {
+  /**
+   * @param {M} map - the map to use as storage
+   */
+  constructor(map = new Map()) {
+    this.store = map;
+  }
+
+  /**
+   * length of the store
+   */
+  get length() {
+    return this.store.size;
+  }
+
+  /**
+   * gets the key at the index
+   * @param {number} index
+   * @returns
+   */
+  key(index) {
+    return Array.from(this.store.keys())[index] || null;
+  }
+  /**
+   *
+   * @param {keyof M} key
+   * @returns
+   */
+  getItem(key) {
+    return this.store.has(key) ? this.store.get(key) : null;
+  }
+
+  /**
+   * sets the item in the store
+   * @param {keyof M | keyof} key
+   * @param {any} value (cast to string)
+   */
+  setItem(key, value) {
+    this.store.set(key, `${value}`);
+  }
+
+  /**
+   * removes the item from the store
+   * @param {keyof M} key
+   */
+  removeItem(key) {
+    this.store.delete(key);
+  }
+
+  /**
+   * clears the store
+   */
+  clear() {
+    this.store.clear();
+  }
+}
+
+const memStorage = new MemoryStorage();
+
+/**
+ * class that interacts with a leaflet map and provides methods to action upon specific layers
+ */
+class LayerFinder {
+  /**
+   *
+   * @param {L.Map} map
+   */
+  constructor(map) {
+    this.map = map;
+  }
+
+  /**
+   * finds layer based on predicate and options
+   * @typedef {{click?: boolean, autoZoom?: boolean, zoom?: number, latLng?: L.LatLng}} FindLayerOptions
+   * @param {(value: L.LayerGroup<L.GeoJSON<LayerProperty>>, index: number, array: any[]) => L.Layer?} fn
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?}
+   */
+  findLayer(fn, options = {}) {
+    options = { click: true, autoZoom: true, ...options };
+    const _zoom = this.map.getZoom();
+    const _coords = this.map.getCenter();
+    this.map.setZoom(this.map.options.minZoom, {
+      animate: false,
+    });
+    /**@type {L.Layer[]} */
+    const initialLayers = Object.values(this.map._layers);
+    let layer = initialLayers.find(fn);
+    /** @type {L.MarkerCluster?} */
+    let mcluster;
+    if (!layer) {
+      mcluster = initialLayers
+        .find((a) => a.options.name === "vehicles")
+        ?.disableClustering();
+      layer = Object.values(this.map._layers).find(fn);
+      mcluster?.enableClustering();
+    }
+    if (!layer) {
+      console.error(`layer not found`);
+      this.map.setView(_coords, _zoom, { animate: false });
+      return;
+    }
+    if (this.map.options.maxZoom && options.autoZoom) {
+      this.map.setView(
+        options.latLng || layer.getLatLng(),
+        options.zoom || this.map.options.maxZoom
+      );
+    }
+    if (options.click) layer.fire("click");
+    return layer;
+  }
+
+  /**
+   * fires click event and zooms in on stop
+   * @param {string} stopId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} stop
+   */
+  clickStop(stopId, options = {}) {
+    return (
+      this.findLayer(
+        (e) =>
+          e?.feature?.properties?.child_stops
+            ?.map((c) => c.stop_id)
+            ?.includes(stopId) || e?.feature?.id === stopId
+      ),
+      { zoom: 15, ...options }
+    );
+  }
+
+  /**
+   * fires click event and zooms in on route
+   * @param {string} routeId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} shape
+   */
+  clickRoute(routeId, options = {}) {
+    return this.findLayer((e) => e?.feature?.properties?.route_id === routeId, {
+      zoom: this.map.options.minZoom,
+      latLng: this.map.getCenter(),
+      ...options,
+    });
+  }
+  /**
+   * fires click event and zooms in on vehicle
+   * wrapper for `findLayer`
+   * @param {string} vehicleId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} vehicle
+   */
+  clickVehicle(vehicleId, options = {}) {
+    return this.findLayer(
+      (e) => e?.feature?.properties?.vehicle_id === vehicleId,
+      { zoom: 15, ...options }
+    );
   }
 }

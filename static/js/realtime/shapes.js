@@ -3,9 +3,9 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
- * @import {_RealtimeLayer} from "./base.js"
+ * @import {BaseRealtimeLayer} from "./base.js"
  * @exports ShapeLayer
  */
 "use strict";
@@ -13,7 +13,7 @@
 /**
  * represents the shape layer
  */
-class ShapeLayer extends _RealtimeLayer {
+class ShapeLayer extends BaseRealtimeLayer {
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -28,7 +28,9 @@ class ShapeLayer extends _RealtimeLayer {
   plot(options) {
     const _this = this;
     options = { ...this.options, ...options };
-    const polyLineRender = L.canvas({ padding: 0.5, tolerance: 10 });
+    /** @type {BaseRealtimeOnClickOptions<ShapeProperty>} */
+    const onClickOpts = { _this, idField: "route_id" };
+    const polyLineRender = L.canvas({ padding: 0.5, tolerance: 7 });
     const realtime = L.realtime(options.url, {
       interval: 3600000,
       type: "FeatureCollection",
@@ -44,12 +46,42 @@ class ShapeLayer extends _RealtimeLayer {
         });
         l.id = f.properties.route_id;
         l.feature.properties.searchName = f.properties.route_name;
-        l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
+        l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.properties.route_name);
-        l.once("click", () => _this.#fillAlertData(f.properties.route_id));
+        l.on("click", (_e) =>
+          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties })
+        );
       },
     });
-    realtime.on("update", super.handleUpdateEvent);
+    realtime.on("update", (_e) => {
+      Object.keys(_e.update).forEach(
+        function (id) {
+          /**@type {Layer} */
+          const layer = realtime.getLayer(id);
+          /**@type {GeoJSON.Feature<GeoJSON.Geometry, StopProperty} */
+          const feature = _e.update[id];
+          const wasOpen = layer.getPopup()?.isOpen() || false;
+          const properties = feature.properties;
+          layer.id = feature.id;
+          l.feature.properties.searchName = f.properties.route_name;
+          layer.unbindPopup();
+          const onClick = () =>
+            _this.#_onclick(_e, { ...onClickOpts, properties: properties });
+          if (wasOpen) layer.closePopup();
+          layer.bindPopup(_this.#getPopupHTML(properties), options.textboxSize);
+          if (wasOpen) {
+            _this.options.map.setView(
+              layer.getLatLng(),
+              _this.options.map.getZoom(),
+              { animate: true }
+            );
+            layer.openPopup();
+            setTimeout(onClick, 200);
+          }
+          layer.once("click", onClick);
+        }.bind(this)
+      );
+    });
     return realtime;
   }
 
@@ -58,10 +90,50 @@ class ShapeLayer extends _RealtimeLayer {
    * @param {ShapeProperty} properties from geojson
    * @returns {HTMLDivElement} - vehicle props
    */
-  #getPopupText(properties) {
+  #getPopupHTML(properties) {
     const shapeHtml = document.createElement("div");
     shapeHtml.innerHTML = /* HTML */ `
-      <p>
+      ${this.#getHeaderHTML(properties)}
+      ${super.moreInfoButton(properties.stop_id)}
+      <div>
+        ${properties.route_id} @
+        <a
+          href="${properties.agency.agency_url}"
+          rel="noopener"
+          target="_blank"
+        >
+          ${properties.agency.agency_name}
+        </a>
+      </div>
+      <div>${properties.agency.agency_phone}</div>
+      <div class="popup_footer">
+        <div>${formatTimestamp(properties.timestamp)}</div>
+      </div>
+    `;
+    return shapeHtml;
+  }
+
+  /**
+   * to be called `onclick`
+   *
+   * supercedes public super method
+   *
+   * @param {DomEvent.PropagableEvent} event
+   * @param {RealtimeLayerOnClickOptions<StopProperty>} options
+   */
+  #_onclick(event, options = {}) {
+    super._onclick(event, options);
+    /**@type {this} */
+    const _this = options._this || this;
+    _this.#fillSidebar(options.properties);
+  }
+
+  /**
+   * @param {ShapeProperty} properties
+   */
+  #getHeaderHTML(properties) {
+    return /* HTML */ ` <div>
+      <div>
         <a
           href="${properties.route_url}"
           rel="noopener"
@@ -71,17 +143,173 @@ class ShapeLayer extends _RealtimeLayer {
         >
           ${properties.route_name.replace("/", " / ")}
         </a>
-      </p>
-      <p class="popup_subheader">${properties.route_desc}</p>
+      </div>
+      <div class="popup_subheader">${properties.route_desc}</div>
       <hr />
-      <span
-        name="alert-shape-${properties.route_id}"
-        class="fa hidden popup tooltip slight-delay"
-        data-tooltip="alerts"
-      >
-        ${_RealtimeLayer.icons.alert}
-      </span>
-      <p>
+    </div>`;
+  }
+
+  /**
+   *
+   * @param {ShapeProperty} properties
+   */
+  async #fillSidebar(properties) {
+    const container = BaseRealtimeLayer.toggleSidebarDisplay(
+      BaseRealtimeLayer.sideBarOtherId
+    );
+    const sidebar = document.getElementById("sidebar");
+    const timestamp = Math.round(new Date().valueOf() / 10000);
+    if (!container || !sidebar) return;
+    super.moreInfoButton(properties.stop_id, { loading: true });
+    /**@type {PredictionProperty[]}*/
+    sidebar.style.display = "flex";
+    container.innerHTML = /* HTML */ `<div class="centered-parent">
+      <div class="loader-large"></div>
+    </div>`;
+
+    const useSchedule =
+      ["2", "4"].includes(properties.route_type) || properties.listed_route;
+
+    /** @type {RouteProperty} */
+    const route = (
+      await fetchCache(
+        `/api/route?route_id=${
+          properties.route_id
+        }&_=${timestamp}&include=alerts,predictions${
+          (useSchedule && ",stop_times,trips") || ""
+        }`,
+        { cache: "force-cache" },
+        super.defaultFetchCacheOpt
+      )
+    ).at(0);
+
+    route.stop_times ||= [];
+
+    const alerts = route.alerts.filter((a) => !a.stop_id);
+
+    super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
+    sidebar.style.display = "initial";
+
+    const predictions = route.predictions
+      .sort(
+        (a, b) =>
+          a.arrival_time - b.arrival_time || a.departure_time - b.departure_time
+      )
+      // .filter((p) => (p.arrival_time || p.departure_time) > timestamp)
+      .filter((p) => {
+        const subpre = route.predictions
+          .filter((_p) => _p.trip_id === p.trip_id)
+          .map((_p) => _p.stop_sequence);
+        return p.stop_sequence === Math.min(...subpre);
+      });
+
+    const stoptimes = route.stop_times
+      .sort(
+        (a, b) =>
+          a.arrival_timestamp - b.arrival_timestamp ||
+          a.departure_timestamp - b.departure_timestamp
+      )
+      .filter((st) => {
+        if (predictions.map((p) => p.trip_id).includes(st.trip_id)) {
+          return false;
+        }
+        const subst = route.stop_times
+          .filter((_st) => _st.trip_id === st.trip_id)
+          .map((_st) => _st.stop_sequence);
+        return st.stop_sequence === Math.min(...subst);
+      })
+      .filter(
+        (st) =>
+          (st.arrival_timestamp || st.departure_timestamp) >
+          10 * timestamp - 300
+      );
+
+    container.innerHTML = /* HTML */ `<div>
+      ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
+      <div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Trip</th>
+              <th>Headsign</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${predictions
+              .map((pred) => {
+                const trip = route.trips
+                  ?.filter((t) => t.trip_id === pred.trip_id)
+                  ?.at(0);
+                const _ps = route.predictions.filter(
+                  (p) => p.trip_id === pred.trip_id
+                );
+                console.log(_ps);
+                const headsign =
+                  pred.headsign ||
+                  trip?.trip_headsign ||
+                  _ps
+                    ?.filter(
+                      (p) =>
+                        p.stop_sequence ===
+                        Math.max(..._ps.map((_p) => _p.stop_sequence))
+                    )
+                    ?.at(0)?.stop_name;
+
+                return /* HTML */ `<tr>
+                  <td>
+                    <a
+                      onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                      >${trip?.trip_short_name || pred.trip_id}</a
+                    >
+                  </td>
+                  <td>${headsign}</td>
+                  <td>
+                    <span class="fa tooltip" data-tooltip="Next Stop"
+                      >${BaseRealtimeLayer.icons.prediction}</span
+                    >
+                    <a
+                      onclick="new LayerFinder(_map).clickStop('${pred.stop_id}')"
+                      >${pred.stop_name}</a
+                    >
+                    @
+                    ${formatTimestamp(
+                      pred.arrival_time || pred.departure_time,
+                      "%I:%M %P"
+                    )}
+                    <i class="${getDelayClassName(pred.delay)}"
+                      >${getDelayText(pred.delay, false)}</i
+                    >
+                  </td>
+                </tr>`;
+              })
+              .join("")}
+            ${stoptimes
+              .map((st) => {
+                const trip = route.trips
+                  ?.filter((t) => t.trip_id === st.trip_id)
+                  ?.at(0);
+                console.log(st);
+                return /* HTML */ `<tr>
+                  <td>${trip?.trip_short_name || st.trip_id}</td>
+                  <td>${st.destination_label || trip?.trip_headsign}</td>
+                  <td>
+                    <span class="tooltip fa" data-tooltip="Schduled to leave"
+                      >${BaseRealtimeLayer.icons.clock}</span
+                    >
+                    ${st.stop_name} @
+                    ${formatTimestamp(
+                      st.arrival_timestamp || st.departure_timestamp,
+                      "%I:%M %P"
+                    )}
+                  </td>
+                </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+      <div>
         ${properties.route_id} @
         <a
           href="${properties.agency.agency_url}"
@@ -90,61 +318,11 @@ class ShapeLayer extends _RealtimeLayer {
         >
           ${properties.agency.agency_name}
         </a>
-      </p>
-      <p>${properties.agency.agency_phone}</p>
-      <div class="popup_footer">
-        <p>${formatTimestamp(properties.timestamp)}</p>
       </div>
-    `;
-    return shapeHtml;
-  }
-
-  /**
-   * fill alert shape data
-   * @param {string} route_id
-   */
-  async #fillAlertData(route_id) {
-    for (const alertEl of document.getElementsByName(
-      `alert-shape-${route_id}`
-    )) {
-      const popupId = `popup-alert-${route_id}`;
-      super.loadingIcon(alertEl, popupId, {
-        style: "border-top: var(--border) solid var(--slight-delay);",
-      });
-
-      const popupText = document.createElement("span");
-      popupText.classList.add("popuptext");
-      popupText.style.minWidth = "350px";
-      popupText.id = popupId;
-      popupText.innerHTML = "...";
-      /**@type {AlertProperty[]} */
-      const _data = await (
-        await fetch(`/api/alert?route_id=${route_id}&stop_id=null`)
-      ).json();
-      if (!_data.length) return alertEl.classList.add("hidden");
-      popupText.innerHTML =
-        "<table class='data-table'><tr><th>alert</th><th style='width:40%;'>period</th></tr>" +
-        _data
-          .map((d) => {
-            const strf = "%m-%d";
-            const start = d.active_period_start
-              ? formatTimestamp(d.active_period_start, strf)
-              : null;
-            const end = d.active_period_end
-              ? formatTimestamp(d.active_period_end, strf)
-              : null;
-            return `<tr>
-                <td>${d.header}</td>
-                <td>${start} to ${end}</td>
-              </tr>`;
-          })
-          .join("") +
-        "</table>";
-      alertEl.innerHTML = _RealtimeLayer.icons.alert;
-      alertEl.appendChild(popupText);
-      setTimeout(() => {
-        if (openPopups.includes(popupId)) togglePopup(popupId, true);
-      }, 500);
-    }
+      <div>${properties.agency.agency_phone}</div>
+      <div class="popup_footer">
+        <div>${formatTimestamp(properties.timestamp)}</div>
+      </div>
+    </div>`;
   }
 }

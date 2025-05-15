@@ -14,25 +14,32 @@
  * @typedef {import("./realtime/facilities.js")}
  * @typedef {import("./realtime/shapes.js")}
  * @typedef {import("./realtime/stops.js")}
+ * @typedef {import("leaflet-easybutton")}
+ * @import {LeafletSidebar} from "./types"
  */
 "use strict";
+/**@type {L.Map?} for debug purposes*/
+let _map;
+/**@type {LeafletSidebar?} for reference purposes */
+let _sidebar;
 
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
-  createMap("map", ROUTE_TYPE);
-});
-
-window.addEventListener("load", function () {
+  _map = createMap("map", ROUTE_TYPE);
   if (inIframe()) {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
+  // this.setTimeout(() => {
+  //   const _hash = window.location.hash.slice(1);
+  //   const lf = new LayerFinder(_map);
+  //   if (lf.clickVehicle(_hash)) return;
+  //   if (lf.clickStop(_hash)) return;
+  //   if (lf.clickRoute(_hash)) return;
+  // }, 1000);
   Theme.fromExisting().set(sessionStorage, onThemeChange);
 });
 
-window.addEventListener("hashchange", () => {
-  document.getElementById(window.location.hash.slice(1)).click();
-});
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {string} routeType - route type
@@ -40,12 +47,13 @@ window.addEventListener("hashchange", () => {
  */
 function createMap(id, routeType) {
   const isMobile = mobileCheck();
+  const isIframe = inIframe();
   const theme = Theme.fromExisting();
 
   const map = L.map(id, {
-    minZoom: 9,
+    minZoom: routeType === "commuter_rail" ? 9 : 10,
     maxZoom: 20,
-    maxBounds: L.latLngBounds(L.latLng(40, -74), L.latLng(44, -69)),
+    maxBounds: L.latLngBounds(L.latLng(41, -73), L.latLng(43.5, -68)),
     fullscreenControl: true,
     fullscreenControlOptions: { position: "topleft" },
     attributionControl: true,
@@ -56,7 +64,7 @@ function createMap(id, routeType) {
       storageGet("lat", 42.3519, { parseFloat: true }),
       storageGet("lng", -71.0552, { parseFloat: true }),
     ],
-    storageGet("zoom", routeType == "commuter_rail" ? 10 : 13, {
+    storageGet("zoom", routeType === "commuter_rail" ? 10 : 13, {
       parseFloat: true,
     })
   );
@@ -71,15 +79,24 @@ function createMap(id, routeType) {
   map.on("baselayerchange", (event) => {
     new Theme(event.name).set(sessionStorage, onThemeChange);
   });
-
+  /**@type {LeafletSidebar?} */
   const sidebar = L.control
     .sidebar("sidebar", {
       closeButton: true,
       position: "right",
     })
     .addTo(map);
+  _sidebar = sidebar;
+  sidebar.on("hide", () => {
+    document.documentElement.style.setProperty("--more-info-display", "unset");
+  });
+  sidebar.on("show", () => {
+    document.documentElement.style.setProperty("--more-info-display", "none");
+  });
 
-  if (!isMobile) setTimeout(() => sidebar.show(), 500);
+  // sidebar.
+
+  if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
   baseLayers[theme.theme].addTo(map);
@@ -134,6 +151,13 @@ function createMap(id, routeType) {
   if (map.hasLayer(facilityLayer.options.layer)) {
     map.removeLayer(facilityLayer.options.layer);
   }
+  map.on("click", () => {
+    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
+  });
+
+  L.easyButton("<span class='fa'>&#xf053;</span>", () => sidebar.toggle())
+    .setPosition("topright")
+    .addTo(map);
 
   return map;
 }

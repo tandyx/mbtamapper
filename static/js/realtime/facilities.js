@@ -3,9 +3,9 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperties, PredictionProperty, AlertProperty, Facility } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility } from "../types/index.js"
  * @import { Realtime } from "leaflet";
- * @import {_RealtimeLayer} from "./base.js"
+ * @import {BaseRealtimeLayer} from "./base.js"
  * @exports FacilityLayer
  */
 
@@ -14,7 +14,7 @@
 /**
  * represents the facility class
  */
-class FacilityLayer extends _RealtimeLayer {
+class FacilityLayer extends BaseRealtimeLayer {
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -79,11 +79,11 @@ class FacilityLayer extends _RealtimeLayer {
       <hr />
       <p>
         <span class="fa tooltip" data-tooltip="${properties.capacity} spots"
-          >${_RealtimeLayer.icons.parking}</span
-        >${_RealtimeLayer.icons.space}
+          >${BaseRealtimeLayer.icons.parking}</span
+        >${BaseRealtimeLayer.icons.space}
         ${capac_acc !== "0" && capac_acc
           ? `
-        <span class='fa tooltip' data-tooltip='${capac_acc} spots'>${_RealtimeLayer.icons.wheelchair}</span>
+        <span class='fa tooltip' data-tooltip='${capac_acc} spots'>${BaseRealtimeLayer.icons.wheelchair}</span>
       `
           : ""}
       </p>

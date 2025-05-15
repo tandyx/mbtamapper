@@ -14,6 +14,7 @@ if t.TYPE_CHECKING:
     from .alert import Alert
     from .multi_route_trip import MultiRouteTrip
     from .prediction import Prediction
+    from .stop_time import StopTime
     from .trip import Trip
     from .vehicle import Vehicle
 
@@ -45,7 +46,7 @@ class Route(Base):
     route_sort_order: Mapped[int]
     route_fare_class: Mapped[str]
     line_id: Mapped[t.Optional[str]]
-    listed_route: Mapped[t.Optional[str]]
+    listed_route: Mapped[t.Optional[bool]]
     network_id: Mapped[str]
 
     agency: Mapped["Agency"] = relationship(back_populates="routes")
@@ -86,4 +87,26 @@ class Route(Base):
         self.route_url = (
             self.route_url or f"https://www.mbta.com/schedules/{self.route_id}"
         )
-        self.route_name = self.route_short_name or self.route_long_name
+        self.route_name = (self.route_short_name or self.route_long_name).replace(
+            "/", " / "
+        )
+
+    def get_stop_times(self) -> t.Generator["StopTime", None, None]:
+        """returns a generator of stop time objects by yielding trips"""
+        for trip in self.trips:
+            yield from trip.stop_times
+
+    @t.override
+    def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
+        """returns `Stop(...)` as a json serializable object:
+
+        args:
+            - `*include`: other orms/attars to include
+            - `*kwargs`: unused \n
+        returns:
+            - `dict[str, Any]`: json object of stop
+        """
+        json_dict = super().as_json(*include, **kwargs)
+        if "stop_times" in include:
+            json_dict["stop_times"] = [st.as_json() for st in self.get_stop_times()]
+        return json_dict
