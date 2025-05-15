@@ -26,6 +26,7 @@
     align-items: center;
     justify-content: center;
     padding-bottom: 20px;
+    overflow-x: hidden;
     @media (max-width: 786px) {
       padding-bottom: 100px;
     }
