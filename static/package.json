@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "leaflet": "^1.9.4",
+    "leaflet-easybutton": "^2.4.0",
     "leaflet-fullscreen": "^1.0.2",
     "leaflet-providers": "^2.0.0",
     "leaflet-realtime": "^2.2.0",
