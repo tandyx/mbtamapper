@@ -32,7 +32,7 @@ class ShapeLayer extends BaseRealtimeLayer {
     const onClickOpts = { _this, idField: "route_id" };
     const polyLineRender = L.canvas({ padding: 0.5, tolerance: 7 });
     const realtime = L.realtime(options.url, {
-      interval: 3600000,
+      interval: 45000,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
@@ -58,12 +58,12 @@ class ShapeLayer extends BaseRealtimeLayer {
         function (id) {
           /**@type {Layer} */
           const layer = realtime.getLayer(id);
-          /**@type {GeoJSON.Feature<GeoJSON.Geometry, StopProperty} */
+          /**@type {GeoJSON.Feature<GeoJSON.Geometry, ShapeProperty} */
           const feature = _e.update[id];
           const wasOpen = layer.getPopup()?.isOpen() || false;
           const properties = feature.properties;
           layer.id = feature.id;
-          l.feature.properties.searchName = f.properties.route_name;
+          layer.feature.properties.searchName = feature.properties.route_name;
           layer.unbindPopup();
           const onClick = () =>
             _this.#_onclick(_e, { ...onClickOpts, properties: properties });
@@ -78,7 +78,7 @@ class ShapeLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
-          layer.once("click", onClick);
+          layer.on("click", onClick);
         }.bind(this)
       );
     });
@@ -226,7 +226,18 @@ class ShapeLayer extends BaseRealtimeLayer {
 
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
-      <div>
+      <div style="margin-top: -5px;">
+        ${properties.route_id} @
+        <a
+          href="${properties.agency.agency_url}"
+          rel="noopener"
+          target="_blank"
+        >
+          ${properties.agency.agency_name}
+        </a>
+      </div>
+      <div>${properties.agency.agency_phone}</div>
+      <div class="my-5">
         <table class="data-table">
           <thead>
             <tr>
@@ -244,7 +255,6 @@ class ShapeLayer extends BaseRealtimeLayer {
                 const _ps = route.predictions.filter(
                   (p) => p.trip_id === pred.trip_id
                 );
-                console.log(_ps);
                 const headsign =
                   pred.headsign ||
                   trip?.trip_headsign ||
@@ -289,7 +299,6 @@ class ShapeLayer extends BaseRealtimeLayer {
                 const trip = route.trips
                   ?.filter((t) => t.trip_id === st.trip_id)
                   ?.at(0);
-                console.log(st);
                 return /* HTML */ `<tr>
                   <td>${trip?.trip_short_name || st.trip_id}</td>
                   <td>${st.destination_label || trip?.trip_headsign}</td>
@@ -309,17 +318,6 @@ class ShapeLayer extends BaseRealtimeLayer {
           </tbody>
         </table>
       </div>
-      <div>
-        ${properties.route_id} @
-        <a
-          href="${properties.agency.agency_url}"
-          rel="noopener"
-          target="_blank"
-        >
-          ${properties.agency.agency_name}
-        </a>
-      </div>
-      <div>${properties.agency.agency_phone}</div>
       <div class="popup_footer">
         <div>${formatTimestamp(properties.timestamp)}</div>
       </div>

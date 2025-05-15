@@ -205,7 +205,7 @@ class BaseRealtimeLayer {
    */
   moreInfoButton(idfield, options = {}) {
     // if (!this.options.isMobile || !this.options.sidebar.isVisible()) return "";
-    const { loading = false, alert = false } = options;
+    const { loading = false, alert = false, coords } = options;
     const _id = `infobutton-${idfield}`;
     let _icon = loading
       ? "<div style='display: inline-block;' class='loader'></div>"

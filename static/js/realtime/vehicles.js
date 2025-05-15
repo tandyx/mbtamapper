@@ -147,7 +147,7 @@ class VehicleLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
-          layer.once("click", onClick);
+          layer.on("click", onClick);
         }.bind(this)
       );
     });
@@ -382,7 +382,7 @@ class VehicleLayer extends BaseRealtimeLayer {
         <div>${this.#getDelayHTML(properties)}</div>
         <div>${this.#getSpeedText(properties)}</div>
         ${this.#getOccupancyHTML(properties)}
-        <div style='margin-top:5px; margin-bottom:5px;'>
+        <div class="my-5">
           <table class='data-table'>
           <thead>
             ${super.tableHeaderHTML(properties.route)}

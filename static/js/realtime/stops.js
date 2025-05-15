@@ -79,7 +79,7 @@ class StopLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
-          layer.once("click", onClick);
+          layer.on("click", onClick);
         }.bind(this)
       );
     });
@@ -230,7 +230,6 @@ class StopLayer extends BaseRealtimeLayer {
     const alerts = stop.flatMap((s) => s.alerts);
     super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
     sidebar.style.display = "initial";
-
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
       <div>
@@ -256,7 +255,7 @@ class StopLayer extends BaseRealtimeLayer {
                   a.departure_timestamp - b.departure_timestamp
               );
 
-            return /* HTML */ `<div style="margin-bottom: 5px;">
+            return /* HTML */ `<div class="my-5">
               <table class="data-table">
                 <thead>
                   ${super.tableHeaderHTML(route, 3)}
