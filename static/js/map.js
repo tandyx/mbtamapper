@@ -14,6 +14,7 @@
  * @typedef {import("./realtime/facilities.js")}
  * @typedef {import("./realtime/shapes.js")}
  * @typedef {import("./realtime/stops.js")}
+ * @typedef {import("leaflet-easybutton")}
  * @import {LeafletSidebar} from "./types"
  */
 "use strict";
@@ -146,6 +147,10 @@ function createMap(id, routeType) {
   map.on("click", () => {
     BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
   });
+
+  L.easyButton("<span class='fa'>&#xf053;</span>", () => sidebar.toggle())
+    .setPosition("topright")
+    .addTo(map);
 
   return map;
 }
