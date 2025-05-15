@@ -255,7 +255,7 @@ class StopLayer extends BaseRealtimeLayer {
                   a.departure_timestamp - b.departure_timestamp
               );
 
-            return /* HTML */ `<div style="margin-bottom: 5px;">
+            return /* HTML */ `<div class="my-5">
               <table class="data-table">
                 <thead>
                   ${super.tableHeaderHTML(route, 3)}
