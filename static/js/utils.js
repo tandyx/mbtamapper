@@ -563,7 +563,7 @@ class Theme {
     return new this(
       document.documentElement.dataset.mode ||
         pStore.getItem(this.THEME_STORAGE_KEY) ||
-        secStore.getItem(this.THEME_STORAGE_KEY) ||
+        secStore?.getItem(this.THEME_STORAGE_KEY) ||
         this.systemTheme ||
         "light"
     );
