@@ -59,7 +59,7 @@ class Feed:
         Route,
         ShapePoint,
         Trip,
-        TripProperty,
+        # TripProperty,
         MultiRouteTrip,
         StopTime,
         LinkedDataset,
@@ -87,8 +87,6 @@ class Feed:
             if cls.__name__.lower() == name.lower():
                 return cls
         return None
-
-    get_orm = find_orm
 
     @staticmethod
     @event.listens_for(sa.Engine, "connect")
@@ -453,21 +451,18 @@ class Feed:
         logging.info("Added %s rows to %s", res, orm.__tablename__)
         return res
 
-    @removes_session
-    def get_orm_json(
-        self, _orm: type[Base] | str, *include: str, geojson: bool = False, **params
-    ) -> list[dict[str, t.Any]] | gj.FeatureCollection:
-        """Returns a dictionary of the ORM names and their corresponding JSON names.
+    def _get_orms(self, _orm: type[Base] | str, **params) -> list[tuple[Base]]:
+        """
+        basically executes a query
 
         args:
             - `_orm (str)`: ORM to return.
-            - `*include (str)`: other orms to include
-            - `geojson (bool)`: use `geojson` rather than `json`\n
             - `**params`: keyword arguments to pass to the query\n
-        Returns:
-            - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
+        returns:
+            - `list[tuple[Base]]`: list of tuples of the ORM objects
         """
         # pylint: disable=line-too-long
+
         session = self._get_session(readonly=True)
         if isinstance(_orm, str):
             _orm = self.find_orm(_orm)
@@ -516,9 +511,9 @@ class Feed:
                 for v in param_list
             )
         )
+        data: list[tuple[Base]] = []
         if non_cols:
             _eval = asteval.Interpreter()
-            data = []
             for d in session.execute(stmt).all():
                 for c in non_cols:
                     if hasattr(d[0], c["key"]):
@@ -531,7 +526,43 @@ class Feed:
                         ):
                             data.append(d)
         else:
-            data: list[tuple[Base]] = session.execute(stmt).all()
+            data = session.execute(stmt).all()
+
+        return data
+
+    @removes_session
+    def get_orms(self, _orm: type[Base] | str, **params) -> list[tuple[Base]]:
+        """
+        basically executes a query
+
+        this removes the session, so it's suitable for public calls (wrapper for _get_orms)
+
+        this is mostly for debugging
+
+        args:
+            - `_orm (str)`: ORM to return.
+            - `**params`: keyword arguments to pass to the query\n
+        returns:
+            - `list[tuple[Base]]`: list of tuples of the ORM objects
+        """
+
+        return self._get_orms(_orm, **params)
+
+    @removes_session
+    def get_orm_json(
+        self, _orm: type[Base] | str, *include: str, geojson: bool = False, **params
+    ) -> list[dict[str, t.Any]] | gj.FeatureCollection:
+        """Returns a dictionary of the ORM names and their corresponding JSON names.
+
+        args:
+            - `_orm (str)`: ORM to return.
+            - `*include (str)`: other orms to include
+            - `geojson (bool)`: use `geojson` rather than `json`\n
+            - `**params`: keyword arguments to pass to the query\n
+        returns:
+            - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
+        """
+        data = self._get_orms(_orm, **params)
         if geojson:
             if not data:
                 return gj.FeatureCollection([])

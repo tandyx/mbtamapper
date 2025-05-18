@@ -206,6 +206,7 @@ class StopLayer extends BaseRealtimeLayer {
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
+    // &departure_timestamp>${timestamp * 10 - 60}
     /**@type {StopTimeProperty[]} */
     const stopTimes = (
       await Promise.all(
@@ -217,9 +218,7 @@ class StopLayer extends BaseRealtimeLayer {
           .map(
             async (cs) =>
               await fetchCache(
-                `/api/stoptime?stop_id=${cs.stop_id}&departure_timestamp>${
-                  timestamp * 10 - 60
-                }&include=trip`,
+                `/api/stoptime?stop_id=${cs.stop_id}&active=True&include=trip`,
                 { cache: "force-cache" },
                 super.defaultFetchCacheOpt
               )
