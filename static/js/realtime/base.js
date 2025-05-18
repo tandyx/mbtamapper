@@ -186,6 +186,9 @@ class BaseRealtimeLayer {
       console.error(error);
     }
     if (stopPropagation) L.DomEvent.stopPropagation(event);
+    /**@type {HTMLElement} */
+    const sidebarDiv = _this.options.sidebar._contentContainer;
+    sidebarDiv.onscroll = null;
   }
 
   /**
@@ -203,7 +206,10 @@ class BaseRealtimeLayer {
     const scrollStorageId = `sidebar-scroll-${properties[idField]}`;
 
     const scrollTop = memStorage.getItem(scrollStorageId);
-    if (scrollTop) sidebarDiv.scroll({ top: parseInt(scrollTop) });
+    if (scrollTop) {
+      console.log(memStorage);
+      sidebarDiv.scroll({ top: parseInt(scrollTop) });
+    }
 
     // DO NOT CHANGE TO ADDEVENTLISTENER
     sidebarDiv.onscroll = (event) => {

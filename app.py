@@ -344,6 +344,14 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
         help="Logging level \\ (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
     )
 
+    _argparse.add_argument(
+        "--ssl_context",
+        "--ssl",
+        default=None,
+        type=str,
+        help="ssl context",
+    )
+
     for key, value in kwargs.items():
         _argparse.add_argument(key, **value)
 
@@ -369,4 +377,6 @@ if __name__ == "__main__":
     ):
         raise ValueError("cannot run in debug mode while importing data.")
     app = create_main_app(args.import_data, args.proxies)
-    app.run(debug=args.debug, port=args.port, host=args.host)
+    app.run(
+        debug=args.debug, port=args.port, host=args.host, ssl_context=args.ssl_context
+    )
