@@ -439,6 +439,15 @@ noscript {
   --table-odd-row: rgba(227, 227, 227, 0.5);
 }
 
+.special-stoptime-key {
+  /* border: 0.5px solid var(--text-color); */
+  border-radius: var(--border-radius);
+  /* padding: 5px; */
+  font-size: smaller;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
 .data-table {
   --border: 1px solid var(--text-color);
 

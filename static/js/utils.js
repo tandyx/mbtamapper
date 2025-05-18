@@ -258,15 +258,16 @@ function getDefaultCookie(name, value = "", numDays = null) {
   return cookie;
 }
 /**
+ *
+ * @typedef {ReturnType<specialStopTimeAttrs>} StopTimeAttrObj
+ *
  * for flag, early departure stops
  * @param {StopTimeProperty?} properties
  * @param {RouteProperty} route
  */
 function specialStopTimeAttrs(properties, route) {
-  let _class = "",
-    tooltip = "",
-    htmlLogo = "";
-  if (!properties) return { cssClass: _class, tooltip, htmlLogo };
+  const objec = { cssClass: "", tooltip: "", htmlLogo: "" };
+  if (!properties) return objec;
 
   const flag_stop =
     properties?.flag_stop ??
@@ -278,15 +279,15 @@ function specialStopTimeAttrs(properties, route) {
     (properties.timepoint == "0" && route?.route_type == "2");
 
   if (flag_stop) {
-    _class = "flag_stop";
-    tooltip = "Flag Stop";
-    htmlLogo = "<i> f</i>";
+    objec.cssClass = "flag_stop";
+    objec.tooltip = "Flag Stop";
+    objec.htmlLogo = "<i> f</i>";
   } else if (early_departure) {
-    _class = "early_departure";
-    tooltip = "Early Departure";
-    htmlLogo = "<i> L</i>";
+    objec.cssClass = "early_departure";
+    objec.tooltip = "Early Departure";
+    objec.htmlLogo = "<i> L</i>";
   }
-  return { cssClass: _class, tooltip, htmlLogo };
+  return objec;
 }
 
 /**
