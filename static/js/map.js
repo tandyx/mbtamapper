@@ -31,6 +31,14 @@ window.addEventListener("load", function () {
     this.document.getElementsByTagName("nav")[0].remove();
   }
   Theme.fromExisting().set(sessionStorage, onThemeChange);
+
+  setInterval(() => {
+    document.querySelectorAll("[data-update-timestamp]").forEach((el) => {
+      const now = new Date().valueOf() / 1000;
+      const timestamp = parseFloat(el.dataset.updateTimestamp);
+      el.innerHTML = ` ~ ${minuteify(now - timestamp)} ago`;
+    });
+  }, 1000);
 });
 
 /** map factory function for map.html
