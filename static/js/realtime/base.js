@@ -38,7 +38,7 @@ class BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
-    options.interval = options.interval || 15000;
+    options.interval = options.interval || 12500;
     this.options = options;
   }
   /**
@@ -169,9 +169,6 @@ class BaseRealtimeLayer {
    *
    * to be called `onclick`
    *
-   * supposed to be private but :P
-   *
-   *
    * @param {DomEvent.PropagableEvent} event
    * @param {BaseRealtimeOnClickOptions<T>} options
    */
@@ -191,6 +188,41 @@ class BaseRealtimeLayer {
     if (stopPropagation) L.DomEvent.stopPropagation(event);
   }
 
+  /**
+   * after click event
+   *
+   * @param {DomEvent.PropagableEvent} event
+   * @param {BaseRealtimeOnClickOptions<T>} options
+   */
+  _afterClick(event, options = {}) {
+    const { _this = this, properties, idField = "id" } = options || {};
+
+    /**@type {HTMLElement} */
+    const sidebarDiv = _this.options.sidebar._contentContainer;
+
+    const scrollStorageId = `sidebar-scroll-${properties[idField]}`;
+
+    const scrollTop = memStorage.getItem(scrollStorageId);
+    if (scrollTop) sidebarDiv.scroll({ top: parseInt(scrollTop) });
+
+    // DO NOT CHANGE TO ADDEVENTLISTENER
+    sidebarDiv.onscroll = (event) => {
+      memStorage.setItem(scrollStorageId, event.target.scrollTop);
+    };
+
+    for (const el of document.querySelectorAll("[data-route-id]")) {
+      if (!el.onclick) continue;
+      /**@type {HTMLElement?} */
+      const tbody =
+        el.parentElement?.parentElement?.parentElement?.querySelector("tbody");
+      if (!tbody) continue;
+      tbody.classList.toggle(
+        "hidden",
+        memStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
+      );
+    }
+  }
+  // `route-${this.dataset.routeId}-hidden`
   /**
    *
    * gets the more info button
@@ -246,15 +278,32 @@ class BaseRealtimeLayer {
   /**
    * table header html
    * @param {RouteProperty} properties
-   * @param {number} [colspan=2]
+   * @param {{colspan?: number, onclick?: boolean}} options - colspan = 2,
+   * @param {number}
    */
-  tableHeaderHTML(properties, colspan = 2) {
+  tableHeaderHTML(properties, options = {}) {
+    const { onclick = true, colspan = 2 } = options;
+    const _onclick = () => {
+      /**@type {HTMLElement} */
+      const tbody =
+        this.parentElement.parentElement.parentElement.querySelector(`tbody`);
+      if (!tbody) return;
+      const nowHidden = !!tbody.classList.toggle(`hidden`);
+      memStorage.setItem(
+        `route-${this.dataset.routeId}-hidden`,
+        nowHidden.toString()
+      );
+    };
+
     return /* HTML */ `<tr>
       <th
         colspan="${colspan}"
-        style="background-color: #${properties.route_color};border-bottom: none; cursor:pointer;"
+        data-route-id="${properties.route_id}"
+        style="background-color: #${properties.route_color};border-bottom: none; ${onclick
+          ? "cursor:pointer"
+          : ""};"
         class="text-align-center"
-        onclick="[...this.parentElement.parentElement.parentElement.children].filter(c => c.tagName === 'TBODY').at(0).classList.toggle('hidden')"
+        onclick="${onclick ? `(${_onclick.toString()})()` : ""}"
       >
         <a
           onclick="new LayerFinder(_map).clickRoute('${properties.route_id}')"

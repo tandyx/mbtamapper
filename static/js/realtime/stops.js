@@ -175,12 +175,12 @@ class StopLayer extends BaseRealtimeLayer {
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<StopProperty>} options
    */
-  #_onclick(event, options = {}) {
+  async #_onclick(event, options = {}) {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-
-    _this.#fillSidebar(options.properties);
+    await _this.#fillSidebar(options.properties);
+    super._afterClick(event, options);
   }
   /**
    *
@@ -257,7 +257,7 @@ class StopLayer extends BaseRealtimeLayer {
             return /* HTML */ `<div class="my-5">
               <table class="data-table">
                 <thead>
-                  ${super.tableHeaderHTML(route, 3)}
+                  ${super.tableHeaderHTML(route, { colspan: 3 })}
                   ${((_predictions.length || _stoptimes.length) &&
                     `<tr>
                     <th>Trip</th>

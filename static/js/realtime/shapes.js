@@ -33,6 +33,7 @@ class ShapeLayer extends BaseRealtimeLayer {
     const polyLineRender = L.canvas({ padding: 0.5, tolerance: 7 });
     const realtime = L.realtime(options.url, {
       interval: 45000,
+      // interval: 15000,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
@@ -116,11 +117,12 @@ class ShapeLayer extends BaseRealtimeLayer {
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<StopProperty>} options
    */
-  #_onclick(event, options = {}) {
+  async #_onclick(event, options = {}) {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-    _this.#fillSidebar(options.properties);
+    await _this.#fillSidebar(options.properties);
+    super._afterClick(event, options);
   }
 
   /**
