@@ -270,7 +270,8 @@ function specialStopTimeAttrs(properties, route) {
 
   const flag_stop =
     properties?.flag_stop ??
-    [properties.pickup_type, properties.drop_off_type].includes("3");
+    ([properties.pickup_type, properties.drop_off_type].includes("3") &&
+      route?.route_type == "2");
 
   const early_departure =
     properties?.early_departure ??

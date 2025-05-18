@@ -117,7 +117,7 @@ class Trip(Base):
         return getattr(max(self.stop_times, default=None), "stop", None)
 
     def is_active(self, _date: dt.datetime | None = None, **kwargs) -> bool:
-        """Returns true if this StopTime is active on the given date and time
+        """Returns true if this `Trip` is active on the given date and time
 
         args:
             - `date (datetime = None)`: the date to check <- defaults to the current date
