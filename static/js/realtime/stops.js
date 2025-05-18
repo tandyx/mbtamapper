@@ -270,7 +270,7 @@ class StopLayer extends BaseRealtimeLayer {
                   </tr>`) ||
                   ""}
                 </thead>
-                <tbody>
+                <tbody class="directional">
                   ${_predictions
                     .map((pred) => {
                       const st = stopTimes
@@ -278,7 +278,9 @@ class StopLayer extends BaseRealtimeLayer {
                         .at(0);
                       const dom = pred.arrival_time || pred.departure_time; // sometimes i want one
                       const stAttrs = specialStopTimeAttrs(st, route);
-                      return /* HTML */ `<tr>
+                      return /* HTML */ `<tr
+                        data-direction-${parseInt(pred.direction_id)}
+                      >
                         <td>
                           <a
                             class="${stAttrs.cssClass} ${stAttrs.tooltip &&
@@ -313,7 +315,9 @@ class StopLayer extends BaseRealtimeLayer {
                       const stAttrs = specialStopTimeAttrs(st, route);
                       const dom =
                         st.arrival_timestamp || st.departure_timestamp; // mommy?
-                      return /* HTML */ `<tr>
+                      return /* HTML */ `<tr
+                        data-direction-${parseInt(st?.trip?.direction_id)}
+                      >
                         <td
                           class="${stAttrs.cssClass} ${stAttrs.tooltip &&
                           "tooltip"}"
