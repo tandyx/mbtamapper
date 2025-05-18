@@ -207,10 +207,14 @@ class StopLayer extends BaseRealtimeLayer {
       super.defaultFetchCacheOpt
     );
     // &departure_timestamp>${timestamp * 10 - 60}
+    const childStops = Boolean(properties.child_stops.length)
+      ? properties.child_stops
+      : [properties];
+
     /**@type {StopTimeProperty[]} */
     const stopTimes = (
       await Promise.all(
-        properties.child_stops
+        childStops
           .filter(
             (cs) =>
               cs.location_type == 0 && ["2", "4"].includes(cs.vehicle_type)
@@ -218,7 +222,7 @@ class StopLayer extends BaseRealtimeLayer {
           .map(
             async (cs) =>
               await fetchCache(
-                `/api/stoptime?stop_id=${cs.stop_id}&active=True&include=trip`,
+                `/api/stoptime?stop_id=${cs.stop_id}&active=True&_=${timestamp}&include=trip`,
                 { cache: "force-cache" },
                 super.defaultFetchCacheOpt
               )

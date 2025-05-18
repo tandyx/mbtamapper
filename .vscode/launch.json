@@ -12,6 +12,10 @@
                     "url": "http://localhost:5000/commuter_rail",
                     "path": "${workspaceFolder}"
                 },
+                {
+                    "url": "http://localhost:5000/ferry",
+                    "path": "${workspaceFolder}"
+                },
             ]
         }
     ]
