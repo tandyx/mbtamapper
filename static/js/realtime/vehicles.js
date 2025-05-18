@@ -385,7 +385,7 @@ class VehicleLayer extends BaseRealtimeLayer {
         <div class="my-5">
           <table class='data-table'>
           <thead>
-            ${super.tableHeaderHTML(properties.route)}
+            ${super.tableHeaderHTML(properties.route, { onclick: false })}
             <tr><th>Stop</th><th>Estimate</th></tr>
           </thead>
           <tbody>
@@ -488,10 +488,11 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<VehicleProperty>} options
    */
-  #_onclick(event, options = {}) {
+  async #_onclick(event, options = {}) {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-    _this.#fillSidebar(options.properties);
+    await _this.#fillSidebar(options.properties);
+    super._afterClick(event, options);
   }
 }
