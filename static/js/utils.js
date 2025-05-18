@@ -391,6 +391,29 @@ function mixHexColors(color1, color2) {
 
   return mixedColor;
 }
+/**
+ *
+ * @param {number} time in seconds
+ * @param {("hours" | "minutes" | "seconds")[]} ignore - array of strings to ignore
+ * @returns {string} - the time in hours, minutes, and seconds
+ */
+function minuteify(time, ignore = []) {
+  const hours = Math.floor(time / 3600);
+  const minutes = Math.floor((time % 3600) / 60);
+  const seconds = parseInt(time % 60);
+
+  let result = "";
+  if (hours > 0 && !ignore.includes("hours")) {
+    result += `${hours} hr `;
+  }
+  if (minutes > 0 && !ignore.includes("minutes")) {
+    result += `${minutes} min `;
+  }
+  if (seconds > 0 && !ignore.includes("seconds")) {
+    result += `${seconds} sec`;
+  }
+  return result.trim();
+}
 
 /**
  * on theme change

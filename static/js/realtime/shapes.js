@@ -262,7 +262,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                         Math.max(..._ps.map((_p) => _p.stop_sequence))
                     )
                     ?.at(0)?.stop_name;
-
+                const dom = pred.arrival_time || pred.departure_time;
                 return /* HTML */ `<tr
                   data-direction-${parseInt(pred.direction_id)}
                 >
@@ -274,18 +274,19 @@ class ShapeLayer extends BaseRealtimeLayer {
                   </td>
                   <td>${headsign}</td>
                   <td>
-                    <span class="fa tooltip" data-tooltip="Next Stop"
+                    <span
+                      class="fa tooltip"
+                      data-tooltip="Next Stop in ${minuteify(
+                        dom - timestamp * 10,
+                        ["seconds"]
+                      ) || "now"}"
                       >${BaseRealtimeLayer.icons.prediction}</span
                     >
                     <a
                       onclick="new LayerFinder(_map).clickStop('${pred.stop_id}')"
                       >${pred.stop_name}</a
                     >
-                    @
-                    ${formatTimestamp(
-                      pred.arrival_time || pred.departure_time,
-                      "%I:%M %P"
-                    )}
+                    @ ${formatTimestamp(dom, "%I:%M %P")}
                     <i class="${getDelayClassName(pred.delay)}"
                       >${getDelayText(pred.delay, false)}</i
                     >
@@ -298,6 +299,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                 const trip = route.trips
                   ?.filter((t) => t.trip_id === st.trip_id)
                   ?.at(0);
+                const dom = st.arrival_timestamp || st.departure_timestamp;
                 if (!trip?.active) return "";
                 return /* HTML */ `<tr
                   data-direction-${parseInt(trip.direction_id)}
@@ -305,14 +307,15 @@ class ShapeLayer extends BaseRealtimeLayer {
                   <td>${trip.trip_short_name || st.trip_id}</td>
                   <td>${st.destination_label || trip?.trip_headsign}</td>
                   <td>
-                    <span class="tooltip fa" data-tooltip="Schduled to leave"
+                    <span
+                      class="tooltip fa"
+                      data-tooltip="Schduled in ${minuteify(
+                        dom - timestamp * 10,
+                        ["seconds"]
+                      )}"
                       >${BaseRealtimeLayer.icons.clock}</span
                     >
-                    ${st.stop_name} @
-                    ${formatTimestamp(
-                      st.arrival_timestamp || st.departure_timestamp,
-                      "%I:%M %P"
-                    )}
+                    ${st.stop_name} @ ${formatTimestamp(dom, "%I:%M %P")}
                   </td>
                 </tr>`;
               })

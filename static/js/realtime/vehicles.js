@@ -82,7 +82,6 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   constructor(options) {
     super(options);
-    this.iter = 0;
   }
 
   /**
@@ -113,9 +112,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       },
     });
 
-    // realtime.on("update", () => _this.iter++);
     realtime.on("update", function (_e) {
-      this.iter++;
       _this.#fillDefaultSidebar(
         Object.values(_e.features).map((e) => e.properties)
       );
@@ -247,8 +244,9 @@ class VehicleLayer extends BaseRealtimeLayer {
     const delay = Math.round(properties.next_stop.delay / 60);
     if (delay < 2 && delay >= 0) return "<i>on time</i>";
     const dClassName = getDelayClassName(properties.next_stop.delay);
+    const _abs = Math.abs(delay);
     return /* HTML */ ` <i class="${dClassName}">
-      ${Math.abs(delay)} minutes
+      ${_abs} minute${_abs > 1 && "s"}
       ${dClassName === "on-time" ? "early" : "late"}</i
     >`;
   }
@@ -307,10 +305,8 @@ class VehicleLayer extends BaseRealtimeLayer {
           : ""}
       </div>
       <div>
-        ${formatTimestamp(properties.timestamp, "%I:%M:%S %P")}
-        <i
-          id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
-        ></i>
+        ${formatTimestamp(properties.timestamp, "%I:%M %P")}
+        <i data-update-timestamp=${properties.timestamp}></i>
       </div>
     </div>`;
   }

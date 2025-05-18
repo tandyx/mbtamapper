@@ -302,9 +302,9 @@ class StopLayer extends BaseRealtimeLayer {
                         <td>
                           <span
                             class="tooltip fa"
-                            data-tooltip="${Math.round(
-                              (dom - timestamp * 10) / 60
-                            )} Minutes Away"
+                            data-tooltip="${minuteify(dom - timestamp * 10, [
+                              "seconds",
+                            ]) || "0 min"} away"
                             >${BaseRealtimeLayer.icons.prediction}</span
                           >
                           ${formatTimestamp(
@@ -343,9 +343,10 @@ class StopLayer extends BaseRealtimeLayer {
                         <td>
                           <span
                             class="tooltip fa"
-                            data-tooltip="Scheduled in ${Math.round(
-                              (dom - timestamp * 10) / 60
-                            )} Min"
+                            data-tooltip="Scheduled in ${minuteify(
+                              dom - timestamp * 10,
+                              ["seconds"]
+                            )}"
                             >${BaseRealtimeLayer.icons.clock}</span
                           >
                           ${formatTimestamp(dom, "%I:%M %P")}
