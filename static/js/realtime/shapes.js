@@ -294,8 +294,9 @@ class ShapeLayer extends BaseRealtimeLayer {
                 const trip = route.trips
                   ?.filter((t) => t.trip_id === st.trip_id)
                   ?.at(0);
+                if (!trip?.active) return "";
                 return /* HTML */ `<tr>
-                  <td>${trip?.trip_short_name || st.trip_id}</td>
+                  <td>${trip.trip_short_name || st.trip_id}</td>
                   <td>${st.destination_label || trip?.trip_headsign}</td>
                   <td>
                     <span class="tooltip fa" data-tooltip="Schduled to leave"

@@ -225,7 +225,7 @@ export interface VehicleProperty extends LayerProperty {
   trip_properties: any[];
   trip_short_name: string;
   vehicle_id: string;
-  trip?: null;
+  trip?: TripProperty;
 }
 
 export enum Name {
@@ -351,6 +351,7 @@ export interface StopTimeProperty {
 }
 
 export interface TripProperty {
+  active?: boolean;
   bikes_allowed: boolean;
   block_id: null;
   direction_id: number;
