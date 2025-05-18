@@ -243,7 +243,7 @@ class ShapeLayer extends BaseRealtimeLayer {
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="directional">
             ${predictions
               .map((pred) => {
                 const trip = route.trips
@@ -263,7 +263,9 @@ class ShapeLayer extends BaseRealtimeLayer {
                     )
                     ?.at(0)?.stop_name;
 
-                return /* HTML */ `<tr>
+                return /* HTML */ `<tr
+                  data-direction-${parseInt(pred.direction_id)}
+                >
                   <td>
                     <a
                       onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
@@ -297,7 +299,9 @@ class ShapeLayer extends BaseRealtimeLayer {
                   ?.filter((t) => t.trip_id === st.trip_id)
                   ?.at(0);
                 if (!trip?.active) return "";
-                return /* HTML */ `<tr>
+                return /* HTML */ `<tr
+                  data-direction-${parseInt(trip.direction_id)}
+                >
                   <td>${trip.trip_short_name || st.trip_id}</td>
                   <td>${st.destination_label || trip?.trip_headsign}</td>
                   <td>

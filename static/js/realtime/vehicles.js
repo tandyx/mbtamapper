@@ -44,8 +44,6 @@ class VehicleLayer extends BaseRealtimeLayer {
   static #direction_map = {
     0: "Outbound",
     1: "Inbound",
-    0.0: "Outbound",
-    1.0: "Inbound",
   };
 
   static #worcester_map = {
@@ -173,9 +171,10 @@ class VehicleLayer extends BaseRealtimeLayer {
       </div>
       <div>
         ${VehicleLayer.#worcester_map[properties.trip_short_name] ||
-        `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
-          properties.headsign
-        }`}
+        `${
+          VehicleLayer.#direction_map[parseInt(properties.direction_id)] ||
+          "null"
+        } to ${properties.headsign}`}
       </div>
       <hr />
     </div>`;
@@ -447,20 +446,23 @@ class VehicleLayer extends BaseRealtimeLayer {
       <thead>
         <tr><th>route</th><th>trip</th><th>next stop</th><th>delay</th></tr>
       </thead>
-      <tbody>
+      <tbody class='directional'>
       ${properties
+        .sort(
+          (a, b) =>
+            a.route_id - b.route_id || a.trip_short_name - b.trip_short_name
+        )
         .map((prop) => {
-          const encoded = btoa(JSON.stringify(prop));
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
-          return /*HTML*/ `<tr>
-          <td><a ${lStyle} id="to-r-${encoded}" onclick="new LayerFinder(_map).clickRoute('${
+          return /*HTML*/ `<tr data-direction-${parseInt(prop.direction_id)}="">
+          <td><a ${lStyle} onclick="new LayerFinder(_map).clickRoute('${
             prop.route_id
           }')">${prop.route.route_name}</a></td>
           <td><a ${lStyle} onclick="new LayerFinder(_map).clickVehicle('${
             prop.vehicle_id
           }')">${prop.trip_short_name}
           </a></td>
-          <td><a id="to-s-${encoded}" onclick="new LayerFinder(_map).clickStop('${
+          <td><a onclick="new LayerFinder(_map).clickStop('${
             prop.stop_id
           }')"> ${
             prop.next_stop?.stop_name || prop.stop_time?.stop_name
