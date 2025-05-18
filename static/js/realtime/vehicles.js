@@ -7,7 +7,7 @@
  * @import { * } from "sorttable/sorttable.js"
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, VehicleProperty, RealtimeLayerOnClickOptions, NextStop } from "../types/index.js"
  * @import { Layer, Realtime } from "leaflet";
- * @import {BaseRealtimeLayer} from "./base.js"
+ * @import { BaseRealtimeLayer } from "./base.js"
  * @exports VehicleLayer
  */
 
@@ -94,8 +94,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     /**@type {BaseRealtimeOnClickOptions<VehicleProperty>} */
     const onClickOpts = { _this, idField: "vehicle_id" };
     const realtime = L.realtime(options.url, {
-      interval: this.options.interval,
-      // interval: 500,
+      interval: 15000,
       type: "FeatureCollection",
       container: options.layer,
       cache: false,
@@ -372,6 +371,9 @@ class VehicleLayer extends BaseRealtimeLayer {
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
     });
+    /**@type {StopTimeAttrObj[]} */
+    const specialStopTimes = [];
+
     sidebar.style.display = "initial";
     container.innerHTML = /*HTML*/ `<div>
         ${this.#getHeaderHTML(properties)}
@@ -400,26 +402,31 @@ class VehicleLayer extends BaseRealtimeLayer {
               const delayText = getDelayText(p.delay);
 
               const stAttrs = specialStopTimeAttrs(p.stop_time);
-
-              return `<tr>
-                <td class='${stAttrs.tooltip && "tooltip"}' data-tooltip='${
-                stAttrs.tooltip
-              }'><a class='${
-                stAttrs.cssClass
-              }' onclick="new LayerFinder(_map).clickStop('${p.stop_id}')">${
-                p.stop_name
-              } ${stAttrs.htmlLogo}</a></td>
+              specialStopTimes.push(stAttrs);
+              return /* HTML */ `<tr>
+                <td class="">
+                  <a
+                    class="${stAttrs.cssClass} ${stAttrs.tooltip && "tooltip"}"
+                    onclick="new LayerFinder(_map).clickStop('${p.stop_id}')"
+                    data-tooltip="${stAttrs.tooltip}"
+                    >${p.stop_name} ${stAttrs.htmlLogo}</a
+                  >
+                  ${BaseRealtimeLayer.trackIconHTML(
+                    { stop_id: p.stop_id },
+                    { starOnly: true }
+                  )}
+                </td>
                 <td>
                   ${formatTimestamp(realDeparture, "%I:%M %P")}
-                  <i class='${getDelayClassName(p.delay)}'>${delayText}</i>
+                  <i class="${getDelayClassName(p.delay)}">${delayText}</i>
                 </td>
-              </tr>
-              `;
+              </tr> `;
             })
             .join("")}
             </tbody>
           </table>
         </div>
+      ${BaseRealtimeLayer.specialStopKeyHTML(specialStopTimes)}
       ${this.#getFooterHTML(properties)}
     </div>
     `;

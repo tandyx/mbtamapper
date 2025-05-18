@@ -233,6 +233,10 @@ class StopLayer extends BaseRealtimeLayer {
     const alerts = stop.flatMap((s) => s.alerts);
     super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
     sidebar.style.display = "initial";
+
+    /**@type {StopTimeAttrObj[]} */
+    const specialStopTimes = [];
+
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
       <div>
@@ -278,6 +282,7 @@ class StopLayer extends BaseRealtimeLayer {
                         .at(0);
                       const dom = pred.arrival_time || pred.departure_time; // sometimes i want one
                       const stAttrs = specialStopTimeAttrs(st, route);
+                      specialStopTimes.push(stAttrs);
                       return /* HTML */ `<tr
                         data-direction-${parseInt(pred.direction_id)}
                       >
@@ -289,6 +294,10 @@ class StopLayer extends BaseRealtimeLayer {
                             onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
                             >${st?.trip?.trip_short_name || pred.trip_id}
                           </a>
+                          ${BaseRealtimeLayer.trackIconHTML(
+                            { stop_id: pred.stop_id },
+                            { starOnly: true }
+                          )}
                         </td>
                         <td>
                           <span
@@ -313,17 +322,23 @@ class StopLayer extends BaseRealtimeLayer {
                   ${_stoptimes
                     .map((st) => {
                       const stAttrs = specialStopTimeAttrs(st, route);
+                      specialStopTimes.push(stAttrs);
                       const dom =
                         st.arrival_timestamp || st.departure_timestamp; // mommy?
                       return /* HTML */ `<tr
                         data-direction-${parseInt(st?.trip?.direction_id)}
                       >
-                        <td
-                          class="${stAttrs.cssClass} ${stAttrs.tooltip &&
-                          "tooltip"}"
-                          data-tooltip="${stAttrs.tooltip}"
-                        >
-                          ${st.trip?.trip_short_name || st.trip_id}
+                        <td>
+                          <span
+                            class="${stAttrs.cssClass} ${stAttrs.tooltip &&
+                            "tooltip"}"
+                            data-tooltip="${stAttrs.tooltip}"
+                            >${st.trip?.trip_short_name || st.trip_id}
+                          </span>
+                          ${BaseRealtimeLayer.trackIconHTML(
+                            { stop_id: st.stop_id },
+                            { starOnly: true }
+                          )}
                         </td>
                         <td>
                           <span
@@ -345,6 +360,7 @@ class StopLayer extends BaseRealtimeLayer {
           })
           .join("")}
       </div>
+      ${BaseRealtimeLayer.specialStopKeyHTML(specialStopTimes)}
       ${this.#getFooterHTML(properties)}
     </div>`;
   }

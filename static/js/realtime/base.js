@@ -19,6 +19,7 @@ const _icons = {
   parking: "&#xf1b9;",
   space: "&nbsp;",
   clock: "&#xf017;",
+  track: "&#xf074;",
 };
 
 /** @typedef {typeof _icons} Icons */
@@ -29,6 +30,23 @@ const _icons = {
 class BaseRealtimeLayer {
   static sideBarMainId = "sidebar-main";
   static sideBarOtherId = "sidebar-other";
+
+  /** @type {StopProperty["stop_id"][]} - array of (starting) stop ids where we want to consider to label commuter rail tracks on certain tables */
+  static starStations = [
+    "NEC-2287",
+    "BNT-0000",
+    "NEC-2276", // back bay
+    "NEC-1851",
+    "DB-0095", // readville
+    "NEC-2265",
+    "FB-0095", // readville
+    "NEC-2192", // readville
+    "WML-0442",
+    "WML-0012", // back bay
+    "NEC-2237",
+    "NEC-2139", //cntnjc
+    "SB-0150", //cntnjc
+  ];
 
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
@@ -217,7 +235,7 @@ class BaseRealtimeLayer {
     };
 
     for (const el of document.querySelectorAll("[data-route-id]")) {
-      if (!el.onclick) continue;
+      if (!el.onclick || el.dataset.onclick === "false") continue;
       /**@type {HTMLElement?} */
       const tbody =
         el.parentElement?.parentElement?.parentElement?.querySelector("tbody");
@@ -305,6 +323,7 @@ class BaseRealtimeLayer {
       <th
         colspan="${colspan}"
         data-route-id="${properties.route_id}"
+        data-onclick="${onclick}"
         style="background-color: #${properties.route_color};border-bottom: none; ${onclick
           ? "cursor:pointer"
           : ""};"
@@ -321,6 +340,62 @@ class BaseRealtimeLayer {
         >
       </th>
     </tr>`;
+  }
+  /**
+   *
+   * returns the key of the HTML for the special stop
+   *
+   * @param {StopTimeAttrObj[]?} stAttrs if this array is provided, then the html will be shown if and only if the array has valid elements
+   * @returns {string} html for the special stop key
+   */
+  static specialStopKeyHTML(stAttrs) {
+    const _html = /* HTML */ `<div class="special-stoptime-key">
+      <div>
+        <span class="flag_stop">Flag Stop <i>f</i></span> - Must be visible on
+        platform & alert conductor to leave.
+      </div>
+      <div>
+        <span class="early_departure">Early Departure <i>L</i></span> - Train
+        may depart before scheduled time.
+      </div>
+    </div>`;
+    if (!stAttrs) return _html;
+    if (
+      !stAttrs.filter((s) => Object.values(s).filter(Boolean).length).length
+    ) {
+      return "";
+    }
+
+    return _html;
+  }
+
+  /**
+   *
+   * @param {{stop_id: string, platform_code?: string}} properties
+   * @param {{starOnly?: boolean}} options
+   */
+  static trackIconHTML(properties, options = {}) {
+    const { starOnly = false } = options;
+
+    if (
+      starOnly &&
+      !this.starStations.find((s) => properties.stop_id.startsWith(s))
+    ) {
+      return "";
+    }
+
+    if (!properties.platform_code) {
+      const strSplit = properties.stop_id.split("-");
+      if (strSplit.length < 3) return "";
+      properties.platform_code = strSplit.at(-1);
+    }
+
+    return /* HTML */ `<span
+      class="fa tooltip"
+      data-tooltip="Track ${properties.platform_code}"
+    >
+      ${this.icons.space} ${this.icons.track}</span
+    >`;
   }
 
   /**
