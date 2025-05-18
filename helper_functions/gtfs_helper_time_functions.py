@@ -19,7 +19,7 @@ def to_seconds(time: str) -> int:
 
 
 def get_date(offset: int = 0, zone: str = "America/New_York") -> dt.datetime:
-    """Returns the current date in the given timezone
+    """Returns the current date in the given timezone (without time)
 
     Args:
         - `offset (int, optional)`: The number of days to offset. Defaults to 0.

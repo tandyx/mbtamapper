@@ -70,11 +70,6 @@ class ShapeLayer extends BaseRealtimeLayer {
           if (wasOpen) layer.closePopup();
           layer.bindPopup(_this.#getPopupHTML(properties), options.textboxSize);
           if (wasOpen) {
-            _this.options.map.setView(
-              layer.getLatLng(),
-              _this.options.map.getZoom(),
-              { animate: true }
-            );
             layer.openPopup();
             setTimeout(onClick, 200);
           }

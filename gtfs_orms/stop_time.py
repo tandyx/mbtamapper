@@ -129,7 +129,7 @@ class StopTime(Base):
         )
 
     def is_active(self, _date: dt.datetime | None = None, **kwargs) -> bool:
-        """Returns true if this StopTime is active on the given date and time
+        """Returns true if this StopTime is active on the given date and time (with a five min buffer)
 
         args:
             - `date (datetime = None)`: the date to check <- defaults to the current date
@@ -137,10 +137,19 @@ class StopTime(Base):
         returns:
             - `bool`: whether the stop is active on the given date and time
         """
+
+        _date = _date or get_date(**kwargs)
+
         return (
-            self.trip.calendar.operates_on(_date or get_date(**kwargs))
-            and self.departure_timestamp > time.time()
+            # self.trip.calendar.operates_on(_date or get_date(**kwargs))
+            self.trip.is_active(_date)
+            and self.departure_timestamp + 300 > time.time() - _date.timestamp()
         )
+
+    @property
+    def active(self) -> bool:
+        """wrapper for self.is_active"""
+        return self.is_active(get_date())
 
     def is_destination(self) -> bool:
         """Returns true if this StopTime is the last stop in the trip
