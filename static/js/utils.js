@@ -258,34 +258,36 @@ function getDefaultCookie(name, value = "", numDays = null) {
   return cookie;
 }
 /**
+ *
+ * @typedef {ReturnType<specialStopTimeAttrs>} StopTimeAttrObj
+ *
  * for flag, early departure stops
  * @param {StopTimeProperty?} properties
  * @param {RouteProperty} route
  */
 function specialStopTimeAttrs(properties, route) {
-  let _class = "",
-    tooltip = "",
-    htmlLogo = "";
-  if (!properties) return { cssClass: _class, tooltip, htmlLogo };
+  const objec = { cssClass: "", tooltip: "", htmlLogo: "" };
+  if (!properties) return objec;
 
   const flag_stop =
     properties?.flag_stop ??
-    [properties.pickup_type, properties.drop_off_type].includes("3");
+    ([properties.pickup_type, properties.drop_off_type].includes("3") &&
+      route?.route_type == "2");
 
   const early_departure =
     properties?.early_departure ??
     (properties.timepoint == "0" && route?.route_type == "2");
 
   if (flag_stop) {
-    _class = "flag_stop";
-    tooltip = "Flag Stop";
-    htmlLogo = "<i> f</i>";
+    objec.cssClass = "flag_stop";
+    objec.tooltip = "Flag Stop";
+    objec.htmlLogo = "<i> f</i>";
   } else if (early_departure) {
-    _class = "early_departure";
-    tooltip = "Early Departure";
-    htmlLogo = "<i> L</i>";
+    objec.cssClass = "early_departure";
+    objec.tooltip = "Early Departure";
+    objec.htmlLogo = "<i> L</i>";
   }
-  return { cssClass: _class, tooltip, htmlLogo };
+  return objec;
 }
 
 /**
@@ -388,6 +390,29 @@ function mixHexColors(color1, color2) {
     .padStart(2, "0")}${bMix.toString(16).padStart(2, "0")}`;
 
   return mixedColor;
+}
+/**
+ *
+ * @param {number} time in seconds
+ * @param {("hours" | "minutes" | "seconds")[]} ignore - array of strings to ignore
+ * @returns {string} - the time in hours, minutes, and seconds
+ */
+function minuteify(time, ignore = []) {
+  const hours = Math.floor(time / 3600);
+  const minutes = Math.floor((time % 3600) / 60);
+  const seconds = parseInt(time % 60);
+
+  let result = "";
+  if (hours > 0 && !ignore.includes("hours")) {
+    result += `${hours} hr `;
+  }
+  if (minutes > 0 && !ignore.includes("minutes")) {
+    result += `${minutes} min `;
+  }
+  if (seconds > 0 && !ignore.includes("seconds")) {
+    result += `${seconds} sec`;
+  }
+  return result.trim();
 }
 
 /**
@@ -562,7 +587,7 @@ class Theme {
     return new this(
       document.documentElement.dataset.mode ||
         pStore.getItem(this.THEME_STORAGE_KEY) ||
-        secStore.getItem(this.THEME_STORAGE_KEY) ||
+        secStore?.getItem(this.THEME_STORAGE_KEY) ||
         this.systemTheme ||
         "light"
     );

@@ -30,14 +30,15 @@ window.addEventListener("load", function () {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
-  // this.setTimeout(() => {
-  //   const _hash = window.location.hash.slice(1);
-  //   const lf = new LayerFinder(_map);
-  //   if (lf.clickVehicle(_hash)) return;
-  //   if (lf.clickStop(_hash)) return;
-  //   if (lf.clickRoute(_hash)) return;
-  // }, 1000);
   Theme.fromExisting().set(sessionStorage, onThemeChange);
+
+  setInterval(() => {
+    document.querySelectorAll("[data-update-timestamp]").forEach((el) => {
+      const now = new Date().valueOf() / 1000;
+      const timestamp = parseFloat(el.dataset.updateTimestamp);
+      el.innerHTML = ` ~ ${minuteify(now - timestamp)} ago`;
+    });
+  }, 1000);
 });
 
 /** map factory function for map.html
@@ -51,7 +52,7 @@ function createMap(id, routeType) {
   const theme = Theme.fromExisting();
 
   const map = L.map(id, {
-    minZoom: routeType === "commuter_rail" ? 9 : 10,
+    minZoom: routeType === "commuter_rail" ? 9 : 11,
     maxZoom: 20,
     maxBounds: L.latLngBounds(L.latLng(41, -73), L.latLng(43.5, -68)),
     fullscreenControl: true,
@@ -94,8 +95,6 @@ function createMap(id, routeType) {
     document.documentElement.style.setProperty("--more-info-display", "none");
   });
 
-  // sidebar.
-
   if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
@@ -122,7 +121,7 @@ function createMap(id, routeType) {
   });
 
   const vehicleLayer = new VehicleLayer({
-    url: "vehicles?include=route,next_stop,stop_time,trip_properties",
+    url: "vehicles?include=route,next_stop,stop_time",
     layer: L.markerClusterGroup({
       disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",

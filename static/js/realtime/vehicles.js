@@ -7,7 +7,7 @@
  * @import { * } from "sorttable/sorttable.js"
  * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, VehicleProperty, RealtimeLayerOnClickOptions, NextStop } from "../types/index.js"
  * @import { Layer, Realtime } from "leaflet";
- * @import {BaseRealtimeLayer} from "./base.js"
+ * @import { BaseRealtimeLayer } from "./base.js"
  * @exports VehicleLayer
  */
 
@@ -44,8 +44,6 @@ class VehicleLayer extends BaseRealtimeLayer {
   static #direction_map = {
     0: "Outbound",
     1: "Inbound",
-    0.0: "Outbound",
-    1.0: "Inbound",
   };
 
   static #worcester_map = {
@@ -84,7 +82,6 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   constructor(options) {
     super(options);
-    this.iter = 0;
   }
 
   /**
@@ -96,8 +93,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     /**@type {BaseRealtimeOnClickOptions<VehicleProperty>} */
     const onClickOpts = { _this, idField: "vehicle_id" };
     const realtime = L.realtime(options.url, {
-      interval: this.options.interval,
-      // interval: 500,
+      interval: 15000,
       type: "FeatureCollection",
       container: options.layer,
       cache: false,
@@ -116,9 +112,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       },
     });
 
-    // realtime.on("update", () => _this.iter++);
     realtime.on("update", function (_e) {
-      this.iter++;
       _this.#fillDefaultSidebar(
         Object.values(_e.features).map((e) => e.properties)
       );
@@ -173,9 +167,10 @@ class VehicleLayer extends BaseRealtimeLayer {
       </div>
       <div>
         ${VehicleLayer.#worcester_map[properties.trip_short_name] ||
-        `${VehicleLayer.#direction_map[properties.direction_id] || "null"} to ${
-          properties.headsign
-        }`}
+        `${
+          VehicleLayer.#direction_map[parseInt(properties.direction_id)] ||
+          "null"
+        } to ${properties.headsign}`}
       </div>
       <hr />
     </div>`;
@@ -249,8 +244,9 @@ class VehicleLayer extends BaseRealtimeLayer {
     const delay = Math.round(properties.next_stop.delay / 60);
     if (delay < 2 && delay >= 0) return "<i>on time</i>";
     const dClassName = getDelayClassName(properties.next_stop.delay);
+    const _abs = Math.abs(delay);
     return /* HTML */ ` <i class="${dClassName}">
-      ${Math.abs(delay)} minutes
+      ${_abs} minute${_abs > 1 && "s"}
       ${dClassName === "on-time" ? "early" : "late"}</i
     >`;
   }
@@ -309,10 +305,8 @@ class VehicleLayer extends BaseRealtimeLayer {
           : ""}
       </div>
       <div>
-        ${formatTimestamp(properties.timestamp, "%I:%M:%S %P")}
-        <i
-          id="vehicle-${properties.vehicle_id}-timestamp-${this.iter || 1}"
-        ></i>
+        ${formatTimestamp(properties.timestamp, "%I:%M %P")}
+        <i data-update-timestamp=${properties.timestamp}></i>
       </div>
     </div>`;
   }
@@ -373,6 +367,9 @@ class VehicleLayer extends BaseRealtimeLayer {
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
     });
+    /**@type {StopTimeAttrObj[]} */
+    const specialStopTimes = [];
+
     sidebar.style.display = "initial";
     container.innerHTML = /*HTML*/ `<div>
         ${this.#getHeaderHTML(properties)}
@@ -385,7 +382,7 @@ class VehicleLayer extends BaseRealtimeLayer {
         <div class="my-5">
           <table class='data-table'>
           <thead>
-            ${super.tableHeaderHTML(properties.route)}
+            ${super.tableHeaderHTML(properties.route, { onclick: false })}
             <tr><th>Stop</th><th>Estimate</th></tr>
           </thead>
           <tbody>
@@ -401,26 +398,31 @@ class VehicleLayer extends BaseRealtimeLayer {
               const delayText = getDelayText(p.delay);
 
               const stAttrs = specialStopTimeAttrs(p.stop_time);
-
-              return `<tr>
-                <td class='${stAttrs.tooltip && "tooltip"}' data-tooltip='${
-                stAttrs.tooltip
-              }'><a class='${
-                stAttrs.cssClass
-              }' onclick="new LayerFinder(_map).clickStop('${p.stop_id}')">${
-                p.stop_name
-              } ${stAttrs.htmlLogo}</a></td>
+              specialStopTimes.push(stAttrs);
+              return /* HTML */ `<tr>
+                <td class="">
+                  <a
+                    class="${stAttrs.cssClass} ${stAttrs.tooltip && "tooltip"}"
+                    onclick="new LayerFinder(_map).clickStop('${p.stop_id}')"
+                    data-tooltip="${stAttrs.tooltip}"
+                    >${p.stop_name} ${stAttrs.htmlLogo}</a
+                  >
+                  ${BaseRealtimeLayer.trackIconHTML(
+                    { stop_id: p.stop_id },
+                    { starOnly: true }
+                  )}
+                </td>
                 <td>
                   ${formatTimestamp(realDeparture, "%I:%M %P")}
-                  <i class='${getDelayClassName(p.delay)}'>${delayText}</i>
+                  <i class="${getDelayClassName(p.delay)}">${delayText}</i>
                 </td>
-              </tr>
-              `;
+              </tr> `;
             })
             .join("")}
             </tbody>
           </table>
         </div>
+      ${BaseRealtimeLayer.specialStopKeyHTML(specialStopTimes)}
       ${this.#getFooterHTML(properties)}
     </div>
     `;
@@ -447,20 +449,23 @@ class VehicleLayer extends BaseRealtimeLayer {
       <thead>
         <tr><th>route</th><th>trip</th><th>next stop</th><th>delay</th></tr>
       </thead>
-      <tbody>
+      <tbody class='directional'>
       ${properties
+        .sort(
+          (a, b) =>
+            a.route_id - b.route_id || a.trip_short_name - b.trip_short_name
+        )
         .map((prop) => {
-          const encoded = btoa(JSON.stringify(prop));
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
-          return /*HTML*/ `<tr>
-          <td><a ${lStyle} id="to-r-${encoded}" onclick="new LayerFinder(_map).clickRoute('${
+          return /*HTML*/ `<tr data-direction-${parseInt(prop.direction_id)}="">
+          <td><a ${lStyle} onclick="new LayerFinder(_map).clickRoute('${
             prop.route_id
           }')">${prop.route.route_name}</a></td>
           <td><a ${lStyle} onclick="new LayerFinder(_map).clickVehicle('${
             prop.vehicle_id
           }')">${prop.trip_short_name}
           </a></td>
-          <td><a id="to-s-${encoded}" onclick="new LayerFinder(_map).clickStop('${
+          <td><a onclick="new LayerFinder(_map).clickStop('${
             prop.stop_id
           }')"> ${
             prop.next_stop?.stop_name || prop.stop_time?.stop_name
@@ -488,10 +493,11 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<VehicleProperty>} options
    */
-  #_onclick(event, options = {}) {
+  async #_onclick(event, options = {}) {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-    _this.#fillSidebar(options.properties);
+    await _this.#fillSidebar(options.properties);
+    super._afterClick(event, options);
   }
 }

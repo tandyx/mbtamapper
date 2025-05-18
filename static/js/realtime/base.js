@@ -19,6 +19,7 @@ const _icons = {
   parking: "&#xf1b9;",
   space: "&nbsp;",
   clock: "&#xf017;",
+  track: "&#xf074;",
 };
 
 /** @typedef {typeof _icons} Icons */
@@ -30,6 +31,23 @@ class BaseRealtimeLayer {
   static sideBarMainId = "sidebar-main";
   static sideBarOtherId = "sidebar-other";
 
+  /** @type {StopProperty["stop_id"][]} - array of (starting) stop ids where we want to consider to label commuter rail tracks on certain tables */
+  static starStations = [
+    "NEC-2287",
+    "BNT-0000",
+    "NEC-2276", // back bay
+    "NEC-1851",
+    "DB-0095", // readville
+    "NEC-2265",
+    "FB-0095", // readville
+    "NEC-2192", // readville
+    "WML-0442",
+    "WML-0012", // back bay
+    "NEC-2237",
+    "NEC-2139", //cntnjc
+    "SB-0150", //cntnjc
+  ];
+
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
   static icons = _icons;
@@ -38,7 +56,7 @@ class BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
-    options.interval = options.interval || 15000;
+    options.interval = options.interval || 12500;
     this.options = options;
   }
   /**
@@ -169,9 +187,6 @@ class BaseRealtimeLayer {
    *
    * to be called `onclick`
    *
-   * supposed to be private but :P
-   *
-   *
    * @param {DomEvent.PropagableEvent} event
    * @param {BaseRealtimeOnClickOptions<T>} options
    */
@@ -189,8 +204,49 @@ class BaseRealtimeLayer {
       console.error(error);
     }
     if (stopPropagation) L.DomEvent.stopPropagation(event);
+    /**@type {HTMLElement} */
+    const sidebarDiv = _this.options.sidebar._contentContainer;
+    sidebarDiv.onscroll = null;
   }
 
+  /**
+   * after click event
+   *
+   * @param {DomEvent.PropagableEvent} event
+   * @param {BaseRealtimeOnClickOptions<T>} options
+   */
+  _afterClick(event, options = {}) {
+    const { _this = this, properties, idField = "id" } = options || {};
+
+    /**@type {HTMLElement} */
+    const sidebarDiv = _this.options.sidebar._contentContainer;
+
+    const scrollStorageId = `sidebar-scroll-${properties[idField]}`;
+
+    const scrollTop = memStorage.getItem(scrollStorageId);
+    if (scrollTop) {
+      console.log(memStorage);
+      sidebarDiv.scroll({ top: parseInt(scrollTop) });
+    }
+
+    // DO NOT CHANGE TO ADDEVENTLISTENER
+    sidebarDiv.onscroll = (event) => {
+      memStorage.setItem(scrollStorageId, event.target.scrollTop);
+    };
+
+    for (const el of document.querySelectorAll("[data-route-id]")) {
+      if (!el.onclick || el.dataset.onclick === "false") continue;
+      /**@type {HTMLElement?} */
+      const tbody =
+        el.parentElement?.parentElement?.parentElement?.querySelector("tbody");
+      if (!tbody) continue;
+      tbody.classList.toggle(
+        "hidden",
+        memStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
+      );
+    }
+  }
+  // `route-${this.dataset.routeId}-hidden`
   /**
    *
    * gets the more info button
@@ -246,15 +302,33 @@ class BaseRealtimeLayer {
   /**
    * table header html
    * @param {RouteProperty} properties
-   * @param {number} [colspan=2]
+   * @param {{colspan?: number, onclick?: boolean}} options - colspan = 2,
+   * @param {number}
    */
-  tableHeaderHTML(properties, colspan = 2) {
+  tableHeaderHTML(properties, options = {}) {
+    const { onclick = true, colspan = 2 } = options;
+    const _onclick = () => {
+      /**@type {HTMLElement} */
+      const tbody =
+        this.parentElement.parentElement.parentElement.querySelector(`tbody`);
+      if (!tbody) return;
+      const nowHidden = !!tbody.classList.toggle(`hidden`);
+      memStorage.setItem(
+        `route-${this.dataset.routeId}-hidden`,
+        nowHidden.toString()
+      );
+    };
+
     return /* HTML */ `<tr>
       <th
         colspan="${colspan}"
-        style="background-color: #${properties.route_color};border-bottom: none; cursor:pointer;"
+        data-route-id="${properties.route_id}"
+        data-onclick="${onclick}"
+        style="background-color: #${properties.route_color};border-bottom: none; ${onclick
+          ? "cursor:pointer"
+          : ""};"
         class="text-align-center"
-        onclick="[...this.parentElement.parentElement.parentElement.children].filter(c => c.tagName === 'TBODY').at(0).classList.toggle('hidden')"
+        onclick="${onclick ? `(${_onclick.toString()})()` : ""}"
       >
         <a
           onclick="new LayerFinder(_map).clickRoute('${properties.route_id}')"
@@ -266,6 +340,62 @@ class BaseRealtimeLayer {
         >
       </th>
     </tr>`;
+  }
+  /**
+   *
+   * returns the key of the HTML for the special stop
+   *
+   * @param {StopTimeAttrObj[]?} stAttrs if this array is provided, then the html will be shown if and only if the array has valid elements
+   * @returns {string} html for the special stop key
+   */
+  static specialStopKeyHTML(stAttrs) {
+    const _html = /* HTML */ `<div class="special-stoptime-key">
+      <div>
+        <span class="flag_stop">Flag Stop <i>f</i></span> - Must be visible on
+        platform & alert conductor to leave.
+      </div>
+      <div>
+        <span class="early_departure">Early Departure <i>L</i></span> - Train
+        may depart before scheduled time.
+      </div>
+    </div>`;
+    if (!stAttrs) return _html;
+    if (
+      !stAttrs.filter((s) => Object.values(s).filter(Boolean).length).length
+    ) {
+      return "";
+    }
+
+    return _html;
+  }
+
+  /**
+   *
+   * @param {{stop_id: string, platform_code?: string}} properties
+   * @param {{starOnly?: boolean}} options
+   */
+  static trackIconHTML(properties, options = {}) {
+    const { starOnly = false } = options;
+
+    if (
+      starOnly &&
+      !this.starStations.find((s) => properties.stop_id.startsWith(s))
+    ) {
+      return "";
+    }
+
+    if (!properties.platform_code) {
+      const strSplit = properties.stop_id.split("-");
+      if (strSplit.length < 3) return "";
+      properties.platform_code = strSplit.at(-1);
+    }
+
+    return /* HTML */ `<span
+      class="fa tooltip"
+      data-tooltip="Track ${properties.platform_code}"
+    >
+      ${this.icons.space} ${this.icons.track}</span
+    >`;
   }
 
   /**

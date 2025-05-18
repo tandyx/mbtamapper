@@ -1,9 +1,12 @@
 """File to hold the Trip class and its associated methods."""
 
+import datetime as dt
 import typing as t
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
+
+from helper_functions import get_date
 
 from .base import Base
 
@@ -17,7 +20,8 @@ if t.TYPE_CHECKING:
     from .stop import Stop
     from .stop_time import StopTime
     from .transfer import Transfer
-    from .trip_property import TripProperty
+
+    # from .trip_property import TripProperty
     from .vehicle import Vehicle
 
 
@@ -64,9 +68,9 @@ class Trip(Base):
     )
     route: Mapped["Route"] = relationship(back_populates="trips")
 
-    trip_properties: Mapped[list["TripProperty"]] = relationship(
-        back_populates="trip", passive_deletes=True
-    )
+    # trip_properties: Mapped[list["TripProperty"]] = relationship(
+    #     back_populates="trip", passive_deletes=True
+    # )
 
     all_routes: Mapped[list["Route"]] = relationship(
         primaryjoin="""or_(Trip.route_id==foreign(Route.route_id),
@@ -101,7 +105,25 @@ class Trip(Base):
         passive_deletes=True,
     )
 
+    @reconstructor
+    def _init_on_load_(self):
+        """Reconstructs the object on load from the database."""
+        # pylint: disable=attribute-defined-outside-init
+        self.active = self.is_active()
+
     @property
     def destination(self) -> "Stop | None":
         """the destination of the trip as a `stop`"""
         return getattr(max(self.stop_times, default=None), "stop", None)
+
+    def is_active(self, _date: dt.datetime | None = None, **kwargs) -> bool:
+        """Returns true if this `Trip` is active on the given date and time
+
+        args:
+            - `date (datetime = None)`: the date to check <- defaults to the current date
+            - `kwargs`: additional arguments passed to `get_date` \n
+        returns:
+            - `bool`: whether the stop is active on the given date and time
+        """
+
+        return self.calendar.operates_on(_date or get_date(**kwargs))

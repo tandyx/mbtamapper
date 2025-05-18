@@ -6,6 +6,8 @@ import typing as t
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from helper_functions import SQLA_GTFS_DATE
+
 from .base import Base
 
 if t.TYPE_CHECKING:
@@ -33,7 +35,7 @@ class CalendarAttribute(Base):
     service_schedule_name: Mapped[str]
     service_schedule_type: Mapped[str]
     service_schedule_typicality: Mapped[str]
-    rating_start_date: Mapped[dt.datetime]
+    rating_start_date: Mapped[dt.datetime] = mapped_column(SQLA_GTFS_DATE)
     rating_end_date: Mapped[t.Optional[dt.datetime]]
     rating_description: Mapped[str]
 

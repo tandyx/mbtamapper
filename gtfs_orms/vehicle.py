@@ -120,10 +120,10 @@ class Vehicle(Base):
             "headsign": self._headsign(),
             "display_name": self._display_name(),
         }
-        if "trip_properties" in include:
-            _dict["trip_properties"] = (
-                [tp.as_json() for tp in self.trip.trip_properties] if self.trip else []
-            )
+        # if "trip_properties" in include:
+        #     _dict["trip_properties"] = (
+        #         [tp.as_json() for tp in self.trip.trip_properties] if self.trip else []
+        #     )
         if "to_trip_transfers" in include:
             _dict["to_trip_transfers"] = (
                 [tt.as_json() for tt in self.trip.to_trip_transfers]

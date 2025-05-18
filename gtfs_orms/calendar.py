@@ -5,6 +5,8 @@ import typing as t
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from helper_functions import SQLA_GTFS_DATE, get_date
+
 from .base import Base
 
 if t.TYPE_CHECKING:
@@ -33,8 +35,8 @@ class Calendar(Base):
     friday: Mapped[bool]
     saturday: Mapped[bool]
     sunday: Mapped[bool]
-    start_date: Mapped[dt.datetime]
-    end_date: Mapped[dt.datetime]
+    start_date: Mapped[dt.datetime] = mapped_column(SQLA_GTFS_DATE)
+    end_date: Mapped[dt.datetime] = mapped_column(SQLA_GTFS_DATE)
 
     calendar_dates: Mapped[list["CalendarDate"]] = relationship(
         back_populates="calendar", passive_deletes=True
@@ -45,6 +47,20 @@ class Calendar(Base):
     trips: Mapped[list["Trip"]] = relationship(
         back_populates="calendar", passive_deletes=True
     )
+
+    def is_active(self, _date: dt.datetime | dt.date | None = None, **kwargs) -> bool:
+        """returns true if the calendar is active on the date
+
+        wrapper for `operates_on`
+
+        args:
+            - `_date (datetime|date|str)`: The date to check, defaults to today \n
+            - `kwargs`: additional arguments passed to `get_date` \n
+        returns:
+            - `bool`: True if the calendar is active on the date
+        """
+
+        return self.operates_on(_date or get_date(**kwargs))
 
     def operates_on(self, _date: dt.datetime | dt.date) -> bool:
         """Returns true if the calendar operates on the date

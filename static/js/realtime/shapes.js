@@ -33,6 +33,7 @@ class ShapeLayer extends BaseRealtimeLayer {
     const polyLineRender = L.canvas({ padding: 0.5, tolerance: 7 });
     const realtime = L.realtime(options.url, {
       interval: 45000,
+      // interval: 15000,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
@@ -70,11 +71,6 @@ class ShapeLayer extends BaseRealtimeLayer {
           if (wasOpen) layer.closePopup();
           layer.bindPopup(_this.#getPopupHTML(properties), options.textboxSize);
           if (wasOpen) {
-            _this.options.map.setView(
-              layer.getLatLng(),
-              _this.options.map.getZoom(),
-              { animate: true }
-            );
             layer.openPopup();
             setTimeout(onClick, 200);
           }
@@ -121,11 +117,12 @@ class ShapeLayer extends BaseRealtimeLayer {
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<StopProperty>} options
    */
-  #_onclick(event, options = {}) {
+  async #_onclick(event, options = {}) {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-    _this.#fillSidebar(options.properties);
+    await _this.#fillSidebar(options.properties);
+    super._afterClick(event, options);
   }
 
   /**
@@ -246,7 +243,7 @@ class ShapeLayer extends BaseRealtimeLayer {
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="directional">
             ${predictions
               .map((pred) => {
                 const trip = route.trips
@@ -265,8 +262,10 @@ class ShapeLayer extends BaseRealtimeLayer {
                         Math.max(..._ps.map((_p) => _p.stop_sequence))
                     )
                     ?.at(0)?.stop_name;
-
-                return /* HTML */ `<tr>
+                const dom = pred.arrival_time || pred.departure_time;
+                return /* HTML */ `<tr
+                  data-direction-${parseInt(pred.direction_id)}
+                >
                   <td>
                     <a
                       onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
@@ -275,18 +274,19 @@ class ShapeLayer extends BaseRealtimeLayer {
                   </td>
                   <td>${headsign}</td>
                   <td>
-                    <span class="fa tooltip" data-tooltip="Next Stop"
+                    <span
+                      class="fa tooltip"
+                      data-tooltip="Next Stop in ${minuteify(
+                        dom - timestamp * 10,
+                        ["seconds"]
+                      ) || "now"}"
                       >${BaseRealtimeLayer.icons.prediction}</span
                     >
                     <a
                       onclick="new LayerFinder(_map).clickStop('${pred.stop_id}')"
                       >${pred.stop_name}</a
                     >
-                    @
-                    ${formatTimestamp(
-                      pred.arrival_time || pred.departure_time,
-                      "%I:%M %P"
-                    )}
+                    @ ${formatTimestamp(dom, "%I:%M %P")}
                     <i class="${getDelayClassName(pred.delay)}"
                       >${getDelayText(pred.delay, false)}</i
                     >
@@ -299,18 +299,23 @@ class ShapeLayer extends BaseRealtimeLayer {
                 const trip = route.trips
                   ?.filter((t) => t.trip_id === st.trip_id)
                   ?.at(0);
-                return /* HTML */ `<tr>
-                  <td>${trip?.trip_short_name || st.trip_id}</td>
+                const dom = st.arrival_timestamp || st.departure_timestamp;
+                if (!trip?.active) return "";
+                return /* HTML */ `<tr
+                  data-direction-${parseInt(trip.direction_id)}
+                >
+                  <td>${trip.trip_short_name || st.trip_id}</td>
                   <td>${st.destination_label || trip?.trip_headsign}</td>
                   <td>
-                    <span class="tooltip fa" data-tooltip="Schduled to leave"
+                    <span
+                      class="tooltip fa"
+                      data-tooltip="Schduled in ${minuteify(
+                        dom - timestamp * 10,
+                        ["seconds"]
+                      )}"
                       >${BaseRealtimeLayer.icons.clock}</span
                     >
-                    ${st.stop_name} @
-                    ${formatTimestamp(
-                      st.arrival_timestamp || st.departure_timestamp,
-                      "%I:%M %P"
-                    )}
+                    ${st.stop_name} @ ${formatTimestamp(dom, "%I:%M %P")}
                   </td>
                 </tr>`;
               })

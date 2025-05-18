@@ -175,12 +175,12 @@ class StopLayer extends BaseRealtimeLayer {
    * @param {DomEvent.PropagableEvent} event
    * @param {RealtimeLayerOnClickOptions<StopProperty>} options
    */
-  #_onclick(event, options = {}) {
+  async #_onclick(event, options = {}) {
     super._onclick(event, options);
     /**@type {this} */
     const _this = options._this || this;
-
-    _this.#fillSidebar(options.properties);
+    await _this.#fillSidebar(options.properties);
+    super._afterClick(event, options);
   }
   /**
    *
@@ -206,10 +206,15 @@ class StopLayer extends BaseRealtimeLayer {
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
+    // &departure_timestamp>${timestamp * 10 - 60}
+    const childStops = Boolean(properties.child_stops.length)
+      ? properties.child_stops
+      : [properties];
+
     /**@type {StopTimeProperty[]} */
     const stopTimes = (
       await Promise.all(
-        properties.child_stops
+        childStops
           .filter(
             (cs) =>
               cs.location_type == 0 && ["2", "4"].includes(cs.vehicle_type)
@@ -217,9 +222,7 @@ class StopLayer extends BaseRealtimeLayer {
           .map(
             async (cs) =>
               await fetchCache(
-                `/api/stoptime?stop_id=${cs.stop_id}&departure_timestamp>${
-                  timestamp * 10 - 60
-                }&include=trip`,
+                `/api/stoptime?stop_id=${cs.stop_id}&active=True&_=${timestamp}&include=trip`,
                 { cache: "force-cache" },
                 super.defaultFetchCacheOpt
               )
@@ -230,6 +233,10 @@ class StopLayer extends BaseRealtimeLayer {
     const alerts = stop.flatMap((s) => s.alerts);
     super.moreInfoButton(properties.stop_id, { alert: Boolean(alerts.length) });
     sidebar.style.display = "initial";
+
+    /**@type {StopTimeAttrObj[]} */
+    const specialStopTimes = [];
+
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
       <div>
@@ -258,7 +265,7 @@ class StopLayer extends BaseRealtimeLayer {
             return /* HTML */ `<div class="my-5">
               <table class="data-table">
                 <thead>
-                  ${super.tableHeaderHTML(route, 3)}
+                  ${super.tableHeaderHTML(route, { colspan: 3 })}
                   ${((_predictions.length || _stoptimes.length) &&
                     `<tr>
                     <th>Trip</th>
@@ -267,7 +274,7 @@ class StopLayer extends BaseRealtimeLayer {
                   </tr>`) ||
                   ""}
                 </thead>
-                <tbody>
+                <tbody class="directional">
                   ${_predictions
                     .map((pred) => {
                       const st = stopTimes
@@ -275,7 +282,10 @@ class StopLayer extends BaseRealtimeLayer {
                         .at(0);
                       const dom = pred.arrival_time || pred.departure_time; // sometimes i want one
                       const stAttrs = specialStopTimeAttrs(st, route);
-                      return /* HTML */ `<tr>
+                      specialStopTimes.push(stAttrs);
+                      return /* HTML */ `<tr
+                        data-direction-${parseInt(pred.direction_id)}
+                      >
                         <td>
                           <a
                             class="${stAttrs.cssClass} ${stAttrs.tooltip &&
@@ -284,13 +294,17 @@ class StopLayer extends BaseRealtimeLayer {
                             onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
                             >${st?.trip?.trip_short_name || pred.trip_id}
                           </a>
+                          ${BaseRealtimeLayer.trackIconHTML(
+                            { stop_id: pred.stop_id },
+                            { starOnly: true }
+                          )}
                         </td>
                         <td>
                           <span
                             class="tooltip fa"
-                            data-tooltip="${Math.round(
-                              (dom - timestamp * 10) / 60
-                            )} Minutes Away"
+                            data-tooltip="${minuteify(dom - timestamp * 10, [
+                              "seconds",
+                            ]) || "0 min"} away"
                             >${BaseRealtimeLayer.icons.prediction}</span
                           >
                           ${formatTimestamp(
@@ -308,22 +322,31 @@ class StopLayer extends BaseRealtimeLayer {
                   ${_stoptimes
                     .map((st) => {
                       const stAttrs = specialStopTimeAttrs(st, route);
+                      specialStopTimes.push(stAttrs);
                       const dom =
                         st.arrival_timestamp || st.departure_timestamp; // mommy?
-                      return /* HTML */ `<tr>
-                        <td
-                          class="${stAttrs.cssClass} ${stAttrs.tooltip &&
-                          "tooltip"}"
-                          data-tooltip="${stAttrs.tooltip}"
-                        >
-                          ${st.trip?.trip_short_name || st.trip_id}
+                      return /* HTML */ `<tr
+                        data-direction-${parseInt(st?.trip?.direction_id)}
+                      >
+                        <td>
+                          <span
+                            class="${stAttrs.cssClass} ${stAttrs.tooltip &&
+                            "tooltip"}"
+                            data-tooltip="${stAttrs.tooltip}"
+                            >${st.trip?.trip_short_name || st.trip_id}
+                          </span>
+                          ${BaseRealtimeLayer.trackIconHTML(
+                            { stop_id: st.stop_id },
+                            { starOnly: true }
+                          )}
                         </td>
                         <td>
                           <span
                             class="tooltip fa"
-                            data-tooltip="Scheduled in ${Math.round(
-                              (dom - timestamp * 10) / 60
-                            )} Min"
+                            data-tooltip="Scheduled in ${minuteify(
+                              dom - timestamp * 10,
+                              ["seconds"]
+                            )}"
                             >${BaseRealtimeLayer.icons.clock}</span
                           >
                           ${formatTimestamp(dom, "%I:%M %P")}
@@ -338,6 +361,7 @@ class StopLayer extends BaseRealtimeLayer {
           })
           .join("")}
       </div>
+      ${BaseRealtimeLayer.specialStopKeyHTML(specialStopTimes)}
       ${this.#getFooterHTML(properties)}
     </div>`;
   }
