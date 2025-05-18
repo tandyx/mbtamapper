@@ -4,7 +4,7 @@ import datetime as dt
 import typing as t
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
 from helper_functions import get_date
 
@@ -104,6 +104,12 @@ class Trip(Base):
         foreign_keys="Transfer.from_trip_id",
         passive_deletes=True,
     )
+
+    @reconstructor
+    def _init_on_load_(self):
+        """Reconstructs the object on load from the database."""
+        # pylint: disable=attribute-defined-outside-init
+        self.active = self.is_active()
 
     @property
     def destination(self) -> "Stop | None":
