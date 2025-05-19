@@ -246,7 +246,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const dClassName = getDelayClassName(properties.next_stop.delay);
     const _abs = Math.abs(delay);
     return /* HTML */ ` <i class="${dClassName}">
-      ${_abs} minute${_abs > 1 && "s"}
+      ${_abs} minute${(_abs > 1 && "s") || ""}
       ${dClassName === "on-time" ? "early" : "late"}</i
     >`;
   }
@@ -402,7 +402,9 @@ class VehicleLayer extends BaseRealtimeLayer {
               return /* HTML */ `<tr>
                 <td class="">
                   <a
-                    class="${stAttrs.cssClass} ${stAttrs.tooltip && "tooltip"}"
+                    class="${stAttrs.cssClass} ${(stAttrs.tooltip &&
+                      "tooltip") ||
+                    ""}"
                     onclick="new LayerFinder(_map).clickStop('${p.stop_id}')"
                     data-tooltip="${stAttrs.tooltip}"
                     >${p.stop_name} ${stAttrs.htmlLogo}</a
