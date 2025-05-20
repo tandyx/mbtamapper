@@ -110,7 +110,6 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         )
 
     @_app.route("/stops")
-    @_app.route("/api/stop")
     def get_stops() -> flask.Response:
         """Returns stops as geojson in the context of the route type AND \
             flask, exported to /stops as an api.
@@ -135,8 +134,6 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
     @_app.route("/routes")
     @_app.route("/shapes")
-    @_app.route("/api/route")
-    @_app.route("/api/shape")
     def get_routes() -> flask.Response:
         """Returns routes as geojson in the context of the route type AND \
             flask, exported to /routes as an api.
