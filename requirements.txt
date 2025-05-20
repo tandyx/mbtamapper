@@ -13,4 +13,3 @@ werkzeug
 protobuf
 asteval
 timeout-function-decorator
-cryptography
