@@ -141,7 +141,8 @@ class StopTime(Base):
         _date = _date or get_date(**kwargs)
 
         return (
-            self.trip.is_active(_date) and self.departure_timestamp > time.time()
+            self.trip.calendar.operates_on(_date)
+            and self.departure_timestamp > time.time()
         ) or bool(self.prediction)
 
     @property
