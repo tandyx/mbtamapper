@@ -20,6 +20,5 @@ from .stop import Stop
 from .stop_time import StopTime
 from .transfer import Transfer
 from .trip import Trip
-
 # from .trip_property import TripProperty
 from .vehicle import Vehicle
