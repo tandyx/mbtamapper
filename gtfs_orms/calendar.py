@@ -79,3 +79,8 @@ class Calendar(Base):
             and getattr(self, _date.strftime("%A").lower())
             and not (exception and exception.exception_type == "2")
         ) or (exception and exception.exception_type == "1")
+
+    @property
+    def active(self) -> bool:
+        """wrapper for self.is_active"""
+        return self.is_active(get_date())

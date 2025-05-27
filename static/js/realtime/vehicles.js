@@ -399,13 +399,18 @@ class VehicleLayer extends BaseRealtimeLayer {
 
               const stAttrs = specialStopTimeAttrs(p.stop_time);
               specialStopTimes.push(stAttrs);
+
+              const _onclick = this.options.isMobile
+                ? `new LayerFinder(_map).clickStop('${p.stop_id}')`
+                : "";
+
               return /* HTML */ `<tr>
                 <td class="">
                   <a
                     class="${stAttrs.cssClass} ${(stAttrs.tooltip &&
                       "tooltip") ||
                     ""}"
-                    onclick="new LayerFinder(_map).clickStop('${p.stop_id}')"
+                    onclick="${_onclick}"
                     data-tooltip="${stAttrs.tooltip}"
                     >${p.stop_name} ${stAttrs.htmlLogo}</a
                   >
