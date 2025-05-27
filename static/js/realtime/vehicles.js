@@ -400,7 +400,7 @@ class VehicleLayer extends BaseRealtimeLayer {
               const stAttrs = specialStopTimeAttrs(p.stop_time);
               specialStopTimes.push(stAttrs);
 
-              const _onclick = this.options.isMobile
+              const _onclick = !this.options.isMobile
                 ? `new LayerFinder(_map).clickStop('${p.stop_id}')`
                 : "";
 
