@@ -125,5 +125,12 @@ class Trip(Base):
         returns:
             - `bool`: whether the stop is active on the given date and time
         """
+        _date = _date or get_date(**kwargs)
+        return self.calendar.operates_on(_date) and any(
+            st.is_active(_date) for st in self.stop_times
+        )
 
-        return self.calendar.operates_on(_date or get_date(**kwargs))
+    @property
+    def active(self) -> bool:
+        """wrapper for self.is_active"""
+        return self.is_active(get_date())
