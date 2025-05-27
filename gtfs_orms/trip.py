@@ -20,6 +20,7 @@ if t.TYPE_CHECKING:
     from .stop import Stop
     from .stop_time import StopTime
     from .transfer import Transfer
+
     # from .trip_property import TripProperty
     from .vehicle import Vehicle
 
@@ -129,7 +130,7 @@ class Trip(Base):
             st.is_active(_date) for st in self.stop_times
         )
 
-    @property
-    def active(self) -> bool:
-        """wrapper for self.is_active"""
-        return self.is_active(get_date())
+    # @property
+    # def active(self) -> bool:
+    #     """wrapper for self.is_active"""
+    #     return self.is_active(get_date())
