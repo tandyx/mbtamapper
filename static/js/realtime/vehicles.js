@@ -145,7 +145,6 @@ class VehicleLayer extends BaseRealtimeLayer {
         }.bind(this)
       );
     });
-
     return realtime;
   }
   /**
