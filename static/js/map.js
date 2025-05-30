@@ -154,9 +154,35 @@ function createMap(id, routeType) {
     BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
   });
 
-  L.easyButton("<span class='fa'>&#xf053;</span>", () => sidebar.toggle())
+  /** @type {(btn: L.Control.EasyButton, map: L.Map)} */
+  const _easyOnClick = (btn, map) => {
+    _sidebar.toggle();
+    if (!_sidebar.isVisible()) {
+      return btn.state("sidebar-close");
+    }
+    btn.state("sidebar-open");
+  };
+
+  const easyButton = L.easyButton({
+    states: [
+      {
+        stateName: "sidebar-open",
+        icon: "<span class='fa'>&#xf053;</span>",
+        title: "Toggle Sidebar",
+        onClick: _easyOnClick,
+      },
+      {
+        stateName: "sidebar-close",
+        icon: "<span class='fa'>&#xf054;</span>",
+        title: "Toggle Sidebar",
+        onClick: _easyOnClick,
+      },
+    ],
+  })
     .setPosition("topright")
     .addTo(map);
+
+  // easyButton.state;
 
   return map;
 }

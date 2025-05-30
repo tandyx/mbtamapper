@@ -416,6 +416,15 @@ noscript {
   width: 100%;
 }
 
+.table-header-route {
+  text-align: center;
+  border-bottom: none;
+}
+
+.table-header-route[data-onclick="true"] {
+  cursor: pointer;
+}
+
 .text-align-center {
   text-align: center !important;
 }
