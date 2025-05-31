@@ -265,7 +265,10 @@ class StopLayer extends BaseRealtimeLayer {
             return /* HTML */ `<div class="my-5">
               <table class="data-table">
                 <thead>
-                  ${super.tableHeaderHTML(route, { colspan: 3 })}
+                  ${super.tableHeaderHTML(route, {
+                    colspan: 3,
+                    onclick: Boolean(_predictions.length || _stoptimes.length),
+                  })}
                   ${((_predictions.length || _stoptimes.length) &&
                     `<tr>
                     <th>Trip</th>
