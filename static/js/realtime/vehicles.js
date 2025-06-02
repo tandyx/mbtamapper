@@ -176,31 +176,6 @@ class VehicleLayer extends BaseRealtimeLayer {
   }
 
   /**
-   * sometimes the next stop on a vehicle is not available, so we infill it asynchronously
-   *
-   * @param {VehicleProperty} properties pointer to this property
-   * @param {{count?: number, delay?: number}} options
-   * @returns {Promise<NextStop?>} pointer to `properties.next_stop`
-   */
-  async #infillNextStop(properties, options = {}) {
-    if (!properties) return;
-    if (properties.next_stop) return properties.next_stop;
-    const { count = 1, delay = 1000 } = options || {};
-    let _count = 0;
-    while (!properties.next_stop && _count < count) {
-      await asyncSleep(delay);
-      properties.next_stop = (
-        await fetchCache(
-          `/api/vehicles?vehicle_id=${properties.vehicle_id}&include=next_stop`,
-          {},
-          { storage: null }
-        )
-      )?.at(0)?.next_stop;
-    }
-    return properties.next_stop;
-  }
-
-  /**
    * @param {VehicleProperty} properties
    */
   #getStatusHTML(properties) {
@@ -346,7 +321,6 @@ class VehicleLayer extends BaseRealtimeLayer {
     const timestamp = Math.round(new Date().valueOf() / 1000);
     if (!container || !sidebar) return;
     super.moreInfoButton(properties.vehicle_id, { loading: true });
-    /**@type {PredictionProperty[]}*/
     sidebar.style.display = "flex";
     container.innerHTML = /* HTML */ `<div class="centered-parent">
       <div class="loader-large"></div>
