@@ -432,7 +432,7 @@ function onThemeChange(_theme) {
  * @param {number} time in ms
  * @returns {Promise<any>}
  */
-function asyncSleep(time) {
+function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 

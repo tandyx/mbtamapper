@@ -365,6 +365,11 @@ class VehicleLayer extends BaseRealtimeLayer {
                 (a.departure_time || a.arrival_time) -
                 (b.departure_time || b.arrival_time)
             )
+            ?.filter(
+              (p) =>
+                p.stop_sequence > properties?.next_stop?.stop_sequence ||
+                Infinity
+            )
             ?.map((p) => {
               const realDeparture = p.departure_time || p.arrival_time;
               if (!realDeparture || realDeparture < Date().valueOf()) return "";
