@@ -57,7 +57,11 @@ class Facility(Base):
         Returns:
             - `Point`: shapely Point object of the facility
         """
-        return Point(self.facility_lon, self.facility_lat)
+
+        try:
+            return Point(self.facility_lon, self.facility_lat)
+        except TypeError:
+            return self.stop.as_point()
 
     @t.override
     def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
