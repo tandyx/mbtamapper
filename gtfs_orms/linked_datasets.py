@@ -85,6 +85,23 @@ class LinkedDataset(Base):
     service_alerts: Mapped[int]
     authentication_type: Mapped[str]
 
+    cache: dict[str, t.Any] = {}
+    """Cache for linked datasets to avoid multiple requests."""
+
+    def cache_key(self, key: str = None, force: bool = False) -> dict[str, t.Any]:
+        """Caches the linked dataset as a dictionary.
+        Args:
+            - key (str, optional): The key to use for the cache. If \
+            not provided, the URL of the linked dataset is used.
+            - force (bool, optional): Whether to force the cache to be updated.
+        Returns:
+            - dict[str, t.Any]: pointer to the cached linked dataset as a dict.
+        """
+        key = key or self.url
+        if key not in self.__class__.cache or force:
+            self.__class__.cache[key] = self.as_dict()
+        return self.__class__.cache[key]
+
     def as_dataframe(self, **kwargs) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\
             as a dataframe.

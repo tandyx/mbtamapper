@@ -36,6 +36,19 @@ class Base(orm.DeclarativeBase):
         """list of string columns for the class."""
         return cls.__table__.columns.keys()
 
+    @classmethod
+    def from_dict(cls: t.Type[t.Self], data: dict[str, t.Any]) -> t.Self:
+        """Creates an instance of the class from a dictionary.
+
+        Args:
+            cls (Type[Base]): The class to create an instance of.
+            data (dict[str, Any]): The data to create the instance from.
+
+        Returns:
+            Base: An instance of the class with the data.
+        """
+        return cls(**{k: v for k, v in data.items() if k in cls.cols})
+
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}({', '.join(key + '=' + str(getattr(self, key, None)) for key in self.primary_keys)})>"  # pylint: disable=line-too-long
 
