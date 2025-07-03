@@ -337,6 +337,15 @@ class VehicleLayer extends BaseRealtimeLayer {
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
+    if (
+      !properties.next_stop ||
+      !Object.keys(properties.next_stop).length ||
+      properties.next_stop?.delay === null
+    ) {
+      console.warn("no next stop found for vehicle", properties);
+      properties.next_stop = predictions?.[0]?.stop_time || {};
+    }
+
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
     });
@@ -376,7 +385,20 @@ class VehicleLayer extends BaseRealtimeLayer {
               const delayText = getDelayText(p.delay);
 
               const stAttrs = specialStopTimeAttrs(p.stop_time);
-              specialStopTimes.push(stAttrs);
+              /** @type {StopTimeAttrObj} we don't really *need* to do this, but it makes the implementation of the html key wicked easy */
+              const trackIcon = {
+                cssClass: "",
+                htmlLogo: BaseRealtimeLayer.trackIconHTML(
+                  { stop_id: p.stop_id },
+                  { starOnly: true }
+                ),
+                tooltip: "",
+              };
+
+              //
+              [stAttrs, trackIcon]
+                .filter((attr) => Object.values(attr).filter(Boolean).length)
+                .forEach((attr) => specialStopTimes.push(attr));
 
               const _onclick = !this.options.isMobile
                 ? `new LayerFinder(_map).clickStop('${p.stop_id}')`
@@ -392,10 +414,7 @@ class VehicleLayer extends BaseRealtimeLayer {
                     data-tooltip="${stAttrs.tooltip}"
                     >${p.stop_name} ${stAttrs.htmlLogo}</a
                   >
-                  ${BaseRealtimeLayer.trackIconHTML(
-                    { stop_id: p.stop_id },
-                    { starOnly: true }
-                  )}
+                  ${trackIcon.htmlLogo}
                 </td>
                 <td>
                   ${formatTimestamp(realDeparture, "%I:%M %P")}
