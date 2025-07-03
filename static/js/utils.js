@@ -515,7 +515,7 @@ function createElementFromHTML(htmlString) {
 }
 /**
  * gets the best constrasting text color from a hex
- * @param {`${'#'}${string}`} hexcolor
+ * @param {`${'#'}${string}` | string} hexcolor may or may not start with `#`
  * @param {number} [tresh=128] treshhold
  * @returns {"dark" | "light"}
  */

@@ -350,10 +350,10 @@ class BaseRealtimeLayer {
    *
    * returns the key of the HTML for the special stop
    *
-   * @param {StopTimeAttrObj[]?} stAttrs if this array is provided, then the html will be shown if and only if the array has valid elements
+   * @param {StopTimeAttrObj[]?} attrs if this array is provided, then the html will be shown if and only if the array has valid elements
    * @returns {string} html for the special stop key
    */
-  static specialStopKeyHTML(stAttrs) {
+  static specialStopKeyHTML(attrs) {
     const _html = /* HTML */ `<div class="special-stoptime-key">
       <div>
         <span class="flag_stop">Flag Stop <i>f</i></span> - Must be visible on
@@ -363,11 +363,14 @@ class BaseRealtimeLayer {
         <span class="early_departure">Early Departure <i>L</i></span> - Train
         may depart before scheduled time.
       </div>
+      <div>
+        Many Platforms
+        <span class="fa">${BaseRealtimeLayer.icons.track}</span> - Hover to see
+        track.
+      </div>
     </div>`;
-    if (!stAttrs) return _html;
-    if (
-      !stAttrs.filter((s) => Object.values(s).filter(Boolean).length).length
-    ) {
+    if (!attrs) return _html;
+    if (!attrs.filter((s) => Object.values(s).filter(Boolean).length).length) {
       return "";
     }
 

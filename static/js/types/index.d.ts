@@ -210,7 +210,7 @@ export interface VehicleProperty extends LayerProperty {
   label: string;
   latitude: number;
   longitude: number;
-  next_stop?: NextStop;
+  next_stop?: PredictionProperty;
   occupancy_percentage: null;
   occupancy_status: null;
   route: RouteProperty;
@@ -237,24 +237,6 @@ export enum Name {
   MattapanTrolley = "Mattapan Trolley",
   OrangeLine = "Orange Line",
   RedLine = "Red Line",
-}
-
-export interface NextStop {
-  arrival_time: number | null;
-  delay: number | null;
-  departure_time: number | null;
-  direction_id: number;
-  index: number;
-  platform_code?: string;
-  platform_name?: string;
-  prediction_id: string;
-  route_id: RouteID;
-  stop_id: string;
-  stop_name: string;
-  stop_sequence: number;
-  trip_id: string;
-  vehicle_id: string;
-  stop_time?: null;
 }
 
 export enum RouteID {
