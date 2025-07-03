@@ -447,6 +447,11 @@ class VehicleLayer extends BaseRealtimeLayer {
       `;
       return;
     }
+
+    const lastTMSP = properties.reduce((a, b) => {
+      return a.timestamp > b.timestamp ? a : b;
+    }).timestamp;
+
     container.innerHTML = /*HTML*/ `
     <h2>${titleCase(this.options.routeType)}</h2>
     <table class='mt-5 sortable data-table'>
@@ -482,6 +487,11 @@ class VehicleLayer extends BaseRealtimeLayer {
         .join("")}
       </tbody>
       </table>
+      <div class="popup_footer mt-5">
+      Last vehicle update @ ${formatTimestamp(lastTMSP, "%I:%M %P")}
+        <i data-update-timestamp=${lastTMSP}></i>
+      </div>
+     
     `;
 
     for (const el of document.getElementsByClassName("sortable")) {
