@@ -19,6 +19,7 @@
   --mobile-threshold: 768px;
   --blur-radius: 25px;
   --slight-delay: #d19900;
+  --severe-delay: var(--rapid-transit-color);
 
   --more-info-display: initial;
 }
@@ -582,7 +583,7 @@ table.sortable th:hover {
   padding: 10px;
   margin-bottom: 10px;
   margin-top: 5px;
-  border: 2px solid var(--slight-delay);
+
   display: flex;
   align-items: center; /* Vertical centering */
   justify-content: center;

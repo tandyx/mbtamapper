@@ -37,11 +37,10 @@ class BaseRealtimeLayer {
     "BNT-0000",
     "NEC-2276", // back bay
     "NEC-1851",
-    "DB-0095", // readville
     "NEC-2265",
+    "DB-0095", // readville
     "FB-0095", // readville
     "NEC-2192", // readville
-    "WML-0442",
     "WML-0012", // back bay
     "NEC-2237",
     "NEC-2139", //cntnjc
@@ -137,21 +136,34 @@ class BaseRealtimeLayer {
    * @param {AlertProperty[]} alerts
    */
   getAlertsHTML(alerts) {
-    return `<div>${alerts
-      ?.map(
-        (a) => `<div class="alert-box">
-      <div class="alert-timestamp text-align-center">
-      <div style='font-size:xxx-large'>
-      <a style='text-decoration:none;' class='fa slight-delay' rel='noopener' target='_blank' href='${
-        a.url
-      }'>${BaseRealtimeLayer.icons.alert}</a>
-      </div>
-      <div>${formatTimestamp(a.timestamp, "%I:%M %P")}</div></div>
-      <div class="alert-header">${a.header}</div>
+    return /* HTML */ `<div>
+      ${alerts
+        ?.map((a) => {
+          const delayClass =
+            a.severity === "SEVERE" ? "severe-delay" : "slight-delay";
 
-    </div>`
-      )
-      ?.join("")}</div>`;
+          return /* HTML */ `<div
+            class="alert-box"
+            style="border: 2px solid var(--${delayClass});"
+          >
+            <div class="alert-timestamp text-align-center">
+              <div style="font-size:xxx-large">
+                <a
+                  style="text-decoration:none;"
+                  class="fa ${delayClass}"
+                  rel="noopener"
+                  target="_blank"
+                  href="${a.url}"
+                  >${BaseRealtimeLayer.icons.alert}</a
+                >
+              </div>
+              <div>${formatTimestamp(a.timestamp, "%I:%M %P")}</div>
+            </div>
+            <div class="alert-header">${a.header}</div>
+          </div>`;
+        })
+        ?.join("")}
+    </div>`;
   }
 
   /**
