@@ -378,7 +378,7 @@ export interface AlertProperty {
   header: string;
   route_id: string;
   route_type: string;
-  severity: string;
+  severity: "WARNING" | "SEVERE" | "INFO";
   stop_id: null;
   timestamp: number;
   trip_id: string;
