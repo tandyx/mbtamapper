@@ -236,23 +236,34 @@ class Feed:
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: t.Type[Alert | Vehicle | Prediction] | str) -> None:
+    def import_realtime(self, orm: RealtimeOrms | str, use_cache: bool = True) -> None:
         """Imports realtime data into the database.
 
         Args:
-            - `orm (Type[Alert | Vehicle | Prediction] | str)`: realtime ORM.
+            - `orm (RealtimeOrms | str)`: realtime ORM.
         """
-        session = self._get_session(readonly=True)
+
         if isinstance(orm, str):
             orm = __class__.find_orm(orm)
         if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
-        dataset: list[LinkedDataset] = session.execute(
-            Query.get_dataset_query(orm.__realtime_name__)
-        ).one_or_none()
+
+        dataset: LinkedDataset
+        if use_cache and (_tmp := LinkedDataset.cache.get(orm.__realtime_name__)):
+            dataset = LinkedDataset.from_dict(_tmp)
+            logging.info("Using cached LinkedDataset for %s", orm.__realtime_name__)
+        else:
+            session = self._get_session(readonly=True)
+            dataset = session.execute(
+                Query.get_dataset_query(orm.__realtime_name__)
+            ).one_or_none()[0]
+
+        if use_cache:
+            dataset.cache_key(key=orm.__realtime_name__)
+
         if not dataset:
             return
-        self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
+        self.to_sql(dataset.as_dataframe(), orm, purge=True)
 
     @timeit
     @removes_session
