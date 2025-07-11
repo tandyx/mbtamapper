@@ -239,6 +239,7 @@ class StopLayer extends BaseRealtimeLayer {
 
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
+      ${this.#getWheelchairHTML(properties)}
       <div>
         ${properties.routes
           .map((route) => {
