@@ -6,8 +6,7 @@ import typing as t
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from helper_functions import SQLA_GTFS_DATE
-
+from ..helper_functions import SQLA_GTFS_DATE
 from .base import Base
 
 if t.TYPE_CHECKING:

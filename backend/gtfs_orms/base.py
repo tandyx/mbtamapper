@@ -6,7 +6,7 @@ import typing as t
 
 from sqlalchemy import orm
 
-from helper_functions import classproperty
+from ..helper_functions import classproperty
 
 # pylint: disable=unused-argument
 
@@ -110,7 +110,7 @@ class Base(orm.DeclarativeBase):
             k: v
             for k, v in self.as_dict(*include).items()
             if not k.startswith("_") and _is_json_searializable(v)
-        } | {"timestamp": getattr(self, "timestamp", time.time())}
+        }
 
     def _as_json_dict(self) -> dict[str, t.Any]:
         """Returns a dict representation of the object

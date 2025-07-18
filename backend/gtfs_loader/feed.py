@@ -1,12 +1,7 @@
 """Feed Object for GTFS Loader"""
 
-# pylint: disable=unused-wildcard-import
-# pylint: disable=wildcard-import
-# pylint: disable=unused-argument
-# pylint: disable=too-many-instance-attributes
-# pylint: disable=line-too-long
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-branches
+# pylint: disable=unused-wildcard-import, wildcard-import, unused-argument, too-many-instance-attributes, line-too-long, too-many-locals, too-many-branches
+
 import io
 import logging
 import os
@@ -29,9 +24,8 @@ import timeout_function_decorator
 from sqlalchemy import event, exc
 from sqlalchemy import orm as saorm
 
-from gtfs_orms import *
-from helper_functions import removes_session, timeit
-
+from ..gtfs_orms import *
+from ..helper_functions import removes_session, timeit
 from .query import Query
 
 

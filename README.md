@@ -102,7 +102,6 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
           "stop_lon": -71.184468,
           "stop_name": "Sharon",
           "stop_url": "https://www.mbta.com/stops/place-NEC-2108",
-          "timestamp": 1714269647.1744452,
           "vehicle_type": null,
           "wheelchair_boarding": "1",
           "zone_id": "CR-zone-4"

@@ -23,7 +23,6 @@ from .transfer import Transfer
 from .trip import Trip
 from .vehicle import Vehicle
 
-
 RealtimeOrms = t.Type[Alert | Vehicle | Prediction]
 ScheduleOrms = t.Type[
     Agency

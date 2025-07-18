@@ -5,7 +5,7 @@
     
 see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
 
-johan cho | 2023-2024
+johan cho | 2023-2025
 
 """
 import argparse
@@ -20,7 +20,7 @@ import flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from gtfs_loader import FeedLoader, Query
+from backend import FeedLoader, Query
 
 LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
