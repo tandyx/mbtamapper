@@ -389,7 +389,11 @@ class VehicleLayer extends BaseRealtimeLayer {
               const trackIcon = {
                 cssClass: "",
                 htmlLogo: BaseRealtimeLayer.trackIconHTML(
-                  { stop_id: p.stop_id },
+                  {
+                    stop_id: p.stop_id,
+                    direction_id: p.direction_id,
+                    route_type: properties?.route?.route_type,
+                  },
                   { starOnly: true }
                 ),
                 tooltip: "",

@@ -251,7 +251,7 @@ class BaseRealtimeLayer {
       if (!tbody) continue;
       tbody.classList.toggle(
         "hidden",
-        memStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
+        localStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
       );
 
       const carrot = el.querySelector(`.fa`);
@@ -328,7 +328,7 @@ class BaseRealtimeLayer {
         this.parentElement.parentElement.parentElement.querySelector(`tbody`);
       if (!tbody) return;
       const nowHidden = !!tbody.classList.toggle(`hidden`);
-      memStorage.setItem(
+      localStorage.setItem(
         `route-${this.dataset.routeId}-hidden`,
         nowHidden.toString()
       );
@@ -391,24 +391,49 @@ class BaseRealtimeLayer {
 
   /**
    *
-   * @param {{stop_id: string, platform_code?: string}} properties
-   * @param {{starOnly?: boolean}} options
+   * @param {{stop_id: string, platform_code?: string, direction_id?: number, route_type: string}} properties
+   * @param {{mode?: "auto" | "star" | "all"}} [options = {mode: "auto"}]
    */
   static trackIconHTML(properties, options = {}) {
-    const { starOnly = false } = options;
+    let { stop_id, platform_code, direction_id, route_type } = properties;
+    const { mode = "auto" } = options;
+
+    const star = this.starStations.find((s) =>
+      properties.stop_id.startsWith(s)
+    );
+
+    if (mode === "star" && !star) return "";
+
+    if (!properties.platform_code) {
+      const strSplit = properties.stop_id.split("-");
+      properties.platform_code = strSplit.length < 3 ? "" : strSplit.at(-1);
+    }
+
+    const pc_num = Number(properties.platform_code);
 
     if (
-      starOnly &&
-      !this.starStations.find((s) => properties.stop_id.startsWith(s))
+      (mode === "auto" &&
+        !star &&
+        properties.route_type === "2" &&
+        Number(properties.direction_id) + 1 === pc_num) ||
+      Number.isNaN(pc_num)
     ) {
       return "";
     }
 
-    if (!properties.platform_code) {
-      const strSplit = properties.stop_id.split("-");
-      if (strSplit.length < 3) return "";
-      properties.platform_code = strSplit.at(-1);
-    }
+    // if (
+    //   mode === "auto" &&
+    //   !star &&
+    //   !Number.isNaN(pc_num) &&
+    //   !(
+    //     properties.route_type === "2" &&
+    //     Number(properties.direction_id) + 1 === pc_num
+    //   )
+    // ) {
+    //   return "";
+    // }
+
+    if (!properties.platform_code) return "";
 
     return /* HTML */ `<span
       class="fa tooltip"

@@ -263,7 +263,7 @@ function getDefaultCookie(name, value = "", numDays = null) {
  *
  * for flag, early departure stops
  * @param {StopTimeProperty?} properties
- * @param {RouteProperty} route
+ * @param {RouteProperty?} route
  */
 function specialStopTimeAttrs(properties, route) {
   const objec = { cssClass: "", tooltip: "", htmlLogo: "" };

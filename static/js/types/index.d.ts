@@ -92,7 +92,6 @@ export interface StopProperty extends LayerProperty {
   stop_lon?: number;
   stop_name: string;
   stop_url: string;
-  timestamp: number;
   vehicle_type?: string;
   wheelchair_boarding: string;
   zone_id?: ZoneID;
@@ -135,7 +134,6 @@ export enum ZoneID {
 
 export interface ShapeProperty extends LayerProperty {
   shape_id: string;
-  timestamp: number;
   route_short_name?: string;
   route_fare_class: string;
   route_long_name: string;
@@ -177,7 +175,6 @@ export interface Facility extends LayerProperty {
   facility_type: "bike-storage";
   secured?: string;
   stop_id: string;
-  timestamp: number;
   wheelchair_facility: number;
   attended?: string;
   "capacity-accessible"?: string;
@@ -220,7 +217,6 @@ export interface VehicleProperty extends LayerProperty {
   speed_mph: number | null;
   stop_id: null | string;
   stop_time?: StopTimeProperty;
-  timestamp: number;
   trip_id: string;
   trip_properties: any[];
   trip_short_name: string;
@@ -362,7 +358,6 @@ export interface PredictionProperty {
   stop_name: string;
   stop_sequence: number;
   stop_time: StopTimeProperty?;
-  timestamp: number;
   trip_id: string;
   vehicle_id: string;
 }
@@ -380,7 +375,6 @@ export interface AlertProperty {
   route_type: string;
   severity: "WARNING" | "SEVERE" | "INFO";
   stop_id: null;
-  timestamp: number;
   trip_id: string;
   url: string;
 }
