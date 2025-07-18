@@ -1,7 +1,6 @@
 """Holds the base class for all GTFS elements"""
 
 import json
-import time
 import typing as t
 
 from sqlalchemy import orm
