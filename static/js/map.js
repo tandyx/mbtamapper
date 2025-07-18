@@ -8,6 +8,7 @@
  * @typedef {import("leaflet-providers")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("leaflet-sidebar")}
+ * @typedef {import("leaflet-search-types")}
  * @typedef {import("./utils.js")}
  * @typedef {import("./realtime/base.js")}
  * @typedef {import("./realtime/vehicles.js")}
@@ -22,6 +23,8 @@
 let _map;
 /**@type {LeafletSidebar?} for reference purposes */
 let _sidebar;
+/**@type {L.Control.Search?} for reference purposes */
+let _controlSearch;
 
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
@@ -80,14 +83,12 @@ function createMap(id, routeType) {
   map.on("baselayerchange", (event) => {
     new Theme(event.name).set(sessionStorage, onThemeChange);
   });
-  /**@type {LeafletSidebar?} */
+  /**SIDEBAR OPS @type {LeafletSidebar?} */
   const sidebar = L.control
-    .sidebar("sidebar", {
-      closeButton: true,
-      position: "right",
-    })
+    .sidebar("sidebar", { closeButton: true, position: "right" })
     .addTo(map);
   _sidebar = sidebar;
+
   sidebar.on("hide", () => {
     document.documentElement.style.setProperty("--more-info-display", "unset");
   });
@@ -98,6 +99,7 @@ function createMap(id, routeType) {
   if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
+
   baseLayers[theme.theme].addTo(map);
   /**@type {LayerApiRealtimeOptions} */
   const baseOp = {
@@ -137,29 +139,17 @@ function createMap(id, routeType) {
 
   const layers = [stopLayer, shapeLayer, vehicleLayer, facilityLayer];
   layers.forEach((layer) => layer.plot());
-  createControlLayers(
-    baseLayers,
-    ...layers.map((layer) => layer.options.layer)
-  ).forEach((control) => control.addTo(map));
+  const realtimeLayers = layers.map((ll) => ll.options.layer);
 
-  map.on("zoomend", () => {
-    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
-    map.addLayer(facilityLayer.options.layer);
-  });
-
-  if (map.hasLayer(facilityLayer.options.layer)) {
-    map.removeLayer(facilityLayer.options.layer);
-  }
-  map.on("click", () => {
-    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
-  });
+  // createControlLayers(
+  //   baseLayers,
+  //   ...layers.map((layer) => layer.options.layer)
+  // ).forEach((control) => control.addTo(map));
 
   /** @type {(btn: L.Control.EasyButton, map: L.Map)} */
   const _easyOnClick = (btn, map) => {
     _sidebar.toggle();
-    if (!_sidebar.isVisible()) {
-      return btn.state("sidebar-close");
-    }
+    if (!_sidebar.isVisible()) return btn.state("sidebar-close");
     btn.state("sidebar-open");
   };
 
@@ -178,21 +168,7 @@ function createMap(id, routeType) {
         onClick: _easyOnClick,
       },
     ],
-  })
-    .setPosition("topright")
-    .addTo(map);
-
-  // easyButton.state;
-
-  return map;
-}
-
-/** create control layers
- * @param {{light: TileLayer.Provider, dark: TileLayer.Provider}} tile_layers - base layers
- * @param {L.layerGroup[]} layers - layers to be added to the map
- * @returns {L.Control[]} control layers
- */
-function createControlLayers(tile_layers, ...layers) {
+  }).setPosition("topright");
   const locateControl = L.control.locate({
     enableHighAccuracy: true,
     initialZoomLevel: 15,
@@ -201,7 +177,7 @@ function createControlLayers(tile_layers, ...layers) {
   });
 
   const controlSearch = L.control.search({
-    layer: L.layerGroup(layers),
+    layer: L.layerGroup(realtimeLayers),
     initial: false,
     propertyName: "searchName",
     zoom: 16,
@@ -211,6 +187,7 @@ function createControlLayers(tile_layers, ...layers) {
   });
 
   controlSearch.on("search:locationfound", (event) => event.layer.openPopup());
+  _controlSearch = controlSearch;
 
   window.addEventListener("keydown", (keyEvent) => {
     if (
@@ -223,11 +200,29 @@ function createControlLayers(tile_layers, ...layers) {
   });
 
   const layerControl = L.control.layers(
-    tile_layers,
-    Object.fromEntries(layers.map((layer) => [layer.options?.name, layer]))
+    baseLayers,
+    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
   );
 
-  return [locateControl, layerControl, controlSearch];
+  [locateControl, layerControl, controlSearch, easyButton].forEach((c) =>
+    c.addTo(map)
+  );
+
+  map.on("zoomend", () => {
+    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
+    map.addLayer(facilityLayer.options.layer);
+  });
+
+  if (map.hasLayer(facilityLayer.options.layer)) {
+    map.removeLayer(facilityLayer.options.layer);
+  }
+  map.on("click", () => {
+    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
+  });
+
+  // easyButton.state;
+
+  return map;
 }
 
 /** Get base layer dictionary

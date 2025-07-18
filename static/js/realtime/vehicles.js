@@ -188,7 +188,7 @@ class VehicleLayer extends BaseRealtimeLayer {
         ? formatTimestamp(dominant, "%I:%M %P")
         : "";
 
-    const stopHTML = `<a style="cursor: pointer;" onclick="new LayerFinder(_map).clickStop('${
+    const stopHTML = `<a style="cursor: pointer;" onclick="LayerFinder.fromGlobals().clickStop('${
       properties.stop_id
     }')">${
       properties.stop_time
@@ -405,7 +405,7 @@ class VehicleLayer extends BaseRealtimeLayer {
                 .forEach((attr) => specialStopTimes.push(attr));
 
               const _onclick = !this.options.isMobile
-                ? `new LayerFinder(_map).clickStop('${p.stop_id}')`
+                ? `LayerFinder.fromGlobals().clickStop('${p.stop_id}')`
                 : "";
 
               return /* HTML */ `<tr>
@@ -471,14 +471,14 @@ class VehicleLayer extends BaseRealtimeLayer {
         .map((prop) => {
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
           return /*HTML*/ `<tr data-direction-${parseInt(prop.direction_id)}="">
-          <td><a ${lStyle} onclick="new LayerFinder(_map).clickRoute('${
+          <td><a ${lStyle} onclick="LayerFinder.fromGlobals().clickRoute('${
             prop.route_id
           }')">${prop.route.route_name}</a></td>
-          <td><a ${lStyle} onclick="new LayerFinder(_map).clickVehicle('${
+          <td><a ${lStyle} onclick="LayerFinder.fromGlobals().clickVehicle('${
             prop.vehicle_id
           }')">${prop.trip_short_name}
           </a></td>
-          <td><a onclick="new LayerFinder(_map).clickStop('${
+          <td><a onclick="LayerFinder.fromGlobals().clickStop('${
             prop.stop_id
           }')"> ${
             prop.next_stop?.stop_name || prop.stop_time?.stop_name

@@ -268,7 +268,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                 >
                   <td>
                     <a
-                      onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                      onclick="LayerFinder.fromGlobals().clickVehicle('${pred.vehicle_id}')"
                       >${trip?.trip_short_name || pred.trip_id}</a
                     >
                   </td>
@@ -283,7 +283,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                       >${BaseRealtimeLayer.icons.prediction}</span
                     >
                     <a
-                      onclick="new LayerFinder(_map).clickStop('${pred.stop_id}')"
+                      onclick="LayerFinder.fromGlobals().clickStop('${pred.stop_id}')"
                       >${pred.stop_name}</a
                     >
                     @ ${formatTimestamp(dom, "%I:%M %P")}
