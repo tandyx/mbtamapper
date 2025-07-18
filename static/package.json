@@ -22,6 +22,6 @@
     "@types/leaflet.markercluster": "^1.5.5",
     "@types/strftime": "^0.9.8",
     "leaflet-realtime-types": "^0.0.3",
-    "leaflet-search-types": "^0.0.11"
+    "leaflet-search-types": "^0.0.12"
   }
 }

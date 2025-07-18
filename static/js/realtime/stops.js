@@ -295,7 +295,7 @@ class StopLayer extends BaseRealtimeLayer {
                             class="${stAttrs.cssClass} ${stAttrs.tooltip &&
                             "tooltip"}"
                             data-tooltip="${stAttrs.tooltip}"
-                            onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                            onclick="LayerFinder.fromGlobals().clickVehicle('${pred.vehicle_id}')"
                             >${st?.trip?.trip_short_name || pred.trip_id}
                           </a>
                           ${BaseRealtimeLayer.trackIconHTML(

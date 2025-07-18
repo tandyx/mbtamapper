@@ -348,7 +348,7 @@ class BaseRealtimeLayer {
         onclick="${onclick ? `(${_onclick.toString()})()` : ""}"
       >
         <a
-          onclick="new LayerFinder(_map).clickRoute('${properties.route_id}')"
+          onclick="LayerFinder.fromGlobals().clickRoute('${properties.route_id}')"
           style="color:var(--${color}-text-color);"
           >${properties.route_name}</a
         >
@@ -378,7 +378,7 @@ class BaseRealtimeLayer {
       <div>
         Many Platforms
         <span class="fa">${BaseRealtimeLayer.icons.track}</span> - Hover to see
-        track.
+        track (non-standard).
       </div>
     </div>`;
     if (!attrs) return _html;

@@ -4,6 +4,7 @@
  * @import {strftime} from "strftime";
  * @import { Realtime, RealtimeUpdateEvent } from "leaflet";
  * @import { FetchCacheOptions } from "./types";
+ * @typedef {import("leaflet-search-types")}
  * @exports *
  */
 
@@ -700,17 +701,41 @@ class MemoryStorage {
 }
 
 const memStorage = new MemoryStorage();
-
 /**
  * class that interacts with a leaflet map and provides methods to action upon specific layers
  */
 class LayerFinder {
   /**
+   * return a new instance from controlSearch rather than layers
+   * @param {L.Map} map
+   * @param {L.Control.Search} controlSearch
+   * @returns {LayerFinder}
+   */
+  static fromControlSearch(map, controlSearch) {
+    return new this(
+      map,
+      Object.values(controlSearch.options.layer.getLayers()).flatMap((l) =>
+        l.getLayers()
+      )
+    );
+  }
+
+  /**
+   * create a new layer finder lazily (through globals)
+   * @returns {LayerFinder}
+   */
+  static fromGlobals() {
+    return this.fromControlSearch(_map, _controlSearch);
+  }
+
+  /**
    *
    * @param {L.Map} map
+   * @param {Layer[]?} layers
    */
-  constructor(map) {
+  constructor(map, layers) {
     this.map = map;
+    this.layers = layers || map._layers;
   }
 
   /**
@@ -728,17 +753,15 @@ class LayerFinder {
       animate: false,
     });
     /**@type {L.Layer[]} */
-    const initialLayers = Object.values(this.map._layers);
+    const initialLayers = Object.values(this.layers);
     let layer = initialLayers.find(fn);
+
     /** @type {L.MarkerCluster?} */
-    let mcluster;
-    if (!layer) {
-      mcluster = initialLayers
-        .find((a) => a.options.name === "vehicles")
-        ?.disableClustering();
-      layer = Object.values(this.map._layers).find(fn);
-      mcluster?.enableClustering();
-    }
+    const mcluster = initialLayers
+      .find((a) => a.options.name === "vehicles")
+      ?.disableClustering();
+    mcluster?.enableClustering();
+
     if (!layer) {
       console.error(`layer not found`);
       this.map.setView(_coords, _zoom, { animate: false });
