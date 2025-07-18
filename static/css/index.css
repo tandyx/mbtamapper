@@ -462,7 +462,8 @@ noscript {
     text-align: center;
     border-bottom: none;
     overflow: hidden;
-    border-radius: var(--border-radius) var(--border-radius) 0px 0px !important;
+    border-radius: calc(var(--border-radius) -1px)
+      calc(var(--border-radius) -1px) 0px 0px !important;
   }
 
   .table-header-route[data-onclick="true"] {
@@ -483,10 +484,11 @@ noscript {
   }
   thead {
     border-radius: var(--border-radius);
+    border-bottom: none;
   }
 
   th {
-    border-bottom: var(--border);
+    /* border-bottom: var(--border); */
     background-color: var(--table-header);
   }
 
