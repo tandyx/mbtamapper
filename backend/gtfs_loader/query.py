@@ -1,16 +1,15 @@
 """Defines a class to hold and generate queries."""
 
-# pylint: disable=unused-wildcard-import
-# pylint: disable=wildcard-import
-# pylint: disable=no-self-argument
+# pylint: disable=unused-wildcard-import, wildcard-import, no-self-argument
+
 import datetime as dt
 import typing as t
 
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import *
 
-from gtfs_orms import *
-from helper_functions import classproperty
+from ..gtfs_orms import *
+from ..helper_functions import classproperty
 
 
 class Query:
