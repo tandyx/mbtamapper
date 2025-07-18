@@ -67,6 +67,9 @@ you could query the database (please don't abuse it)
 - `geojson={Any}`: return data in geojson format (default: false); to switch to true, set to any value (e.g. geojson=1)
 - `kwargs`: columns/on-load-attrs to filter by; supported: `=`, `<`, `>`, `<=`, `>=`, `!=`, `=null`, `!=null`
 
+> [!NOTE]  
+> 2025-07-17: nulls are now culled from the feed
+
 `/{route_type}/{vehicles|stops|shapes|parking}` - api used by each route (geojson format only)
 
 this data is already filtered out based on `route_type`; see [`/route_keys.json`](route_keys.json).
@@ -84,25 +87,16 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
 ```json
    [
         {
-          "at_street": null,
           "child_stops": [{...}, {...}, {...}],
-          "level_id": null,
           "location_type": "1",
           "municipality": "Sharon",
-          "on_street": null,
-          "parent_station": null,
-          "platform_code": null,
-          "platform_name": null,
           "routes": [{...}],
           "stop_address": "1 Upland Rd, Sharon, MA 02067",
-          "stop_code": null,
-          "stop_desc": null,
           "stop_id": "place-NEC-2108",
           "stop_lat": 42.124553,
           "stop_lon": -71.184468,
           "stop_name": "Sharon",
           "stop_url": "https://www.mbta.com/stops/place-NEC-2108",
-          "vehicle_type": null,
           "wheelchair_boarding": "1",
           "zone_id": "CR-zone-4"
         }

@@ -229,7 +229,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {VehicleProperty} properties
    */
   #getOccupancyHTML(properties) {
-    if (properties.occupancy_status === null) return "";
+    if ([null, undefined].includes(properties.occupancy_status)) return "";
     // if (delay)
 
     return /* HTML */ `<div>
