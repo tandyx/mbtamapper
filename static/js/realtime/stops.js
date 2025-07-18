@@ -299,7 +299,11 @@ class StopLayer extends BaseRealtimeLayer {
                             >${st?.trip?.trip_short_name || pred.trip_id}
                           </a>
                           ${BaseRealtimeLayer.trackIconHTML(
-                            { stop_id: pred.stop_id },
+                            {
+                              stop_id: pred.stop_id,
+                              direction_id: pred.direction_id,
+                              route_type: route.route_type,
+                            },
                             { starOnly: true }
                           )}
                         </td>
@@ -340,7 +344,11 @@ class StopLayer extends BaseRealtimeLayer {
                             >${st.trip?.trip_short_name || st.trip_id}
                           </span>
                           ${BaseRealtimeLayer.trackIconHTML(
-                            { stop_id: st.stop_id },
+                            {
+                              stop_id: st.stop_id,
+                              direction_id: st.trip?.direction_id,
+                              route_type: route.route_type,
+                            },
                             { starOnly: true }
                           )}
                         </td>
