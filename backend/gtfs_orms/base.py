@@ -108,7 +108,7 @@ class Base(orm.DeclarativeBase):
         return {
             k: v
             for k, v in self.as_dict(*include).items()
-            if not k.startswith("_") and _is_json_searializable(v)
+            if not k.startswith("_") and _is_json_searializable(v) and v is not None
         }
 
     def _as_json_dict(self) -> dict[str, t.Any]:
