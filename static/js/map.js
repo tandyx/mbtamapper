@@ -42,6 +42,15 @@ window.addEventListener("load", function () {
       el.innerHTML = ` ~ ${minuteify(now - timestamp)} ago`;
     });
   }, 1000);
+
+  this.setTimeout(() => {
+    const hash = this.window.location.hash.slice(1);
+    if (!hash) return;
+    const layerFinder = LayerFinder.fromGlobals();
+    layerFinder.clickRoute(hash) ||
+      layerFinder.clickStop(hash) ||
+      layerFinder.clickVehicle(hash);
+  }, 500);
 });
 
 /** map factory function for map.html
@@ -218,6 +227,7 @@ function createMap(id, routeType) {
   }
   map.on("click", () => {
     BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
+    window.location.hash = "";
   });
 
   // easyButton.state;

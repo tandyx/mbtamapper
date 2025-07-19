@@ -2,6 +2,14 @@
 
 sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
+## TODO
+
+- [ ] redesign auxillary (home, 404, etc) pages
+- [ ] add api ref
+- [ ] do the google transit things for predictions
+- [ ] delay on vehicle text
+- [ ] fix clicking on a vehicle
+
 ## setup
 
 requires python 3.10+ and node 20+
