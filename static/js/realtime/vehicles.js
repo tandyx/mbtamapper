@@ -57,6 +57,13 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @returns {L.DivIcon}
    */
   #getIcon(properties) {
+    const delayClassName = getDelayClassName(properties?.next_stop?.delay || 0);
+    const delayStyle =
+      ["on-time", "slight-delay"].includes(delayClassName) ||
+      properties.route?.route_type !== "2"
+        ? ""
+        : `color: var(--vehicle-${delayClassName})`;
+
     const iconHtml = /* HTML */ `
       <div class="vehicle_wrapper">
         <img
@@ -70,7 +77,9 @@ class VehicleLayer extends BaseRealtimeLayer {
             transform: rotate(${properties.bearing}deg);
           "
         />
-        <span class="vehicle_text">${properties.display_name}</span>
+        <span class="vehicle_text" style="${delayStyle};"
+          >${properties.display_name}</span
+        >
       </div>
     `;
 

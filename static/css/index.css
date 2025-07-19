@@ -19,8 +19,14 @@
   --mobile-threshold: 768px;
   --blur-radius: 25px;
   --slight-delay: #d19900;
+  --moderate-delay: var(--subway-color);
   --severe-delay: var(--rapid-transit-color);
 
+  --vehicle-on-time: var(--text-color);
+  --vehicle-slight-delay: var(--text-color);
+  --vehicle-moderate-delay: #ffb64f;
+  --vehicle-severe-delay: #ff6256;
+  /* "severe-delay" | "moderate-delay" | "slight-delay" | "on-time" */
   --more-info-display: initial;
 }
 

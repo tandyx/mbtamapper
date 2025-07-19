@@ -5,6 +5,8 @@
  * @import { Realtime, RealtimeUpdateEvent } from "leaflet";
  * @import { FetchCacheOptions } from "./types";
  * @typedef {import("leaflet-search-types")}
+ * @typedef {import("leaflet.markercluster")}
+ * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src")}
  * @exports *
  */
 
@@ -736,6 +738,10 @@ class LayerFinder {
   constructor(map, layers) {
     this.map = map;
     this.layers = layers || map._layers;
+    /** @type {(L.MarkerClusterGroup)[]} */
+    this.markerClusters = Object.values(this.map._layers).filter((a) =>
+      Boolean(a._markerCluster)
+    );
   }
 
   /**
@@ -752,28 +758,38 @@ class LayerFinder {
     this.map.setZoom(this.map.options.minZoom, {
       animate: false,
     });
-    /**@type {L.Layer[]} */
-    const initialLayers = Object.values(this.layers);
-    let layer = initialLayers.find(fn);
-
-    /** @type {L.MarkerCluster?} */
-    const mcluster = initialLayers
-      .find((a) => a.options.name === "vehicles")
-      ?.disableClustering();
-    mcluster?.enableClustering();
+    /**@type {L.Marker?} */
+    const layer = this.layers.find(fn);
 
     if (!layer) {
       console.error(`layer not found`);
       this.map.setView(_coords, _zoom, { animate: false });
       return;
     }
+
+    this.markerClusters.forEach((mc) => mc.disableClustering());
+
     if (this.map.options.maxZoom && options.autoZoom) {
+      this.markerClusters.forEach((mc) => mc.disableClustering());
+
       this.map.setView(
         options.latLng || layer.getLatLng(),
         options.zoom || this.map.options.maxZoom
       );
     }
-    if (options.click) layer.fire("click");
+
+    if (options.click) {
+      // layer.fire("click");
+      // layer.openPopup();
+
+      layer.fire("click");
+
+      this.markerClusters.forEach((mc) => mc.enableClustering());
+
+      // mClusters.forEach((mc) => mc?.spiderfy());
+    }
+    this.markerClusters.forEach((mc) => mc.enableClustering());
+
     return layer;
   }
 
