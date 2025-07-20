@@ -48,7 +48,7 @@
         "icon": "static/img/bus.ico",
         "image": "static/img/bus.png",
         "fa_unicode": "&#xf207;",
-        "display_name": "bus",
+        "display_name": "Bus",
         "color": "#ffc72c",
         "route_types": [
             "3"
