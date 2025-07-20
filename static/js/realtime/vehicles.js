@@ -62,7 +62,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       ["on-time", "slight-delay"].includes(delayClassName) ||
       properties.route?.route_type !== "2"
         ? ""
-        : `color: var(--vehicle-${delayClassName})`;
+        : `text-decoration: underline dotted 2px var(--vehicle-${delayClassName})`;
 
     const iconHtml = /* HTML */ `
       <div class="vehicle_wrapper">
