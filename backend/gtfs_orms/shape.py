@@ -3,7 +3,7 @@
 import typing as t
 
 from geojson import Feature
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -33,6 +33,8 @@ class Shape(Base):
         passive_deletes=True,
         order_by="ShapePoint.shape_pt_sequence",
     )
+
+    # BOSTON_POS = Point(42.3519, -71.0552)
 
     def as_linestring(self) -> LineString:
         """Return a shapely `LineString` object of the shape
