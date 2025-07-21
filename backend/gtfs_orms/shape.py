@@ -3,7 +3,7 @@
 import typing as t
 
 from geojson import Feature
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
