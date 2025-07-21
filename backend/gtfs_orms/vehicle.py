@@ -192,9 +192,10 @@ class Vehicle(Base):
 
     def _get_interpolated_bearing(self) -> float:
         """returns the interpolated bearing"""
-        BOSTON_POS = Point(-71.0552, 42.3519)
-        shape_line = self.trip.shape.as_linestring()
-        shape_line_coords: list[Point] = [Point(pt) for pt in shape_line.coords]
+        boston_pos = Point(-71.0552, 42.3519)
+        shape_line_coords: list[Point] = [
+            Point(pt) for pt in self.trip.shape.as_linestring().coords
+        ]
         veh_point: Point = self.as_point()
         nearest, nearest_dist, nearest_i = Point(0, 0), float("inf"), 0
         for i, pt in enumerate(shape_line_coords):
@@ -206,9 +207,9 @@ class Vehicle(Base):
         elif nearest_i == 0:
             next_pt = shape_line_coords[1]
         # if prev point is further from boston than next
-        elif shape_line_coords[nearest_i - 1].distance(BOSTON_POS) > shape_line_coords[
+        elif shape_line_coords[nearest_i - 1].distance(boston_pos) > shape_line_coords[
             nearest_i + 1
-        ].distance(BOSTON_POS):
+        ].distance(boston_pos):
             next_pt = (  # outbound, need to find furthest dist from boston
                 shape_line_coords[nearest_i - 1]
                 if self.direction_id == 0
