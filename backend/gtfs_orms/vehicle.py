@@ -92,7 +92,7 @@ class Vehicle(Base):
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
-        self.bearing = self.bearing or self.interpolated_bearing or 0
+        self.bearing = self.bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
         self.trip_short_name = self._trip_short_name()
 
