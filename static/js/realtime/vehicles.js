@@ -60,7 +60,11 @@ class VehicleLayer extends BaseRealtimeLayer {
     const delayClassName = getDelayClassName(properties?.next_stop?.delay || 0);
     const delayStyle = ["on-time", "slight-delay"].includes(delayClassName)
       ? ""
-      : `text-decoration: underline 2px var(--vehicle-${delayClassName})`;
+      : `text-decoration: underline 2px var(--vehicle-${delayClassName});
+        -webkit-text-decoration-line: underline;
+        -webkit-text-decoration-color: var(--vehicle-${delayClassName});
+        -webkit-text-decoration-thickness: 2px;
+      `;
 
     const iconHtml = /* HTML */ `
       <div class="vehicle_wrapper">
@@ -75,7 +79,7 @@ class VehicleLayer extends BaseRealtimeLayer {
             transform: rotate(${properties.bearing}deg);
           "
         />
-        <span class="vehicle_text" style="${delayStyle};"
+        <span class="vehicle_text" style="${delayStyle}"
           >${properties.display_name}</span
         >
       </div>
