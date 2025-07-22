@@ -8,7 +8,7 @@ from threading import Thread
 
 from schedule import Scheduler
 
-from ..gtfs_orms import Alert, Prediction, Vehicle, Shape, Base
+from ..gtfs_orms import Alert, Prediction, Shape, Vehicle
 from ..helper_functions import get_date, timeit
 from .feed import Feed
 
