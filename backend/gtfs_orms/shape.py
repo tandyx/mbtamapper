@@ -23,7 +23,7 @@ class Shape(Base):
 
     __tablename__ = "shapes"
 
-    _linestring_cache: dict[str, LineString] = {}
+    LINESTR_CACHE: dict[str, LineString] = {}
 
     shape_id: Mapped[str] = mapped_column(primary_key=True)
 
@@ -54,9 +54,9 @@ class Shape(Base):
         if not use_cache:
             return _gen_ls()
 
-        if self.shape_id in self._linestring_cache:
-            return self._linestring_cache[self.shape_id]
-        self._linestring_cache[self.shape_id] = (linestr := _gen_ls())
+        if self.shape_id in self.__class__.LINESTR_CACHE:
+            return self.__class__.LINESTR_CACHE[self.shape_id]
+        self.__class__.LINESTR_CACHE[self.shape_id] = (linestr := _gen_ls())
         return linestr
 
     def as_feature(self, *include: str) -> Feature:
