@@ -185,6 +185,8 @@ class Vehicle(Base):
     @property
     def interpolated_bearing(self) -> float:
         """interpolates bearing based upon direction, etc wrapper for _get_interpolated bearing"""
+        if self.bearing == 0:
+            return 0
         try:
             return self._get_interpolated_bearing()
         except Exception:  # pylint: disable=broad-except
