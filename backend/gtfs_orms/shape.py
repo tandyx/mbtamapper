@@ -23,8 +23,6 @@ class Shape(Base):
 
     __tablename__ = "shapes"
 
-    LINESTR_CACHE: dict[str, LineString] = {}
-
     shape_id: Mapped[str] = mapped_column(primary_key=True)
 
     trips: Mapped[list["Trip"]] = relationship(
@@ -36,7 +34,7 @@ class Shape(Base):
         order_by="ShapePoint.shape_pt_sequence",
     )
 
-    # BOSTON_POS = Point(42.3519, -71.0552)
+    linestr_cache: dict[str, LineString] = {}
 
     def as_linestring(self, use_cache=False) -> LineString:
         """Return a shapely `LineString` object of the shape
@@ -54,9 +52,9 @@ class Shape(Base):
         if not use_cache:
             return _gen_ls()
 
-        if self.shape_id in self.__class__.LINESTR_CACHE:
-            return self.__class__.LINESTR_CACHE[self.shape_id]
-        self.__class__.LINESTR_CACHE[self.shape_id] = (linestr := _gen_ls())
+        if self.shape_id in self.__class__.linestr_cache:
+            return self.__class__.linestr_cache[self.shape_id]
+        self.__class__.linestr_cache[self.shape_id] = (linestr := _gen_ls())
         return linestr
 
     def as_feature(self, *include: str) -> Feature:
