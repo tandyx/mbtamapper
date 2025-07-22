@@ -35,7 +35,7 @@ logging.basicConfig(
     filename="main.log",
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
+    datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.DEBUG,
 )
 
