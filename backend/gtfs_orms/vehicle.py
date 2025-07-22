@@ -92,7 +92,7 @@ class Vehicle(Base):
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
-        self.bearing = self.bearing or 0
+        self.bearing = self.bearing or self.interpolated_bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
         self.trip_short_name = self._trip_short_name()
 
@@ -185,8 +185,6 @@ class Vehicle(Base):
     @property
     def interpolated_bearing(self) -> float:
         """interpolates bearing based upon direction, etc wrapper for _get_interpolated bearing"""
-        if self.bearing == 0:
-            return 0
         try:
             return self._get_interpolated_bearing()
         except Exception:  # pylint: disable=broad-except
@@ -196,13 +194,15 @@ class Vehicle(Base):
         """returns the interpolated bearing"""
         boston_pos = Point(-71.0552, 42.3519)
         shape_line_coords: list[Point] = [
-            Point(pt) for pt in self.trip.shape.as_linestring().coords
+            Point(pt) for pt in self.trip.shape.as_linestring(use_cache=True).coords
         ]
         veh_point: Point = self.as_point()
         nearest, nearest_dist, nearest_i = Point(0, 0), float("inf"), 0
+
         for i, pt in enumerate(shape_line_coords):
             if pt.distance(veh_point) < nearest_dist:
                 nearest, nearest_dist, nearest_i = pt, pt.distance(veh_point), i
+
         next_pt: Point
         if nearest_i == len(shape_line_coords) - 1:
             next_pt = shape_line_coords[nearest_i - 1]
