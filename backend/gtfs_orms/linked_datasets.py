@@ -85,7 +85,7 @@ class LinkedDataset(Base):
     service_alerts: Mapped[int]
     authentication_type: Mapped[str]
 
-    cache: dict[str, t.Any] = {}
+    cache: dict[str, dict[str, t.Any]] = {}
     """Cache for linked datasets to avoid multiple requests."""
 
     def cache_key(self, key: str = None, force: bool = False) -> dict[str, t.Any]:
