@@ -1,5 +1,6 @@
 """File to hold the Facility class and its associated methods."""
 
+import time
 import typing as t
 
 from geojson import Feature
@@ -92,6 +93,13 @@ class Facility(Base):
             and self.facility_lat
         ):
             point = Point(self.facility_lon + 0.003, self.facility_lat + 0.003)
+
         return Feature(
-            id=self.facility_id, geometry=point, properties=self.as_json(*include)
+            id=self.facility_id,
+            geometry=point,
+            properties=(
+                self.as_json(*include) | {"timestamp": time.time()}
+                if "timestamp" in include
+                else {}
+            ),
         )

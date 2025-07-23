@@ -20,6 +20,7 @@ class StopLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
+    options.interval = options.interval || 45000;
     super(options);
   }
   /**
@@ -32,11 +33,12 @@ class StopLayer extends BaseRealtimeLayer {
     /** @type {BaseRealtimeOnClickOptions<StopProperty>} */
     const onClickOpts = { _this, idField: "stop_id" };
     const realtime = L.realtime(options.url, {
-      interval: 45000,
+      interval: options.interval,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
       removeMissing: true,
+      interactive: options.interactive,
       getFeatureId: (f) => f.id,
       onEachFeature(fea, lay) {
         // lay.setStyle({

@@ -838,3 +838,31 @@ class LayerFinder {
     );
   }
 }
+
+/** Get base layer dictionary
+ * @summary Get base layer dictionary
+ * @param {string} lightId - id of light layer
+ * @param {string} darkId - id of dark layer
+ * @param {object} additionalLayers - additional layers to add to dictionary
+ * @returns {{ light: TileLayer.Provider; dark: TileLayer.Provider}} - base layer dictionary
+ */
+function getBaseLayerDict(
+  lightId = "CartoDB.Positron",
+  darkId = "CartoDB.DarkMatter",
+  additionalLayers = {}
+) {
+  const options = {
+    attribution:
+      "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
+  };
+  const baseLayers = {
+    light: L.tileLayer.provider(lightId, { id: "lightLayer", ...options }),
+    dark: L.tileLayer.provider(darkId, { id: "darkLayer", ...options }),
+  };
+
+  for (const [key, value] of Object.entries(additionalLayers)) {
+    baseLayers[key] = L.tileLayer.provider(value);
+  }
+
+  return baseLayers;
+}

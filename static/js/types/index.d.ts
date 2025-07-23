@@ -15,9 +15,31 @@ export interface LayerApiRealtimeOptions {
   textboxSize: string;
   isMobile: boolean;
   sidebar: LeafletSidebar;
-  routeType: string;
+  routeType: keyof RouteKeys;
   map: L.Map;
   interval?: number;
+  interactive?: boolean;
+}
+export interface RouteKeys {
+  subway: RouteKey;
+  rapid_transit: RouteKey;
+  commuter_rail: RouteKey;
+  bus: RouteKey;
+  ferry: RouteKey;
+  all_routes: RouteKey;
+}
+
+export interface RouteKey {
+  _key: string;
+  title: string;
+  description: string;
+  icon: string;
+  image: string;
+  fa_unicode: string;
+  display_name: string;
+  color: string;
+  route_types: string[];
+  sort_order: number;
 }
 
 export interface RealtimeLayerOnClickOptions<T extends LayerProperty> {
@@ -72,6 +94,7 @@ export interface FetchCacheOptions<T extends "text" | "json"> {
 }
 
 export interface LayerProperty {
+  timestamp?: number;
   [key = string]: any;
 }
 

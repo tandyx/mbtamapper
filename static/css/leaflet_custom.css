@@ -50,13 +50,20 @@
   }
 }
 .leaflet-control-layers-expanded,
+.leaflet-control-layers,
 .leaflet-popup-content-wrapper,
 .leaflet-tooltip,
 .leaflet-popup-tip,
 .leaflet-popup-content-wrapper::after,
 .leaflet-tooltip::after,
+.easy-button-button,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-fullscreen-button,
+.leaflet-bar-part,
+.leaflet-control-search,
 .leaflet-popup-content::after {
-  background-color: var(--background-color-blur);
+  background-color: var(--background-color-blur) !important;
   -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
   border-radius: var(--border-radius) !important;
@@ -65,6 +72,30 @@
   font-family: var(--font-family) !important;
   text-align: left !important;
   box-shadow: var(--box-shadow) !important;
+  .search-button {
+    background-color: rgb(0, 0, 0, 0) !important;
+  }
+}
+
+.easy-button-button:hover {
+  background-color: var(--background-color) !important;
+}
+
+.easy-button-button,
+.leaflet-control-fullscreen-button,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-bar-part {
+  text-align: center !important;
+}
+
+.leaflet-control-zoom-in {
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+.leaflet-control-zoom-out {
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
 }
 
 .leaflet-control-layers-expanded {
@@ -191,6 +222,17 @@
 
 .leaflet-control-locate-location circle {
   animation: leaflet-control-locate-throb 10s ease infinite;
+}
+
+.leaflet-text-control {
+  font-family: var(--font-family) !important;
+  color: var(--text-color) !important;
+  text-align: center;
+  padding: 30px 25px;
+  background-color: var(--background-color-blur);
+  -webkit-backdrop-filter: blur(var(--blur-radius));
+  backdrop-filter: blur(var(--blur-radius));
+  border-radius: var(--border-radius);
 }
 
 @keyframes leaflet-control-locate-throb {

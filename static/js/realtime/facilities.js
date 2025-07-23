@@ -20,6 +20,7 @@ class FacilityLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
+    options.interval = options.interval || 3600000;
     super(options);
   }
   /**
@@ -30,11 +31,12 @@ class FacilityLayer extends BaseRealtimeLayer {
     const _this = this;
     options = { ...this.options, ...options };
     const realtime = L.realtime(options.url, {
-      interval: 3600000,
+      interval: options.interval,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
       removeMissing: true,
+      interactive: options.interactive,
       getFeatureId: (f) => f.id,
       onEachFeature(f, l) {
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);

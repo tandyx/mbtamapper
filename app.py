@@ -62,7 +62,7 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
             url_dict[_dict_field] = url_for
             break
     url_dict[_dict_field] = url_dict.get(_dict_field, "/")
-    return flask.render_template("404.html", **url_dict), 404
+    return flask.render_template("404.html", key_dict=KEY_DICT, **url_dict), 404
 
 
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
@@ -212,7 +212,17 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             - `str`: index.html.
         """
 
-        return flask.render_template("index.html", content=KEY_DICT)
+        return flask.render_template("index.html", key_dict=KEY_DICT)
+
+    @_app.route("/key_dict")
+    def key_dict():
+        """key dict json
+
+        Returns:
+            Response: the key dict
+        """
+
+        return flask.jsonify(KEY_DICT)
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception | None = None) -> None:
