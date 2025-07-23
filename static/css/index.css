@@ -640,16 +640,9 @@ table.sortable th:hover {
     }
   }
 
-  #titleCard::after {
-    content: "mbtamapper";
-  }
   @media (max-width: 786px) {
     .mobile-hidden {
       display: block;
-    }
-
-    #titleCard::after {
-      content: "mbta mapper";
     }
   }
 
@@ -662,10 +655,15 @@ table.sortable th:hover {
 
   h1 {
     margin: -10px 0px;
+    font-size: 32pt;
+  }
+
+  h4 {
+    font-size: 13pt;
   }
 
   table {
-    font-size: 10pt;
+    font-size: 11pt;
     width: 80%;
     border-spacing: 0;
     text-align: left;
