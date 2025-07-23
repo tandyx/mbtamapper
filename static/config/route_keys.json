@@ -8,6 +8,7 @@
         "fa_unicode": "&#xf239;",
         "display_name": "Subway",
         "color": "#ed8b00",
+        "sort_order": 0,
         "route_types": [
             "0",
             "1"
@@ -22,6 +23,7 @@
         "fa_unicode": "&#xf239;",
         "display_name": "Rapid Transit",
         "color": "#da291c",
+        "sort_order": 1,
         "route_types": [
             "0",
             "1",
@@ -37,6 +39,7 @@
         "fa_unicode": "&#xf238;",
         "display_name": "Commuter Rail",
         "color": "#80276c",
+        "sort_order": 2,
         "route_types": [
             "2"
         ]
@@ -50,6 +53,7 @@
         "fa_unicode": "&#xf207;",
         "display_name": "Bus",
         "color": "#ffc72c",
+        "sort_order": 3,
         "route_types": [
             "3"
         ]
@@ -63,6 +67,7 @@
         "fa_unicode": "&#xf21a;",
         "display_name": "Ferry",
         "color": "#008eaa",
+        "sort_order": 4,
         "route_types": [
             "4"
         ]
@@ -76,6 +81,7 @@
         "fa_unicode": "&#xf21a;",
         "display_name": "All Routes",
         "color": "#7c878e",
+        "sort_order": 5,
         "route_types": [
             "0",
             "1",

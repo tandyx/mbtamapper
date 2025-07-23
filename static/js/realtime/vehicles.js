@@ -92,6 +92,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
+    options.interval = options.interval || 15000;
     super(options);
   }
 
@@ -104,11 +105,12 @@ class VehicleLayer extends BaseRealtimeLayer {
     /**@type {BaseRealtimeOnClickOptions<VehicleProperty>} */
     const onClickOpts = { _this, idField: "vehicle_id" };
     const realtime = L.realtime(options.url, {
-      interval: 15000,
+      interval: options.interval,
       type: "FeatureCollection",
       container: options.layer,
       cache: false,
       removeMissing: true,
+      interactive: options.interactive,
       getFeatureId: (f) => f.id,
       onEachFeature(f, l) {
         l.id = f.id;

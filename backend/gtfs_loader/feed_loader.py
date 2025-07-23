@@ -126,7 +126,6 @@ class FeedLoader(Scheduler, Feed):
         self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
         self.every(4).days.at("03:40", tz=timezone).do(threader, self.clear_caches)
-        self.every(12).seconds.do(threader, self.clear_caches)
         while True:
             self.run_pending()
             time.sleep(1)

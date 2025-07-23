@@ -55,7 +55,9 @@ class BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
-    options.interval = options.interval || 12500;
+    options.interactive = [null, undefined].includes(options.interactive)
+      ? options.interactive === true
+      : Boolean(options.interactive);
     this.options = options;
   }
   /**

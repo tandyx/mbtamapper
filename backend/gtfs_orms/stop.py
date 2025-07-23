@@ -1,6 +1,7 @@
 """File to hold the Stop class and its associated methods."""
 
 # pylint: disable=line-too-long
+import time
 import typing as t
 
 from geojson import Feature
@@ -222,5 +223,11 @@ class Stop(Base):
             - `Feature`: A GeoJSON feature object.
         """
         return Feature(
-            id=self.stop_id, geometry=self.as_point(), properties=self.as_json(*include)
+            id=self.stop_id,
+            geometry=self.as_point(),
+            properties=(
+                self.as_json(*include) | {"timestamp": time.time()}
+                if "timestamp" in include
+                else {}
+            ),
         )

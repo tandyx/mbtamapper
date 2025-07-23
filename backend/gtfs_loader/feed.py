@@ -294,14 +294,21 @@ class Feed:
                 os.mkdir(path)
         file: io.TextIOWrapper
         with open(os.path.join(file_subpath, self.SHAPES_FILE), **def_kwargs) as file:
-            gj.dump(self.get_shape_features(key, query_obj, "agency"), file)
+            gj.dump(
+                self.get_shape_features(key, query_obj, "agency", "timestamp"), file
+            )
             logging.info("Exported %s", file.name)
+
         with open(os.path.join(file_subpath, self.PARKING_FILE), **def_kwargs) as file:
-            gj.dump(self.get_parking_features(key, query_obj), file)
+            gj.dump(self.get_parking_features(key, query_obj, "timestamp"), file)
             logging.info("Exported %s", file.name)
+
         with open(os.path.join(file_subpath, self.STOPS_FILE), **def_kwargs) as file:
             gj.dump(
-                self.get_stop_features(key, query_obj, "child_stops", "routes"), file
+                self.get_stop_features(
+                    key, query_obj, "child_stops", "routes", "timestamp"
+                ),
+                file,
             )
             logging.info("Exported %s", file.name)
 
