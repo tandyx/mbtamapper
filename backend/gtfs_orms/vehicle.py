@@ -5,6 +5,7 @@ import typing as t
 
 from geographiclib.geodesic import Geodesic
 from geojson import Feature
+from shapely import STRtree
 from shapely.geometry import Point
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
@@ -197,11 +198,8 @@ class Vehicle(Base):
             Point(pt) for pt in self.trip.shape.as_linestring(use_cache=True).coords
         ]
         veh_point: Point = self.as_point()
-        nearest, nearest_dist, nearest_i = Point(0, 0), float("inf"), 0
-
-        for i, pt in enumerate(shape_line_coords):
-            if pt.distance(veh_point) < nearest_dist:
-                nearest, nearest_dist, nearest_i = pt, pt.distance(veh_point), i
+        nearest_i = STRtree(shape_line_coords).nearest(veh_point)
+        nearest = shape_line_coords[nearest_i]
 
         next_pt: Point
         if nearest_i == len(shape_line_coords) - 1:
