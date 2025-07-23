@@ -37,11 +37,10 @@ class BaseRealtimeLayer {
     "BNT-0000",
     "NEC-2276", // back bay
     "NEC-1851",
-    "DB-0095", // readville
     "NEC-2265",
+    "DB-0095", // readville
     "FB-0095", // readville
     "NEC-2192", // readville
-    "WML-0442",
     "WML-0012", // back bay
     "NEC-2237",
     "NEC-2139", //cntnjc
@@ -56,7 +55,9 @@ class BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
-    options.interval = options.interval || 12500;
+    options.interactive = [null, undefined].includes(options.interactive)
+      ? options.interactive === true
+      : Boolean(options.interactive);
     this.options = options;
   }
   /**
@@ -137,21 +138,34 @@ class BaseRealtimeLayer {
    * @param {AlertProperty[]} alerts
    */
   getAlertsHTML(alerts) {
-    return `<div>${alerts
-      ?.map(
-        (a) => `<div class="alert-box">
-      <div class="alert-timestamp text-align-center">
-      <div style='font-size:xxx-large'>
-      <a style='text-decoration:none;' class='fa slight-delay' rel='noopener' target='_blank' href='${
-        a.url
-      }'>${BaseRealtimeLayer.icons.alert}</a>
-      </div>
-      <div>${formatTimestamp(a.timestamp, "%I:%M %P")}</div></div>
-      <div class="alert-header">${a.header}</div>
+    return /* HTML */ `<div>
+      ${alerts
+        ?.map((a) => {
+          const delayClass =
+            a.severity === "SEVERE" ? "severe-delay" : "slight-delay";
 
-    </div>`
-      )
-      ?.join("")}</div>`;
+          return /* HTML */ `<div
+            class="alert-box"
+            style="border: 2px solid var(--${delayClass});"
+          >
+            <div class="alert-timestamp text-align-center">
+              <div style="font-size:xxx-large">
+                <a
+                  style="text-decoration:none;"
+                  class="fa ${delayClass}"
+                  rel="noopener"
+                  target="_blank"
+                  href="${a.url}"
+                  >${BaseRealtimeLayer.icons.alert}</a
+                >
+              </div>
+              <div>${formatTimestamp(a.timestamp, "%I:%M %P")}</div>
+            </div>
+            <div class="alert-header">${a.header}</div>
+          </div>`;
+        })
+        ?.join("")}
+    </div>`;
   }
 
   /**
@@ -224,10 +238,7 @@ class BaseRealtimeLayer {
     const scrollStorageId = `sidebar-scroll-${properties[idField]}`;
 
     const scrollTop = memStorage.getItem(scrollStorageId);
-    if (scrollTop) {
-      console.log(memStorage);
-      sidebarDiv.scroll({ top: parseInt(scrollTop) });
-    }
+    if (scrollTop) sidebarDiv.scroll({ top: parseInt(scrollTop) });
 
     // DO NOT CHANGE TO ADDEVENTLISTENER
     sidebarDiv.onscroll = (event) => {
@@ -242,8 +253,14 @@ class BaseRealtimeLayer {
       if (!tbody) continue;
       tbody.classList.toggle(
         "hidden",
-        memStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
+        localStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
       );
+
+      const carrot = el.querySelector(`.fa`);
+      if (!carrot) continue;
+      carrot.innerHTML = tbody.classList.contains("hidden")
+        ? `&#xf054;`
+        : `&#xf078;`;
     }
   }
   // `route-${this.dataset.routeId}-hidden`
@@ -313,31 +330,33 @@ class BaseRealtimeLayer {
         this.parentElement.parentElement.parentElement.querySelector(`tbody`);
       if (!tbody) return;
       const nowHidden = !!tbody.classList.toggle(`hidden`);
-      memStorage.setItem(
+      localStorage.setItem(
         `route-${this.dataset.routeId}-hidden`,
         nowHidden.toString()
       );
+      const carrot = this.querySelector(`.fa`);
+      if (!carrot) return;
+      carrot.innerHTML = nowHidden ? `&#xf054;` : `&#xf078;`;
     };
 
+    const color = getContrastYIQ(properties.route_color, 138);
     return /* HTML */ `<tr>
       <th
         colspan="${colspan}"
         data-route-id="${properties.route_id}"
         data-onclick="${onclick}"
-        style="background-color: #${properties.route_color};border-bottom: none; ${onclick
-          ? "cursor:pointer"
-          : ""};"
-        class="text-align-center"
+        style="background-color: #${properties.route_color}"
+        class="table-header-route"
         onclick="${onclick ? `(${_onclick.toString()})()` : ""}"
       >
         <a
-          onclick="new LayerFinder(_map).clickRoute('${properties.route_id}')"
-          style="color:var(--${getContrastYIQ(
-            properties.route_color,
-            138
-          )}-text-color);"
+          onclick="LayerFinder.fromGlobals().clickRoute('${properties.route_id}')"
+          style="color:var(--${color}-text-color);"
           >${properties.route_name}</a
         >
+        ${onclick
+          ? `<div style="float:right;color:var(--${color}-text-color);" class="fa">&#xf078;</div>`
+          : ""}
       </th>
     </tr>`;
   }
@@ -345,10 +364,10 @@ class BaseRealtimeLayer {
    *
    * returns the key of the HTML for the special stop
    *
-   * @param {StopTimeAttrObj[]?} stAttrs if this array is provided, then the html will be shown if and only if the array has valid elements
+   * @param {StopTimeAttrObj[]?} attrs if this array is provided, then the html will be shown if and only if the array has valid elements
    * @returns {string} html for the special stop key
    */
-  static specialStopKeyHTML(stAttrs) {
+  static specialStopKeyHTML(attrs) {
     const _html = /* HTML */ `<div class="special-stoptime-key">
       <div>
         <span class="flag_stop">Flag Stop <i>f</i></span> - Must be visible on
@@ -358,11 +377,14 @@ class BaseRealtimeLayer {
         <span class="early_departure">Early Departure <i>L</i></span> - Train
         may depart before scheduled time.
       </div>
+      <div>
+        Many Platforms
+        <span class="fa">${BaseRealtimeLayer.icons.track}</span> - Hover to see
+        track (non-standard).
+      </div>
     </div>`;
-    if (!stAttrs) return _html;
-    if (
-      !stAttrs.filter((s) => Object.values(s).filter(Boolean).length).length
-    ) {
+    if (!attrs) return _html;
+    if (!attrs.filter((s) => Object.values(s).filter(Boolean).length).length) {
       return "";
     }
 
@@ -371,24 +393,49 @@ class BaseRealtimeLayer {
 
   /**
    *
-   * @param {{stop_id: string, platform_code?: string}} properties
-   * @param {{starOnly?: boolean}} options
+   * @param {{stop_id: string, platform_code?: string, direction_id?: number, route_type: string}} properties
+   * @param {{mode?: "auto" | "star" | "all"}} [options = {mode: "auto"}]
    */
   static trackIconHTML(properties, options = {}) {
-    const { starOnly = false } = options;
+    let { stop_id, platform_code, direction_id, route_type } = properties;
+    const { mode = "auto" } = options;
+
+    const star = this.starStations.find((s) =>
+      properties.stop_id.startsWith(s)
+    );
+
+    if (mode === "star" && !star) return "";
+
+    if (!properties.platform_code) {
+      const strSplit = properties.stop_id.split("-");
+      properties.platform_code = strSplit.length < 3 ? "" : strSplit.at(-1);
+    }
+
+    const pc_num = Number(properties.platform_code);
 
     if (
-      starOnly &&
-      !this.starStations.find((s) => properties.stop_id.startsWith(s))
+      (mode === "auto" &&
+        !star &&
+        properties.route_type === "2" &&
+        Number(properties.direction_id) + 1 === pc_num) ||
+      Number.isNaN(pc_num)
     ) {
       return "";
     }
 
-    if (!properties.platform_code) {
-      const strSplit = properties.stop_id.split("-");
-      if (strSplit.length < 3) return "";
-      properties.platform_code = strSplit.at(-1);
-    }
+    // if (
+    //   mode === "auto" &&
+    //   !star &&
+    //   !Number.isNaN(pc_num) &&
+    //   !(
+    //     properties.route_type === "2" &&
+    //     Number(properties.direction_id) + 1 === pc_num
+    //   )
+    // ) {
+    //   return "";
+    // }
+
+    if (!properties.platform_code) return "";
 
     return /* HTML */ `<span
       class="fa tooltip"

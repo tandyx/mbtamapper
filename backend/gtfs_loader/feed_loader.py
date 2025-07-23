@@ -8,9 +8,8 @@ from threading import Thread
 
 from schedule import Scheduler
 
-from gtfs_orms import Alert, Prediction, Vehicle
-from helper_functions import get_date, timeit
-
+from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
+from ..helper_functions import get_date, timeit
 from .feed import Feed
 
 
@@ -92,6 +91,12 @@ class FeedLoader(Scheduler, Feed):
             self.geojson_exports()
         self.run(timezone=timezone)
 
+    def clear_caches(self) -> None:
+        """clears orm-specific caches"""
+        Shape.linestr_cache.clear()
+        LinkedDataset.cache.clear()
+        logging.warning("caches cleared")
+
     def run(self, timezone: str = "America/New_York") -> t.NoReturn:
         """Schedules jobs.
 
@@ -120,6 +125,7 @@ class FeedLoader(Scheduler, Feed):
         self.every(20).seconds.do(threader, self.import_realtime, Prediction, join=True)
         self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
         self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
+        self.every(4).days.at("03:40", tz=timezone).do(threader, self.clear_caches)
         while True:
             self.run_pending()
             time.sleep(1)

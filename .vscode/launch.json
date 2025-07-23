@@ -13,6 +13,14 @@
                     "path": "${workspaceFolder}"
                 },
                 {
+                    "url": "http://localhost:5000/subway",
+                    "path": "${workspaceFolder}"
+                },
+                {
+                    "url": "http://localhost:5000/rapid_transit",
+                    "path": "${workspaceFolder}"
+                },
+                {
                     "url": "http://localhost:5000/ferry",
                     "path": "${workspaceFolder}"
                 },

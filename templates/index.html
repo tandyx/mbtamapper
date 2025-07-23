@@ -44,87 +44,130 @@
 
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/titlepage.css') }}"
+      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
     />
+
+    <!-- leaflet -->
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
+    />
+    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
+    <!-- other js -->
+    <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
+
+    <!-- custom js -->
+    <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
   </head>
-  <body class="titlepage">
-    <main class="mainContainer no-highlight">
-      <h1 id="titleCard"></h1>
-      <p class="subheader margin-top-neg-30">realtime maps of the mbta</p>
-      <hr />
+  <body>
+    <div id="map"></div>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <script async defer>
+      /**
+       * @import { Theme } from "./js/utils.js"
+       */
+      window.addEventListener("load", () => {
+        /** @type {RouteKeys} */
+        const routeKeys = JSON.parse(`{{ key_dict | tojson }}`);
+        /**@type {([keyof RouteKeys, RouteKey])[]} */
+        const keys = Object.entries(routeKeys)
+          .sort((a, b) => a[1].sort_order - b[1].sort_order)
+          .filter(([key, obj]) => key !== "all_routes");
+        const map = createHomepageMap(
+          "map",
+          routeKeys,
+          /* HTML */ `
+            <div class="titlepage leaflet-text-control">
+              <h1 id="titleCard">mbtamapper</h1>
+              <h4>Realtime Tracking of MBTA Vehicles</h4>
+              <table>
+                ${keys
+                  .map(([key, obj], i) => {
+                    return `
+                    <tr class="${key}">
+                      <td style='${
+                        i === keys.length - 1 ? "border-bottom: none;" : ""
+                      }'>
+                        <a href="/${key}/">
+                        <span class='fa'>${obj.fa_unicode}</span>
+                          ${obj.display_name}
+                        </a>
+                      </td>
+                    </tr>
+                  `;
+                  })
+                  .join("")}
+              </table>
+              <div class="footer">
+                <div class="footer-text">
+                  This app displays where every mbta vehicle is on a realtime
+                  map using publicly available data. Useful for railfans and
+                  commuters.
+                </div>
+                <div class="fa link-wrapper">
+                  <a id="modeToggle" class="tooltip" style="margin-right: 5px">
+                    &#xf2bd;
+                  </a>
+                  <a
+                    href="https://github.com/johan-cho/mbtamapper"
+                    target="_blank"
+                    rel="noopener"
+                    class="tooltip"
+                    data-tooltip="Github"
+                    style="margin-right: 5px"
+                    >&#xf09b;</a
+                  >
+                  <a
+                    href="https://tandy.xyz/"
+                    target="_blank"
+                    rel="noopener"
+                    class="tooltip"
+                    data-tooltip="About Me"
+                  >
+                    <img
+                      src="/static/img/riolu_light_1mb.png"
+                      loading="lazy"
+                      class="inline-img"
+                    />
+                  </a>
+                </div>
+              </div>
+            </div>
+          `
+        );
+      });
+    </script>
+    <script>
+      window.addEventListener("load", () => {
+        const toggle = document.getElementById("modeToggle");
+        if (!toggle) return;
+        /**
+         * updates toggle
+         * @param {Theme} theme
+         */
+        const updateToggle = (theme) => {
+          toggle.innerHTML = theme.unicodeIcon;
+          toggle.dataset.tooltip = `Change to ${
+            Theme.activeTheme == "dark" ? "Light" : "Dark"
+          }`;
+        };
+        updateToggle(Theme.fromExisting().set(sessionStorage, onThemeChange));
+        toggle.addEventListener("click", () => {
+          updateToggle(
+            Theme.fromExisting().reverse(sessionStorage, onThemeChange)
+          );
+        });
+      });
+    </script>
 
-      <table>
-        {% for key, value in content.items() if not key == "all_routes"%}
-        <tr>
-          <td class="button_base {{ key | lower }}">
-            <a href="/{{ key | lower }}">
-              <span class="fa">{{ value.fa_unicode | safe }}</span>
-              &nbsp; {{ value.display_name }}</a
-            >
-          </td>
-        </tr>
-        {% endfor %}
-      </table>
-
-      <div class="footer">
-        <div>
-          this app displays where every mbta vehicle is on a realtime map. it
-          can be used for commuting.
-        </div>
-        <br />
-        <div>
-          this site works the best on firefox <span class="fa">&#xf269;</span>.
-        </div>
-        <div class="fa link-wrapper">
-          <a id="modeToggle" class="tooltip"> &#xf2bd; </a>
-          <a
-            href="https://github.com/johan-cho/mbtamapper"
-            target="_blank"
-            rel="noopener"
-            class="tooltip"
-            data-tooltip="github"
-            >&#xf09b;</a
-          ><a
-            href="https://tandy.xyz/"
-            target="_blank"
-            rel="noopener"
-            class="tooltip"
-            data-tooltip="tandy.xyz"
-          >
-            <img
-              src="{{ url_for('static', filename='img/riolu_light_1mb.png')}}"
-              loading="lazy"
-              class="inline-img"
-            />
-          </a>
-          <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
-          <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
-          <script async defer>
-            /**
-              @import { Theme } from "./js/utils.js"
-            **/
-            window.addEventListener("load", () => {
-              const toggle = document.getElementById("modeToggle");
-              /**
-               * updates toggle
-               * @param {Theme} theme
-               */
-              const updateToggle = (theme) => {
-                toggle.innerHTML = theme.unicodeIcon;
-                toggle.dataset.tooltip = `change to ${
-                  Theme.activeTheme == "dark" ? "light" : "dark"
-                }`;
-              };
-              updateToggle(Theme.fromExisting().set(sessionStorage));
-              toggle.addEventListener("click", () => {
-                updateToggle(Theme.fromExisting().reverse(sessionStorage));
-              });
-            });
-          </script>
-
-          <!-- -->
-        </div>
-      </div>
-    </main>
+    <noscript>This page requires Javascript to be enabled.</noscript>
   </body>
 </html>

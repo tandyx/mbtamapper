@@ -4,6 +4,9 @@
  * @import {strftime} from "strftime";
  * @import { Realtime, RealtimeUpdateEvent } from "leaflet";
  * @import { FetchCacheOptions } from "./types";
+ * @typedef {import("leaflet-search-types")}
+ * @typedef {import("leaflet.markercluster")}
+ * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src")}
  * @exports *
  */
 
@@ -263,7 +266,7 @@ function getDefaultCookie(name, value = "", numDays = null) {
  *
  * for flag, early departure stops
  * @param {StopTimeProperty?} properties
- * @param {RouteProperty} route
+ * @param {RouteProperty?} route
  */
 function specialStopTimeAttrs(properties, route) {
   const objec = { cssClass: "", tooltip: "", htmlLogo: "" };
@@ -432,7 +435,7 @@ function onThemeChange(_theme) {
  * @param {number} time in ms
  * @returns {Promise<any>}
  */
-function asyncSleep(time) {
+function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
@@ -515,7 +518,7 @@ function createElementFromHTML(htmlString) {
 }
 /**
  * gets the best constrasting text color from a hex
- * @param {`${'#'}${string}`} hexcolor
+ * @param {`${'#'}${string}` | string} hexcolor may or may not start with `#`
  * @param {number} [tresh=128] treshhold
  * @returns {"dark" | "light"}
  */
@@ -700,17 +703,45 @@ class MemoryStorage {
 }
 
 const memStorage = new MemoryStorage();
-
 /**
  * class that interacts with a leaflet map and provides methods to action upon specific layers
  */
 class LayerFinder {
   /**
+   * return a new instance from controlSearch rather than layers
+   * @param {L.Map} map
+   * @param {L.Control.Search} controlSearch
+   * @returns {LayerFinder}
+   */
+  static fromControlSearch(map, controlSearch) {
+    return new this(
+      map,
+      Object.values(controlSearch.options.layer.getLayers()).flatMap((l) =>
+        l.getLayers()
+      )
+    );
+  }
+
+  /**
+   * create a new layer finder lazily (through globals)
+   * @returns {LayerFinder}
+   */
+  static fromGlobals() {
+    return this.fromControlSearch(_map, _controlSearch);
+  }
+
+  /**
    *
    * @param {L.Map} map
+   * @param {Layer[]?} layers
    */
-  constructor(map) {
+  constructor(map, layers) {
     this.map = map;
+    this.layers = layers || map._layers;
+    /** @type {(L.MarkerClusterGroup)[]} */
+    this.markerClusters = Object.values(this.map._layers).filter((a) =>
+      Boolean(a._markerCluster)
+    );
   }
 
   /**
@@ -727,30 +758,38 @@ class LayerFinder {
     this.map.setZoom(this.map.options.minZoom, {
       animate: false,
     });
-    /**@type {L.Layer[]} */
-    const initialLayers = Object.values(this.map._layers);
-    let layer = initialLayers.find(fn);
-    /** @type {L.MarkerCluster?} */
-    let mcluster;
-    if (!layer) {
-      mcluster = initialLayers
-        .find((a) => a.options.name === "vehicles")
-        ?.disableClustering();
-      layer = Object.values(this.map._layers).find(fn);
-      mcluster?.enableClustering();
-    }
+    /**@type {L.Marker?} */
+    const layer = this.layers.find(fn);
+
     if (!layer) {
       console.error(`layer not found`);
       this.map.setView(_coords, _zoom, { animate: false });
       return;
     }
+
+    this.markerClusters.forEach((mc) => mc.disableClustering());
+
     if (this.map.options.maxZoom && options.autoZoom) {
+      this.markerClusters.forEach((mc) => mc.disableClustering());
+
       this.map.setView(
         options.latLng || layer.getLatLng(),
         options.zoom || this.map.options.maxZoom
       );
     }
-    if (options.click) layer.fire("click");
+
+    if (options.click) {
+      // layer.fire("click");
+      // layer.openPopup();
+
+      layer.fire("click");
+
+      this.markerClusters.forEach((mc) => mc.enableClustering());
+
+      // mClusters.forEach((mc) => mc?.spiderfy());
+    }
+    this.markerClusters.forEach((mc) => mc.enableClustering());
+
     return layer;
   }
 
@@ -798,4 +837,32 @@ class LayerFinder {
       { zoom: 15, ...options }
     );
   }
+}
+
+/** Get base layer dictionary
+ * @summary Get base layer dictionary
+ * @param {string} lightId - id of light layer
+ * @param {string} darkId - id of dark layer
+ * @param {object} additionalLayers - additional layers to add to dictionary
+ * @returns {{ light: TileLayer.Provider; dark: TileLayer.Provider}} - base layer dictionary
+ */
+function getBaseLayerDict(
+  lightId = "CartoDB.Positron",
+  darkId = "CartoDB.DarkMatter",
+  additionalLayers = {}
+) {
+  const options = {
+    attribution:
+      "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
+  };
+  const baseLayers = {
+    light: L.tileLayer.provider(lightId, { id: "lightLayer", ...options }),
+    dark: L.tileLayer.provider(darkId, { id: "darkLayer", ...options }),
+  };
+
+  for (const [key, value] of Object.entries(additionalLayers)) {
+    baseLayers[key] = L.tileLayer.provider(value);
+  }
+
+  return baseLayers;
 }

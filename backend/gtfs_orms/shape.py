@@ -1,5 +1,6 @@
 """File to hold the Shape class and its associated methods."""
 
+import time
 import typing as t
 
 from geojson import Feature
@@ -34,14 +35,28 @@ class Shape(Base):
         order_by="ShapePoint.shape_pt_sequence",
     )
 
-    def as_linestring(self) -> LineString:
+    linestr_cache: dict[str, LineString] = {}
+
+    def as_linestring(self, use_cache=False) -> LineString:
         """Return a shapely `LineString` object of the shape
 
+        args:
+            use_cache (boolean): use a cache to return this linestring default False
+
         returns:
-            - `LineString`: A shapely LineString object.
+            LineString: A shapely LineString object.
         """
 
-        return LineString([sp.as_point() for sp in sorted(self.shape_points)])
+        def _gen_ls():
+            return LineString([sp.as_point() for sp in sorted(self.shape_points)])
+
+        if not use_cache:
+            return _gen_ls()
+
+        if self.shape_id in self.__class__.linestr_cache:
+            return self.__class__.linestr_cache[self.shape_id]
+        self.__class__.linestr_cache[self.shape_id] = (linestr := _gen_ls())
+        return linestr
 
     def as_feature(self, *include: str) -> Feature:
         """Returns shape object as a feature.
@@ -55,7 +70,11 @@ class Shape(Base):
         return Feature(
             id=self.shape_id,
             geometry=self.as_linestring(),
-            properties=self.as_json(*include),
+            properties=(
+                self.as_json(*include) | {"timestamp": time.time()}
+                if "timestamp" in include
+                else {}
+            ),
         )
 
     @t.override

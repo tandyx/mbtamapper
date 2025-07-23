@@ -1,6 +1,7 @@
 """initialize and import all gtfs_schedule business objects"""
 
 # pylint: disable=unused-import
+import typing as t
 
 from .agency import Agency
 from .alert import Alert
@@ -20,6 +21,23 @@ from .stop import Stop
 from .stop_time import StopTime
 from .transfer import Transfer
 from .trip import Trip
-
-# from .trip_property import TripProperty
 from .vehicle import Vehicle
+
+RealtimeOrms = t.Type[Alert | Vehicle | Prediction]
+ScheduleOrms = t.Type[
+    Agency
+    | Calendar
+    | CalendarAttribute
+    | CalendarDate
+    | Facility
+    | FacilityProperty
+    | LinkedDataset
+    | MultiRouteTrip
+    | Route
+    | Shape
+    | ShapePoint
+    | Stop
+    | StopTime
+    | Transfer
+    | Trip
+]

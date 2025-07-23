@@ -72,3 +72,5 @@ venv/
 /static/.eslintrc.json
 .directory
 */package-lock.json
+
+scratchfile.py

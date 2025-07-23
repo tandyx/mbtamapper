@@ -15,9 +15,31 @@ export interface LayerApiRealtimeOptions {
   textboxSize: string;
   isMobile: boolean;
   sidebar: LeafletSidebar;
-  routeType: string;
+  routeType: keyof RouteKeys;
   map: L.Map;
   interval?: number;
+  interactive?: boolean;
+}
+export interface RouteKeys {
+  subway: RouteKey;
+  rapid_transit: RouteKey;
+  commuter_rail: RouteKey;
+  bus: RouteKey;
+  ferry: RouteKey;
+  all_routes: RouteKey;
+}
+
+export interface RouteKey {
+  _key: string;
+  title: string;
+  description: string;
+  icon: string;
+  image: string;
+  fa_unicode: string;
+  display_name: string;
+  color: string;
+  route_types: string[];
+  sort_order: number;
 }
 
 export interface RealtimeLayerOnClickOptions<T extends LayerProperty> {
@@ -72,6 +94,7 @@ export interface FetchCacheOptions<T extends "text" | "json"> {
 }
 
 export interface LayerProperty {
+  timestamp?: number;
   [key = string]: any;
 }
 
@@ -92,7 +115,6 @@ export interface StopProperty extends LayerProperty {
   stop_lon?: number;
   stop_name: string;
   stop_url: string;
-  timestamp: number;
   vehicle_type?: string;
   wheelchair_boarding: string;
   zone_id?: ZoneID;
@@ -135,7 +157,6 @@ export enum ZoneID {
 
 export interface ShapeProperty extends LayerProperty {
   shape_id: string;
-  timestamp: number;
   route_short_name?: string;
   route_fare_class: string;
   route_long_name: string;
@@ -177,7 +198,6 @@ export interface Facility extends LayerProperty {
   facility_type: "bike-storage";
   secured?: string;
   stop_id: string;
-  timestamp: number;
   wheelchair_facility: number;
   attended?: string;
   "capacity-accessible"?: string;
@@ -210,7 +230,7 @@ export interface VehicleProperty extends LayerProperty {
   label: string;
   latitude: number;
   longitude: number;
-  next_stop?: NextStop;
+  next_stop?: PredictionProperty;
   occupancy_percentage: null;
   occupancy_status: null;
   route: RouteProperty;
@@ -220,7 +240,6 @@ export interface VehicleProperty extends LayerProperty {
   speed_mph: number | null;
   stop_id: null | string;
   stop_time?: StopTimeProperty;
-  timestamp: number;
   trip_id: string;
   trip_properties: any[];
   trip_short_name: string;
@@ -237,24 +256,6 @@ export enum Name {
   MattapanTrolley = "Mattapan Trolley",
   OrangeLine = "Orange Line",
   RedLine = "Red Line",
-}
-
-export interface NextStop {
-  arrival_time: number | null;
-  delay: number | null;
-  departure_time: number | null;
-  direction_id: number;
-  index: number;
-  platform_code?: string;
-  platform_name?: string;
-  prediction_id: string;
-  route_id: RouteID;
-  stop_id: string;
-  stop_name: string;
-  stop_sequence: number;
-  trip_id: string;
-  vehicle_id: string;
-  stop_time?: null;
 }
 
 export enum RouteID {
@@ -380,7 +381,6 @@ export interface PredictionProperty {
   stop_name: string;
   stop_sequence: number;
   stop_time: StopTimeProperty?;
-  timestamp: number;
   trip_id: string;
   vehicle_id: string;
 }
@@ -396,9 +396,8 @@ export interface AlertProperty {
   header: string;
   route_id: string;
   route_type: string;
-  severity: string;
+  severity: "WARNING" | "SEVERE" | "INFO";
   stop_id: null;
-  timestamp: number;
   trip_id: string;
   url: string;
 }

@@ -9,8 +9,7 @@ import typing as t
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
-from helper_functions import get_date, to_seconds
-
+from ..helper_functions import get_date, to_seconds
 from .base import Base
 
 if t.TYPE_CHECKING:

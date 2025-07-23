@@ -19,6 +19,7 @@ class ShapeLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
+    options.interval = options.interval || 45000;
     super(options);
   }
   /**
@@ -32,12 +33,13 @@ class ShapeLayer extends BaseRealtimeLayer {
     const onClickOpts = { _this, idField: "route_id" };
     const polyLineRender = L.canvas({ padding: 0.5, tolerance: 7 });
     const realtime = L.realtime(options.url, {
-      interval: 45000,
+      interval: options.interval,
       // interval: 15000,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
       removeMissing: true,
+      interactive: options.interactive,
       getFeatureId: (f) => f.id,
       onEachFeature(f, l) {
         l.setStyle({
@@ -268,7 +270,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                 >
                   <td>
                     <a
-                      onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                      onclick="LayerFinder.fromGlobals().clickVehicle('${pred.vehicle_id}')"
                       >${trip?.trip_short_name || pred.trip_id}</a
                     >
                   </td>
@@ -283,7 +285,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                       >${BaseRealtimeLayer.icons.prediction}</span
                     >
                     <a
-                      onclick="new LayerFinder(_map).clickStop('${pred.stop_id}')"
+                      onclick="LayerFinder.fromGlobals().clickStop('${pred.stop_id}')"
                       >${pred.stop_name}</a
                     >
                     @ ${formatTimestamp(dom, "%I:%M %P")}

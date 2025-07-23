@@ -1,12 +1,7 @@
 """Feed Object for GTFS Loader"""
 
-# pylint: disable=unused-wildcard-import
-# pylint: disable=wildcard-import
-# pylint: disable=unused-argument
-# pylint: disable=too-many-instance-attributes
-# pylint: disable=line-too-long
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-branches
+# pylint: disable=unused-wildcard-import, wildcard-import, unused-argument, too-many-instance-attributes, line-too-long, too-many-locals, too-many-branches
+
 import io
 import logging
 import os
@@ -29,9 +24,8 @@ import timeout_function_decorator
 from sqlalchemy import event, exc
 from sqlalchemy import orm as saorm
 
-from gtfs_orms import *
-from helper_functions import removes_session, timeit
-
+from ..gtfs_orms import *
+from ..helper_functions import removes_session, timeit
 from .query import Query
 
 
@@ -236,23 +230,34 @@ class Feed:
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: t.Type[Alert | Vehicle | Prediction] | str) -> None:
+    def import_realtime(self, orm: RealtimeOrms | str, use_cache: bool = True) -> None:
         """Imports realtime data into the database.
 
         Args:
-            - `orm (Type[Alert | Vehicle | Prediction] | str)`: realtime ORM.
+            - `orm (RealtimeOrms | str)`: realtime ORM.
         """
-        session = self._get_session(readonly=True)
+
         if isinstance(orm, str):
             orm = __class__.find_orm(orm)
         if orm not in __class__.REALTIME_ORMS:
             raise ValueError(f"{orm} is not a realtime ORM")
-        dataset: list[LinkedDataset] = session.execute(
-            Query.get_dataset_query(orm.__realtime_name__)
-        ).one_or_none()
+
+        dataset: LinkedDataset
+        if use_cache and (_tmp := LinkedDataset.cache.get(orm.__realtime_name__)):
+            dataset = LinkedDataset.from_dict(_tmp)
+            logging.info("Using cached LinkedDataset for %s", orm.__realtime_name__)
+        else:
+            session = self._get_session(readonly=True)
+            dataset = session.execute(
+                Query.get_dataset_query(orm.__realtime_name__)
+            ).one_or_none()[0]
+
+        if use_cache:
+            dataset.cache_key(key=orm.__realtime_name__)
+
         if not dataset:
             return
-        self.to_sql(dataset[0].as_dataframe(), orm, purge=True)
+        self.to_sql(dataset.as_dataframe(), orm, purge=True)
 
     @timeit
     @removes_session
@@ -289,14 +294,21 @@ class Feed:
                 os.mkdir(path)
         file: io.TextIOWrapper
         with open(os.path.join(file_subpath, self.SHAPES_FILE), **def_kwargs) as file:
-            gj.dump(self.get_shape_features(key, query_obj, "agency"), file)
+            gj.dump(
+                self.get_shape_features(key, query_obj, "agency", "timestamp"), file
+            )
             logging.info("Exported %s", file.name)
+
         with open(os.path.join(file_subpath, self.PARKING_FILE), **def_kwargs) as file:
-            gj.dump(self.get_parking_features(key, query_obj), file)
+            gj.dump(self.get_parking_features(key, query_obj, "timestamp"), file)
             logging.info("Exported %s", file.name)
+
         with open(os.path.join(file_subpath, self.STOPS_FILE), **def_kwargs) as file:
             gj.dump(
-                self.get_stop_features(key, query_obj, "child_stops", "routes"), file
+                self.get_stop_features(
+                    key, query_obj, "child_stops", "routes", "timestamp"
+                ),
+                file,
             )
             logging.info("Exported %s", file.name)
 

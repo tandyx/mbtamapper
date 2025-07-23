@@ -3,7 +3,9 @@
 # pylint: disable=line-too-long
 import typing as t
 
+from geographiclib.geodesic import Geodesic
 from geojson import Feature
+from shapely import STRtree
 from shapely.geometry import Point
 from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 
@@ -91,7 +93,7 @@ class Vehicle(Base):
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
-        self.bearing = self.bearing or 0
+        self.bearing = self.bearing or self.interpolated_bearing or 0
         self.current_stop_sequence = self.current_stop_sequence or 0
         self.trip_short_name = self._trip_short_name()
 
@@ -180,6 +182,48 @@ class Vehicle(Base):
                         for a in object_attr:
                             if isinstance(a, Alert):
                                 yield a
+
+    @property
+    def interpolated_bearing(self) -> float:
+        """interpolates bearing based upon direction, etc wrapper for _get_interpolated bearing"""
+        try:
+            return self._get_interpolated_bearing()
+        except Exception:  # pylint: disable=broad-except
+            return self.bearing or 0
+
+    def _get_interpolated_bearing(self) -> float:
+        """returns the interpolated bearing"""
+        boston_pos = Point(-71.0552, 42.3519)
+        shape_line_coords: list[Point] = [
+            Point(pt) for pt in self.trip.shape.as_linestring(use_cache=True).coords
+        ]
+        veh_point: Point = self.as_point()
+        nearest_i = STRtree(shape_line_coords).nearest(veh_point)
+        nearest = shape_line_coords[nearest_i]
+
+        next_pt: Point
+        if nearest_i == len(shape_line_coords) - 1:
+            next_pt = shape_line_coords[nearest_i - 1]
+        elif nearest_i == 0:
+            next_pt = shape_line_coords[1]
+        # if prev point is further from boston than next
+        elif shape_line_coords[nearest_i - 1].distance(boston_pos) > shape_line_coords[
+            nearest_i + 1
+        ].distance(boston_pos):
+            next_pt = (  # outbound, need to find furthest dist from boston
+                shape_line_coords[nearest_i - 1]
+                if self.direction_id == 0
+                else shape_line_coords[nearest_i + 1]
+            )
+        else:
+            next_pt = (
+                shape_line_coords[nearest_i + 1]
+                if self.direction_id == 0
+                else shape_line_coords[nearest_i - 1]
+            )
+        return Geodesic.WGS84.Inverse(nearest.y, nearest.x, next_pt.y, next_pt.x)[
+            "azi1"
+        ]
 
     def _speed_mph(self) -> float | None:
         """Returns speed.

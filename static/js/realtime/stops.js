@@ -20,6 +20,7 @@ class StopLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
+    options.interval = options.interval || 45000;
     super(options);
   }
   /**
@@ -32,11 +33,12 @@ class StopLayer extends BaseRealtimeLayer {
     /** @type {BaseRealtimeOnClickOptions<StopProperty>} */
     const onClickOpts = { _this, idField: "stop_id" };
     const realtime = L.realtime(options.url, {
-      interval: 45000,
+      interval: options.interval,
       type: "FeatureCollection",
       container: options.layer,
       cache: true,
       removeMissing: true,
+      interactive: options.interactive,
       getFeatureId: (f) => f.id,
       onEachFeature(fea, lay) {
         // lay.setStyle({
@@ -239,6 +241,7 @@ class StopLayer extends BaseRealtimeLayer {
 
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
+      ${this.#getWheelchairHTML(properties)}
       <div>
         ${properties.routes
           .map((route) => {
@@ -265,7 +268,10 @@ class StopLayer extends BaseRealtimeLayer {
             return /* HTML */ `<div class="my-5">
               <table class="data-table">
                 <thead>
-                  ${super.tableHeaderHTML(route, { colspan: 3 })}
+                  ${super.tableHeaderHTML(route, {
+                    colspan: 3,
+                    onclick: Boolean(_predictions.length || _stoptimes.length),
+                  })}
                   ${((_predictions.length || _stoptimes.length) &&
                     `<tr>
                     <th>Trip</th>
@@ -291,11 +297,15 @@ class StopLayer extends BaseRealtimeLayer {
                             class="${stAttrs.cssClass} ${stAttrs.tooltip &&
                             "tooltip"}"
                             data-tooltip="${stAttrs.tooltip}"
-                            onclick="new LayerFinder(_map).clickVehicle('${pred.vehicle_id}')"
+                            onclick="LayerFinder.fromGlobals().clickVehicle('${pred.vehicle_id}')"
                             >${st?.trip?.trip_short_name || pred.trip_id}
                           </a>
                           ${BaseRealtimeLayer.trackIconHTML(
-                            { stop_id: pred.stop_id },
+                            {
+                              stop_id: pred.stop_id,
+                              direction_id: pred.direction_id,
+                              route_type: route.route_type,
+                            },
                             { starOnly: true }
                           )}
                         </td>
@@ -336,7 +346,11 @@ class StopLayer extends BaseRealtimeLayer {
                             >${st.trip?.trip_short_name || st.trip_id}
                           </span>
                           ${BaseRealtimeLayer.trackIconHTML(
-                            { stop_id: st.stop_id },
+                            {
+                              stop_id: st.stop_id,
+                              direction_id: st.trip?.direction_id,
+                              route_type: route.route_type,
+                            },
                             { starOnly: true }
                           )}
                         </td>

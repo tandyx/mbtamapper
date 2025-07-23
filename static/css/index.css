@@ -19,7 +19,14 @@
   --mobile-threshold: 768px;
   --blur-radius: 25px;
   --slight-delay: #d19900;
+  --moderate-delay: var(--subway-color);
+  --severe-delay: var(--rapid-transit-color);
 
+  --vehicle-on-time: var(--text-color);
+  --vehicle-slight-delay: var(--text-color);
+  --vehicle-moderate-delay: #ffb64f;
+  --vehicle-severe-delay: #ff877e;
+  /* "severe-delay" | "moderate-delay" | "slight-delay" | "on-time" */
   --more-info-display: initial;
 }
 
@@ -27,7 +34,7 @@
   --text-color: var(--light-text-color);
   --background-color: rgb(13, 13, 13);
   --background-color-blur: rgba(13, 13, 13, 0.8);
-  --box-shadow: 0 1px 8px rgba(255, 255, 255, 0.2);
+  --box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
 }
 [data-mode="light"] {
   --text-color: var(--dark-text-color);
@@ -457,6 +464,18 @@ noscript {
   text-align: left;
   border-radius: var(--border-radius);
 
+  .table-header-route {
+    text-align: center;
+    border-bottom: none;
+    overflow: hidden;
+    border-radius: calc(var(--border-radius) -1px)
+      calc(var(--border-radius) -1px) 0px 0px !important;
+  }
+
+  .table-header-route[data-onclick="true"] {
+    cursor: pointer;
+  }
+
   a {
     cursor: pointer;
   }
@@ -469,9 +488,13 @@ noscript {
     padding: 10px;
     /* border-radius: var(--border-radius); */
   }
+  thead {
+    border-radius: var(--border-radius);
+    border-bottom: none;
+  }
 
   th {
-    border-bottom: var(--border);
+    /* border-bottom: var(--border); */
     background-color: var(--table-header);
   }
 
@@ -494,6 +517,9 @@ noscript {
     }
     tr[data-direction-1] {
       background-color: var(--table-odd-row);
+    }
+    tr:last-child {
+      border-radius: 0px 0px var(--border-radius) var(--border-radius) !important;
     }
   }
 }
@@ -573,7 +599,7 @@ table.sortable th:hover {
   padding: 10px;
   margin-bottom: 10px;
   margin-top: 5px;
-  border: 2px solid var(--slight-delay);
+
   display: flex;
   align-items: center; /* Vertical centering */
   justify-content: center;
@@ -585,6 +611,124 @@ table.sortable th:hover {
   }
   .alert-header {
     flex: 3;
+  }
+}
+
+.titlepage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-color);
+  .link-wrapper {
+    margin-top: 10px;
+    font-size: 1.5em !important;
+    /* margin-left: 25%;
+    margin-right: 25%; */
+    /* * {
+      margin-right: 6px;
+    } */
+    a:hover,
+    a:visited:hover {
+      text-decoration: none;
+      color: var(--accent-color) !important;
+      cursor: pointer;
+    }
+    a {
+      color: var(--text-color) !important;
+      text-decoration: none;
+    }
+  }
+
+  @media (max-width: 786px) {
+    .mobile-hidden {
+      display: block;
+    }
+  }
+
+  .inline-img {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-bottom: -2px;
+  }
+
+  h1 {
+    margin: -10px 0px;
+    font-size: 32pt;
+  }
+
+  h4 {
+    font-size: 13pt;
+  }
+
+  table {
+    font-size: 11pt;
+    width: 80%;
+    border-spacing: 0;
+    text-align: left;
+    border: 1px solid;
+    border-radius: var(--border-radius);
+
+    /* tbody {
+      border-radius: var(--border-radius);
+    } */
+    td {
+      border-bottom: 1px solid;
+    }
+
+    a {
+      text-decoration: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      padding: 10px;
+      color: var(--text-color);
+    }
+    a:hover {
+      text-decoration: none !important;
+    }
+  }
+  .subway:hover {
+    background-color: var(--subway-color);
+  }
+
+  .rapid_transit:hover {
+    background-color: var(--rapid-transit-color);
+  }
+
+  .commuter_rail:hover {
+    background-color: var(--commuter-rail-color);
+  }
+
+  .bus:hover {
+    background-color: var(--bus-color);
+  }
+
+  .ferry:hover {
+    background-color: var(--ferry-color);
+  }
+  .footer {
+    /* width: 80%; */
+
+    margin: 20px 0px 0px 0px;
+    text-align: center;
+    .footer-text {
+      font-size: 8pt;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .titlepage {
+      /* top: -50%; */
+
+      .mainContainer {
+        transform: translate(0%, -10%);
+        width: 90%;
+        margin: 0;
+        padding: 0;
+      }
+    }
   }
 }
 
@@ -614,16 +758,4 @@ table.sortable th:hover {
   -moz-user-select: none; /* Old versions of Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none;
-}
-#titleCard::after {
-  content: "mbtamapper";
-}
-@media (max-width: 786px) {
-  .mobile-hidden {
-    display: block;
-  }
-
-  #titleCard::after {
-    content: "mbta mapper";
-  }
 }
