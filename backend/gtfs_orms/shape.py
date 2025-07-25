@@ -35,7 +35,7 @@ class Shape(Base):
         order_by="ShapePoint.shape_pt_sequence",
     )
 
-    linestr_cache: dict[str, LineString] = {}
+    cache: dict[str, LineString] = {}
 
     def as_linestring(self, use_cache=False) -> LineString:
         """Return a shapely `LineString` object of the shape
@@ -53,9 +53,9 @@ class Shape(Base):
         if not use_cache:
             return _gen_ls()
 
-        if self.shape_id in self.__class__.linestr_cache:
-            return self.__class__.linestr_cache[self.shape_id]
-        self.__class__.linestr_cache[self.shape_id] = (linestr := _gen_ls())
+        if self.shape_id in self.__class__.cache:
+            return self.__class__.cache[self.shape_id]
+        self.__class__.cache[self.shape_id] = (linestr := _gen_ls())
         return linestr
 
     def as_feature(self, *include: str) -> Feature:
