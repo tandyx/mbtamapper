@@ -193,7 +193,7 @@ class StopLayer extends BaseRealtimeLayer {
       BaseRealtimeLayer.sideBarOtherId
     );
     const sidebar = document.getElementById("sidebar");
-    const timestamp = Math.round(new Date().valueOf() / 10000);
+    const timestamp = Math.round(new Date().valueOf() / 1000);
     if (!container || !sidebar) return;
     super.moreInfoButton(properties.stop_id, { loading: true });
     /**@type {PredictionProperty[]}*/
@@ -204,11 +204,12 @@ class StopLayer extends BaseRealtimeLayer {
 
     /** @type {StopProperty[]} */
     const stop = await fetchCache(
-      `/api/stop?stop_id=${properties.stop_id}&_=${timestamp}&include=alerts,predictions`,
+      `/api/stop?stop_id=${properties.stop_id}&_=${Math.round(
+        timestamp / 10
+      )}&include=alerts,predictions`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
-    // &departure_timestamp>${timestamp * 10 - 60}
     const childStops = Boolean(properties.child_stops.length)
       ? properties.child_stops
       : [properties];
@@ -219,12 +220,18 @@ class StopLayer extends BaseRealtimeLayer {
         childStops
           .filter(
             (cs) =>
-              cs.location_type == 0 && ["2", "4"].includes(cs.vehicle_type)
+              (cs.location_type == 0 && ["2", "4"].includes(cs.vehicle_type)) ||
+              cs.stop_name.toLowerCase().includes("shuttle")
           )
           .map(
             async (cs) =>
               await fetchCache(
-                `/api/stoptime?stop_id=${cs.stop_id}&active=True&_=${timestamp}&include=trip`,
+                `/api/stoptime?stop_id=${
+                  cs.stop_id
+                }&operates_today=True&_=${formatTimestamp(
+                  timestamp,
+                  "%Y%m%d"
+                )}&include=trip`,
                 { cache: "force-cache" },
                 super.defaultFetchCacheOpt
               )
@@ -257,7 +264,8 @@ class StopLayer extends BaseRealtimeLayer {
               .filter(
                 (st) =>
                   st.trip?.route_id === route.route_id &&
-                  !_predictions.map((p) => p.trip_id).includes(st.trip_id)
+                  !_predictions.map((p) => p.trip_id).includes(st.trip_id) &&
+                  (st.arrival_timestamp || st.departure_timestamp) > timestamp
               )
               .sort(
                 (a, b) =>
@@ -300,19 +308,16 @@ class StopLayer extends BaseRealtimeLayer {
                             onclick="LayerFinder.fromGlobals().clickVehicle('${pred.vehicle_id}')"
                             >${st?.trip?.trip_short_name || pred.trip_id}
                           </a>
-                          ${BaseRealtimeLayer.trackIconHTML(
-                            {
-                              stop_id: pred.stop_id,
-                              direction_id: pred.direction_id,
-                              route_type: route.route_type,
-                            },
-                            { starOnly: true }
-                          )}
+                          ${BaseRealtimeLayer.trackIconHTML({
+                            stop_id: pred.stop_id,
+                            direction_id: pred.direction_id,
+                            route_type: route.route_type,
+                          })}
                         </td>
                         <td>
                           <span
                             class="tooltip fa"
-                            data-tooltip="${minuteify(dom - timestamp * 10, [
+                            data-tooltip="${minuteify(dom - timestamp, [
                               "seconds",
                             ]) || "0 min"} away"
                             >${BaseRealtimeLayer.icons.prediction}</span
@@ -325,7 +330,11 @@ class StopLayer extends BaseRealtimeLayer {
                             >${getDelayText(pred.delay)}</i
                           >
                         </td>
-                        <td>${st?.stop_headsign || pred.headsign}</td>
+                        <td>
+                          ${st?.destination_label ||
+                          st?.stop_headsign ||
+                          pred.headsign}
+                        </td>
                       </tr>`;
                     })
                     .join("")}
@@ -345,27 +354,28 @@ class StopLayer extends BaseRealtimeLayer {
                             data-tooltip="${stAttrs.tooltip}"
                             >${st.trip?.trip_short_name || st.trip_id}
                           </span>
-                          ${BaseRealtimeLayer.trackIconHTML(
-                            {
-                              stop_id: st.stop_id,
-                              direction_id: st.trip?.direction_id,
-                              route_type: route.route_type,
-                            },
-                            { starOnly: true }
-                          )}
+                          ${BaseRealtimeLayer.trackIconHTML({
+                            stop_id: st.stop_id,
+                            direction_id: st.trip?.direction_id,
+                            route_type: route.route_type,
+                          })}
                         </td>
                         <td>
                           <span
                             class="tooltip fa"
                             data-tooltip="Scheduled in ${minuteify(
-                              dom - timestamp * 10,
+                              dom - timestamp,
                               ["seconds"]
                             )}"
                             >${BaseRealtimeLayer.icons.clock}</span
                           >
                           ${formatTimestamp(dom, "%I:%M %P")}
                         </td>
-                        <td>${st.stop_headsign || st.trip?.trip_headsign}</td>
+                        <td>
+                          ${st.destination_label ||
+                          st.stop_headsign ||
+                          st.trip?.trip_headsign}
+                        </td>
                       </tr>`;
                     })
                     .join("")}

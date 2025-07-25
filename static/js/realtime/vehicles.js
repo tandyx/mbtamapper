@@ -58,12 +58,14 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   #getIcon(properties) {
     const delayClassName = getDelayClassName(properties?.next_stop?.delay || 0);
-    const delayStyle = ["on-time", "slight-delay"].includes(delayClassName)
-      ? ""
-      : `text-decoration: underline 2px var(--vehicle-${delayClassName});
+    const delayStyle =
+      (properties?.next_stop?.delay || 0) < 5 * 60
+        ? ""
+        : `text-decoration: underline 2px var(--vehicle-${delayClassName});
         -webkit-text-decoration-line: underline;
         -webkit-text-decoration-color: var(--vehicle-${delayClassName});
         -webkit-text-decoration-thickness: 2px;
+        -text-decoration-thickness: 2px;
       `;
 
     const iconHtml = /* HTML */ `
