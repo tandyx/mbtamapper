@@ -15,6 +15,9 @@
  * encapsulates stops
  */
 class StopLayer extends BaseRealtimeLayer {
+  /**@type {((event: L.LeafletMouseEvent) => void)[] } */
+  static onClickArry = [];
+
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -40,19 +43,23 @@ class StopLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
-      onEachFeature(fea, lay) {
+      onEachFeature(fea, l) {
         // lay.setStyle({
         //   renderer: L.canvas({ padding: 0.5, tolerance: 10 }),
         // });
-        lay.id = fea.id;
-        lay.bindPopup(_this.#getPopupHTML(fea.properties), options.textboxSize);
-        lay.feature.properties.searchName = fea.properties.stop_name;
-        if (!options.isMobile) lay.bindTooltip(fea.properties.stop_name);
-        lay.setIcon(_this.#getIcon());
-        lay.setZIndexOffset(-100);
-        lay.on("click", (_e) =>
-          _this.#_onclick(_e, { ...onClickOpts, properties: fea.properties })
-        );
+        l.id = fea.id;
+        l.bindPopup(_this.#getPopupHTML(fea.properties), options.textboxSize);
+        l.feature.properties.searchName = fea.properties.stop_name;
+        if (!options.isMobile) l.bindTooltip(fea.properties.stop_name);
+        l.setIcon(_this.#getIcon());
+        l.setZIndexOffset(-100);
+        /** @type {(event: L.LeafletMouseEvent) => void } */
+        const onClick = (_e) => {
+          _this.#_onclick(_e, { ...onClickOpts, properties: fea.properties });
+        };
+        StopLayer.onClickArry.forEach((fn) => l.off("click", fn));
+        StopLayer.onClickArry.push(onClick);
+        l.on("click", onClick);
       },
     });
     realtime.on("update", (_e) => {
@@ -81,6 +88,8 @@ class StopLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
+          StopLayer.onClickArry.forEach((fn) => layer.off("click", fn));
+          StopLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
         }.bind(this)
       );
