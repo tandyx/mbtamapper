@@ -52,6 +52,9 @@ class BaseRealtimeLayer {
     { stop_id: "WML-0025-05", direction_id: 1 },
   ];
 
+  /**@type {((...args) => void)[]} */
+  static onClickArry = [];
+
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
   static icons = _icons;

@@ -14,6 +14,9 @@
  * represents the shape layer
  */
 class ShapeLayer extends BaseRealtimeLayer {
+  /**@type {((event: L.LeafletMouseEvent) => void)[] } */
+  static onClickArry = [];
+
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -51,9 +54,13 @@ class ShapeLayer extends BaseRealtimeLayer {
         l.feature.properties.searchName = f.properties.route_name;
         l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.properties.route_name);
-        l.on("click", (_e) =>
-          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties })
-        );
+
+        const onClick = (_e) => {
+          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties });
+        };
+        ShapeLayer.onClickArry.forEach((fn) => l.off("click", fn));
+        ShapeLayer.onClickArry.push(onClick);
+        l.on("click", onClick);
       },
     });
     realtime.on("update", (_e) => {
@@ -76,6 +83,8 @@ class ShapeLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
+          ShapeLayer.onClickArry.forEach((fn) => layer.off("click", fn));
+          ShapeLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
         }.bind(this)
       );
