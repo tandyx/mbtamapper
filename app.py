@@ -16,7 +16,6 @@ import os
 import sys
 import threading
 
-
 import flask
 from flask_humanify import Humanify
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
