@@ -17,7 +17,6 @@ import sys
 import threading
 
 import flask
-from flask_humanify import Humanify
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -191,9 +190,6 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             - `str`: 404.html.
         """
         return _error404(_app, error)
-
-    humanify = Humanify(_app, challenge_type="one_click")
-    humanify.register_middleware(action="challenge")
 
     if proxies:
         _app.wsgi_app = ProxyFix(
