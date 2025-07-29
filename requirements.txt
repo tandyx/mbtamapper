@@ -1,7 +1,5 @@
 asteval
-audioop-lts
 flask
-flask-humanify
 geographiclib
 geojson
 gtfs-realtime-bindings
