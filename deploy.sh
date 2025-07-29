@@ -10,7 +10,6 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 DOMAIN="mbtamapper.com"
-SITES_CONF="/etc/nginx/sites-available/mbtamapper"
 
 git pull
 
@@ -23,22 +22,21 @@ netfilter-persistent save
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade -r requirements.txt
+cd static && npm install && cd ..
 
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # sudo letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
-cat .env.nginx.conf > $SITES_CONF
-sudo ln -s $SITES_CONF /etc/nginx/sites-enabled
-
-cd static && npm install && cd ..
-
+SITES_CONF="/etc/nginx/sites-available/mbtamapper"
+sudo cp .env.nginx.conf $SITES_CONF
+sudo ln -s $SITES_CONF /etc/nginx/sites-enabled -f
 sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 
 # restart processes
 sudo pkill .venv -f
-sudo fuser -k 80/tcp
-sudo fuser -k 443/tcp
+# sudo fuser -k 80/tcp
+# sudo fuser -k 443/tcp
 sudo systemctl restart nginx
 
 echo "starting mbtamapper!"
