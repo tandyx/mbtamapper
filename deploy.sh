@@ -37,8 +37,8 @@ ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 SITES_CONF="/etc/nginx/sites-available/mbtamapper"
 sudo cp .env.nginx.conf $SITES_CONF
 sudo ln -s $SITES_CONF /etc/nginx/sites-enabled -f
-Restart-Nginx
-sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
+# Restart-Nginx
+# sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 
 # restart processes
 sudo pkill .venv -f
