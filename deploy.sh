@@ -12,7 +12,7 @@ fi
 git pull
 
 apt-get update && apt-get upgrade -y
-apt-get install git tmux python3-venv letsencrypt tzdata npm nginx psmisc python3-certbot-nginx python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools -y
+apt-get install git tmux python3-venv tzdata npm python3-pip python3-dev build-essential -y
 
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 netfilter-persistent save
