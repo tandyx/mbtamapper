@@ -10,13 +10,12 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 DOMAIN="mbtamapper.com"
+SITES_CONF="/etc/nginx/sites-available/mbtamapper"
 
 git pull
 
-sudo apt install software-properties-common
-sudo add-apt-repository ppa:certbot/certbot
 apt-get update && apt-get upgrade -y
-apt-get git tmux python3-venv tzdata npm python3-certbot-nginx nginx psmisc letsencrypt python3-certbot-nginx -y
+apt-get install git tmux python3-venv letsencrypt tzdata npm nginx psmisc python3-certbot-nginx python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools -y
 
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 netfilter-persistent save
@@ -28,15 +27,18 @@ pip3 install --upgrade -r requirements.txt
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+# sudo letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
 sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
-letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
-cat .env.nginx.conf > /etc/nginx/sites-available/default
+cat .env.nginx.conf > $SITES_CONF
+sudo ln -s $SITES_CONF /etc/nginx/sites-enabled
 
 cd static && npm install && cd ..
 
+# restart processes
 sudo pkill .venv -f
-
-sudo fuser -k 80/tcp && sudo fuser -k 443/tcp && sudo systemctl restart nginx
+sudo fuser -k 80/tcp
+sudo fuser -k 443/tcp
+sudo systemctl restart nginx
 
 echo "starting mbtamapper!"
 
