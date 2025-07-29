@@ -9,7 +9,7 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
-$DOMAIN = mbtamapper.com
+DOMAIN="mbtamapper.com"
 
 git pull
 
