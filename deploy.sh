@@ -29,7 +29,7 @@ ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
-cat .env.nginx.conf > etc/nginx/sites-available/default
+cat .env.nginx.conf > /etc/nginx/sites-available/default
 
 cd static && npm install && cd ..
 
@@ -37,5 +37,5 @@ sudo pkill .venv -f
 
 echo "starting mbtamapper!"
 
-sudo .venv/bin/python3 -m waitress --listen=*:5000 --threads=50 --url-scheme=https --call app:create_main_app &
+sudo .venv/bin/python3 -m waitress --port=5000 --threads=50 --url-scheme=https --call app:create_main_app &
 wait
