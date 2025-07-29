@@ -44,5 +44,5 @@ sudo pkill .venv -f
 
 echo "starting mbtamapper!"
 
-sudo .venv/bin/python3 -m waitress --host:127.0.0.1 --listen=*:5000 --threads=50 --call app:create_main_app &
+sudo .venv/bin/python3 -m waitress --host:127.0.0.1 --port=5000 --threads=50 --call app:create_main_app &
 wait
