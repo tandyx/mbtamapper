@@ -16,7 +16,9 @@ import os
 import sys
 import threading
 
+
 import flask
+from flask_humanify import Humanify
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -63,6 +65,22 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
             break
     url_dict[_dict_field] = url_dict.get(_dict_field, "/")
     return flask.render_template("404.html", key_dict=KEY_DICT, **url_dict), 404
+
+
+def register_humanify(_app: flask.Flask, **kwargs) -> Humanify:
+    """registers humanify to the specified app
+
+    Args:
+        app (flask.Flask): pointer to the flask app.
+        kwargs: extra args to Humanify class
+
+    Returns:
+        Humanify: the registered object
+    """
+
+    humanify = Humanify(_app, challenge_type="one_click")
+    humanify.register_middleware(action="challenge", **kwargs)
+    return humanify
 
 
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
@@ -175,6 +193,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """
         return _error404(_app, error)
 
+    register_humanify(_app)
+
     if proxies:
         _app.wsgi_app = ProxyFix(
             _app.wsgi_app,
@@ -197,6 +217,8 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """
 
     _app = flask.Flask(__name__)
+
+    register_humanify(_app)
 
     with _app.app_context():  # background thread to run update
         thread = threading.Thread(
