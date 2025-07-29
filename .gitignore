@@ -74,3 +74,4 @@ venv/
 */package-lock.json
 
 scratchfile.py
+.env*

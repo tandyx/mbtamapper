@@ -9,10 +9,13 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
+$DOMAIN = 'mbtamapper.com'
+
 git pull
 
+sudo add-apt-repository ppa:certbot/certbot
 apt-get update && apt-get upgrade -y
-apt-get git tmux python3-venv tzdata npm -y
+apt-get git tmux python3-venv tzdata npm python3-certbot-nginx nginx -y
 
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 netfilter-persistent save
@@ -24,11 +27,15 @@ pip3 install --upgrade -r requirements.txt
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
+letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
+cat .env.nginx.conf > etc/nginx/sites-available/default
+
 cd static && npm install && cd ..
 
 sudo pkill .venv -f
 
-echo "\n starting mbtamapper!"
+echo "starting mbtamapper!"
 
-sudo .venv/bin/python3 -m waitress --listen=*:80 --threads=50 --call app:create_main_app &
+sudo .venv/bin/python3 -m waitress --listen=*:5000 --threads=50 --url-scheme=https --call app:create_main_app &
 wait
