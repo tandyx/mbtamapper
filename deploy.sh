@@ -16,7 +16,7 @@ git pull
 sudo apt install software-properties-common
 sudo add-apt-repository ppa:certbot/certbot
 apt-get update && apt-get upgrade -y
-apt-get git tmux python3-venv tzdata npm python3-certbot-nginx nginx psmisc -y
+apt-get git tmux python3-venv tzdata npm python3-certbot-nginx nginx psmisc letsencrypt python3-certbot-nginx -y
 
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 netfilter-persistent save
