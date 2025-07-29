@@ -35,8 +35,8 @@ sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 
 # restart processes
 sudo pkill .venv -f
-# sudo fuser -k 80/tcp
-# sudo fuser -k 443/tcp
+sudo fuser -k 80/tcp
+sudo fuser -k 443/tcp
 sudo systemctl restart nginx
 
 echo "starting mbtamapper!"
