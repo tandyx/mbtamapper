@@ -28,11 +28,12 @@ TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # sudo letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
-sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 cat .env.nginx.conf > $SITES_CONF
 sudo ln -s $SITES_CONF /etc/nginx/sites-enabled
 
 cd static && npm install && cd ..
+
+sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 
 # restart processes
 sudo pkill .venv -f
