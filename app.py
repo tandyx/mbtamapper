@@ -192,7 +192,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """
         return _error404(_app, error)
 
-    register_humanify(_app)
+    # register_humanify(_app)
 
     if proxies:
         _app.wsgi_app = ProxyFix(
@@ -217,7 +217,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
-    register_humanify(_app)
+    # register_humanify(_app)
 
     with _app.app_context():  # background thread to run update
         thread = threading.Thread(
