@@ -36,8 +36,9 @@ cd static && npm install && cd ..
 
 sudo pkill .venv -f
 
-sudo fuser -k 80/tcp && sudo fuser -k 443/tcp &&
-    echo "starting mbtamapper!"
+sudo fuser -k 80/tcp && sudo fuser -k 443/tcp && sudo systemctl restart nginx
+
+echo "starting mbtamapper!"
 
 sudo .venv/bin/python3 -m waitress --port=5000 --threads=50 --url-scheme=https --call app:create_main_app &
 wait
