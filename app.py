@@ -32,11 +32,11 @@ FEED_LOADER: FeedLoader = FeedLoader(
 )
 
 logging.basicConfig(
-    filename="main.log",
+    filename="mbtamapper.log",
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 
