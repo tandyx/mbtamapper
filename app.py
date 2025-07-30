@@ -91,12 +91,23 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         `Flask`: app for the key."""
     _app = flask.Flask(__name__)
 
+    @_app.before_request
+    def do_something_whenever_a_request_comes_in():
+        """Before request function to log the request."""
+        logging.info(
+            "Request: %s %s %s",
+            flask.request.method,
+            flask.request.url,
+            flask.request.headers.get("User-Agent", ""),
+        )
+
     @_app.route("/")
     def render_map() -> str:
         """Returns map.html.
 
         returns:
             - `str`: map.html"""
+
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/key")
@@ -221,6 +232,16 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
         )
         thread.start()
+
+    @_app.before_request
+    def do_something_whenever_a_request_comes_in():
+        """Before request function to log the request."""
+        logging.info(
+            "Request: %s %s %s",
+            flask.request.method,
+            flask.request.url,
+            flask.request.headers.get("User-Agent", ""),
+        )
 
     @_app.route("/")
     def index():
