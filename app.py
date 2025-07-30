@@ -92,10 +92,10 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     _app = flask.Flask(__name__)
 
     @_app.before_request
-    def do_something_whenever_a_request_comes_in():
+    def prerequest():
         """Before request function to log the request."""
         logging.info(
-            "Request: %s %s %s",
+            "%s REQUEST | URL: %s | 'AGENT': %s",
             flask.request.method,
             flask.request.url,
             flask.request.headers.get("User-Agent", ""),
@@ -234,10 +234,10 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         thread.start()
 
     @_app.before_request
-    def do_something_whenever_a_request_comes_in():
+    def prerequest():
         """Before request function to log the request."""
         logging.info(
-            "Request: %s %s %s",
+            "%s REQUEST | URL: %s | 'AGENT': %s",
             flask.request.method,
             flask.request.url,
             flask.request.headers.get("User-Agent", ""),
