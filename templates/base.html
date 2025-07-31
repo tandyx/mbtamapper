@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="upgrade-insecure-requests"
+    />
+    <meta
+      name="keywords"
+      content="johan cho, northeastern, mbtamapper, mbta mapper, mbta map, mbta map realtime, realtime, massachusetts, commuter rail"
+    />
+    <meta name="author" content="Johan Cho" />
+    <link rel="canonical" href="https://mbtamapper.com" />
+
+    <meta
+      name="description"
+      content="A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines. Perfect for commuters and railfans seeking up-to-date Massachusetts transit information."
+    />
+
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/all_routes.ico') }}"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='img/all_routes.ico') }}"
+      type="image/x-icon"
+    />
+    <title>{% block title %}mbtamapper{% endblock %}</title>
+
+    <meta property="og:url" content="https://mbtamapper.com" />
+    <meta
+      property="og:image"
+      content="{{ url_for('static', filename='img/mbta.png') }}"
+    />
+    <meta
+      property="og:description"
+      content="A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines."
+    />
+    <meta property="og:title" content="mbtamapper" />
+    <!-- <meta property="og:site_name" content="mbtamapper" /> -->
+    <meta property="og:see_also" content="https://mbtamapper.com" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
+    />
+
+    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+    <noscript>This page requires Javascript to be enabled.</noscript>
+    {% block scripts %}{% endblock %}
+    <script>
+      window.addEventListener("load", () => {
+        const toggle = document.getElementById("modeToggle");
+        if (!toggle) return;
+        /**
+         * updates toggle
+         * @param {Theme} theme
+         */
+        const updateToggle = (theme) => {
+          toggle.innerHTML = theme.unicodeIcon;
+          toggle.dataset.tooltip = `Change to ${
+            Theme.activeTheme == "dark" ? "Light" : "Dark"
+          }`;
+        };
+        updateToggle(Theme.fromExisting().set(sessionStorage, onThemeChange));
+        toggle.addEventListener("click", () => {
+          updateToggle(
+            Theme.fromExisting().reverse(sessionStorage, onThemeChange)
+          );
+        });
+      });
+    </script>
+  </body>
+</html>
