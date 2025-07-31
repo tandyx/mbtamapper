@@ -199,14 +199,38 @@ class LinkedDataset(Base):
         """
 
         dataframe = self._load_dataframe()
-
-        # dataframe = dataframe[
-        #     (
-        #         dataframe["vehicle_timestamp"].astype(int) > time.time() - 300
-        #         if "vehicle_timestamp" in dataframe.columns
-        #         else True
+        # if (cache_name := "_v_cache") in self.cache:
+        #     # calculate speed if missing
+        #     dataframe["vehicle_position_speed"] = dataframe.merge(
+        #         self.cache[cache_name],
+        #         how="left",
+        #         left_on="id",
+        #         right_on="vehicle_id",
+        #         suffixes=["new", "old"],
+        #     ).apply(
+        #         lambda x: (
+        #             x.vehicle_position_speed
+        #             if not pd.isna(x.vehicle_position_speed)
+        #             else (
+        #                 0
+        #                 if x.vehicle_current_status == "STOPPED_AT"
+        #                 else (
+        #                     Geodesic.WGS84.Inverse(
+        #                         x.vehicle_position_latitude,
+        #                         x.vehicle_position_longitude,
+        #                         x.latitude,
+        #                         x.longitude,
+        #                     )["s12"]
+        #                     / _tdiff
+        #                     if (_tdiff := int(x.vehicle_timestamp) - int(x.timestamp))
+        #                     > 2
+        #                     else None
+        #                 )
+        #             )
+        #         ),
+        #         axis=1,
         #     )
-        # ]
+        # self.cache[cache_name] = dataframe
         return self._post_process(dataframe, VEHICLE_RENAME_DICT)
 
     def _process_service_alerts(self) -> pd.DataFrame:

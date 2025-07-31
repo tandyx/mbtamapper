@@ -12,7 +12,7 @@ fi
 git pull
 
 apt-get update && apt-get upgrade -y
-apt-get git tmux python3-venv tzdata npm -y
+apt-get install git tmux python3-venv tzdata npm python3-pip python3-dev build-essential -y
 
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 netfilter-persistent save
@@ -20,15 +20,29 @@ netfilter-persistent save
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade -r requirements.txt
+cd static && npm install && cd ..
 
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-cd static && npm install && cd ..
+# sudo letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
+# function Restart-Nginx() {
+#     sudo fuser -k 80/tcp
+#     sudo fuser -k 443/tcp
+#     sudo systemctl restart nginx
+# }
 
+# DOMAIN="mbtamapper.com"
+# SITES_CONF="/etc/nginx/sites-available/mbtamapper"
+# sudo cp .env.nginx.conf $SITES_CONF
+# sudo ln -s $SITES_CONF /etc/nginx/sites-enabled -f
+# Restart-Nginx
+# sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
+
+# restart processes
 sudo pkill .venv -f
 
-echo "\n starting mbtamapper!"
+echo "starting mbtamapper!"
 
-sudo .venv/bin/python3 -m waitress --listen=*:80 --threads=50 --call app:create_main_app &
+sudo .venv/bin/python3 -m waitress --host=127.0.0.1 --port=5000 --threads=50 --call app:create_main_app &
 wait

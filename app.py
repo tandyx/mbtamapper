@@ -17,6 +17,7 @@ import sys
 import threading
 
 import flask
+import gitinfo
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -32,11 +33,11 @@ FEED_LOADER: FeedLoader = FeedLoader(
 )
 
 logging.basicConfig(
-    filename="main.log",
+    filename="mbtamapper.log",
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 
@@ -62,7 +63,28 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
             url_dict[_dict_field] = url_for
             break
     url_dict[_dict_field] = url_dict.get(_dict_field, "/")
-    return flask.render_template("404.html", key_dict=KEY_DICT, **url_dict), 404
+    return (
+        flask.render_template(
+            "404.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info(), **url_dict
+        ),
+        404,
+    )
+
+
+# def register_humanify(_app: flask.Flask, **kwargs) -> Humanify:
+#     """registers humanify to the specified app
+
+#     Args:
+#         app (flask.Flask): pointer to the flask app.
+#         kwargs: extra args to Humanify class
+
+#     Returns:
+#         Humanify: the registered object
+#     """
+
+#     humanify = Humanify(_app, challenge_type="one_click")
+#     humanify.register_middleware(action="challenge", **kwargs)
+#     return humanify
 
 
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
@@ -75,12 +97,23 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         `Flask`: app for the key."""
     _app = flask.Flask(__name__)
 
+    @_app.before_request
+    def prerequest():
+        """Before request function to log the request."""
+        logging.info(
+            "%s REQUEST | URL: %s | 'AGENT': %s",
+            flask.request.method,
+            flask.request.url,
+            flask.request.headers.get("User-Agent", ""),
+        )
+
     @_app.route("/")
     def render_map() -> str:
         """Returns map.html.
 
         returns:
             - `str`: map.html"""
+
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
     @_app.route("/key")
@@ -198,11 +231,23 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
+    # register_humanify(_app)
+
     with _app.app_context():  # background thread to run update
         thread = threading.Thread(
             target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
         )
         thread.start()
+
+    @_app.before_request
+    def prerequest():
+        """Before request function to log the request."""
+        logging.info(
+            "%s REQUEST | URL: %s | 'AGENT': %s",
+            flask.request.method,
+            flask.request.url,
+            flask.request.headers.get("User-Agent", ""),
+        )
 
     @_app.route("/")
     def index():
@@ -211,8 +256,11 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: index.html.
         """
+        print("git info:", gitinfo.get_git_info())
 
-        return flask.render_template("index.html", key_dict=KEY_DICT)
+        return flask.render_template(
+            "index.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info()
+        )
 
     @_app.route("/key_dict")
     def key_dict():

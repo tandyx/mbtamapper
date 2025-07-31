@@ -47,6 +47,14 @@ class BaseRealtimeLayer {
     "SB-0150", //cntnjc
   ];
 
+  static trackExceptions = [
+    { stop_id: "WML-0025-07", direction_id: 0 },
+    { stop_id: "WML-0025-05", direction_id: 1 },
+  ];
+
+  /**@type {((...args) => void)[]} */
+  static onClickArry = [];
+
   /** @name _icons */
   /** @type {Icons} typehint shennagins, ref to global var */
   static icons = _icons;
@@ -400,30 +408,33 @@ class BaseRealtimeLayer {
     let { stop_id, platform_code, direction_id, route_type } = properties;
     const { mode = "auto" } = options;
 
-    const star = this.starStations.find((s) =>
-      properties.stop_id.startsWith(s)
-    );
+    const star = this.starStations.find((s) => stop_id.startsWith(s));
 
     if (mode === "star" && !star) return "";
 
-    if (!properties.platform_code) {
-      const strSplit = properties.stop_id.split("-");
-      properties.platform_code = strSplit.length < 3 ? "" : strSplit.at(-1);
+    if (!platform_code) {
+      const strSplit = stop_id.split("-");
+      platform_code = strSplit.length < 3 ? "" : strSplit.at(-1);
     }
 
-    const pc_num = Number(properties.platform_code);
+    const pc_num = Number(platform_code);
+
+    if (!platform_code) return "";
 
     if (
       (mode === "auto" &&
         !star &&
-        properties.route_type === "2" &&
-        Number(properties.direction_id) + 1 === pc_num) ||
-      Number.isNaN(pc_num)
+        route_type === "2" &&
+        Number(direction_id) + 1 === pc_num) ||
+      Number.isNaN(pc_num) ||
+      this.trackExceptions.filter(
+        (a) => a.stop_id === stop_id && a.direction_id === direction_id
+      ).length
     ) {
       return "";
     }
 
-    // if (
+    // if ( trackExceptions
     //   mode === "auto" &&
     //   !star &&
     //   !Number.isNaN(pc_num) &&
@@ -435,12 +446,7 @@ class BaseRealtimeLayer {
     //   return "";
     // }
 
-    if (!properties.platform_code) return "";
-
-    return /* HTML */ `<span
-      class="fa tooltip"
-      data-tooltip="Track ${properties.platform_code}"
-    >
+    return /* HTML */ `<span class="fa tooltip" data-tooltip="Track ${pc_num}">
       ${this.icons.space} ${this.icons.track}</span
     >`;
   }

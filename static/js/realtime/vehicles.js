@@ -50,6 +50,8 @@ class VehicleLayer extends BaseRealtimeLayer {
     515: "hub to heart",
     520: "heart to hub",
   };
+  /**@type {((event: L.LeafletMouseEvent) => void)[]} */
+  static onClickArry = [];
 
   /**
    * string or html element of vehicle
@@ -58,12 +60,14 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   #getIcon(properties) {
     const delayClassName = getDelayClassName(properties?.next_stop?.delay || 0);
-    const delayStyle = ["on-time", "slight-delay"].includes(delayClassName)
-      ? ""
-      : `text-decoration: underline 2px var(--vehicle-${delayClassName});
+    const delayStyle =
+      (properties?.next_stop?.delay || 0) < 5 * 60
+        ? ""
+        : `text-decoration: underline 2px var(--vehicle-${delayClassName});
         -webkit-text-decoration-line: underline;
         -webkit-text-decoration-color: var(--vehicle-${delayClassName});
         -webkit-text-decoration-thickness: 2px;
+        text-decoration-thickness: 2px;
       `;
 
     const iconHtml = /* HTML */ `
@@ -119,9 +123,13 @@ class VehicleLayer extends BaseRealtimeLayer {
         if (!options.isMobile) l.bindTooltip(f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
-        l.on("click", (_e) => {
+        /** @type {(event: L.LeafletMouseEvent) => void} */
+        const onClick = (_e) => {
           _this.#_onclick(_e, { ...onClickOpts, properties: f.properties });
-        });
+        };
+        VehicleLayer.onClickArry.forEach((fn) => l.off("click", fn));
+        VehicleLayer.onClickArry.push(onClick);
+        l.on("click", onClick);
       },
     });
 
@@ -140,6 +148,7 @@ class VehicleLayer extends BaseRealtimeLayer {
           layer.id = feature.id;
           layer.feature.properties.searchName = `${properties.trip_short_name} @ ${properties.route?.route_name}`;
           layer.unbindPopup();
+          /** @type {(event: L.LeafletMouseEvent) => void } */
           const onClick = () =>
             _this.#_onclick(_e, { ...onClickOpts, properties: properties });
           if (wasOpen) layer.closePopup();
@@ -154,6 +163,8 @@ class VehicleLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
+          VehicleLayer.onClickArry.forEach((fn) => layer.off("click", fn));
+          VehicleLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
         }.bind(this)
       );
@@ -340,13 +351,17 @@ class VehicleLayer extends BaseRealtimeLayer {
     </div>`;
     /** @type {PredictionProperty[]} */
     const predictions = await fetchCache(
-      `/api/prediction?trip_id=${properties.trip_id}&include=stop_time&_=${timestamp}`,
+      `/api/prediction?trip_id=${
+        properties.trip_id
+      }&include=stop_time&_=${Math.floor(timestamp / 5)}`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
     /** @type {AlertProperty[]} */
     const alerts = await fetchCache(
-      `/api/alert?trip_id=${properties.trip_id}&_=${timestamp}`,
+      `/api/alert?trip_id=${properties.trip_id}&_=${Math.floor(
+        timestamp / 60
+      )}`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );

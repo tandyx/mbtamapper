@@ -14,6 +14,9 @@
  * represents the shape layer
  */
 class ShapeLayer extends BaseRealtimeLayer {
+  /**@type {((event: L.LeafletMouseEvent) => void)[] } */
+  static onClickArry = [];
+
   /**
    *
    * @param {LayerApiRealtimeOptions?} options
@@ -51,9 +54,13 @@ class ShapeLayer extends BaseRealtimeLayer {
         l.feature.properties.searchName = f.properties.route_name;
         l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
         if (!options.isMobile) l.bindTooltip(f.properties.route_name);
-        l.on("click", (_e) =>
-          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties })
-        );
+
+        const onClick = (_e) => {
+          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties });
+        };
+        ShapeLayer.onClickArry.forEach((fn) => l.off("click", fn));
+        ShapeLayer.onClickArry.push(onClick);
+        l.on("click", onClick);
       },
     });
     realtime.on("update", (_e) => {
@@ -76,6 +83,8 @@ class ShapeLayer extends BaseRealtimeLayer {
             layer.openPopup();
             setTimeout(onClick, 200);
           }
+          ShapeLayer.onClickArry.forEach((fn) => layer.off("click", fn));
+          ShapeLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
         }.bind(this)
       );
@@ -157,7 +166,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       BaseRealtimeLayer.sideBarOtherId
     );
     const sidebar = document.getElementById("sidebar");
-    const timestamp = Math.round(new Date().valueOf() / 10000);
+    const timestamp = Math.round(new Date().valueOf() / 1000);
     if (!container || !sidebar) return;
     super.moreInfoButton(properties.stop_id, { loading: true });
     /**@type {PredictionProperty[]}*/
@@ -172,9 +181,10 @@ class ShapeLayer extends BaseRealtimeLayer {
     /** @type {RouteProperty} */
     const route = (
       await fetchCache(
-        `/api/route?route_id=${
-          properties.route_id
-        }&_=${timestamp}&include=alerts,predictions${
+        `/api/route?route_id=${properties.route_id}&_=${formatTimestamp(
+          timestamp,
+          "%Y%m%d"
+        )}&include=alerts,predictions${
           (useSchedule && ",stop_times,trips") || ""
         }`,
         { cache: "force-cache" },
@@ -219,8 +229,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       })
       .filter(
         (st) =>
-          (st.arrival_timestamp || st.departure_timestamp) >
-          10 * timestamp - 300
+          (st.arrival_timestamp || st.departure_timestamp) > timestamp - 300
       );
 
     container.innerHTML = /* HTML */ `<div>
@@ -278,10 +287,9 @@ class ShapeLayer extends BaseRealtimeLayer {
                   <td>
                     <span
                       class="fa tooltip"
-                      data-tooltip="Next Stop in ${minuteify(
-                        dom - timestamp * 10,
-                        ["seconds"]
-                      ) || "now"}"
+                      data-tooltip="Next Stop in ${minuteify(dom - timestamp, [
+                        "seconds",
+                      ]) || "now"}"
                       >${BaseRealtimeLayer.icons.prediction}</span
                     >
                     <a
@@ -311,10 +319,9 @@ class ShapeLayer extends BaseRealtimeLayer {
                   <td>
                     <span
                       class="tooltip fa"
-                      data-tooltip="Schduled in ${minuteify(
-                        dom - timestamp * 10,
-                        ["seconds"]
-                      )}"
+                      data-tooltip="Schduled in ${minuteify(dom - timestamp, [
+                        "seconds",
+                      ])}"
                       >${BaseRealtimeLayer.icons.clock}</span
                     >
                     ${st.stop_name} @ ${formatTimestamp(dom, "%I:%M %P")}

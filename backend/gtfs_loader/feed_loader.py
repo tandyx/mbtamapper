@@ -93,7 +93,7 @@ class FeedLoader(Scheduler, Feed):
 
     def clear_caches(self) -> None:
         """clears orm-specific caches"""
-        Shape.linestr_cache.clear()
+        Shape.cache.clear()
         LinkedDataset.cache.clear()
         logging.warning("caches cleared")
 

@@ -131,18 +131,32 @@ class StopTime(Base):
         """Returns true if this StopTime is active on the given date and time
 
         args:
-            - `date (datetime = None)`: the date to check <- defaults to the current date
-            - `kwargs`: additional arguments passed to `get_date` \n
+            date (datetime = None): the date to check <- defaults to the current date
+            kwargs: additional arguments passed to `get_date` \n
         returns:
-            - `bool`: whether the stop is active on the given date and time
+            bool: whether the stop is active on the given date and time
         """
 
-        _date = _date or get_date(**kwargs)
-
         return (
-            self.trip.calendar.operates_on(_date)
-            and self.departure_timestamp > time.time()
+            self.operates_on(_date, **kwargs) and self.departure_timestamp > time.time()
         ) or bool(self.prediction)
+
+    def operates_on(self, _date: dt.datetime | None = None, **kwargs) -> bool:
+        """Returns true if this StopTime is active on the given date
+
+        args:
+            date (datetime = None): the date to check <- defaults to the current date
+            kwargs: additional arguments passed to `get_date` \n
+        returns:
+            bool: whether the stop is active on the given date and time
+        """
+
+        return self.trip.calendar.operates_on(_date or get_date(**kwargs))
+
+    @property
+    def operates_today(self) -> bool:
+        """wrapper for operates_on"""
+        return self.operates_on(get_date())
 
     @property
     def active(self) -> bool:

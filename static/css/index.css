@@ -22,10 +22,10 @@
   --moderate-delay: var(--subway-color);
   --severe-delay: var(--rapid-transit-color);
 
-  --vehicle-on-time: var(--text-color);
-  --vehicle-slight-delay: var(--text-color);
-  --vehicle-moderate-delay: #ffb64f;
-  --vehicle-severe-delay: #ff877e;
+  --vehicle-on-time: none;
+  --vehicle-slight-delay: #ffdb77;
+  --vehicle-moderate-delay: #ffbc5d;
+  --vehicle-severe-delay: #ff1100;
   /* "severe-delay" | "moderate-delay" | "slight-delay" | "on-time" */
   --more-info-display: initial;
 }
@@ -715,6 +715,12 @@ table.sortable th:hover {
     text-align: center;
     .footer-text {
       font-size: 8pt;
+    }
+    .footer-text-sm {
+      font-size: 6pt;
+    }
+    .text-left {
+      text-align: left !important;
     }
   }
 
