@@ -2,7 +2,7 @@
     "subway": {
         "_key": "subway",
         "title": "Subway | mbtamapper",
-        "description": "Realtime map of the mbta Subway system; red, orange, blue, and green lines.",
+        "description": "A real-time interactive map for tracking MBTA subway vehicles. View live locations, routes, and service alerts.",
         "icon": "static/img/subway.ico",
         "image": "static/img/subway.png",
         "fa_unicode": "&#xf239;",
@@ -17,7 +17,7 @@
     "rapid_transit": {
         "_key": "rapid_transit",
         "title": "Rapid Transit | mbtamapper",
-        "description": "Realtime map of the MBTA Subway, red, orange, blue, and green lines, plus the silver line and ferry.",
+        "description": "A real-time interactive map for tracking MBTA subway and silver line vehicles. View live locations, routes, and service alerts.",
         "icon": "static/img/rapid_transit.ico",
         "image": "static/img/rapid_transit.png",
         "fa_unicode": "&#xf239;",
@@ -33,7 +33,7 @@
     "commuter_rail": {
         "_key": "commuter_rail",
         "title": "Commuter Rail | mbtamapper",
-        "description": "Realtime map of the MBTA Commuter Rail system.",
+        "description": "A real-time interactive map for tracking MBTA commuter rail (Keolis) trains. View live locations, routes, and service alerts.",
         "icon": "static/img/commuter_rail.ico",
         "image": "static/img/commuter_rail.png",
         "fa_unicode": "&#xf238;",
@@ -47,7 +47,7 @@
     "bus": {
         "_key": "bus",
         "title": "Bus | mbtamapper",
-        "description": "Realtime map of the MBTA Bus system.",
+        "description": "A real-time interactive map for tracking MBTA busses. View live locations, routes, and service alerts.",
         "icon": "static/img/bus.ico",
         "image": "static/img/bus.png",
         "fa_unicode": "&#xf207;",
@@ -61,7 +61,7 @@
     "ferry": {
         "_key": "ferry",
         "title": "Ferry | mbtamapper",
-        "description": "Realtime map of the MBTA ferry system.",
+        "description": "A real-time interactive map for tracking MBTA ferries. View live locations, routes, and service alerts.",
         "icon": "static/img/ferry.ico",
         "image": "static/img/ferry.png",
         "fa_unicode": "&#xf21a;",
@@ -75,7 +75,7 @@
     "all_routes": {
         "_key": "all_routes",
         "title": "All Routes | mbtamapper",
-        "description": "Realtime map of the entire MBTA system.",
+        "description": "A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. View live locations, routes, and service alerts for all MBTA lines.",
         "icon": "static/img/all_routes.ico",
         "image": "static/img/mbta.png",
         "fa_unicode": "&#xf21a;",

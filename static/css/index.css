@@ -716,6 +716,12 @@ table.sortable th:hover {
     .footer-text {
       font-size: 8pt;
     }
+    .footer-text-sm {
+      font-size: 6pt;
+    }
+    .text-left {
+      text-align: left !important;
+    }
   }
 
   @media screen and (max-width: 768px) {

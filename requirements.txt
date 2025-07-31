@@ -7,6 +7,7 @@ json_api_doc
 numpy
 pandas
 protobuf
+python-git-info
 requests
 schedule
 shapely

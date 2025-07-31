@@ -17,6 +17,7 @@ import sys
 import threading
 
 import flask
+import gitinfo
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -62,7 +63,12 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
             url_dict[_dict_field] = url_for
             break
     url_dict[_dict_field] = url_dict.get(_dict_field, "/")
-    return flask.render_template("404.html", key_dict=KEY_DICT, **url_dict), 404
+    return (
+        flask.render_template(
+            "404.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info(), **url_dict
+        ),
+        404,
+    )
 
 
 # def register_humanify(_app: flask.Flask, **kwargs) -> Humanify:
@@ -250,8 +256,11 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: index.html.
         """
+        print("git info:", gitinfo.get_git_info())
 
-        return flask.render_template("index.html", key_dict=KEY_DICT)
+        return flask.render_template(
+            "index.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info()
+        )
 
     @_app.route("/key_dict")
     def key_dict():
