@@ -773,23 +773,17 @@ class LayerFinder {
       this.markerClusters.forEach((mc) => mc.disableClustering());
 
       this.map.setView(
-        options.latLng || layer.getLatLng(),
-        options.zoom || this.map.options.maxZoom
+        options.latLng ?? layer.getLatLng(),
+        options.zoom ?? this.map.options.maxZoom
       );
     }
 
     if (options.click) {
-      // layer.fire("click");
-      // layer.openPopup();
-
       layer.fire("click");
-
       this.markerClusters.forEach((mc) => mc.enableClustering());
-
-      // mClusters.forEach((mc) => mc?.spiderfy());
     }
     this.markerClusters.forEach((mc) => mc.enableClustering());
-
+    console.log(options.zoom ?? this.map.options.maxZoom);
     return layer;
   }
 
@@ -800,14 +794,12 @@ class LayerFinder {
    * @returns {L.Layer?} stop
    */
   clickStop(stopId, options = {}) {
-    return (
-      this.findLayer(
-        (e) =>
-          e?.feature?.properties?.child_stops
-            ?.map((c) => c.stop_id)
-            ?.includes(stopId) || e?.feature?.id === stopId
-      ),
-      { zoom: 15, ...options }
+    return this.findLayer(
+      (e) =>
+        e?.feature?.properties?.child_stops
+          ?.map((c) => c.stop_id)
+          ?.includes(stopId) || e?.feature?.id === stopId,
+      { zoom: 14, ...options }
     );
   }
 
@@ -834,7 +826,7 @@ class LayerFinder {
   clickVehicle(vehicleId, options = {}) {
     return this.findLayer(
       (e) => e?.feature?.properties?.vehicle_id === vehicleId,
-      { zoom: 15, ...options }
+      { zoom: 14, ...options }
     );
   }
 }

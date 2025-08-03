@@ -371,9 +371,8 @@ class VehicleLayer extends BaseRealtimeLayer {
       properties.next_stop?.delay === null
     ) {
       console.warn("no next stop found for vehicle", properties);
-      properties.next_stop = predictions?.[0]?.stop_time || {};
+      properties.next_stop = predictions?.[0] || {};
     }
-
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
     });
