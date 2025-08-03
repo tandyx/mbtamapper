@@ -105,9 +105,42 @@ class StopLayer extends BaseRealtimeLayer {
    * @param {StopProperty} properties
    */
   #getHeaderHTML(properties) {
-    const primeRoute = properties.routes
-      .sort((a, b) => a.route_type - b.route_type)
-      ?.at(0);
+    const routeColors = [
+      ...new Set(
+        properties?.routes
+          ?.sort((a, b) => a.route_type - b.route_type)
+          ?.map((r) => `#${r.route_color}`) || []
+      ),
+    ];
+    const routeCSS = /* CSS */ `
+      color: ${routeColors.at(0) || "#000000"};
+      background-image: linear-gradient(
+        to left,
+        ${routeColors
+          .slice(0, 2)
+          .map((a) => `${a}`)
+          .join(", ")} 75%
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    `
+      .replace(/\s+/g, " ")
+      .trim();
+    // const routeColor = properties?.routes?.length
+    //   ? `linear-gradient(to left, ${properties.routes
+    //       .slice(0, 2)
+    //       .map((a) => `#${a.route_color}`)
+    //       .join(", ")} 50%)` || "var(--text-color)"
+    //   : "var(--text-color)";
+
+    //       .text-gradient {
+    //  color: #609818;
+    //  background-image: linear-gradient(45deg, #609818 , #48a5c0 50%, #952001 100%);
+    //  background-clip: text;
+    //  -webkit-background-clip: text;
+    //  -webkit-text-fill-color: transparent;
+    // }
 
     return /* HTML */ `<div>
       <div>
@@ -115,7 +148,7 @@ class StopLayer extends BaseRealtimeLayer {
           href="${properties.stop_url}"
           rel="noopener"
           target="_blank"
-          style="color:#${primeRoute?.route_color || "var(--text-color)"}"
+          style="${routeCSS}"
           class="popup_header"
         >
           ${properties.stop_name.replace("/", " / ")}
