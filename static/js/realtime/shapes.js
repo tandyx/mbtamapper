@@ -114,7 +114,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       </div>
       <div>${properties.agency.agency_phone}</div>
       <div class="popup_footer">
-        <div>${formatTimestamp(properties.timestamp)}</div>
+        <div>${formatTimestamp(properties.timestamp, "%Y%m%d %I:%M %P")}</div>
       </div>
     `;
     return shapeHtml;

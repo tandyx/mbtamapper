@@ -73,10 +73,15 @@ content %}
               </a>
             </div>
             <div class="footer">
-              <div class="footer-text-sm">
-                {{ git_info.refs }} <i>{{ git_info.commit[:5] }}</i> - {{
-                git_info.message }}
-              </div>
+              <code class="footer-text-sm">
+                <a
+                  href="{{ git_info.remote_url }}/commit/{{ git_info.commit }}"
+                  rel="noopener"
+                  target="_blank"
+                  >{{ git_info.commit[:6] }}</a
+                >
+                - {{ git_info.message }}
+              </code>
             </div>
           </div>
         </div>

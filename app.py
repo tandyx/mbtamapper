@@ -13,6 +13,7 @@ import difflib
 import json
 import logging
 import os
+import subprocess
 import sys
 import threading
 
@@ -21,11 +22,11 @@ import gitinfo
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import FeedLoader, Query
+from backend import FeedLoader, Query, RouteKeys
 
 LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
-    KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(f)
+    KEY_DICT: RouteKeys = json.load(f)
 FEED_LOADER: FeedLoader = FeedLoader(
     url="https://cdn.mbta.com/MBTA_GTFS.zip",
     geojson_path=os.path.join(os.getcwd(), "static", LAYER_FOLDER),
@@ -256,11 +257,15 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: index.html.
         """
-        print("git info:", gitinfo.get_git_info())
 
-        return flask.render_template(
-            "index.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info()
-        )
+        git_info = gitinfo.get_git_info() | {
+            "remote_url": subprocess.run(
+                ["git", "remote", "get-url", "origin"], check=False, capture_output=True
+            )
+            .stdout.decode("utf-8")
+            .strip()
+        }
+        return flask.render_template("index.html", key_dict=KEY_DICT, git_info=git_info)
 
     @_app.route("/key_dict")
     def key_dict():

@@ -102,15 +102,32 @@ class LinkedDataset(Base):
             self.__class__.cache[key] = self.as_dict()
         return self.__class__.cache[key]
 
-    def as_dataframe(self, **kwargs) -> pd.DataFrame:
+    def as_dataframe(self, ignore_errors: bool = True, **kwargs) -> pd.DataFrame:
         """Returns realtime data from the linked dataset\
             as a dataframe.
             
         args:
-            - `**kwargs`: Additional keyword arguments passed to the request.
+            ignore_errors (bool, optional): Whether to ignore errors when\
+                loading the dataframe. Defaults to True.
+            kwargs: Additional keyword arguments passed to the request.
         Returns:
-            - `pd.DataFrame`: Realtime data from the linked dataset.
+            pd.DataFrame: Realtime data from the linked dataset.
         """
+
+        if not ignore_errors:
+            return self._as_dataframe(**kwargs)
+        try:
+            return self._as_dataframe(**kwargs)
+        except Exception as e:  # pylint: disable=broad-except
+            logging.error("Error retrieving data from %s: %s", self.url, str(e))
+            return pd.DataFrame()
+
+    def _as_dataframe(self, **kwargs) -> pd.DataFrame:
+        """Returns realtime data from the linked dataset as a dataframe.
+        args:
+            **kwargs: Additional keyword arguments passed to the request.
+        Returns:
+            pd.DataFrame: Realtime data from the linked dataset."""
 
         if self.trip_updates:
             return self._process_trip_updates(**kwargs)
