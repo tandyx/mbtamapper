@@ -60,10 +60,7 @@ class Base(orm.DeclarativeBase):
         Returns:
             bool: whether the objects are equal
         """
-        if not isinstance(other, self.__class__):
-            raise NotImplementedError(
-                f"Cannot compare {self.__class__} to {other.__class__}"
-            )
+        self._raise_for_compare(other)
         return all(
             getattr(self, key) == getattr(other, key) for key in self.primary_keys
         )
@@ -74,10 +71,7 @@ class Base(orm.DeclarativeBase):
         Returns:
             bool: whether the object is less than the other
         """
-        if not isinstance(other, self.__class__):
-            raise NotImplementedError(
-                f"Cannot compare {self.__class__} to {other.__class__}"
-            )
+        self._raise_for_compare(other)
         return all(
             getattr(self, key) < getattr(other, key) for key in self.primary_keys
         )
@@ -92,6 +86,20 @@ class Base(orm.DeclarativeBase):
             Also represents whether the object is valid to be added to the database."""
 
         return all(getattr(self, key, None) is not None for key in self.primary_keys)
+
+    def _raise_for_compare(self, other: t.Self) -> None:
+        """raises an error if the other object is not of the same class.
+
+        Args:
+            other (t.Self): the other object to compare to
+
+        Raises:
+            NotImplementedError: if the other object is not of the same class
+        """
+        if not isinstance(other, self.__class__):
+            raise NotImplementedError(
+                f"Cannot compare {self.__class__} to {other.__class__}"
+            )
 
     def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns a json searizable representation of \

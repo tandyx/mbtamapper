@@ -295,7 +295,10 @@ class Feed:
         file: io.TextIOWrapper
         with open(os.path.join(file_subpath, self.SHAPES_FILE), **def_kwargs) as file:
             gj.dump(
-                self.get_shape_features(key, query_obj, "agency", "timestamp"), file
+                self.get_shape_features(
+                    key, query_obj, "agency", "timestamp", "start_date", "end_date"
+                ),
+                file,
             )
             logging.info("Exported %s", file.name)
 

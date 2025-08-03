@@ -184,7 +184,7 @@ class StopLayer extends BaseRealtimeLayer {
   #getFooterHTML(properties) {
     return /* HTML */ ` <div class="popup_footer">
       <p>${properties.stop_id} @ ${properties.stop_address}</p>
-      <p>${formatTimestamp(properties.timestamp, "%Y%m%d %I:%M %P")}</p>
+      <p>${formatTimestamp(properties.timestamp, "%Y/%m/%d %I:%M %P")}</p>
     </div>`;
   }
 

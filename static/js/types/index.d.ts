@@ -173,6 +173,8 @@ export interface ShapeProperty extends LayerProperty {
   route_sort_order: number;
   route_name: string;
   agency: AgencyProperty;
+  start_date?: number;
+  end_date?: number;
 }
 
 export interface AgencyProperty extends LayerProperty {

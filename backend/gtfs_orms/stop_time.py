@@ -96,11 +96,7 @@ class StopTime(Base):
         Returns:
             - `bool`: whether the object is less than the other
         """
-        if not isinstance(other, self.__class__):
-            raise NotImplementedError(
-                f"Cannot compare {self.__class__} to {other.__class__}"
-            )
-
+        self._raise_for_compare(other)
         if not self.trip_id == other.trip_id:
             return super().__lt__(other)
         return self.stop_sequence < other.stop_sequence
