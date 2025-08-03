@@ -12,6 +12,7 @@ from .base import Base
 if t.TYPE_CHECKING:
     from .agency import Agency
     from .alert import Alert
+    from .calendar import Calendar
     from .multi_route_trip import MultiRouteTrip
     from .prediction import Prediction
     from .stop_time import StopTime
@@ -96,6 +97,11 @@ class Route(Base):
         for trip in self.trips:
             yield from trip.stop_times
 
+    @property
+    def calendars(self) -> set["Calendar"]:
+        """returns unique set of calendars for the route"""
+        return {trip.calendar for trip in self.trips}
+
     @t.override
     def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """returns `Stop(...)` as a json serializable object:
@@ -107,6 +113,13 @@ class Route(Base):
             - `dict[str, Any]`: json object of stop
         """
         json_dict = super().as_json(*include, **kwargs)
+        calendars = self.calendars
         if "stop_times" in include:
             json_dict["stop_times"] = [st.as_json() for st in self.get_stop_times()]
+        if "start_date" in include:
+            json_dict["start_date"] = min(c.start_date.timestamp() for c in calendars)
+        if "end_date" in include:
+            json_dict["end_date"] = max(c.end_date.timestamp() for c in calendars)
+        if "calendars" in include:
+            json_dict["calendars"] = [c.as_json() for c in self.calendars]
         return json_dict
