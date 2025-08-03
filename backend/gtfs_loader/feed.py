@@ -440,24 +440,18 @@ class Feed:
         returns:
             - `int`: number of rows added
         """
-        session = self._get_session()
-        if purge:
-            while True:
-                try:
-                    session.execute(Query.delete(orm))
-                    session.commit()
-                    break
-                except exc.IllegalStateChangeError:
-                    time.sleep(1)
-
         try:
-            res = data.to_sql(
-                name=orm.__tablename__,
-                con=self.engine,
-                if_exists="append",
-                index=False,
-                **kwargs,
-            )
+            with self.engine.begin() as conn:
+                if purge:
+                    conn.execute(Query.delete(orm))
+                res = data.to_sql(
+                    name=orm.__tablename__,
+                    con=conn,
+                    if_exists="append",
+                    index=False,
+                    **kwargs,
+                )
+
         except exc.IntegrityError:
             res = self.to_sql(data.iloc[1:], orm, **kwargs)
         logging.info("Added %s rows to %s", res, orm.__tablename__)
