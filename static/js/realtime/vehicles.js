@@ -487,7 +487,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     <h2>${titleCase(this.options.routeType)}</h2>
     <table class='mt-5 sortable data-table'>
       <thead>
-        <tr><th>route</th><th>trip</th><th>next stop</th><th>delay</th></tr>
+        <tr><th>Route</th><th>Trip</th><th>Next</th></tr>
       </thead>
       <tbody class='directional'>
       ${properties
@@ -509,8 +509,7 @@ class VehicleLayer extends BaseRealtimeLayer {
             prop.stop_id
           }')"> ${
             prop.next_stop?.stop_name || prop.stop_time?.stop_name
-          }</a></td>
-          <td><i class='${getDelayClassName(
+          }</a> <i class='${getDelayClassName(
             prop.next_stop?.delay
           )}'>${getDelayText(prop.next_stop?.delay, false)}</i></td>
         </tr>`;

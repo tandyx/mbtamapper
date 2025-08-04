@@ -298,7 +298,11 @@ class StopLayer extends BaseRealtimeLayer {
           .map((route) => {
             const _predictions = stop
               .flatMap((s) => s.predictions)
-              .filter((p) => p.route_id === route.route_id)
+              .filter(
+                (p) =>
+                  p.route_id === route.route_id &&
+                  (p.arrival_time || p.departure_time)
+              )
               .sort(
                 (a, b) =>
                   a.arrival_time - b.arrival_time ||
@@ -360,16 +364,20 @@ class StopLayer extends BaseRealtimeLayer {
                         </td>
                         <td>
                           <span
-                            class="tooltip fa"
+                            class="tooltip"
                             data-tooltip="${minuteify(dom - timestamp, [
                               "seconds",
                             ]) || "0 min"} away"
-                            >${BaseRealtimeLayer.icons.prediction}</span
                           >
-                          ${formatTimestamp(
-                            pred.arrival_time || pred.departure_time,
-                            "%I:%M %P"
-                          )}
+                            <span class="fa"
+                              >${BaseRealtimeLayer.icons.prediction}</span
+                            >
+                            ${formatTimestamp(
+                              pred.arrival_time || pred.departure_time,
+                              "%I:%M %P"
+                            )}
+                          </span>
+
                           <i class="${getDelayClassName(pred.delay)}"
                             >${getDelayText(pred.delay)}</i
                           >
@@ -406,14 +414,13 @@ class StopLayer extends BaseRealtimeLayer {
                         </td>
                         <td>
                           <span
-                            class="tooltip fa"
+                            class="tooltip"
                             data-tooltip="Scheduled in ${minuteify(
                               dom - timestamp,
                               ["seconds"]
                             )}"
-                            >${BaseRealtimeLayer.icons.clock}</span
+                            >${formatTimestamp(dom, "%I:%M %P")}</span
                           >
-                          ${formatTimestamp(dom, "%I:%M %P")}
                         </td>
                         <td>
                           ${st.destination_label ||
