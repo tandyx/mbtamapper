@@ -108,8 +108,8 @@ function createMap(id, routeType) {
   if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
-
   baseLayers[theme.theme].addTo(map);
+
   /**@type {LayerApiRealtimeOptions} */
   const baseOp = {
     textboxSize: { maxWidth: 375, minWidth: 250 },

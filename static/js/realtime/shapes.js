@@ -226,7 +226,7 @@ class ShapeLayer extends BaseRealtimeLayer {
         (a, b) =>
           a.arrival_time - b.arrival_time || a.departure_time - b.departure_time
       )
-      // .filter((p) => (p.arrival_time || p.departure_time) > timestamp)
+      // .filter((p) => (p.arrival_time || p.departure_time))
       .filter((p) => {
         const subpre = route.predictions
           .filter((_p) => _p.trip_id === p.trip_id)
@@ -330,13 +330,13 @@ class ShapeLayer extends BaseRealtimeLayer {
                   <td>${st.destination_label || trip?.trip_headsign}</td>
                   <td>
                     <span
-                      class="tooltip fa"
+                      class="tooltip"
                       data-tooltip="Schduled in ${minuteify(dom - timestamp, [
                         "seconds",
                       ])}"
-                      >${BaseRealtimeLayer.icons.clock}</span
+                      >${st.stop_name} @
+                      ${formatTimestamp(dom, "%I:%M %P")}</span
                     >
-                    ${st.stop_name} @ ${formatTimestamp(dom, "%I:%M %P")}
                   </td>
                 </tr>`;
               })
