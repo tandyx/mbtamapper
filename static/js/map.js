@@ -232,7 +232,9 @@ function createSearch(map, options) {
     ...options,
   });
 
-  controlSearch.on("search:locationfound", (event) => event.layer.openPopup());
+  controlSearch.on("search:locationfound", (event) =>
+    event.layer.fire("click")
+  );
   _controlSearch = controlSearch;
 
   window.addEventListener("keydown", (keyEvent) => {
