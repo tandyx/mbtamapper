@@ -25,6 +25,8 @@ let _map;
 let _sidebar;
 /**@type {L.Control.Search?} for reference purposes */
 let _controlSearch;
+/**@type {L.LayerGroup[]} */
+let _realtimeLayers;
 
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
@@ -150,6 +152,7 @@ function createMap(id, routeType) {
   const layers = [stopLayer, shapeLayer, vehicleLayer, facilityLayer];
   layers.forEach((layer) => layer.plot());
   const realtimeLayers = layers.map((ll) => ll.options.layer);
+  _realtimeLayers = realtimeLayers;
 
   // createControlLayers(
   //   baseLayers,
@@ -186,14 +189,47 @@ function createMap(id, routeType) {
     markerStyle: { zIndexOffset: 500 },
   });
 
+  const layerControl = L.control.layers(
+    baseLayers,
+    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
+  );
+
+  [locateControl, layerControl, easyButton].forEach((c) => c.addTo(map));
+
+  map.on("zoomend", () => {
+    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
+    map.addLayer(facilityLayer.options.layer);
+  });
+
+  map.on("click", () => {
+    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
+    window.location.hash = "";
+  });
+
+  // easyButton.state;
+  if (map.hasLayer(facilityLayer.options.layer)) {
+    map.removeLayer(facilityLayer.options.layer);
+  }
+
+  return map;
+}
+
+/**
+ *
+ * @param {L.Map} map
+ * @param {L.Control.SearchConstuctorOptions} options
+ */
+function createSearch(map, options) {
   const controlSearch = L.control.search({
-    layer: L.layerGroup(realtimeLayers),
     initial: false,
     propertyName: "searchName",
     zoom: 16,
     marker: false,
     textPlaceholder: "search",
-    autoCollapse: true,
+    container: "findbox",
+    collapsed: false,
+    casesensitive: false,
+    ...options,
   });
 
   controlSearch.on("search:locationfound", (event) => event.layer.openPopup());
@@ -208,30 +244,17 @@ function createMap(id, routeType) {
       controlSearch._input.focus();
     }
   });
+  map.addControl(controlSearch);
 
-  const layerControl = L.control.layers(
-    baseLayers,
-    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
-  );
-
-  [locateControl, layerControl, controlSearch, easyButton].forEach((c) =>
-    c.addTo(map)
-  );
-
-  map.on("zoomend", () => {
-    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
-    map.addLayer(facilityLayer.options.layer);
+  options.layer.eachLayer((layer) => {
+    if (
+      layer.options.name === "parking" &&
+      map.hasLayer(layer) &&
+      map.getZoom() < 16
+    ) {
+      map.removeLayer(layer);
+    }
   });
 
-  if (map.hasLayer(facilityLayer.options.layer)) {
-    map.removeLayer(facilityLayer.options.layer);
-  }
-  map.on("click", () => {
-    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
-    window.location.hash = "";
-  });
-
-  // easyButton.state;
-
-  return map;
+  return controlSearch;
 }

@@ -455,6 +455,10 @@ noscript {
   margin-bottom: 5px;
 }
 
+.mt-5 {
+  margin-top: 5px;
+}
+
 .data-table {
   --border: 1px solid var(--text-color);
 

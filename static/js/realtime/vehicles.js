@@ -485,15 +485,22 @@ class VehicleLayer extends BaseRealtimeLayer {
 
     container.innerHTML = /*HTML*/ `
     <h2>${titleCase(this.options.routeType)}</h2>
-    <table class='mt-5 sortable data-table'>
+    <hr />
+    <div id="findbox"></div>
+    <table class='sortable data-table'>
       <thead>
-        <tr><th>Route</th><th>Trip</th><th>Next</th></tr>
+        <tr><th>Route</th><th>Trip</th><th>Next Stop</th></tr>
       </thead>
       <tbody class='directional'>
       ${properties
         .sort(
           (a, b) =>
-            a.route_id - b.route_id || a.trip_short_name - b.trip_short_name
+            (a.route_id > b.route_id ? 1 : b.route_id > a.route_id ? -1 : 0) ||
+            (a.trip_short_name > b.trip_short_name
+              ? 1
+              : b.trip_short_name > a.trip_short_name
+              ? -1
+              : 0)
         )
         .map((prop) => {
           const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
@@ -501,10 +508,12 @@ class VehicleLayer extends BaseRealtimeLayer {
           <td><a ${lStyle} onclick="LayerFinder.fromGlobals().clickRoute('${
             prop.route_id
           }')">${prop.route.route_name}</a></td>
-          <td><a ${lStyle} onclick="LayerFinder.fromGlobals().clickVehicle('${
+          <td>
+          <a ${lStyle} onclick="LayerFinder.fromGlobals().clickVehicle('${
             prop.vehicle_id
           }')">${prop.trip_short_name}
-          </a></td>
+          </a>
+          </td>
           <td><a onclick="LayerFinder.fromGlobals().clickStop('${
             prop.stop_id
           }')"> ${
@@ -524,9 +533,13 @@ class VehicleLayer extends BaseRealtimeLayer {
      
     `;
 
+    createSearch(this.options.map, { layer: L.layerGroup(_realtimeLayers) });
+
     for (const el of document.getElementsByClassName("sortable")) {
       sorttable.makeSortable(el);
     }
+
+    return container;
   }
 
   /**
