@@ -811,11 +811,22 @@ class LayerFinder {
    */
   clickRoute(routeId, options = {}) {
     return this.findLayer((e) => e?.feature?.properties?.route_id === routeId, {
-      zoom: this.map.options.minZoom,
+      zoom: this.map.options.minZoom + 2,
       latLng: this.map.getCenter(),
       ...options,
     });
   }
+
+  /**
+   * alias for clickRoute
+   * @param {string} routeId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} shape
+   */
+  clickShape(shapeId, options = {}) {
+    return this.clickRoute(shapeId, options);
+  }
+
   /**
    * fires click event and zooms in on vehicle
    * wrapper for `findLayer`

@@ -108,12 +108,22 @@ class StopLayer extends BaseRealtimeLayer {
     const routeColors = [
       ...new Set(
         properties?.routes
-          ?.sort((a, b) => a.route_type - b.route_type)
+          ?.sort(
+            (a, b) =>
+              a.route_type - b.route_type ||
+              (a.route_name > b.route_name
+                ? 1
+                : b.route_name > a.route_name
+                ? -1
+                : 0)
+          )
           ?.map((r) => `#${r.route_color}`) || []
       ),
     ];
-    const routeCSS = routeColors.length
-      ? `
+
+    const routeCSS =
+      routeColors.length > 1
+        ? `
       color: ${routeColors.at(0)};
       background-image: linear-gradient(
         to left,
@@ -126,9 +136,11 @@ class StopLayer extends BaseRealtimeLayer {
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       `
-          .replace(/\s+/g, " ")
-          .trim()
-      : "color: var(--text-color);";
+            .replace(/\s+/g, " ")
+            .trim()
+        : routeColors.length === 1
+        ? `color: ${routeColors.at(0)}`
+        : "color: var(--text-color);";
     // const routeColor = properties?.routes?.length
     //   ? `linear-gradient(to left, ${properties.routes
     //       .slice(0, 2)
