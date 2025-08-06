@@ -343,22 +343,18 @@ function getDelayText(delay, addMin = true) {
   return delayText;
 }
 
+/** @typedef {{"slight-delay"?: number, "on-time"?: number, "moderate-delay"?: number, "severe-delay"?: number}} DelayObject */
+
 /**
  * gets the delay class name
  * @template {number} T
  * @param {T} delay - delay in seconds
- * @returns {"severe-delay" | "moderate-delay" | "slight-delay" | "on-time"} - the delay class name
+ * @returns {keyof DelayObject} - the delay class name
  */
 function getDelayClassName(delay) {
-  if (delay >= 900) {
-    return "severe-delay";
-  }
-  if (delay >= 600) {
-    return "moderate-delay";
-  }
-  if (delay > 60) {
-    return "slight-delay";
-  }
+  if (delay >= 900) return "severe-delay";
+  if (delay >= 300) return "moderate-delay";
+  if (delay > 60) return "slight-delay";
   return "on-time";
 }
 
@@ -854,13 +850,13 @@ function getBaseLayerDict(
   darkId = "CartoDB.DarkMatter",
   additionalLayers = {}
 ) {
-  const options = {
-    attribution:
-      "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
-  };
+  // const options = {
+  //   attribution:
+  //     "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
+  // };
   const baseLayers = {
-    light: L.tileLayer.provider(lightId, { id: "lightLayer", ...options }),
-    dark: L.tileLayer.provider(darkId, { id: "darkLayer", ...options }),
+    light: L.tileLayer.provider(lightId, { id: "lightLayer" }),
+    dark: L.tileLayer.provider(darkId, { id: "darkLayer" }),
   };
 
   for (const [key, value] of Object.entries(additionalLayers)) {
