@@ -194,32 +194,6 @@ function createMap(id, routeType) {
     Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
   );
 
-  [locateControl, layerControl, easyButton].forEach((c) => c.addTo(map));
-
-  map.on("zoomend", () => {
-    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
-    map.addLayer(facilityLayer.options.layer);
-  });
-
-  map.on("click", () => {
-    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
-    window.location.hash = "";
-  });
-
-  // easyButton.state;
-  if (map.hasLayer(facilityLayer.options.layer)) {
-    map.removeLayer(facilityLayer.options.layer);
-  }
-
-  return map;
-}
-
-/**
- *
- * @param {L.Map} map
- * @param {L.Control.SearchConstuctorOptions} options
- */
-function createSearch(map, options) {
   const controlSearch = L.control.search({
     initial: false,
     propertyName: "searchName",
@@ -229,7 +203,7 @@ function createSearch(map, options) {
     container: "findbox",
     collapsed: false,
     casesensitive: false,
-    ...options,
+    layer: L.layerGroup(realtimeLayers),
   });
 
   controlSearch.on("search:locationfound", (event) =>
@@ -246,17 +220,27 @@ function createSearch(map, options) {
       controlSearch._input.focus();
     }
   });
-  map.addControl(controlSearch);
 
-  options.layer.eachLayer((layer) => {
-    if (
-      layer.options.name === "parking" &&
-      map.hasLayer(layer) &&
-      map.getZoom() < 16
-    ) {
-      map.removeLayer(layer);
-    }
+  [locateControl, layerControl, controlSearch, easyButton].forEach((c) =>
+    c.addTo(map)
+  );
+
+  map.on("zoomend", () => {
+    if (map.getZoom() < 16) return map.removeLayer(facilityLayer.options.layer);
+    map.addLayer(facilityLayer.options.layer);
   });
 
-  return controlSearch;
+  map.on("click", () => {
+    BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
+    window.location.hash = "";
+  });
+
+  // easyButton.state;
+  if (map.hasLayer(facilityLayer.options.layer)) {
+    map.removeLayer(facilityLayer.options.layer);
+  }
+
+  // createSearch(map, { layer: L.layerGroup(realtimeLayers) });
+
+  return map;
 }
