@@ -135,11 +135,12 @@ function createMap(id, routeType) {
   });
 
   const vehicleLayer = new VehicleLayer({
-    url: "vehicles?include=route,next_stop,stop_time",
+    url: `vehicles?include=route,next_stop,stop_time&cache=12`,
     layer: L.markerClusterGroup({
       disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",
     }).addTo(map),
+    interval: 12500,
     ...baseOp,
   });
 

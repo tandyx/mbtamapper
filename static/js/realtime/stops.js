@@ -262,7 +262,7 @@ class StopLayer extends BaseRealtimeLayer {
     const stop = await fetchCache(
       `/api/stop?stop_id=${properties.stop_id}&_=${Math.round(
         timestamp / 10
-      )}&include=alerts,predictions`,
+      )}&include=alerts,predictions&cache=5`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
@@ -287,7 +287,7 @@ class StopLayer extends BaseRealtimeLayer {
                 }&operates_today=True&_=${formatTimestamp(
                   timestamp,
                   "%Y%m%d"
-                )}&include=trip`,
+                )}&include=trip&cache=86400`,
                 { cache: "force-cache" },
                 super.defaultFetchCacheOpt
               )

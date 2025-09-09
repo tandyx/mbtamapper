@@ -96,7 +96,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
-    options.interval = options.interval || 15000;
+    options.interval = options.interval || 12500;
     super(options);
   }
 
@@ -353,7 +353,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const predictions = await fetchCache(
       `/api/prediction?trip_id=${
         properties.trip_id
-      }&include=stop_time&_=${Math.floor(timestamp / 5)}`,
+      }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=1`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
@@ -361,7 +361,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const alerts = await fetchCache(
       `/api/alert?trip_id=${properties.trip_id}&_=${Math.floor(
         timestamp / 60
-      )}`,
+      )}&cache=40`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
