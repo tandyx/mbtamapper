@@ -112,7 +112,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       interval: options.interval,
       type: "FeatureCollection",
       container: options.layer,
-      cache: false,
+      cache: true,
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
