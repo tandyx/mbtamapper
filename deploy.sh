@@ -9,6 +9,7 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
+git checkout master
 git pull
 
 apt-get update && apt-get upgrade -y
@@ -24,20 +25,6 @@ cd static && npm install && cd ..
 
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# sudo letsencrypt certonly -a webroot --webroot-path=/var/www/$DOMAIN/html/ -d $DOMAIN -d www.$DOMAIN
-# function Restart-Nginx() {
-#     sudo fuser -k 80/tcp
-#     sudo fuser -k 443/tcp
-#     sudo systemctl restart nginx
-# }
-
-# DOMAIN="mbtamapper.com"
-# SITES_CONF="/etc/nginx/sites-available/mbtamapper"
-# sudo cp .env.nginx.conf $SITES_CONF
-# sudo ln -s $SITES_CONF /etc/nginx/sites-enabled -f
-# Restart-Nginx
-# sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN
 
 # restart processes
 sudo pkill .venv -f

@@ -2,13 +2,16 @@
 
 sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
+![example of the app](/static/img/example.png)
+
 ## TODO
 
-- [ ] use html templates for 404/index
+- [x] use html templates for 404/index
 - [ ] add api ref
-- [ ] do the google transit things for predictions
+- [ ] do the google transit things for predictions with svgs
 - [ ] compute bearings client side (maybe)
-- [ ] figure out way to compute vehicle positions
+- [ ] figure out way to compute vehicle positions either client or server-side
+- [ ] add option to view past stoptimes/trips for each paine (includes adding an options drawer)
 
 ## setup
 
@@ -16,28 +19,33 @@ requires python 3.10+ and node 20+
 
 ### building
 
-```sh
-git clone https://github.com/tandyx/mbtamapper.git
-cd mbtamapper
-```
+1. clone the repo
 
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip3 install --upgrade -r requirements.txt
-# pip3 install --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --upgrade -r requirements.txt
-```
+   ```sh
+   git clone https://github.com/tandyx/mbtamapper.git
+   cd mbtamapper
+   ```
 
-```sh
-cd static && npm install && cd ..
-```
+2. install python requirements in a virtual environment
+
+   ```sh
+   python3 -m venv .venv
+   source .venv/bin/activate # windows: . .venv/Scripts/Activate.ps1
+   pip3 install --upgrade -r requirements.txt
+   ```
+
+3. install frontend dependencies
+
+   ```sh
+   cd static && npm install && cd ..
+   ```
 
 ### running
 
 debug
 
 ```sh
-python3 app.py
+python3 app.py -i
 ```
 
 production
@@ -74,6 +82,7 @@ you could query the database (please don't abuse it)
 - `include`: comma separated list of relational fields to include
 - `geojson={Any}`: return data in geojson format (default: false); to switch to true, set to any value (e.g. geojson=1)
 - `kwargs`: columns/on-load-attrs to filter by; supported: `=`, `<`, `>`, `<=`, `>=`, `!=`, `=null`, `!=null`
+- `cache`: seconds to cache (int, float untested but should work)
 
 > [!NOTE]  
 > 2025-07-17: nulls are now culled from the feed
@@ -82,11 +91,12 @@ you could query the database (please don't abuse it)
 
 this data is already filtered out based on `route_type`; see [`/route_keys.json`](route_keys.json).
 
-- `{vehicles}?include=...,...`: realtime vehicle data
+- `/vehicles?include=...,...&cache=...`: realtime vehicle data
 
   - `include`: optional comma separated list of relational fields to include
+  - `cache`: seconds to cache (int, float untested but should work)
 
-- `{stops|shapes|parking}`; doesn't take params and redirects to a static `.geojson` file
+- `/{stops|shapes|parking}`; doesn't take params and redirects to a static `.geojson` file
 
 ### example
 
