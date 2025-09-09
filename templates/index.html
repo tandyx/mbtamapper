@@ -77,7 +77,7 @@ content %}
                 target="_blank"
                 >{{ git_info.commit[:6] }}</a
               >
-              - {{ git_info.message }}
+              {{ git_info.author_date[:10] }} - {{ git_info.message }}
             </code>
           </div>
         </div>

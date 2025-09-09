@@ -197,24 +197,35 @@ class ShapeLayer extends BaseRealtimeLayer {
       <div class="loader-large"></div>
     </div>`;
 
-    const useSchedule =
-      ["2", "4"].includes(properties.route_type) || properties.listed_route;
-
     /** @type {RouteProperty} */
     const route = (
       await fetchCache(
-        `/api/route?route_id=${properties.route_id}&_=${formatTimestamp(
-          timestamp,
-          "%Y%m%d"
-        )}&include=alerts,predictions${
-          (useSchedule && ",stop_times,trips") || ""
-        }`,
+        `/api/route?route_id=${properties.route_id}&_=${Math.round(
+          timestamp / 15
+        )}&include=alerts,predictions&cache=10`,
         { cache: "force-cache" },
         super.defaultFetchCacheOpt
       )
     ).at(0);
 
-    route.stop_times ||= [];
+    if (["2", "4"].includes(properties.route_type) || properties.listed_route) {
+      /** @type {RouteProperty} */
+      const scheduledRoute = (
+        await fetchCache(
+          `/api/route?route_id=${properties.route_id}&_=${formatTimestamp(
+            timestamp,
+            "%Y%m%d"
+          )}&include=stop_times,trips&cache=86400`,
+          { cache: "force-cache" },
+          super.defaultFetchCacheOpt
+        )
+      ).at(0);
+      route.stop_times = scheduledRoute.stop_times;
+      route.trips = scheduledRoute.trips;
+    } else {
+      route.stop_times = [];
+      route.trips = [];
+    }
 
     const alerts = route.alerts.filter((a) => !a.stop_id);
 
