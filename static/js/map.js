@@ -25,6 +25,8 @@ let _map;
 let _sidebar;
 /**@type {L.Control.Search?} for reference purposes */
 let _controlSearch;
+/**@type {L.LayerGroup[]} */
+let _realtimeLayers;
 
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
@@ -108,8 +110,8 @@ function createMap(id, routeType) {
   if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
 
   const baseLayers = getBaseLayerDict();
-
   baseLayers[theme.theme].addTo(map);
+
   /**@type {LayerApiRealtimeOptions} */
   const baseOp = {
     textboxSize: { maxWidth: 375, minWidth: 250 },
@@ -133,11 +135,12 @@ function createMap(id, routeType) {
   });
 
   const vehicleLayer = new VehicleLayer({
-    url: "vehicles?include=route,next_stop,stop_time",
+    url: `vehicles?include=route,next_stop,stop_time&cache=12`,
     layer: L.markerClusterGroup({
       disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",
     }).addTo(map),
+    interval: 12500,
     ...baseOp,
   });
 
@@ -150,6 +153,7 @@ function createMap(id, routeType) {
   const layers = [stopLayer, shapeLayer, vehicleLayer, facilityLayer];
   layers.forEach((layer) => layer.plot());
   const realtimeLayers = layers.map((ll) => ll.options.layer);
+  _realtimeLayers = realtimeLayers;
 
   // createControlLayers(
   //   baseLayers,
@@ -186,17 +190,26 @@ function createMap(id, routeType) {
     markerStyle: { zIndexOffset: 500 },
   });
 
+  const layerControl = L.control.layers(
+    baseLayers,
+    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
+  );
+
   const controlSearch = L.control.search({
-    layer: L.layerGroup(realtimeLayers),
     initial: false,
     propertyName: "searchName",
     zoom: 16,
     marker: false,
     textPlaceholder: "search",
-    autoCollapse: true,
+    container: "findbox",
+    collapsed: false,
+    casesensitive: false,
+    layer: L.layerGroup(realtimeLayers),
   });
 
-  controlSearch.on("search:locationfound", (event) => event.layer.openPopup());
+  controlSearch.on("search:locationfound", (event) =>
+    event.layer.fire("click")
+  );
   _controlSearch = controlSearch;
 
   window.addEventListener("keydown", (keyEvent) => {
@@ -209,11 +222,6 @@ function createMap(id, routeType) {
     }
   });
 
-  const layerControl = L.control.layers(
-    baseLayers,
-    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
-  );
-
   [locateControl, layerControl, controlSearch, easyButton].forEach((c) =>
     c.addTo(map)
   );
@@ -223,15 +231,17 @@ function createMap(id, routeType) {
     map.addLayer(facilityLayer.options.layer);
   });
 
-  if (map.hasLayer(facilityLayer.options.layer)) {
-    map.removeLayer(facilityLayer.options.layer);
-  }
   map.on("click", () => {
     BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
     window.location.hash = "";
   });
 
   // easyButton.state;
+  if (map.hasLayer(facilityLayer.options.layer)) {
+    map.removeLayer(facilityLayer.options.layer);
+  }
+
+  // createSearch(map, { layer: L.layerGroup(realtimeLayers) });
 
   return map;
 }

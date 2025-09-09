@@ -98,7 +98,7 @@ class FacilityLayer extends BaseRealtimeLayer {
       <div class="popup_footer">
         <p>${properties.facility_id} @ ${properties.contact}</p>
         <p>${properties["contact-phone"]}</p>
-        <p>${formatTimestamp(properties.timestamp)}</p>
+        <p>${formatTimestamp(properties.timestamp, "%Y/%m/%d %I:%M %P")}</p>
       </div>
     `;
     return facilityHtml;

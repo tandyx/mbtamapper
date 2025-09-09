@@ -96,7 +96,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {LayerApiRealtimeOptions?} options
    */
   constructor(options) {
-    options.interval = options.interval || 15000;
+    options.interval = options.interval || 12500;
     super(options);
   }
 
@@ -353,7 +353,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const predictions = await fetchCache(
       `/api/prediction?trip_id=${
         properties.trip_id
-      }&include=stop_time&_=${Math.floor(timestamp / 5)}`,
+      }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=1`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
@@ -361,7 +361,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const alerts = await fetchCache(
       `/api/alert?trip_id=${properties.trip_id}&_=${Math.floor(
         timestamp / 60
-      )}`,
+      )}&cache=40`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
@@ -371,9 +371,8 @@ class VehicleLayer extends BaseRealtimeLayer {
       properties.next_stop?.delay === null
     ) {
       console.warn("no next stop found for vehicle", properties);
-      properties.next_stop = predictions?.[0]?.stop_time || {};
+      properties.next_stop = predictions?.[0] || {};
     }
-
     super.moreInfoButton(properties.vehicle_id, {
       alert: Boolean(alerts.length),
     });
@@ -472,11 +471,9 @@ class VehicleLayer extends BaseRealtimeLayer {
     const container = document.getElementById(BaseRealtimeLayer.sideBarMainId);
     if (!container) return;
     // const findBox = "<div id='findBox'></div>";
+
     if (!properties.length) {
-      container.innerHTML = /* HTML */ `
-        <h2>${titleCase(this.options.routeType)}</h2>
-        <p>No vehicles found</p>
-      `;
+      container.innerHTML = /* HTML */ ` <p>No vehicles found</p> `;
       return;
     }
 
@@ -484,51 +481,112 @@ class VehicleLayer extends BaseRealtimeLayer {
       return a.timestamp > b.timestamp ? a : b;
     }).timestamp;
 
-    container.innerHTML = /*HTML*/ `
-    <h2>${titleCase(this.options.routeType)}</h2>
-    <table class='mt-5 sortable data-table'>
-      <thead>
-        <tr><th>route</th><th>trip</th><th>next stop</th><th>delay</th></tr>
-      </thead>
-      <tbody class='directional'>
-      ${properties
-        .sort(
-          (a, b) =>
-            a.route_id - b.route_id || a.trip_short_name - b.trip_short_name
-        )
-        .map((prop) => {
-          const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
-          return /*HTML*/ `<tr data-direction-${parseInt(prop.direction_id)}="">
-          <td><a ${lStyle} onclick="LayerFinder.fromGlobals().clickRoute('${
-            prop.route_id
-          }')">${prop.route.route_name}</a></td>
-          <td><a ${lStyle} onclick="LayerFinder.fromGlobals().clickVehicle('${
-            prop.vehicle_id
-          }')">${prop.trip_short_name}
-          </a></td>
-          <td><a onclick="LayerFinder.fromGlobals().clickStop('${
-            prop.stop_id
-          }')"> ${
-            prop.next_stop?.stop_name || prop.stop_time?.stop_name
-          }</a></td>
-          <td><i class='${getDelayClassName(
-            prop.next_stop?.delay
-          )}'>${getDelayText(prop.next_stop?.delay, false)}</i></td>
-        </tr>`;
-        })
-        .join("")}
-      </tbody>
-      </table>
-      <div class="popup_footer mt-5">
-      Last vehicle update @ ${formatTimestamp(lastTMSP, "%I:%M %P")}
-        <i data-update-timestamp=${lastTMSP}></i>
+    /** @type {DelayObject}*/
+    const delays = properties
+      .map((a) => a.next_stop?.delay)
+      .reduce((acc, curr) => {
+        const dclass = getDelayClassName(curr);
+        if (!acc[dclass]) acc[dclass] = 0;
+        acc[dclass]++;
+        return acc;
+      }, {});
+
+    const delayDesc = {
+      "on-time": "On time / unscheduled",
+      "slight-delay": "> 1 minute late",
+      "moderate-delay": "> 5 minutes late",
+      "severe-delay": "> 15 minutes late",
+    };
+    container.innerHTML = /* HTML */ `
+      <div>
+        <div class="train-status-bar">
+          ${Object.entries(delayDesc)
+            .map(([key, desc]) => {
+              // const desc = delayDesc[key] || "Unknown";
+              const value = delays[key] || 0;
+              return `<div
+                style="width: ${Math.round(
+                  (value / properties.length) * 100
+                )}%;"
+                class="item tooltip ${key}-bg"
+                data-tooltip="(${value}) ${desc}"
+              >
+
+              </div>`;
+            })
+            .join("")}
+        </div>
+          <table class="sortable data-table">
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th>Trip</th>
+                <th>Next Stop</th>
+              </tr>
+            </thead>
+            <tbody class="directional">
+              ${properties
+                .sort(
+                  (a, b) =>
+                    (a.route_id > b.route_id
+                      ? 1
+                      : b.route_id > a.route_id
+                      ? -1
+                      : 0) ||
+                    (a.trip_short_name > b.trip_short_name
+                      ? 1
+                      : b.trip_short_name > a.trip_short_name
+                      ? -1
+                      : 0)
+                )
+                .map((prop) => {
+                  const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;
+                  return /* HTML */ `<tr
+                    data-direction-${parseInt(prop.direction_id)}=""
+                  >
+                    <td>
+                      <a
+                        ${lStyle}
+                        onclick="LayerFinder.fromGlobals().clickRoute('${prop.route_id}')"
+                        >${prop.route.route_name}</a
+                      >
+                    </td>
+                    <td>
+                      <a
+                        ${lStyle}
+                        onclick="LayerFinder.fromGlobals().clickVehicle('${prop.vehicle_id}')"
+                        >${prop.trip_short_name}
+                      </a>
+                    </td>
+                    <td>
+                      <a
+                        onclick="LayerFinder.fromGlobals().clickStop('${prop.stop_id}')"
+                      >
+                        ${prop.next_stop?.stop_name ||
+                        prop.stop_time?.stop_name}</a
+                      >
+                      <i class="${getDelayClassName(prop.next_stop?.delay)}"
+                        >${getDelayText(prop.next_stop?.delay, false)}</i
+                      >
+                    </td>
+                  </tr>`;
+                })
+                .join("")}
+            </tbody>
+          </table>
+          <div class="popup_footer mt-5">
+            Last vehicle update @ ${formatTimestamp(lastTMSP, "%I:%M %P")}
+            <i data-update-timestamp=${lastTMSP}></i>
+          </div>
+        </div>
       </div>
-     
     `;
 
     for (const el of document.getElementsByClassName("sortable")) {
       sorttable.makeSortable(el);
     }
+
+    return container;
   }
 
   /**

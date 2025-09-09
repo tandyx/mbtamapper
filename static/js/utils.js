@@ -343,22 +343,18 @@ function getDelayText(delay, addMin = true) {
   return delayText;
 }
 
+/** @typedef {{"slight-delay"?: number, "on-time"?: number, "moderate-delay"?: number, "severe-delay"?: number}} DelayObject */
+
 /**
  * gets the delay class name
  * @template {number} T
  * @param {T} delay - delay in seconds
- * @returns {"severe-delay" | "moderate-delay" | "slight-delay" | "on-time"} - the delay class name
+ * @returns {keyof DelayObject} - the delay class name
  */
 function getDelayClassName(delay) {
-  if (delay >= 900) {
-    return "severe-delay";
-  }
-  if (delay >= 600) {
-    return "moderate-delay";
-  }
-  if (delay > 60) {
-    return "slight-delay";
-  }
+  if (delay >= 900) return "severe-delay";
+  if (delay >= 300) return "moderate-delay";
+  if (delay > 60) return "slight-delay";
   return "on-time";
 }
 
@@ -773,23 +769,17 @@ class LayerFinder {
       this.markerClusters.forEach((mc) => mc.disableClustering());
 
       this.map.setView(
-        options.latLng || layer.getLatLng(),
-        options.zoom || this.map.options.maxZoom
+        options.latLng ?? layer.getLatLng(),
+        options.zoom ?? this.map.options.maxZoom
       );
     }
 
     if (options.click) {
-      // layer.fire("click");
-      // layer.openPopup();
-
       layer.fire("click");
-
       this.markerClusters.forEach((mc) => mc.enableClustering());
-
-      // mClusters.forEach((mc) => mc?.spiderfy());
     }
     this.markerClusters.forEach((mc) => mc.enableClustering());
-
+    console.log(options.zoom ?? this.map.options.maxZoom);
     return layer;
   }
 
@@ -800,14 +790,12 @@ class LayerFinder {
    * @returns {L.Layer?} stop
    */
   clickStop(stopId, options = {}) {
-    return (
-      this.findLayer(
-        (e) =>
-          e?.feature?.properties?.child_stops
-            ?.map((c) => c.stop_id)
-            ?.includes(stopId) || e?.feature?.id === stopId
-      ),
-      { zoom: 15, ...options }
+    return this.findLayer(
+      (e) =>
+        e?.feature?.properties?.child_stops
+          ?.map((c) => c.stop_id)
+          ?.includes(stopId) || e?.feature?.id === stopId,
+      { zoom: 14, ...options }
     );
   }
 
@@ -819,11 +807,22 @@ class LayerFinder {
    */
   clickRoute(routeId, options = {}) {
     return this.findLayer((e) => e?.feature?.properties?.route_id === routeId, {
-      zoom: this.map.options.minZoom,
+      zoom: this.map.options.minZoom + 2,
       latLng: this.map.getCenter(),
       ...options,
     });
   }
+
+  /**
+   * alias for clickRoute
+   * @param {string} routeId
+   * @param {FindLayerOptions} options
+   * @returns {L.Layer?} shape
+   */
+  clickShape(shapeId, options = {}) {
+    return this.clickRoute(shapeId, options);
+  }
+
   /**
    * fires click event and zooms in on vehicle
    * wrapper for `findLayer`
@@ -834,7 +833,7 @@ class LayerFinder {
   clickVehicle(vehicleId, options = {}) {
     return this.findLayer(
       (e) => e?.feature?.properties?.vehicle_id === vehicleId,
-      { zoom: 15, ...options }
+      { zoom: 14, ...options }
     );
   }
 }
@@ -851,13 +850,13 @@ function getBaseLayerDict(
   darkId = "CartoDB.DarkMatter",
   additionalLayers = {}
 ) {
-  const options = {
-    attribution:
-      "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
-  };
+  // const options = {
+  //   attribution:
+  //     "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
+  // };
   const baseLayers = {
-    light: L.tileLayer.provider(lightId, { id: "lightLayer", ...options }),
-    dark: L.tileLayer.provider(darkId, { id: "darkLayer", ...options }),
+    light: L.tileLayer.provider(lightId, { id: "lightLayer" }),
+    dark: L.tileLayer.provider(darkId, { id: "darkLayer" }),
   };
 
   for (const [key, value] of Object.entries(additionalLayers)) {

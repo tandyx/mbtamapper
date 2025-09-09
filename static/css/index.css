@@ -18,8 +18,9 @@
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
   --blur-radius: 25px;
-  --slight-delay: #d19900;
-  --moderate-delay: var(--subway-color);
+  --on-time: #4caf50;
+  --slight-delay: #d79e00;
+  --moderate-delay: #af6c29;
   --severe-delay: var(--rapid-transit-color);
 
   --vehicle-on-time: none;
@@ -347,11 +348,27 @@ h1 {
 }
 
 .slight-delay {
-  color: #d19900 !important;
+  color: var(--slight-delay) !important;
 }
 
 .on-time {
-  color: #00843d !important;
+  color: var(--on-time) !important;
+}
+
+.severe-delay-bg {
+  background-color: var(--rapid-transit-color) !important;
+}
+
+.moderate-delay-bg {
+  background-color: var(--subway-color) !important;
+}
+
+.slight-delay-bg {
+  background-color: var(--slight-delay) !important;
+}
+
+.on-time-bg {
+  background-color: var(--on-time) !important;
 }
 
 #subway:hover {
@@ -455,6 +472,10 @@ noscript {
   margin-bottom: 5px;
 }
 
+.mt-5 {
+  margin-top: 5px;
+}
+
 .data-table {
   --border: 1px solid var(--text-color);
 
@@ -546,6 +567,29 @@ noscript {
   height: var(--size);
   -webkit-animation: spin 1s linear infinite; /* Safari */
   animation: spin 1s linear infinite;
+}
+
+.train-status-bar {
+  height: 100%;
+  display: flex;
+  height: 24px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  width: 100%;
+  margin-bottom: 10px;
+  font-weight: bold;
+
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-text-color);
+  }
+}
+
+.wh100 {
+  height: 100%;
+  width: 100%;
 }
 
 .centered-parent {
@@ -717,7 +761,7 @@ table.sortable th:hover {
       font-size: 8pt;
     }
     .footer-text-sm {
-      font-size: 6pt;
+      font-size: 5pt;
     }
     .text-left {
       text-align: left !important;

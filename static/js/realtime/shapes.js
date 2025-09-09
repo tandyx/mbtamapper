@@ -91,17 +91,14 @@ class ShapeLayer extends BaseRealtimeLayer {
     });
     return realtime;
   }
-
   /**
-   * text for popup
-   * @param {ShapeProperty} properties from geojson
-   * @returns {HTMLDivElement} - vehicle props
+   * @param {ShapeProperty} properties
+   * @param {boolean} [decreaseMargin = false] - whether to decrease the margin
+   * @returns {string} - HTML for the main body of the layer
    */
-  #getPopupHTML(properties) {
-    const shapeHtml = document.createElement("div");
-    shapeHtml.innerHTML = /* HTML */ `
-      ${this.#getHeaderHTML(properties)}
-      ${super.moreInfoButton(properties.stop_id)}
+  #getMainBodyHTML(properties, decreaseMargin = false) {
+    return /* HTML */ `
+      <div style="${decreaseMargin ? "margin-top: -5px;" : ""}"></div>
       <div>
         ${properties.route_id} @
         <a
@@ -113,9 +110,20 @@ class ShapeLayer extends BaseRealtimeLayer {
         </a>
       </div>
       <div>${properties.agency.agency_phone}</div>
-      <div class="popup_footer">
-        <div>${formatTimestamp(properties.timestamp)}</div>
-      </div>
+    `;
+  }
+
+  /**
+   * text for popup
+   * @param {ShapeProperty} properties from geojson
+   * @returns {HTMLDivElement} - vehicle props
+   */
+  #getPopupHTML(properties) {
+    const shapeHtml = document.createElement("div");
+    shapeHtml.innerHTML = /* HTML */ `
+      ${this.#getHeaderHTML(properties)}
+      ${super.moreInfoButton(properties.stop_id)}
+      ${this.#getMainBodyHTML(properties)} ${this.#getFooterHTML(properties)}
     `;
     return shapeHtml;
   }
@@ -156,6 +164,20 @@ class ShapeLayer extends BaseRealtimeLayer {
       <hr />
     </div>`;
   }
+  /**
+   *
+   * @param {ShapeProperty} properties
+   * @returns
+   */
+  #getFooterHTML(properties) {
+    return /* HTML */ `<div class="popup_footer">
+      <div>
+        Active from ${formatTimestamp(properties.start_date, "%m/%d/%Y")} to
+        ${formatTimestamp(properties.end_date, "%m/%d/%Y")}
+      </div>
+      <div>${formatTimestamp(properties.timestamp, "%Y/%m/%d %I:%M %P")}</div>
+    </div>`;
+  }
 
   /**
    *
@@ -175,24 +197,35 @@ class ShapeLayer extends BaseRealtimeLayer {
       <div class="loader-large"></div>
     </div>`;
 
-    const useSchedule =
-      ["2", "4"].includes(properties.route_type) || properties.listed_route;
-
     /** @type {RouteProperty} */
     const route = (
       await fetchCache(
-        `/api/route?route_id=${properties.route_id}&_=${formatTimestamp(
-          timestamp,
-          "%Y%m%d"
-        )}&include=alerts,predictions${
-          (useSchedule && ",stop_times,trips") || ""
-        }`,
+        `/api/route?route_id=${properties.route_id}&_=${Math.round(
+          timestamp / 15
+        )}&include=alerts,predictions&cache=10`,
         { cache: "force-cache" },
         super.defaultFetchCacheOpt
       )
     ).at(0);
 
-    route.stop_times ||= [];
+    if (["2", "4"].includes(properties.route_type) || properties.listed_route) {
+      /** @type {RouteProperty} */
+      const scheduledRoute = (
+        await fetchCache(
+          `/api/route?route_id=${properties.route_id}&_=${formatTimestamp(
+            timestamp,
+            "%Y%m%d"
+          )}&include=stop_times,trips&cache=86400`,
+          { cache: "force-cache" },
+          super.defaultFetchCacheOpt
+        )
+      ).at(0);
+      route.stop_times = scheduledRoute.stop_times;
+      route.trips = scheduledRoute.trips;
+    } else {
+      route.stop_times = [];
+      route.trips = [];
+    }
 
     const alerts = route.alerts.filter((a) => !a.stop_id);
 
@@ -204,7 +237,7 @@ class ShapeLayer extends BaseRealtimeLayer {
         (a, b) =>
           a.arrival_time - b.arrival_time || a.departure_time - b.departure_time
       )
-      // .filter((p) => (p.arrival_time || p.departure_time) > timestamp)
+      // .filter((p) => (p.arrival_time || p.departure_time))
       .filter((p) => {
         const subpre = route.predictions
           .filter((_p) => _p.trip_id === p.trip_id)
@@ -232,19 +265,9 @@ class ShapeLayer extends BaseRealtimeLayer {
           (st.arrival_timestamp || st.departure_timestamp) > timestamp - 300
       );
 
-    container.innerHTML = /* HTML */ `<div>
+    container.innerHTML = /* HTML */ ` <div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
-      <div style="margin-top: -5px;">
-        ${properties.route_id} @
-        <a
-          href="${properties.agency.agency_url}"
-          rel="noopener"
-          target="_blank"
-        >
-          ${properties.agency.agency_name}
-        </a>
-      </div>
-      <div>${properties.agency.agency_phone}</div>
+      ${this.#getMainBodyHTML(properties, true)}
       <div class="my-5">
         <table class="data-table">
           <thead>
@@ -318,13 +341,13 @@ class ShapeLayer extends BaseRealtimeLayer {
                   <td>${st.destination_label || trip?.trip_headsign}</td>
                   <td>
                     <span
-                      class="tooltip fa"
+                      class="tooltip"
                       data-tooltip="Schduled in ${minuteify(dom - timestamp, [
                         "seconds",
                       ])}"
-                      >${BaseRealtimeLayer.icons.clock}</span
+                      >${st.stop_name} @
+                      ${formatTimestamp(dom, "%I:%M %P")}</span
                     >
-                    ${st.stop_name} @ ${formatTimestamp(dom, "%I:%M %P")}
                   </td>
                 </tr>`;
               })
@@ -332,9 +355,7 @@ class ShapeLayer extends BaseRealtimeLayer {
           </tbody>
         </table>
       </div>
-      <div class="popup_footer">
-        <div>${formatTimestamp(properties.timestamp)}</div>
-      </div>
+      ${this.#getFooterHTML(properties)}
     </div>`;
   }
 }

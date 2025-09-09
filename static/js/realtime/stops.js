@@ -105,9 +105,56 @@ class StopLayer extends BaseRealtimeLayer {
    * @param {StopProperty} properties
    */
   #getHeaderHTML(properties) {
-    const primeRoute = properties.routes
-      .sort((a, b) => a.route_type - b.route_type)
-      ?.at(0);
+    const routeColors = [
+      ...new Set(
+        properties?.routes
+          ?.sort(
+            (a, b) =>
+              a.route_type - b.route_type ||
+              (a.route_name > b.route_name
+                ? 1
+                : b.route_name > a.route_name
+                ? -1
+                : 0)
+          )
+          ?.map((r) => `#${r.route_color}`) || []
+      ),
+    ];
+
+    const routeCSS =
+      routeColors.length > 1
+        ? `
+      color: ${routeColors.at(0)};
+      background-image: linear-gradient(
+        to left,
+        ${routeColors
+          .slice(0, 2)
+          .map((a) => `${a}`)
+          .join(", ")} 75%
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      `
+            .replace(/\s+/g, " ")
+            .trim()
+        : routeColors.length === 1
+        ? `color: ${routeColors.at(0)}`
+        : "color: var(--text-color);";
+    // const routeColor = properties?.routes?.length
+    //   ? `linear-gradient(to left, ${properties.routes
+    //       .slice(0, 2)
+    //       .map((a) => `#${a.route_color}`)
+    //       .join(", ")} 50%)` || "var(--text-color)"
+    //   : "var(--text-color)";
+
+    //       .text-gradient {
+    //  color: #609818;
+    //  background-image: linear-gradient(45deg, #609818 , #48a5c0 50%, #952001 100%);
+    //  background-clip: text;
+    //  -webkit-background-clip: text;
+    //  -webkit-text-fill-color: transparent;
+    // }
 
     return /* HTML */ `<div>
       <div>
@@ -115,7 +162,7 @@ class StopLayer extends BaseRealtimeLayer {
           href="${properties.stop_url}"
           rel="noopener"
           target="_blank"
-          style="color:#${primeRoute?.route_color || "var(--text-color)"}"
+          style="${routeCSS}"
           class="popup_header"
         >
           ${properties.stop_name.replace("/", " / ")}
@@ -149,7 +196,7 @@ class StopLayer extends BaseRealtimeLayer {
   #getFooterHTML(properties) {
     return /* HTML */ ` <div class="popup_footer">
       <p>${properties.stop_id} @ ${properties.stop_address}</p>
-      <p>${formatTimestamp(properties.timestamp)}</p>
+      <p>${formatTimestamp(properties.timestamp, "%Y/%m/%d %I:%M %P")}</p>
     </div>`;
   }
 
@@ -215,7 +262,7 @@ class StopLayer extends BaseRealtimeLayer {
     const stop = await fetchCache(
       `/api/stop?stop_id=${properties.stop_id}&_=${Math.round(
         timestamp / 10
-      )}&include=alerts,predictions`,
+      )}&include=alerts,predictions&cache=5`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );
@@ -240,7 +287,7 @@ class StopLayer extends BaseRealtimeLayer {
                 }&operates_today=True&_=${formatTimestamp(
                   timestamp,
                   "%Y%m%d"
-                )}&include=trip`,
+                )}&include=trip&cache=86400`,
                 { cache: "force-cache" },
                 super.defaultFetchCacheOpt
               )
@@ -263,7 +310,11 @@ class StopLayer extends BaseRealtimeLayer {
           .map((route) => {
             const _predictions = stop
               .flatMap((s) => s.predictions)
-              .filter((p) => p.route_id === route.route_id)
+              .filter(
+                (p) =>
+                  p.route_id === route.route_id &&
+                  (p.arrival_time || p.departure_time)
+              )
               .sort(
                 (a, b) =>
                   a.arrival_time - b.arrival_time ||
@@ -325,16 +376,20 @@ class StopLayer extends BaseRealtimeLayer {
                         </td>
                         <td>
                           <span
-                            class="tooltip fa"
+                            class="tooltip"
                             data-tooltip="${minuteify(dom - timestamp, [
                               "seconds",
                             ]) || "0 min"} away"
-                            >${BaseRealtimeLayer.icons.prediction}</span
                           >
-                          ${formatTimestamp(
-                            pred.arrival_time || pred.departure_time,
-                            "%I:%M %P"
-                          )}
+                            <span class="fa"
+                              >${BaseRealtimeLayer.icons.prediction}</span
+                            >
+                            ${formatTimestamp(
+                              pred.arrival_time || pred.departure_time,
+                              "%I:%M %P"
+                            )}
+                          </span>
+
                           <i class="${getDelayClassName(pred.delay)}"
                             >${getDelayText(pred.delay)}</i
                           >
@@ -371,14 +426,13 @@ class StopLayer extends BaseRealtimeLayer {
                         </td>
                         <td>
                           <span
-                            class="tooltip fa"
+                            class="tooltip"
                             data-tooltip="Scheduled in ${minuteify(
                               dom - timestamp,
                               ["seconds"]
                             )}"
-                            >${BaseRealtimeLayer.icons.clock}</span
+                            >${formatTimestamp(dom, "%I:%M %P")}</span
                           >
-                          ${formatTimestamp(dom, "%I:%M %P")}
                         </td>
                         <td>
                           ${st.destination_label ||

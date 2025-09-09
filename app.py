@@ -17,15 +17,15 @@ import sys
 import threading
 
 import flask
-import gitinfo
+import flask_caching
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import FeedLoader, Query
+from backend import CacheConfigDict, FeedLoader, Query, RouteKeys, get_gitinfo
 
 LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
-    KEY_DICT: dict[str, dict[str, str | list[str]]] = json.load(f)
+    KEY_DICT: RouteKeys = json.load(f)
 FEED_LOADER: FeedLoader = FeedLoader(
     url="https://cdn.mbta.com/MBTA_GTFS.zip",
     geojson_path=os.path.join(os.getcwd(), "static", LAYER_FOLDER),
@@ -39,6 +39,11 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.INFO,
 )
+
+CACHE_CONFIG: CacheConfigDict = {
+    "CACHE_TYPE": "SimpleCache",
+    "CACHE_DEFAULT_TIMEOUT": 300,
+}
 
 
 def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, int]:
@@ -65,7 +70,7 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
     url_dict[_dict_field] = url_dict.get(_dict_field, "/")
     return (
         flask.render_template(
-            "404.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info(), **url_dict
+            "404.html", key_dict=KEY_DICT, git_info=get_gitinfo(), **url_dict
         ),
         404,
     )
@@ -97,6 +102,9 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         `Flask`: app for the key."""
     _app = flask.Flask(__name__)
 
+    _cache = flask_caching.Cache(_app, config=CACHE_CONFIG)
+    _cache.init_app(_app)
+
     @_app.before_request
     def prerequest():
         """Before request function to log the request."""
@@ -126,7 +134,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         return flask.jsonify(key)
 
     @_app.route("/vehicles")
-    @_app.route("/api/vehicle")
+    @_cache.cached(query_string=True)
     def get_vehicles() -> flask.Response:
         """Returns vehicles as geojson in the context of the route type AND \
             flask, exported to /vehicles as an api.
@@ -134,13 +142,19 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         Returns:
             - `Response`: geojson of vehicles.
         """
-        return flask.jsonify(
+
+        params: dict[str, str] = flask.request.args.to_dict()
+        cache_s: int = int(params.pop("cache", 0))
+        json_reply = flask.jsonify(
             FEED_LOADER.get_vehicles_feature(
                 key,
                 Query(*KEY_DICT[key]["route_types"]),
-                *[s.strip() for s in flask.request.args.get("include", "").split(",")],
+                *[s.strip() for s in params.get("include", "").split(",")],
             )
         )
+        if cache_s:
+            return flask_caching.CachedResponse(json_reply, cache_s)
+        return json_reply
 
     @_app.route("/stops")
     def get_stops() -> flask.Response:
@@ -154,7 +168,6 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
     @_app.route("/parking")
     @_app.route("/facilities")
-    @_app.route("/api/parking")
     def get_parking() -> flask.Response:
         """Returns parking as geojson in the context of the route type AND \
             flask, exported to /parking as an api.
@@ -231,7 +244,8 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
-    # register_humanify(_app)
+    _cache = flask_caching.Cache(_app, config=CACHE_CONFIG)
+    _cache.init_app(_app)
 
     with _app.app_context():  # background thread to run update
         thread = threading.Thread(
@@ -256,10 +270,8 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         returns:
             - `str`: index.html.
         """
-        print("git info:", gitinfo.get_git_info())
-
         return flask.render_template(
-            "index.html", key_dict=KEY_DICT, git_info=gitinfo.get_git_info()
+            "index.html", key_dict=KEY_DICT, git_info=get_gitinfo()
         )
 
     @_app.route("/key_dict")
@@ -302,6 +314,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         return _app.send_static_file("config/sitemap.xml")
 
     @_app.route("/api/<orm_name>")
+    @_cache.cached(query_string=True)
     def orm_api(orm_name: str) -> tuple[str | flask.Response, int] | flask.Response:
         """Returns the ORM for a given key.
 
@@ -313,10 +326,11 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
         if not (orm := FeedLoader.find_orm(orm_name.strip().rstrip("s"))):
             return flask.jsonify({"error": f"{orm_name} not found."}), 400
-        params = flask.request.args.to_dict()
-        include = params.pop("include", "").split(",")
+        params: dict[str, str] = flask.request.args.to_dict()
+        include: list[str] = params.pop("include", "").split(",")
+        cache_s: int = int(params.pop("cache", 0))
         params.pop("_", "")
-        geojson = (
+        geojson: bool = (
             bool(params.pop("geojson", False))  # this will be removed in the future
             or params.pop("file_type", "").lower() == "geojson"
         )
@@ -331,6 +345,8 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             return flask.jsonify({"error": "?", f"{orm_name} args": orm.cols}), 400
         if data is None:
             return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
+        if cache_s:
+            return flask_caching.CachedResponse(flask.jsonify(data), cache_s)
         return flask.jsonify(data)
 
     @_app.errorhandler(404)
@@ -427,6 +443,9 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(getattr(logging, args.log_level.upper()))
+
+    CACHE_CONFIG["DEBUG"] = True
+
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):

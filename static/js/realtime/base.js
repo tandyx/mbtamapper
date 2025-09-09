@@ -30,6 +30,7 @@ const _icons = {
 class BaseRealtimeLayer {
   static sideBarMainId = "sidebar-main";
   static sideBarOtherId = "sidebar-other";
+  static sideBarHeaderId = "sidebar-header";
 
   /** @type {StopProperty["stop_id"][]} - array of (starting) stop ids where we want to consider to label commuter rail tracks on certain tables */
   static starStations = [
@@ -458,25 +459,33 @@ class BaseRealtimeLayer {
    */
   static toggleSidebarDisplay(id) {
     const main = document.getElementById(this.sideBarMainId);
+    const header = document.getElementById(this.sideBarHeaderId);
     const other = document.getElementById(this.sideBarOtherId);
     // use hidden class
     if (id === this.sideBarMainId) {
       main.classList.remove("hidden");
+
+      header.classList.remove("hidden");
       other.classList.add("hidden");
       return main;
     }
     if (id === this.sideBarOtherId) {
       other.classList.remove("hidden");
+
       main.classList.add("hidden");
+      header.classList.add("hidden");
       return other;
     }
     if (main.classList.contains("hidden")) {
       main.classList.remove("hidden");
+      header.classList.remove("hidden");
+
       other.classList.add("hidden");
       return main;
     }
     other.classList.remove("hidden");
     main.classList.add("hidden");
+    header.classList.add("hidden");
     return other;
   }
 }
