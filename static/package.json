@@ -7,7 +7,7 @@
     "leaflet-realtime": "^2.2.0",
     "leaflet-search": "^4.0.0",
     "leaflet-sidebar": "^0.2.4",
-    "leaflet.locatecontrol": "^0.84.2",
+    "leaflet.locatecontrol": "^0.85.1",
     "leaflet.markercluster": "^1.5.3",
     "leaflet.markercluster.freezable": "^1.0.0",
     "sorttable": "^1.0.2",
@@ -17,9 +17,9 @@
     "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
   },
   "devDependencies": {
-    "@types/leaflet-providers": "^1.2.4",
-    "@types/leaflet.locatecontrol": "^0.82.0",
-    "@types/leaflet.markercluster": "^1.5.5",
+    "@types/leaflet-providers": "^1.2.5",
+    "@types/leaflet.locatecontrol": "^0.82.1",
+    "@types/leaflet.markercluster": "^1.5.6",
     "@types/strftime": "^0.9.8",
     "leaflet-realtime-types": "^0.0.3",
     "leaflet-search-types": "^0.0.12"
