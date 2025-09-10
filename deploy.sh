@@ -9,7 +9,7 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
-git checkout master
+# git checkout master
 git pull
 
 apt-get update && apt-get upgrade -y

@@ -100,16 +100,8 @@ class ShapeLayer extends BaseRealtimeLayer {
     return /* HTML */ `
       <div style="${decreaseMargin ? "margin-top: -5px;" : ""}"></div>
       <div>
-        ${properties.route_id} @
-        <a
-          href="${properties.agency.agency_url}"
-          rel="noopener"
-          target="_blank"
-        >
-          ${properties.agency.agency_name}
-        </a>
+        Active as-is until ${formatTimestamp(properties.end_date, "%m/%d/%Y")}
       </div>
-      <div>${properties.agency.agency_phone}</div>
     `;
   }
 
@@ -123,7 +115,9 @@ class ShapeLayer extends BaseRealtimeLayer {
     shapeHtml.innerHTML = /* HTML */ `
       ${this.#getHeaderHTML(properties)}
       ${super.moreInfoButton(properties.stop_id)}
-      ${this.#getMainBodyHTML(properties)} ${this.#getFooterHTML(properties)}
+      ${this.#getMainBodyHTML(properties)}
+      <div style="margin-top: 2px;"></div>
+      ${this.#getFooterHTML(properties)}
     `;
     return shapeHtml;
   }
@@ -172,9 +166,17 @@ class ShapeLayer extends BaseRealtimeLayer {
   #getFooterHTML(properties) {
     return /* HTML */ `<div class="popup_footer">
       <div>
-        Active from ${formatTimestamp(properties.start_date, "%m/%d/%Y")} to
-        ${formatTimestamp(properties.end_date, "%m/%d/%Y")}
+        ${properties.route_id} @
+        <a
+          href="${properties.agency.agency_url}"
+          rel="noopener"
+          target="_blank"
+          style="color:inherit;"
+        >
+          ${properties.agency.agency_name}
+        </a>
       </div>
+
       <div>${formatTimestamp(properties.timestamp, "%Y/%m/%d %I:%M %P")}</div>
     </div>`;
   }
@@ -267,7 +269,7 @@ class ShapeLayer extends BaseRealtimeLayer {
 
     container.innerHTML = /* HTML */ ` <div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
-      ${this.#getMainBodyHTML(properties, true)}
+      ${this.#getMainBodyHTML(properties, Boolean(alerts.length))}
       <div class="my-5">
         <table class="data-table">
           <thead>
