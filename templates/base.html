@@ -71,22 +71,34 @@
     <noscript>This page requires Javascript to be enabled.</noscript>
     {% block scripts %}{% endblock %}
     <script>
+      /**
+       * updates toggle
+       * @param {string | HTMLElement} toggle
+       * @param {Theme} theme
+       * @returns {HTMLElement}
+       */
+      function updateToggle(toggle, theme) {
+        /** @type {HTMLElement?} */
+        toggle =
+          typeof toggle === "string" ? document.getElementById(toggle) : toggle;
+        if (!toggle) return;
+        toggle.innerHTML = theme.unicodeIcon;
+        toggle.dataset.tooltip = `Change to ${
+          Theme.activeTheme == "dark" ? "Light" : "Dark"
+        }`;
+        return toggle;
+      }
+
       window.addEventListener("load", () => {
         const toggle = document.getElementById("modeToggle");
         if (!toggle) return;
-        /**
-         * updates toggle
-         * @param {Theme} theme
-         */
-        const updateToggle = (theme) => {
-          toggle.innerHTML = theme.unicodeIcon;
-          toggle.dataset.tooltip = `Change to ${
-            Theme.activeTheme == "dark" ? "Light" : "Dark"
-          }`;
-        };
-        updateToggle(Theme.fromExisting().set(sessionStorage, onThemeChange));
+        updateToggle(
+          toggle,
+          Theme.fromExisting().set(sessionStorage, onThemeChange)
+        );
         toggle.addEventListener("click", () => {
           updateToggle(
+            toggle,
             Theme.fromExisting().reverse(sessionStorage, onThemeChange)
           );
         });
