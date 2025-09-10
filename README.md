@@ -107,16 +107,10 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
   {
     "child_stops": [
       {
-        "at_street": null,
-        "level_id": null,
         "location_type": "0",
         "municipality": "Sharon",
-        "on_street": null,
         "parent_station": "place-NEC-2108",
-        "platform_code": null,
         "platform_name": "Commuter Rail",
-        "stop_address": null,
-        "stop_code": null,
         "stop_desc": "Sharon - Commuter Rail",
         "stop_id": "NEC-2108",
         "stop_lat": 42.124553,
@@ -128,16 +122,11 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
         "zone_id": "CR-zone-4"
       },
       {
-        "at_street": null,
-        "level_id": null,
         "location_type": "0",
         "municipality": "Sharon",
-        "on_street": null,
         "parent_station": "place-NEC-2108",
         "platform_code": "1",
         "platform_name": "Track 1 (Outbound)",
-        "stop_address": null,
-        "stop_code": null,
         "stop_desc": "Sharon - Commuter Rail - Track 1 (Outbound)",
         "stop_id": "NEC-2108-01",
         "stop_lat": 42.124553,
@@ -149,16 +138,11 @@ this data is already filtered out based on `route_type`; see [`/route_keys.json`
         "zone_id": "CR-zone-4"
       },
       {
-        "at_street": null,
-        "level_id": null,
         "location_type": "0",
         "municipality": "Sharon",
-        "on_street": null,
         "parent_station": "place-NEC-2108",
         "platform_code": "2",
         "platform_name": "Track 2 (Boston)",
-        "stop_address": null,
-        "stop_code": null,
         "stop_desc": "Sharon - Commuter Rail - Track 2 (Boston)",
         "stop_id": "NEC-2108-02",
         "stop_lat": 42.124553,
