@@ -47,7 +47,7 @@ function createHomepageMap(id, routeKeys, htmlContent) {
   }).setView([42.3519, -71.0552], zoom);
 
   map.on("baselayerchange", (event) => {
-    const theme = new Theme(event.name).set(sessionStorage, onThemeChange);
+    const theme = new Theme(event.name).set(localStorage, onThemeChange);
     if (typeof updateToggle === "function") updateToggle("modeToggle", theme);
   });
 

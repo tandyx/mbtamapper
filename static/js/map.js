@@ -35,7 +35,7 @@ window.addEventListener("load", function () {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
-  Theme.fromExisting().set(sessionStorage, onThemeChange);
+  Theme.fromExisting().set(localStorage, onThemeChange);
 
   setInterval(() => {
     document.querySelectorAll("[data-update-timestamp]").forEach((el) => {
@@ -92,7 +92,7 @@ function createMap(id, routeType) {
 
   map.on("zoom", () => sessionStorage.setItem("zoom", map.getZoom()));
   map.on("baselayerchange", (event) => {
-    new Theme(event.name).set(sessionStorage, onThemeChange);
+    new Theme(event.name).set(localStorage, onThemeChange);
   });
   /**SIDEBAR OPS @type {LeafletSidebar?} */
   const sidebar = L.control

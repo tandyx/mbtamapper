@@ -94,12 +94,12 @@
         if (!toggle) return;
         updateToggle(
           toggle,
-          Theme.fromExisting().set(sessionStorage, onThemeChange)
+          Theme.fromExisting().set(localStorage, onThemeChange)
         );
         toggle.addEventListener("click", () => {
           updateToggle(
             toggle,
-            Theme.fromExisting().reverse(sessionStorage, onThemeChange)
+            Theme.fromExisting().reverse(localStorage, onThemeChange)
           );
         });
       });
