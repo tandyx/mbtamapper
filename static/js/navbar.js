@@ -18,8 +18,10 @@ window.addEventListener("load", () => {
   const anchor = toggle.getElementsByTagName("a")[0];
   anchor.text = Theme.unicodeIcon;
   toggle.addEventListener("click", () => {
-    const theme = Theme.fromExisting().reverse(localStorage, onThemeChange);
-    anchor.text = theme.unicodeIcon;
+    anchor.text = Theme.fromExisting().reverse(
+      sessionStorage,
+      onThemeChange
+    ).unicodeIcon;
   });
   window.addEventListener("resize", () => {
     if (window.innerWidth > 768 && menutoggle.checked) menutoggle.click();
