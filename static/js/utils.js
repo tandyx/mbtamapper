@@ -581,8 +581,11 @@ class Theme {
    * @param {Storage?} [storagePriorty=null] pointer to first storage to use default sessionStorage before local.
    */
   static fromExisting(storagePriorty = null) {
-    const pStore = storagePriorty || sessionStorage || localStorage;
-    const secStore = pStore === sessionStorage ? localStorage : sessionStorage;
+    const pStore = storagePriorty || localStorage || sessionStorage;
+    const secStore =
+      JSON.stringify(pStore) === JSON.stringify(sessionStorage)
+        ? localStorage
+        : sessionStorage;
     return new this(
       document.documentElement.dataset.mode ||
         pStore.getItem(this.THEME_STORAGE_KEY) ||
@@ -596,7 +599,9 @@ class Theme {
    * @param {T} theme "dark" or "light"; will throw error if not
    */
   constructor(theme) {
-    if (!["light", "dark"].includes(theme)) throw new Error("only light||dark");
+    if (!["light", "dark"].includes(theme)) {
+      throw new Error("only 'light' or 'dark' allowed");
+    }
     this.theme = theme;
   }
 
