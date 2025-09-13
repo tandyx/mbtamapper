@@ -261,6 +261,9 @@ class Vehicle(Base):
         returns:
             - `str`: headsign
         """
+
+        if self.stop_time:
+            return self.stop_time.destination_label
         if self.trip:
             return self.trip.trip_headsign
         if self.predictions:
