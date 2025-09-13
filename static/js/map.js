@@ -35,7 +35,6 @@ window.addEventListener("load", function () {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
-  Theme.fromExisting().set(localStorage, onThemeChange);
 
   setInterval(() => {
     document.querySelectorAll("[data-update-timestamp]").forEach((el) => {
@@ -53,6 +52,7 @@ window.addEventListener("load", function () {
       layerFinder.clickStop(hash) ||
       layerFinder.clickVehicle(hash);
   }, 500);
+  Theme.fromExisting().set(localStorage, onThemeChange);
 });
 
 /** map factory function for map.html

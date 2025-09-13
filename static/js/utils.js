@@ -424,6 +424,13 @@ function onThemeChange(_theme) {
   if (!cLayer.length) return;
   const elements = cLayer[0].getElementsByTagName("input");
   elements[{ light: 0, dark: 1 }[_theme.theme]]?.click();
+  const navAToggle = [
+    ...document.getElementById("modeToggle")?.getElementsByTagName("A"),
+  ]?.at(0);
+
+  if (navAToggle && navAToggle.text !== _theme.unicodeIcon) {
+    navAToggle.text = _theme.unicodeIcon;
+  }
 }
 
 /**
