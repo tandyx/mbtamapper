@@ -23,7 +23,7 @@
 "use strict";
 
 /**
- *
+ * creates the background map for the homepage and 404 page.
  * @param {string | HTMLElement} id
  * @param {RouteKeys} routeKeys
  * @param {string} htmlContent
@@ -38,7 +38,7 @@ function createHomepageMap(id, routeKeys, htmlContent) {
   const keys = Object.keys(routeKeys);
 
   const routeType = keys[Math.floor(Math.random() * keys.length)];
-  const zoom = routeType == "commuter_rail" ? 11 : 13;
+  const zoom = routeType === "commuter_rail" ? 11 : 13;
 
   const map = L.map("map", {
     zoomControl: false,
@@ -85,6 +85,9 @@ function createHomepageMap(id, routeKeys, htmlContent) {
   return map;
 }
 
+/**
+ * we want to include these corners
+ */
 L.Map.include({
   _initControlPos: function () {
     const corners = (this._controlCorners = {});
@@ -115,6 +118,7 @@ L.Map.include({
 
 L.Control.textbox = L.Control.extend({
   /**
+   * executes on add. draws this.options.htmlText
    *
    * @param {L.Map} map
    * @param {string} htmlText
@@ -127,7 +131,7 @@ L.Control.textbox = L.Control.extend({
   },
 
   /**
-   *
+   * executes on remove.
    * @param {L.Map} map
    */
   onRemove: function (map) {
@@ -136,7 +140,7 @@ L.Control.textbox = L.Control.extend({
 });
 
 /**
- *
+ * custom element - html textbox
  * @param {L.ControlOptions & {htmlText: string}} options
  * @returns
  */

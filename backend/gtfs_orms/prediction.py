@@ -26,7 +26,7 @@ class Prediction(Base):
     this is better known as a TripUpdate,\
         but i called it prediction way back then and never changed it :P
         
-    `source`: https://cdn.mbta.com/realtime/TripUpdates.pb
+    `source: https://cdn.mbta.com/realtime/TripUpdates.pb
     
     https://github.com/google/transit/blob/master/gtfs-realtime/spec/en/reference.md#message-tripupdate
 
@@ -106,7 +106,7 @@ class Prediction(Base):
         """Implements less than operator.
 
         Returns:
-            - `bool`: whether the object is less than the other
+            bool: whether the object is less than the other
         """
         self._raise_for_compare(other)
         if self.trip_id == other.trip_id:
@@ -117,7 +117,7 @@ class Prediction(Base):
         """Implements equality operator.
 
         Returns:
-            - `bool`: whether the objects are equal
+            bool: whether the objects are equal
         """
         if not isinstance(other, self.__class__):
             raise NotImplementedError(
@@ -132,7 +132,7 @@ class Prediction(Base):
         """Returns the delay of the prediction.
 
         Returns:
-            - `int`: the delay of the prediction
+            int: the delay of the prediction
         """
         delay = 0
         if not self.stop_time:
@@ -149,7 +149,7 @@ class Prediction(Base):
         """Returns the headsign of the prediction.
 
         Returns:
-            - `str`: the headsign of the prediction
+            str: the headsign of the prediction
         """
         if self.stop_time:
             return self.stop_time.destination_label
@@ -163,9 +163,10 @@ class Prediction(Base):
             overrides `as_json` in `Base`.
         
         args:
-            - `*include`: A list of properties to include in the dictionary.
-            - `**kwargs`: unused\n
+            include: A list of properties to include in the dictionary.
+            kwargs: unused
+
         Returns:
-            - `dict[str, Any]`: `Prediction` as a dictionary.
+            dict[str, Any]: `Prediction` as a dictionary.
         """
         return super().as_json(*include, **kwargs) | {"headsign": self.get_headsign()}

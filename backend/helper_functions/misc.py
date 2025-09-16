@@ -10,8 +10,7 @@ from .types import GitInfo
 def get_gitinfo() -> GitInfo:
     """Get git information about the current repository
 
-    returns:
-
+    Returns:
         GitInfo: A dictionary containing git information
     """
 

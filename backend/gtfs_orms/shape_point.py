@@ -42,7 +42,7 @@ class ShapePoint(Base):
         """Returns a shapely Point object of the shape point
 
         returns:
-            - `Point`: A shapely Point object.
+            Point: A shapely Point object.
         """
         return Point(self.shape_pt_lon, self.shape_pt_lat)
 
@@ -50,9 +50,9 @@ class ShapePoint(Base):
         """Returns shape point object as a feature.
 
         Args:
-            - `*include`: A list of properties to include in the feature object.\n
+            include: A list of properties to include in the feature object.\n
         Returns:
-            - `Feature`: A GeoJSON feature object.
+            Feature: A GeoJSON feature object.
         """
 
         return Feature(

@@ -18,10 +18,10 @@ class FeedLoader(Scheduler, Feed):
         and schedules jobs to import realtime data.
 
     Args:
-        - `url (str)`: URL of GTFS feed
-        - `geojson_path (str)`: Path to save geojsons
-        - `keys_dict (dict[str, list[str]])`: Dictionary of keys to load
-        - `**kwargs`: Keyword arguments to pass to `Feed`, such as `gtfs_name`
+        url (str): URL of GTFS feed
+        geojson_path (str): Path to save geojsons
+        keys_dict (dict[str, list[str]]): Dictionary of keys to load
+        kwargs: Keyword arguments to pass to `Feed`, such as `gtfs_name`
     """
 
     @property
@@ -44,10 +44,10 @@ class FeedLoader(Scheduler, Feed):
         """Initializes FeedLoader.
 
         Args:
-            - `url (str)`: URL of GTFS feed.
-            - `geojson_path (str)`: Path to save geojsons.
-            - `keys_dict (dict[str, list[str]])`: Dictionary of keys to load.
-            - `**kwargs`: Keyword arguments to pass to `Feed`, such as `gtfs_name`.
+            url (str): URL of GTFS feed.
+            geojson_path (str): Path to save geojsons.
+            keys_dict (dict[str, list[str]]): Dictionary of keys to load.
+            kwargs: Keyword arguments to pass to `Feed`, such as `gtfs_name`.
         """
         Scheduler.__init__(self)
         Feed.__init__(self, url, **kwargs)
@@ -60,7 +60,7 @@ class FeedLoader(Scheduler, Feed):
         """Runs the nightly import.
 
         args:
-            - `**kwargs`: keyword arguments to pass to `import_gtfs`.\n
+            kwargs: keyword arguments to pass to `import_gtfs`.\n
         """
         self.import_gtfs(chunksize=100000, dtype=object, **kwargs)
         for orm in self.__class__.REALTIME_ORMS:
@@ -79,10 +79,10 @@ class FeedLoader(Scheduler, Feed):
         """this is the main entrypoint for the application.
 
         Args:
-            - `import_data (bool, optional)`: reloads the database and geojsons.\
+            import_data (bool, optional): reloads the database and geojsons.\
                 Defaults to False.
-            - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
-            - `**kwargs`: Keyword arguments to pass to `nightly import`.
+            timezone (str, optional): Timezone. Defaults to "America/New_York".
+            kwargs: Keyword arguments to pass to `nightly import`.
         """
 
         if import_data or not self.db_exists:
@@ -101,7 +101,7 @@ class FeedLoader(Scheduler, Feed):
         """Schedules jobs.
 
         Args:
-            - `timezone (str, optional)`: Timezone. Defaults to "America/New_York".
+            timezone (str, optional): Timezone. Defaults to "America/New_York".
         """
 
         def threader(func: t.Callable, *args, join: bool = False, **kwargs) -> None:
@@ -109,9 +109,9 @@ class FeedLoader(Scheduler, Feed):
 
             Args:
                 func (Callable): Function to thread.
-                *args: Arguments for func.
+                args: Arguments for func.
                 join (bool, optional): Whether to join thread. Defaults to True.
-                **kwargs: Keyword arguments for func.
+                kwargs: Keyword arguments for func.
             """
 
             job_thread = Thread(target=func, args=args, kwargs=kwargs)
@@ -133,8 +133,8 @@ class FeedLoader(Scheduler, Feed):
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.
 
-        args:
-            - `full (bool, optional)`: Whether to close db connection. Defaults to False.
+        Args:
+            full (bool, optional): Whether to close db connection. Defaults to False.
         """
         self.clear()
         if full:

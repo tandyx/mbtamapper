@@ -31,7 +31,7 @@ class Stop(Base):
     Stop(...).parent_stop -> Stop(...).child_stops
 
     TODO:
-        - `Stop(...).get_routes()` is very slow
+        Stop(...).get_routes()` is very slow
 
     https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#stop_timestxt
 
@@ -146,16 +146,16 @@ class Stop(Base):
     def as_point(self) -> Point:
         """Returns a shapely Point object of the stop
 
-        returns:
-            - `Point`: A shapely Point object of the stop
+        Returns:
+            Point: A shapely Point object of the stop
         """
         return Point(self.stop_lon, self.stop_lat)
 
     def get_routes(self) -> t.Generator["Route", None, None]:
         """yields a list of routes that stop @ this stop & children
 
-        yields:
-            - `Route`: A ***set*** of routes that stop at this stop
+        Yields:
+            Route: A ***set*** of routes that stop at this stop
         """
         if self.location_type == "1":
             yield from {r for cs in self.child_stops for r in cs.routes}
@@ -165,8 +165,8 @@ class Stop(Base):
     def get_stop_times(self) -> t.Generator["StopTime", None, None]:
         """yields a list of `StopTime` objects for this stop || children
 
-        yields:
-            - `StopTime`: stop times for this stop
+        Yields:
+            StopTime: stop times for this stop
         """
         if self.location_type == "1":
             yield from (st for cs in self.child_stops for st in cs.stop_times)
@@ -176,8 +176,8 @@ class Stop(Base):
     def get_alerts(self) -> t.Generator["Alert", None, None]:
         """yields a list of `Alert` objects for this stop & children
 
-        yields:
-            - `Alert`: A set of alerts for this stop
+        Yields:
+            Alert: A set of alerts for this stop
         """
         yield from self.alerts
         yield from (a for cs in self.child_stops for a in cs.alerts)
@@ -186,8 +186,8 @@ class Stop(Base):
         """yields a list of `Prediction` objects\
             for this stop and its children
         
-        yields:
-            - `Prediction`: predictions for this stop"""
+        Yields:
+            Prediction: predictions for this stop"""
         if self.location_type == "1":
             yield from (p for cs in self.child_stops for p in cs.predictions)
         else:
@@ -197,11 +197,11 @@ class Stop(Base):
     def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """returns `Stop(...)` as a json serializable object:
 
-        args:
-            - `*include`: other orms/attars to include
-            - `*kwargs`: unused \n
-        returns:
-            - `dict[str, Any]`: json object of stop
+        Args:
+            include: other orms/attars to include
+            kwargs: unused \n
+        Returns:
+            dict[str, Any]: json object of stop
         """
         json_dict = super().as_json(*include, **kwargs)
         if "alerts" in include:
@@ -218,9 +218,9 @@ class Stop(Base):
         """Returns stop object as a feature.
 
         Args:
-            - `*include`: A list of properties to include in the feature object.\n
+            *include: A list of properties to include in the feature object.\n
         Returns:
-            - `Feature`: A GeoJSON feature object.
+            Feature: A GeoJSON feature object.
         """
         return Feature(
             id=self.stop_id,
