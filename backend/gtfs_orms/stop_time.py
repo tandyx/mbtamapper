@@ -94,7 +94,7 @@ class StopTime(Base):
         """Implements less than operator.
 
         Returns:
-            - `bool`: whether the object is less than the other
+            - bool: whether the object is less than the other
         """
         self._raise_for_compare(other)
         if not self.trip_id == other.trip_id:
@@ -104,8 +104,8 @@ class StopTime(Base):
     def is_flag_stop(self) -> bool:
         """Returns true if this StopTime is a flag stop
 
-        returns:
-            - `bool`: whether the stop is a flag stop
+        Returns:
+            - bool: whether the stop is a flag stop
         """
         return self.trip.route.route_type == "2" and (
             self.pickup_type == "3" or self.drop_off_type == "3"
@@ -114,8 +114,8 @@ class StopTime(Base):
     def is_early_departure(self) -> bool:
         """Returns true if this StopTime is an early departure stop
 
-        returns:
-            - `bool`: whether the stop is an early departure stop
+        Returns:
+            - bool: whether the stop is an early departure stop
         """
         return (
             self.trip.route.route_type == "2"
@@ -126,10 +126,10 @@ class StopTime(Base):
     def is_active(self, _date: dt.datetime | None = None, **kwargs) -> bool:
         """Returns true if this StopTime is active on the given date and time
 
-        args:
+        Args:
             date (datetime = None): the date to check <- defaults to the current date
             kwargs: additional arguments passed to `get_date` \n
-        returns:
+        Returns:
             bool: whether the stop is active on the given date and time
         """
 
@@ -140,10 +140,10 @@ class StopTime(Base):
     def operates_on(self, _date: dt.datetime | None = None, **kwargs) -> bool:
         """Returns true if this StopTime is active on the given date
 
-        args:
+        Args:
             date (datetime = None): the date to check <- defaults to the current date
             kwargs: additional arguments passed to `get_date` \n
-        returns:
+        Returns:
             bool: whether the stop is active on the given date and time
         """
 
@@ -162,8 +162,8 @@ class StopTime(Base):
     def is_destination(self) -> bool:
         """Returns true if this StopTime is the last stop in the trip
 
-        returns:
-            - `bool`: whether the stop is the last stop in the trip
+        Returns:
+            - bool: whether the stop is the last stop in the trip
         """
         return self.stop == self.trip.destination
 
@@ -171,8 +171,8 @@ class StopTime(Base):
     def _as_json_dict(self) -> dict[str, t.Any]:
         """Returns a dict representation of the object
 
-        returns:
-            - `dict`: the object as a dictionary
+        Returns:
+            - dict: the object as a dictionary
         """
         return super()._as_json_dict() | {
             "flag_stop": self.is_flag_stop(),

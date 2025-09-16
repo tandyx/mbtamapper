@@ -18,7 +18,7 @@ class Query:
     Called with `Query(r1, r2, ...)`
 
     Args:
-        - `*route_types (str)`: list of route_types to query
+        route_types (str): list of route_types to query
     """
 
     @classproperty
@@ -27,7 +27,7 @@ class Query:
         Returns a query for ferry parking.
 
         Returns:
-            - `Select[tuple[Base]]`: A query for ferry parking.
+            Select[tuple[Base]]: A query for ferry parking.
         """
         return (
             select(Facility)
@@ -42,10 +42,10 @@ class Query:
         Returns a generic select query for tables.
 
         Args:
-            - `*orms`: tables to query
-            - `**kwargs`: kwargs for select\n
+            orms: tables to query
+            kwargs: kwargs for select\n
         Returns:
-            - `Select[tuple[Base]]`: A generic select query for tables.
+            Select[tuple[Base]]: A generic select query for tables.
         """
         return select(*orms, **kwargs)
 
@@ -54,10 +54,10 @@ class Query:
         """
         Returns a generic delete query for a table.
 
-        args:
-            - `orm (Base)`: table to query\n
+        Args:
+            orm (Base): table to query\n
         Returns:
-            - `Delete`: A generic delete query for a table.
+            Delete: A generic delete query for a table.
         """
         return delete(orm)
 
@@ -66,10 +66,10 @@ class Query:
         """
         Returns a generic update query for a table.
 
-        args:
-            - `orm (Base)`: table to query\n
+        Args:
+            orm (Base): table to query\n
         returns:
-            - `Update`: A generic update query for a table.
+            Update: A generic update query for a table.
         """
         return update(orm)
 
@@ -81,12 +81,12 @@ class Query:
         Returns a query for active calendars on a date.
 
         Args:
-            - `date (datetime)`: date to query
-            - `specific (bool, optional)`: whether to query for specific date. \
+            date (datetime): date to query
+            specific (bool, optional): whether to query for specific date. \
                 Defaults to False (query for week)
-            - `days_ahead (int, optional)`: number of days ahead to query. Defaults to 7.\n
+            days_ahead (int, optional): number of days ahead to query. Defaults to 7.\n
         Returns:
-            - `Select[tuple[Base]]`: A query for active calendars on a date.
+            Select[tuple[Base]]: A query for active calendars on a date.
         """
         if specific:
             return (
@@ -160,10 +160,10 @@ class Query:
         Returns a query to delete calendars.
 
         Args:
-            - `*args`: args for get_active_calendars_query
-            - `**kwargs`: kwargs for get_active_calendars_query \n
+            *Args: args for get_active_calendars_query
+            **kwArgs: kwargs for get_active_calendars_query \n
         Returns:
-            - `Delete`: A query to delete calendars.
+            Delete: A query to delete calendars.
         """
 
         return delete(Calendar).where(
@@ -181,9 +181,9 @@ class Query:
         """Returns a query to delete facilities.
 
         Args:
-            - `*exclude (str)`: list of facility types to exclude.
+            *exclude (str): list of facility types to exclude.
         Returns:
-            - `Select[tuple[Base]]`: A query to delete facilities.
+            Select[tuple[Base]]: A query to delete facilities.
         """
 
         return delete(Facility).where(
@@ -199,9 +199,9 @@ class Query:
         """Returns a query for shapes.
 
         Args:
-            - `*routes (str)`: list of routes to query. Defaults to None.\n
+            *routes (str): list of routes to query. Defaults to None.\n
         Returns:
-            - `Select[tuple[Base]]`: A query for shapes.
+            Select[tuple[Base]]: A query for shapes.
         """
         base_query = (
             select(Shape)
@@ -217,9 +217,9 @@ class Query:
         """Returns a query for linked dataset.
 
         Args:
-            - `realtime_name (str)`: realtime name\n
+            realtime_name (str): realtime name\n
         Returns:
-            - `Select[tuple[Base]]`: A query for linked dataset."""
+            Select[tuple[Base]]: A query for linked dataset."""
         return select(LinkedDataset).where(getattr(LinkedDataset, realtime_name))
 
     @staticmethod
@@ -229,9 +229,9 @@ class Query:
         """Returns a query for an item by id.
 
         Args:
-            - `orm (t.Type[Base])`: table to query \n
+            orm (t.Type[Base]): table to query \n
         Returns:
-            - `Select[tuple[Base]]`: A query for an item by id.
+            Select[tuple[Base]]: A query for an item by id.
         """
         return select(orm).where(getattr(orm, param) == param_value)
 
@@ -239,7 +239,7 @@ class Query:
         """Initializes Query, called with Query(r1, r2, ...)
 
         Args:
-            - `*route_types (str)`: list of route_types to query
+            *route_types (str): list of route_types to query
         """
         self.route_types = route_types
         self.trip_query = self._get_trips_query()
@@ -255,7 +255,7 @@ class Query:
         """Returns a query for trips.
 
         Returns:
-            - `Select[tuple[Base]]`: A query for trips."""
+            Select[tuple[Base]]: A query for trips."""
         return (
             select(Trip)
             .distinct()
@@ -278,7 +278,7 @@ class Query:
         """Returns a query for parent stops.
 
         Returns:
-            - `Select[tuple[Base]]`: A query for parent stops.
+            Select[tuple[Base]]: A query for parent stops.
         """
 
         parent = aliased(Stop)
@@ -295,7 +295,7 @@ class Query:
         """Returns a query for shapes.
 
         Returns:
-            - `Select[tuple[Base]]`: A query for shapes."""
+            Select[tuple[Base]]: A query for shapes."""
         return (
             select(Shape)
             .distinct()
@@ -307,7 +307,7 @@ class Query:
         """Returns a query for routes.
 
         Returns:
-            - `Select[tuple[Base]]`: A query for routes."""
+            Select[tuple[Base]]: A query for routes."""
 
         return (
             select(Route)
@@ -319,10 +319,10 @@ class Query:
         """Returns a query for vehicles.
 
         Args:
-            - `*add_routes (str, optional)`: list of routes to add to query for vehicles. \
+            *add_routes (str, optional): list of routes to add to query for vehicles. \
                 Defaults to `None`. \n
         Returns:
-            - `Select[tuple[Base]]`: A query for vehicles.
+            Select[tuple[Base]]: A query for vehicles.
         """
 
         return (
@@ -344,9 +344,9 @@ class Query:
         """Returns a query for parking facilities.
 
         Args:
-            - `*types (str)`: list of facility types, \n
+            *types (str): list of facility types, \n
         Returns:
-            - `Select[tuple[Base]]`: A query for parking facilities.
+            Select[tuple[Base]]: A query for parking facilities.
         """
         return (
             select(Facility)

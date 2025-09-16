@@ -56,7 +56,7 @@ class Facility(Base):
         """Returns a shapely Point object of the facility
 
         Returns:
-            - `Point`: shapely Point object of the facility
+            Point: shapely Point object of the facility
         """
         if not self.facility_lon or not self.facility_lat:
             return self.stop.as_point()
@@ -68,10 +68,10 @@ class Facility(Base):
             same as `as_dict` but with the facility properties included.
         
         args:
-            - `*include`: A list of properties to include in the dictionary.
-            - `**kwargs`: unused\n
+            include: A list of properties to include in the dictionary.
+            kwargs: unused\n
         Returns:
-            - `dict[str, Any]`: facility as a dictionary.\n
+            dict[str, Any]: facility as a dictionary.\n
         """
 
         return super().as_json(*include, **kwargs) | {
@@ -82,9 +82,9 @@ class Facility(Base):
         """Returns facility object as a feature.
 
         args:
-            - `*include`: A list of properties to include in the feature object.\n
+            include: A list of properties to include in the feature object.\n
         Returns:
-            - `Feature`: facility as a feature.\n
+            Feature: facility as a feature.\n
         """
 
         if (
