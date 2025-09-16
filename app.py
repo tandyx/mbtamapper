@@ -3,7 +3,7 @@
 """Main file for the project. Run this to start the backend of the project. \\ 
     User must produce the WSGI application using the create_default_app function.
     
-see https://github.com/johan-cho/mbtamapper?tab=readme-ov-file#running
+see https://github.com/tandyx/mbtamapper?tab=readme-ov-file#running
 
 johan cho | 2023-2025
 
@@ -51,9 +51,10 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
         context of a 404 error.
 
     Args:
-        - `error (Exception)`: Error to log. \n
+        error (Exception): Error to log.
+        
     Returns:
-        - `tuple[str, int]`: 404.html and 404 status code.
+        tuple[str, int]: 404.html and 404 status code.
     """
     if error:
         logging.error(error)
@@ -76,30 +77,14 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
     )
 
 
-# def register_humanify(_app: flask.Flask, **kwargs) -> Humanify:
-#     """registers humanify to the specified app
-
-#     Args:
-#         app (flask.Flask): pointer to the flask app.
-#         kwargs: extra args to Humanify class
-
-#     Returns:
-#         Humanify: the registered object
-#     """
-
-#     humanify = Humanify(_app, challenge_type="one_click")
-#     humanify.register_middleware(action="challenge", **kwargs)
-#     return humanify
-
-
 def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     """Create app for a given key
 
     Args:
-        `key (str)`: Key for the app. Defaults to None.
-        `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
+        `key (str): Key for the app. Defaults to None.
+        `proxies (int, optional): Number of proxies to allow on connection, default 10. \n
     Returns:
-        `Flask`: app for the key."""
+        `Flask: app for the key."""
     _app = flask.Flask(__name__)
 
     _cache = flask_caching.Cache(_app, config=CACHE_CONFIG)
@@ -119,8 +104,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     def render_map() -> str:
         """Returns map.html.
 
-        returns:
-            - `str`: map.html"""
+        Returns:
+            str: map.html"""
 
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
@@ -128,8 +113,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     def get_key() -> flask.Response:
         """Returns key.json.
 
-        returns:
-            - `Response`: the route key
+        Returns:
+            Response: the route key
         """
         return flask.jsonify(key)
 
@@ -140,7 +125,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             flask, exported to /vehicles as an api.
             
         Returns:
-            - `Response`: geojson of vehicles.
+            Response: geojson of vehicles.
         """
 
         params: dict[str, str] = flask.request.args.to_dict()
@@ -161,8 +146,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """Returns stops as geojson in the context of the route type AND \
             flask, exported to /stops as an api.
             
-        returns:
-            - `Response`: geojson of stops.
+        Returns:
+            Response: geojson of stops.
         """
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}")
 
@@ -172,8 +157,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """Returns parking as geojson in the context of the route type AND \
             flask, exported to /parking as an api.
             
-        returns:
-            - `Response`: geojson of parking.
+        Returns:
+            Response: geojson of parking.
         """
 
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}")
@@ -184,8 +169,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """Returns routes as geojson in the context of the route type AND \
             flask, exported to /routes as an api.
             
-        returns:
-            - `Response`: geojson of routes.
+        Returns:
+            Response: geojson of routes.
         """
 
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}")
@@ -194,8 +179,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
     def favicon() -> flask.Response:
         """Returns favicon.ico.
 
-        returns:
-            - `Response`: favicon.ico.
+        Returns:
+            Response: favicon.ico.
         """
         return _app.send_static_file("img/all_routes.ico")
 
@@ -204,7 +189,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """Tears down database session.
 
         Args:
-            - `exception (Exception, optional)`: Exception to log. Defaults to None.
+            exception (Exception, optional): Exception to log. Defaults to None.
         """
         FEED_LOADER.scoped_session.remove()
         if exception:
@@ -215,9 +200,10 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """Returns 404.html.
 
         Args:
-            - `error (Exception)`: Error to log.
+            error (Exception): Error to log.
+
         Returns:
-            - `str`: 404.html.
+            str: 404.html.
         """
         return _error404(_app, error)
 
@@ -235,11 +221,12 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     """Creates the default Flask object
 
-    args:
-        - `import_data (bool, optional)`: Whether to import data. Defaults to False.
-        - `proxies (int, optional)`: Number of proxies to allow on connection, default 10. \n
-    returns:
-        - `Flask`: default app.
+    Args:
+        import_data (bool, optional): Whether to import data. Defaults to False.
+        proxies (int, optional): Number of proxies to allow on connection, default 10.
+
+    Returns:
+        Flask: default app.
     """
 
     _app = flask.Flask(__name__)
@@ -267,8 +254,8 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     def index():
         """Returns index.html.
 
-        returns:
-            - `str`: index.html.
+        Returns:
+            str: index.html.
         """
         return flask.render_template(
             "index.html", key_dict=KEY_DICT, git_info=get_gitinfo()
@@ -289,7 +276,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         """Tears down database session.
 
         Args:
-            - `exception (Exception, optional)`: Exception to log. Defaults to None.
+            exception (Exception, optional): Exception to log. Defaults to None.
         """
         FEED_LOADER.scoped_session.remove()
         if exception:
@@ -300,7 +287,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         """returns favicon.ico
 
         returns:
-            - `Response`: favicon.ico.
+            Response: favicon.ico.
         """
         return _app.send_static_file("img/all_routes.ico")
 
@@ -308,8 +295,8 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     def sitemap() -> flask.Response:
         """returns sitemap.xml
 
-        returns:
-            - `Response`: favicon.ico.
+        Returns:
+            Response: favicon.ico.
         """
         return _app.send_static_file("config/sitemap.xml")
 
@@ -319,9 +306,10 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         """Returns the ORM for a given key.
 
         Args:
-            - `orm (str)`: ORM to return.\n
+            orm (str): ORM to return.
+
         Returns:
-            - `str`: ORM for the key.
+            str: ORM for the key.
         """
 
         if not (orm := FeedLoader.find_orm(orm_name.strip().rstrip("s"))):
@@ -354,9 +342,10 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         """Returns 404.html.
 
         Args:
-            - `error (Exception)`: Error to log.\n
+            error (Exception): Error to log.
+
         Returns:
-            - `str`: 404.html.
+            str: 404.html.
         """
         return _error404(_app, error)
 
@@ -371,12 +360,13 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 def get_args(**kwargs) -> argparse.ArgumentParser:
     """Add arguments to the parser.
 
-    args:
-        - `**kwargs`: key value pairs of arguments to add to the parser.
+    Args:
+        kwargs: key value pairs of arguments to add to the parser.
             The key is the argument name and the value
-            is a dictionary of arguments to pass to `add_argument`.\n
-    returns:
-        - `argparse.ArgumentParser`: parser with added arguments.
+            is a dictionary of arguments to pass to `add_argument`.
+
+    Returns:
+        argparse.ArgumentParser: parser with added arguments.
     """
 
     _argparse = argparse.ArgumentParser(description="Run the MBTA GTFS API server.")

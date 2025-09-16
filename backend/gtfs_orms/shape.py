@@ -40,10 +40,10 @@ class Shape(Base):
     def as_linestring(self, use_cache=False) -> LineString:
         """Return a shapely `LineString` object of the shape
 
-        args:
+        Args:
             use_cache (boolean): use a cache to return this linestring default False
 
-        returns:
+        Returns:
             LineString: A shapely LineString object.
         """
 
@@ -61,10 +61,10 @@ class Shape(Base):
     def as_feature(self, *include: str) -> Feature:
         """Returns shape object as a feature.
 
-        args:
-            - `*include`: A list of properties to include in the feature object.\n
+        Args:
+            include: A list of properties to include in the feature object.\n
         Returns:
-            - `Feature`: A GeoJSON feature object.
+            Feature: A GeoJSON feature object.
         """
 
         return Feature(
@@ -81,11 +81,11 @@ class Shape(Base):
     def as_json(self, *include, **kwargs) -> dict[str, t.Any]:
         """Returns shape object as a dictionary.
 
-        args:
-            - `*include`: A list of properties to include in the dictionary.
-            - `**kwargs`: unused\n
+        Args:
+            include: A list of properties to include in the dictionary.
+            kwargs: unused\n
         Returns:
-            - `dict[str, Any]`: shape as a dictionary.\n
+            dict[str, Any]: shape as a dictionary.\n
         """
 
         return super().as_json(*include, **kwargs) | self.trips[0].route.as_json(

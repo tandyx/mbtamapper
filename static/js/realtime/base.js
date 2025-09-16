@@ -379,17 +379,17 @@ class BaseRealtimeLayer {
   static specialStopKeyHTML(attrs) {
     const _html = /* HTML */ `<div class="special-stoptime-key">
       <div>
-        <span class="flag_stop">Flag Stop <i>f</i></span> - Must be visible on
-        platform & alert conductor to leave.
+        <span class="flag_stop">Flag Stop <i>f</i></span> - Stops on request
+        only.
       </div>
       <div>
         <span class="early_departure">Early Departure <i>L</i></span> - Train
-        may depart before scheduled time.
+        departs ASAP.
       </div>
       <div>
         Many Platforms
         <span class="fa">${BaseRealtimeLayer.icons.track}</span> - Hover to see
-        track (non-standard).
+        track.
       </div>
     </div>`;
     if (!attrs) return _html;

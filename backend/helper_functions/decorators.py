@@ -13,9 +13,9 @@ def removes_session(_func: t.Callable[..., t.Any]):
     This decorator also removes the session from the object if an exception is raised.
 
     Args:
-        - `_func (function)`: Function to wrap. \n
+        _func (function): Function to wrap. \n
     Returns:
-        - `function`: Wrapped function.
+        function: Wrapped function.
     """
 
     def _removes_session(*args, **kwargs):
@@ -45,11 +45,11 @@ def timeit(_func: t.Callable[..., t.Any], round_to: int = 3, show_args: bool = T
     """Decorator to time a function and log it.
 
     Args:
-        - `_func (function)`: Function to wrap.
-        - `round_to (int, optional)`: Number of decimal places to round to. Defaults to 3.
-        - `show_args (bool, True)`: show args into the function\n
+        _func (function): Function to wrap.
+        round_to (int, optional): Number of decimal places to round to. Defaults to 3.
+        show_args (bool, True): show args into the function\n
     Returns:
-        - `function`: Wrapped function.
+        function: Wrapped function.
     """
 
     def _timeit(*args, **kwargs) -> t.Any:
@@ -79,17 +79,17 @@ class classproperty(property):  # pylint: disable=invalid-name
     """Decorator to create a class property.
 
     Args:
-        - `property (property)`: property to wrap. \n
+        property (property): property to wrap. \n
     Returns:
-        - `property`: Wrapped property."""
+        property: Wrapped property."""
 
     def __get__(self, owner_self: object, owner_cls: object):
         """Gets the property.
 
         Args:
-            - `owner_self (object)`: Owner object.
-            - `owner_cls (object)`: Owner class. \n
+            owner_self (object): Owner object.
+            owner_cls (object): Owner class. \n
         Returns:
-            - `object`: Value of property.
+            object: Value of property.
         """
         return self.fget(owner_cls)

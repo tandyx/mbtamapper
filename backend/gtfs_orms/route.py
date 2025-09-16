@@ -107,10 +107,10 @@ class Route(Base):
         """returns `Stop(...)` as a json serializable object:
 
         args:
-            - `*include`: other orms/attars to include
-            - `*kwargs`: unused \n
+            include: other orms/attars to include
+            kwargs: unused \n
         returns:
-            - `dict[str, Any]`: json object of stop
+            dict[str, Any]: json object of stop
         """
         json_dict = super().as_json(*include, **kwargs)
         calendars = self.calendars

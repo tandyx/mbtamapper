@@ -424,6 +424,13 @@ function onThemeChange(_theme) {
   if (!cLayer.length) return;
   const elements = cLayer[0].getElementsByTagName("input");
   elements[{ light: 0, dark: 1 }[_theme.theme]]?.click();
+  const navAToggle = [
+    ...document.getElementById("modeToggle")?.getElementsByTagName("A"),
+  ]?.at(0);
+
+  if (navAToggle && navAToggle.text !== _theme.unicodeIcon) {
+    navAToggle.text = _theme.unicodeIcon;
+  }
 }
 
 /**
@@ -581,8 +588,11 @@ class Theme {
    * @param {Storage?} [storagePriorty=null] pointer to first storage to use default sessionStorage before local.
    */
   static fromExisting(storagePriorty = null) {
-    const pStore = storagePriorty || sessionStorage || localStorage;
-    const secStore = pStore === sessionStorage ? localStorage : sessionStorage;
+    const pStore = storagePriorty || localStorage || sessionStorage;
+    const secStore =
+      JSON.stringify(pStore) === JSON.stringify(sessionStorage)
+        ? localStorage
+        : sessionStorage;
     return new this(
       document.documentElement.dataset.mode ||
         pStore.getItem(this.THEME_STORAGE_KEY) ||
@@ -596,7 +606,9 @@ class Theme {
    * @param {T} theme "dark" or "light"; will throw error if not
    */
   constructor(theme) {
-    if (!["light", "dark"].includes(theme)) throw new Error("only light||dark");
+    if (!["light", "dark"].includes(theme)) {
+      throw new Error("only 'light' or 'dark' allowed");
+    }
     this.theme = theme;
   }
 

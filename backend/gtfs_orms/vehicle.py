@@ -93,7 +93,7 @@ class Vehicle(Base):
     def _init_on_load_(self) -> None:
         """Converts updated_at to datetime object."""
         # pylint: disable=attribute-defined-outside-init
-        self.bearing = self.bearing or self.interpolated_bearing or 0
+        self.bearing = self.bearing or self.interpolated_bearing
         self.current_stop_sequence = self.current_stop_sequence or 0
         self.trip_short_name = self._trip_short_name()
 
@@ -109,10 +109,11 @@ class Vehicle(Base):
     def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """Returns vehicle as json.
 
-        args:
-            - `*include`: list of strings to include in the json\n
-        returns:
-            - `dict`: vehicle as a json
+        Args:
+            include: list of strings to include in the json\n
+
+        Returns:
+            dict: vehicle as a json
         """
 
         _dict = super().as_json(*include, **kwargs) | {
@@ -143,10 +144,11 @@ class Vehicle(Base):
     def as_feature(self, *include: str) -> Feature:
         """Returns vehicle as feature.
 
-        args:
-            - `*include`: list of strings to include in the feature\n
-        returns:
-            - `Feature`: vehicle as a geojson feature
+        Args:
+            include: list of strings to include in the feature
+
+        Returns:
+            Feature: vehicle as a geojson feature
         """
 
         return Feature(
@@ -158,10 +160,11 @@ class Vehicle(Base):
     def get_alerts(self, *orms) -> t.Generator["Alert", None, None]:
         """Returns alerts as json.
 
-        args:
-            - `*orms`: list of orms to include in the json\n
-        returns:
-            - `list`: alerts as json
+        Args:
+            orms: list of orms to include in the json
+
+        Yields:
+            Generator["Alert", None, None]: alerts as json
         """
         # pylint: disable=too-many-nested-blocks
         from .alert import Alert  # pylint: disable=import-outside-toplevel
@@ -192,44 +195,47 @@ class Vehicle(Base):
             return self.bearing or 0
 
     def _get_interpolated_bearing(self) -> float:
-        """returns the interpolated bearing"""
-        boston_pos = Point(-71.0552, 42.3519)
+        """returns the interpolated bearing
+
+        Checks the next or previous point of this shape's linestring.
+        and sees if it's closer to this trips
+
+        Returns:
+            float: The interpolated bearing
+        """
+        if not self.trip:
+            return self.bearing or 0
+
+        dest_point = self.trip.destination.as_point()
         shape_line_coords: list[Point] = [
             Point(pt) for pt in self.trip.shape.as_linestring(use_cache=True).coords
         ]
-        veh_point: Point = self.as_point()
-        nearest_i = STRtree(shape_line_coords).nearest(veh_point)
-        nearest = shape_line_coords[nearest_i]
+        nearest_i: int = STRtree(shape_line_coords).nearest(self.as_point())
+        nearest: Point = shape_line_coords[nearest_i]
 
         next_pt: Point
+        # if nearest is the last point
         if nearest_i == len(shape_line_coords) - 1:
             next_pt = shape_line_coords[nearest_i - 1]
+        # if nearest is the first point
         elif nearest_i == 0:
             next_pt = shape_line_coords[1]
-        # if prev point is further from boston than next
-        elif shape_line_coords[nearest_i - 1].distance(boston_pos) > shape_line_coords[
+        # if prev point is closer to destination than next
+        elif shape_line_coords[nearest_i - 1].distance(dest_point) < shape_line_coords[
             nearest_i + 1
-        ].distance(boston_pos):
-            next_pt = (  # outbound, need to find furthest dist from boston
-                shape_line_coords[nearest_i - 1]
-                if self.direction_id == 0
-                else shape_line_coords[nearest_i + 1]
-            )
+        ].distance(dest_point):
+            next_pt = shape_line_coords[nearest_i - 1]
         else:
-            next_pt = (
-                shape_line_coords[nearest_i + 1]
-                if self.direction_id == 0
-                else shape_line_coords[nearest_i - 1]
-            )
+            next_pt = shape_line_coords[nearest_i + 1]
         return Geodesic.WGS84.Inverse(nearest.y, nearest.x, next_pt.y, next_pt.x)[
             "azi1"
         ]
 
     def _speed_mph(self) -> float | None:
-        """Returns speed.
+        """Returns speed in mph.
 
-        returns:
-            - `float`: speed
+        Returns:
+            float: speed
         """
         if not self.speed and self.current_status == "STOPPED_AT":
             return 0
@@ -241,7 +247,7 @@ class Vehicle(Base):
         """Returns display name.
 
         returns:
-            - `str`: display name
+            str: display name
         """
 
         if self.trip and self.trip.trip_short_name:
@@ -258,9 +264,13 @@ class Vehicle(Base):
     def _headsign(self) -> str:
         """Returns headsign.
 
-        returns:
-            - `str`: headsign
+        Returns:
+
+            str: the headsign of the vehicle aka desination_label
         """
+
+        if self.stop_time:
+            return self.stop_time.destination_label
         if self.trip:
             return self.trip.trip_headsign
         if self.predictions:
@@ -270,8 +280,8 @@ class Vehicle(Base):
     def _trip_short_name(self) -> str | None:
         """Returns trip short name.
 
-        returns:
-            - `str`: trip short name
+        Returns:
+            str: trip short name
         """
 
         if self.trip and self.trip.trip_short_name:

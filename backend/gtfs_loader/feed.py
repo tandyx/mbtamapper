@@ -37,8 +37,8 @@ class Feed:
         
 
     Args:
-        - `url (str)`: url of GTFS feed
-        - `gtfs_name (str, optional)`: name of GTFS feed. Defaults to auto-parsed from url.
+        url (str): url of GTFS feed
+        gtfs_name (str, optional): name of GTFS feed. Defaults to auto-parsed from url.
     """
 
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
@@ -72,10 +72,10 @@ class Feed:
     def find_orm(name: str) -> t.Type[Base] | None:
         """returns the `type` of the orm by name
 
-        args:
-            - `name (str)`: name of the orm
-        returns:
-            - `type[Base]`: type of the orm
+        Args:
+            name (str): name of the orm
+        Returns:
+            type[Base]: type of the orm
         """
         for cls in Base.__subclasses__():
             if cls.__name__.lower() == name.lower():
@@ -92,8 +92,8 @@ class Feed:
             automitcally called when a connection is created.
 
         Args:
-            - `dbapi_connection (sqlite3.Connection)`: connection to sqlite database
-            - `connection_record (ConnectionRecord, optional)`: connection record
+            dbapi_connection (sqlite3.Connection): connection to sqlite database
+            connection_record (ConnectionRecord, optional): connection record
         """
 
         if not isinstance(dbapi_connection, sqlite3.Connection):
@@ -116,8 +116,8 @@ class Feed:
         """Sets sqlite pragma on close automatically.
 
         Args:
-            - `dbapi_connection (sqlite3.Connection)`: connection to sqlite database
-            - `connection_record (ConnectionRecord, optional)`: connection record
+            dbapi_connection (sqlite3.Connection): connection to sqlite database
+            connection_record (ConnectionRecord, optional): connection record
         """
         if not isinstance(dbapi_connection, sqlite3.Connection):
             logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
@@ -134,11 +134,11 @@ class Feed:
 
         wrapper for `sa.scoped_session.__call__(...)`
 
-        args:
-            - `readonly (bool)`: whether the session is readonly
-            - `**kwargs`: keyword arguments to pass to `scoped_session` \n
-        returns:
-            - `Session`: session object
+        Args:
+            readonly (bool): whether the session is readonly
+            kwargs: keyword arguments to pass to `scoped_session` \n
+        Returns:
+            Session: session object
         """
 
         session = self.scoped_session(**kwargs)
@@ -154,8 +154,8 @@ class Feed:
         Parses url to get GTFS name and create db path in temp dir.
 
         Args:
-            - `url (str)`: url of GTFS feed
-            - `gtfs_name (str, optional)`: name of GTFS feed. Defaults to auto-parsed from url.
+            url (str): url of GTFS feed
+            gtfs_name (str, optional): name of GTFS feed. Defaults to auto-parsed from url.
         """
         super().__init__()
         self.url = url
@@ -179,7 +179,7 @@ class Feed:
         """Downloads the GTFS feed zip file into a temporary directory.
 
         args:
-            - `**kwargs`: keyword arguments to pass to `requests.get()`
+            **kwargs: keyword arguments to pass to `requests.get()`
         """
         try:
             source = req.get(self.url, timeout=10, **kwargs)
@@ -204,9 +204,9 @@ class Feed:
         """Dumps GTFS data into a SQLite database.
 
         Args:
-            - `*args`: args to pass to pd.read_csv
-            - `purge (bool)`: whether to purge the database before loading (default: True)
-            - `**kwargs`: keyword args for pd.read_csv
+            *args: args to pass to pd.read_csv
+            purge (bool): whether to purge the database before loading (default: True)
+            **kwargs: keyword args for pd.read_csv
         """
         # ------------------------------- Create Tables ------------------------------- #
         self.download_gtfs()
@@ -234,7 +234,7 @@ class Feed:
         """Imports realtime data into the database.
 
         Args:
-            - `orm (RealtimeOrms | str)`: realtime ORM.
+            orm (RealtimeOrms | str): realtime ORM.
         """
 
         if isinstance(orm, str):
@@ -265,7 +265,7 @@ class Feed:
         """Purges and filters the database.
 
         Args:
-            - `date (datetime)`: date to filter on
+            date (datetime): date to filter on
         """
         session = self._get_session()
         for stmt in [
@@ -320,11 +320,11 @@ class Feed:
         """Generates geojsons for stops and shapes.
 
         Args:
-            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `query_obj (Query)`: Query object
-            - `*include (str)`: other orms to include\n
-        returns:
-            - `FeatureCollection`: stops as FeatureCollection
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            query_obj (Query): Query object
+            *include (str): other orms to include\n
+        Returns:
+            FeatureCollection: stops as FeatureCollection
         """
         session = self._get_session(readonly=True)
         stops: list[tuple[Stop]] = session.execute(query_obj.parent_stops_query).all()
@@ -343,11 +343,11 @@ class Feed:
         """Generates geojsons for shapes.
 
         Args:
-            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `query_obj (Query)`: Query object
-            - `*include (str)`: other orms to include\n
-        returns:
-            - `FeatureCollection`: shapes as FeatureCollection
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            query_obj (Query): Query object
+            *include (str): other orms to include\n
+        Returns:
+            FeatureCollection: shapes as FeatureCollection
         """
         session = self._get_session(readonly=True)
         shapes: list[tuple[Shape]] = session.execute(query_obj.get_shapes_query()).all()
@@ -368,11 +368,11 @@ class Feed:
         """Generates geojsons for facilities.
 
         Args:
-            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `query_obj (Query)`: Query object
-            - `*include (str)`: other orms to include \n
-        returns:
-            - `FeatureCollection`: facilities as FeatureCollection
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            query_obj (Query): Query object
+            *include (str): other orms to include \n
+        Returns:
+            FeatureCollection: facilities as FeatureCollection
         """
 
         session = self._get_session(readonly=True)
@@ -400,14 +400,14 @@ class Feed:
         notes:
             - early return if ferry data is requested.
             - tries 10 times to get data \n
-        args:
-            - `key (str)`: the type of data to export (RAPID_TRANSIT, BUS, etc.)
-            - `query_obj (Query)`: Query object
-            - `*include (str)`: other orms to include
-            - `attemps (int)`: num attempts default: 10
-            - `timeout (float)`: timeout to take between attempts default 0.5 seconds \n
-        returns:
-            - `FeatureCollection`: vehicles as FeatureCollection
+        Args:
+            key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
+            query_obj (Query): Query object
+            *include (str): other orms to include
+            attemps (int): num attempts default: 10
+            timeout (float): timeout to take between attempts default 0.5 seconds \n
+        Returns:
+            FeatureCollection: vehicles as FeatureCollection
         """
         session = self._get_session(readonly=True)
         if key == "ferry":  # no ferry data :(
@@ -436,12 +436,12 @@ class Feed:
         """Helper function to dump dataframe to sql.
 
         Args:
-            - `data (pd.DataFrame)`: dataframe to dump
-            - `orm (any)`: table to dump to
-            - `purge (bool, optional)`: whether to purge table before dumping. Defaults to False.
-            - `**kwargs`: keyword args to pass to pd.to_sql \n
-        returns:
-            - `int`: number of rows added
+            data (pd.DataFrame): dataframe to dump
+            orm (any): table to dump to
+            purge (bool, optional): whether to purge table before dumping. Defaults to False.
+            kwargs: keyword args to pass to pd.to_sql \n
+        Returns:
+            int: number of rows added
         """
         try:
             with self.engine.begin() as conn:
@@ -464,11 +464,11 @@ class Feed:
         """
         basically executes a query
 
-        args:
-            - `_orm (str)`: ORM to return.
-            - `**params`: keyword arguments to pass to the query\n
-        returns:
-            - `list[tuple[Base]]`: list of tuples of the ORM objects
+        Args:
+            _orm (str): ORM to return.
+            params: keyword arguments to pass to the query\n
+        Returns:
+            list[tuple[Base]]: list of tuples of the ORM objects
         """
         # pylint: disable=line-too-long
 
@@ -548,11 +548,11 @@ class Feed:
 
         this is mostly for debugging
 
-        args:
-            - `_orm (str)`: ORM to return.
-            - `**params`: keyword arguments to pass to the query\n
-        returns:
-            - `list[tuple[Base]]`: list of tuples of the ORM objects
+        Args:
+            _orm (str): ORM to return.
+            **params: keyword arguments to pass to the query\n
+        Returns:
+            list[tuple[Base]]: list of tuples of the ORM objects
         """
 
         return self._get_orms(_orm, **params)
@@ -563,13 +563,13 @@ class Feed:
     ) -> list[dict[str, t.Any]] | gj.FeatureCollection:
         """Returns a dictionary of the ORM names and their corresponding JSON names.
 
-        args:
-            - `_orm (str)`: ORM to return.
-            - `*include (str)`: other orms to include
-            - `geojson (bool)`: use `geojson` rather than `json`\n
-            - `**params`: keyword arguments to pass to the query\n
-        returns:
-            - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
+        Args:
+            _orm (str): ORM to return.
+            *include (str): other orms to include
+            geojson (bool): use `geojson` rather than `json`\n
+            **params: keyword arguments to pass to the query\n
+        Returns:
+            list[dict[str]]: dictionary of the ORM names and their corresponding JSON names.
         """
         data = self._get_orms(_orm, **params)
         if geojson:
@@ -591,14 +591,14 @@ class Feed:
         """timeout version of `Feed.get_orm_json`;\
             to not specify a timeout, use that function
             
-        args:
-            - `_orm (str)`: ORM to return.
-            - `*include (str)`: other orms to include
-            - `timeout (int)`: timeout for the function in seconds
-            - `geojson (bool)`: use `geojson` rather than `json`\n
-            - `**params`: keyword arguments to pass to the query\n
+        Args:
+            _orm (str): ORM to return.
+            *include (str): other orms to include
+            timeout (int): timeout for the function in seconds
+            geojson (bool): use `geojson` rather than `json`\n
+            **params: keyword arguments to pass to the query\n
         Returns:
-            - `list[dict[str]]`: dictionary of the ORM names and their corresponding JSON names.
+            list[dict[str]]: dictionary of the ORM names and their corresponding JSON names.
         """
 
         @timeout_function_decorator.timeout(timeout)

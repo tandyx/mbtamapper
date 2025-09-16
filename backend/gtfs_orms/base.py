@@ -14,10 +14,10 @@ class Base(orm.DeclarativeBase):
     """Base class for all GTFS elements
 
     Attributes:
-        `__tablename__ (str)`: name of the table
-        `__table_args__ (dict[str, Any])`: table arguments
-        `__filename__ (str)`: name of the associated txt file, if applicable
-        `__realtime_name__ (str)`: name of the realtime operation in LinkedDatasets, if applicable
+        `__tablename__ (str): name of the table
+        `__table_args__ (dict[str, Any]): table arguments
+        `__filename__ (str): name of the associated txt file, if applicable
+        `__realtime_name__ (str): name of the realtime operation in LinkedDatasets, if applicable
     """
 
     __filename__: str
@@ -106,11 +106,11 @@ class Base(orm.DeclarativeBase):
             the object as opposed to Base.as_dict() which returns a dict.
             
         Args:
-            - `*include`: other orm attars to include within the dict
-            - `**kwargs`: unused, but can be used in overriden methods to \
+            include: other orm attars to include within the dict
+            kwargs: unused, but can be used in overriden methods to \
                 pass in additional arguments \n
         Returns:
-            - `dict[str, Any]`: json searizable representation of the object
+            dict[str, Any]: json searizable representation of the object
         """
 
         return {
@@ -123,11 +123,11 @@ class Base(orm.DeclarativeBase):
         """Returns a dict representation of the object
         
         args:
-            - `*include`: other orm attars to include within the dict
-            - `**kwargs`: unused, but can be used in overriden methods to \
+            include: other orm attars to include within the dict
+            kwargs: unused, but can be used in overriden methods to \
                 pass in additional arguments \n
         returns:
-            - `dict[str, Any]`: dict representation of the object
+            dict[str, Any]: dict representation of the object
         """
 
         return {
@@ -141,11 +141,11 @@ class Base(orm.DeclarativeBase):
         Override this method to change the `dict `representation.
         
         Args:
-            - `*include`: other orm attars to include within the dict
-            - `**kwargs`: unused, but can be used in overriden methods to \
+            include: other orm attars to include within the dict
+            kwargs: unused, but can be used in overriden methods to \
                 pass in additional arguments \n
         Returns:
-            - `dict[str, Any]`: dict representation of the object
+            dict[str, Any]: dict representation of the object
         """
         # pylint: disable=protected-access
 
@@ -168,9 +168,9 @@ def _is_json_searializable(obj: t.Any) -> bool:
     """Checks if an object is JSON serializable.
 
     Args:
-        - `obj (Any)`: Object to check. \n
+        obj (Any): Object to check. \n
     Returns:
-        - `bool`: Whether the object is JSON serializable.
+        bool: Whether the object is JSON serializable.
     """
     try:
         json.dumps(obj)
