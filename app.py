@@ -45,6 +45,8 @@ CACHE_CONFIG: CacheConfigDict = {
     "CACHE_DEFAULT_TIMEOUT": 300,
 }
 
+GIT_INFO = get_gitinfo()
+
 
 def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, int]:
     """Returns 404.html // should only be used in the\
@@ -71,7 +73,7 @@ def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, i
     url_dict[_dict_field] = url_dict.get(_dict_field, "/")
     return (
         flask.render_template(
-            "404.html", key_dict=KEY_DICT, git_info=get_gitinfo(), **url_dict
+            "404.html", key_dict=KEY_DICT, git_info=GIT_INFO, **url_dict
         ),
         404,
     )
@@ -241,7 +243,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         thread.start()
 
     @_app.before_request
-    def prerequest():
+    def prerequest() -> None:
         """Before request function to log the request."""
         logging.info(
             "%s REQUEST | URL: %s | 'AGENT': %s",
@@ -251,18 +253,16 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         )
 
     @_app.route("/")
-    def index():
+    def index() -> flask.Response:
         """Returns index.html.
 
         Returns:
             str: index.html.
         """
-        return flask.render_template(
-            "index.html", key_dict=KEY_DICT, git_info=get_gitinfo()
-        )
+        return flask.render_template("index.html", key_dict=KEY_DICT, git_info=GIT_INFO)
 
     @_app.route("/key_dict")
-    def key_dict():
+    def key_dict() -> flask.Response:
         """key dict json
 
         Returns:
@@ -270,6 +270,29 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         """
 
         return flask.jsonify(KEY_DICT)
+
+    @_app.route("/database")
+    def database() -> flask.Response:
+        """returns the database.
+
+        yes, I actually made this route while sober
+
+        Returns:
+            Response: the database
+        """
+
+        return flask.send_file(FEED_LOADER.db_path, mimetype="application/x-sqlite3")
+
+    @_app.route("/departure_board")
+    def departure_board() -> flask.Response:
+        """departure board page: WIP"""
+        # if not stop_id:
+        #     return flask.render_template(
+        #         "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
+        #     )
+        return flask.render_template(
+            "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
+        )
 
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception | None = None) -> None:

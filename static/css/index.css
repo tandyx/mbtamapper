@@ -809,3 +809,30 @@ table.sortable th:hover {
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none;
 }
+
+.bg-none {
+  background: none;
+}
+
+.input-stylized,
+.button-stylized {
+  background: none;
+  border: 1px solid var(--text-color) !important;
+  height: 25px;
+  border-radius: var(--border-radius);
+  color: var(--text-color) !important;
+}
+
+/* .button-stylized {
+  height: 28px;
+} */
+.button-stylized:active {
+  background-color: var(--lighter-text-color);
+}
+
+/* .option-stylized {
+  background-color: var(--background-color-blur);
+  color: var(--text-color) !important;
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--text-color) !important;
+} */

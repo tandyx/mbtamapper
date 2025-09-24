@@ -244,6 +244,14 @@ class StopLayer extends BaseRealtimeLayer {
    *
    * @param {StopProperty} properties
    */
+  async fillSidebar(properties) {
+    return await this.#fillSidebar(properties);
+  }
+
+  /**
+   *
+   * @param {StopProperty} properties
+   */
   async #fillSidebar(properties) {
     const container = BaseRealtimeLayer.toggleSidebarDisplay(
       BaseRealtimeLayer.sideBarOtherId
@@ -334,7 +342,7 @@ class StopLayer extends BaseRealtimeLayer {
               );
 
             return /* HTML */ `<div class="my-5">
-              <table class="data-table">
+              <table class="data-table" style="width:100%">
                 <thead>
                   ${super.tableHeaderHTML(route, {
                     colspan: 3,

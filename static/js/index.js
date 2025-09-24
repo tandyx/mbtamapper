@@ -23,13 +23,17 @@
 "use strict";
 
 /**
+ * @typedef {{htmlContent: string, cssClasses: string[]}} ContentArgs
+ */
+
+/**
  * creates the background map for the homepage and 404 page.
  * @param {string | HTMLElement} id
  * @param {RouteKeys} routeKeys
- * @param {string} htmlContent
+ * @param {ContentArgs} content
  * @returns {L.Map}
  */
-function createHomepageMap(id, routeKeys, htmlContent) {
+function createHomepageMap(id, routeKeys, content) {
   /**@type {HTMLElement} */
   id = typeof id === "string" ? document.getElementById(id) : id;
   id.style.cursor = "default";
@@ -78,7 +82,7 @@ function createHomepageMap(id, routeKeys, htmlContent) {
 
   const textControl = L.control.textbox({
     position: "middlecenter",
-    htmlText: htmlContent,
+    ...content,
   });
   textControl.addTo(map);
   L.control.layers(baseLayers).addTo(map);
@@ -126,7 +130,8 @@ L.Control.textbox = L.Control.extend({
    */
   onAdd: function (map) {
     const text = L.DomUtil.create("div");
-    text.innerHTML = this.options.htmlText;
+    text.classList.add("leaflet-text-control");
+    text.innerHTML = this.options.htmlContent;
     return text;
   },
 
@@ -141,7 +146,7 @@ L.Control.textbox = L.Control.extend({
 
 /**
  * custom element - html textbox
- * @param {L.ControlOptions & {htmlText: string}} options
+ * @param {L.ControlOptions & ContentArgs} options
  * @returns
  */
 L.control.textbox = function (options) {
