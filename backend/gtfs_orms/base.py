@@ -14,10 +14,10 @@ class Base(orm.DeclarativeBase):
     """Base class for all GTFS elements
 
     Attributes:
-        `__tablename__ (str): name of the table
-        `__table_args__ (dict[str, Any]): table arguments
-        `__filename__ (str): name of the associated txt file, if applicable
-        `__realtime_name__ (str): name of the realtime operation in LinkedDatasets, if applicable
+        __tablename__ (str): name of the table
+        __table_args__ (dict[str, Any]): table arguments
+        __filename__ (str): name of the associated txt file, if applicable
+        __realtime_name__ (str): name of the realtime operation in LinkedDatasets, if applicable
     """
 
     __filename__: str

@@ -33,7 +33,7 @@ class Vehicle(Base):
 
     """
 
-    __tablename__ = "vehicles"
+    __tablename__ = "vehicle"
     __realtime_name__ = "vehicle_positions"
 
     vehicle_id: Mapped[str] = mapped_column(primary_key=True)
@@ -101,7 +101,7 @@ class Vehicle(Base):
         """Returns vehicle as point.
 
         returns:
-            - `Point`: vehicle as a point
+            Point: vehicle as a point
         """
         return Point(self.longitude, self.latitude)
 

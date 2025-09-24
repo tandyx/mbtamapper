@@ -23,7 +23,7 @@ class Alert(Base):
 
     """
 
-    __tablename__ = "alerts"
+    __tablename__ = "alert"
     __realtime_name__ = "service_alerts"
 
     alert_id: Mapped[str] = mapped_column(primary_key=True)

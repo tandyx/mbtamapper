@@ -23,7 +23,7 @@ class Calendar(Base):
 
     """
 
-    __tablename__ = "calendars"
+    __tablename__ = "calendar"
     __filename__ = "calendar.txt"
 
     service_id: Mapped[str] = mapped_column(primary_key=True)

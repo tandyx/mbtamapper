@@ -23,11 +23,11 @@ class CalendarAttribute(Base):
     
     """
 
-    __tablename__ = "calendar_attributes"
+    __tablename__ = "calendar_attribute"
     __filename__ = "calendar_attributes.txt"
 
     service_id: Mapped[str] = mapped_column(
-        ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("calendar.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
     service_description: Mapped[str]

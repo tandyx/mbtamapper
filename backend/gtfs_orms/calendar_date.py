@@ -25,11 +25,11 @@ class CalendarDate(Base):  # pylint: disable=too-few-public-methods
 
     """
 
-    __tablename__ = "calendar_dates"
+    __tablename__ = "calendar_date"
     __filename__ = "calendar_dates.txt"
 
     service_id: Mapped[str] = mapped_column(
-        ForeignKey("calendars.service_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("calendar.service_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
     date: Mapped[dt.datetime] = mapped_column(SQLA_GTFS_DATE, primary_key=True)

@@ -19,6 +19,7 @@ if t.TYPE_CHECKING:
     from .stop import Stop
     from .stop_time import StopTime
     from .transfer import Transfer
+    from .trip_property import TripProperty
     from .vehicle import Vehicle
 
 
@@ -33,14 +34,14 @@ class Trip(Base):
 
     """
 
-    __tablename__ = "trips"
+    __tablename__ = "trip"
     __filename__ = "trips.txt"
 
     route_id: Mapped[str] = mapped_column(
-        ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE")
+        ForeignKey("route.route_id", onupdate="CASCADE", ondelete="CASCADE")
     )
     service_id: Mapped[str] = mapped_column(
-        ForeignKey("calendars.service_id", ondelete="CASCADE", onupdate="CASCADE"),
+        ForeignKey("calendar.service_id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     trip_id: Mapped[str] = mapped_column(primary_key=True)
     trip_headsign: Mapped[str]
@@ -48,7 +49,7 @@ class Trip(Base):
     direction_id: Mapped[int]
     block_id: Mapped[t.Optional[str]]
     shape_id: Mapped[str] = mapped_column(
-        ForeignKey("shapes.shape_id", ondelete="CASCADE", onupdate="CASCADE")
+        ForeignKey("shape.shape_id", ondelete="CASCADE", onupdate="CASCADE")
     )
     wheelchair_accessible: Mapped[int]
     trip_route_type: Mapped[t.Optional[str]]
@@ -65,9 +66,9 @@ class Trip(Base):
     )
     route: Mapped["Route"] = relationship(back_populates="trips")
 
-    # trip_properties: Mapped[list["TripProperty"]] = relationship(
-    #     back_populates="trip", passive_deletes=True
-    # )
+    trip_properties: Mapped[list["TripProperty"]] = relationship(
+        back_populates="trip", passive_deletes=True
+    )
 
     all_routes: Mapped[list["Route"]] = relationship(
         primaryjoin="""or_(Trip.route_id==foreign(Route.route_id),

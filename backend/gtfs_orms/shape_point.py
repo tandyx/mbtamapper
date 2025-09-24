@@ -24,11 +24,11 @@ class ShapePoint(Base):
 
     """
 
-    __tablename__ = "shape_points"
+    __tablename__ = "shape_point"
     __filename__ = "shapes.txt"
 
     shape_id: Mapped[str] = mapped_column(
-        ForeignKey("shapes.shape_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("shape.shape_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
     shape_pt_lat: Mapped[float]
