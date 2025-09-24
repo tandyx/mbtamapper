@@ -14,9 +14,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .base import Base
 
 if t.TYPE_CHECKING:
-    import google.protobuf.message as pbm
-
-    FeedMessage = pbm.Message
+    # pylint: disable=shadowed-import
+    from google.protobuf.message import Message as FeedMessage
 
 ALERT_RENAME_DICT = {
     "id": "alert_id",
@@ -141,9 +140,9 @@ class LinkedDataset(Base):
         """Returns realtime data from the linked dataset.
 
         args:
-            - `**kwargs`: Additional keyword arguments passed to the request.
+            **kwargs: Additional keyword arguments passed to the request.
         Returns:
-            - `pd.DataFrame`: Realtime data from the linked dataset.
+            pd.DataFrame: Realtime data from the linked dataset.
         """
         feed_entity = FeedMessage()
         try:
@@ -167,10 +166,10 @@ class LinkedDataset(Base):
         """Returns realtime data from the linked dataset.
 
         Args:
-            - `dataframe`: The dataframe to post process.
-            - `rename_dict`: The dictionary to rename the columns.\n
+            dataframe: The dataframe to post process.
+            rename_dict: The dictionary to rename the columns.\n
         Returns:
-            - `pd.DataFrame`: Realtime data from the linked dataset.
+            pd.DataFrame: Realtime data from the linked dataset.
         """
         if not self.trip_updates:
             dataframe.drop_duplicates("id", inplace=True)
@@ -189,7 +188,7 @@ class LinkedDataset(Base):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            - `pd.DataFrame`: Realtime data from the linked dataset.
+            pd.DataFrame: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(self._load_dataframe(), "trip_update_stop_time_update")
         for col in [
@@ -212,7 +211,7 @@ class LinkedDataset(Base):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            - `pd.DataFrame`: Realtime data from the linked dataset.
+            pd.DataFrame: Realtime data from the linked dataset.
         """
 
         dataframe = self._load_dataframe()
@@ -254,7 +253,7 @@ class LinkedDataset(Base):
         """Returns realtime data from the linked dataset.
 
         Returns:
-            - `pd.DataFrame`: Realtime data from the linked dataset.
+            pd.DataFrame: Realtime data from the linked dataset.
         """
         dataframe = df_unpack(
             self._load_dataframe(),
@@ -283,13 +282,13 @@ def df_unpack(
         with the packed column removed.
 
     Args:
-        - `dataframe (pd.DataFrame)`: dataframe to unpack
-        - `*columns (str)`: columns to unpack.
-        - `prefix (bool, optional)`: whether to add prefix to unpacked columns. \
+        dataframe (pd.DataFrame): dataframe to unpack
+        *columns (str): columns to unpack.
+        prefix (bool, optional): whether to add prefix to unpacked columns. \
             Defaults to True. \n
-        - `sep (str, optional)`: separator for prefix. Defaults to "_". \n
+        sep (str, optional): separator for prefix. Defaults to "_". \n
     Returns:
-        - `pd.DataFrame`: dataframe with unpacked columns
+        pd.DataFrame: dataframe with unpacked columns
     """
 
     for col in columns:
