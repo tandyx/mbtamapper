@@ -37,7 +37,7 @@ class Stop(Base):
 
     """
 
-    __tablename__ = "stops"
+    __tablename__ = "stop"
     __filename__ = "stops.txt"
 
     stop_id: Mapped[str] = mapped_column(primary_key=True)
@@ -54,7 +54,7 @@ class Stop(Base):
     level_id: Mapped[t.Optional[str]]
     location_type: Mapped[str]  # consider as int?
     parent_station: Mapped[t.Optional[str]] = mapped_column(
-        ForeignKey("stops.stop_id", ondelete="CASCADE", onupdate="CASCADE")
+        ForeignKey("stop.stop_id", ondelete="CASCADE", onupdate="CASCADE")
     )
     wheelchair_boarding: Mapped[str]  # consider as int?
     municipality: Mapped[str]

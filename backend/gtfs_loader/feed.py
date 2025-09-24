@@ -44,25 +44,13 @@ class Feed:
     SL_ROUTES = ("741", "742", "743", "751", "749", "746")
 
     # note that the order of these tables matters; avoids foreign key errors
-    SCHEDULE_ORMS = (
-        Agency,
-        Calendar,
-        CalendarDate,
-        CalendarAttribute,
-        Stop,
-        Route,
-        ShapePoint,
-        Trip,
-        # TripProperty,
-        MultiRouteTrip,
-        StopTime,
-        LinkedDataset,
-        Facility,
-        FacilityProperty,
-        Transfer,
+    SCHEDULE_ORMS: tuple[ScheduleOrms] = tuple(
+        o for t in (t.get_args(ut) for ut in t.get_args(ScheduleOrms)) for o in t
     )
 
-    REALTIME_ORMS = (Alert, Vehicle, Prediction)
+    REALTIME_ORMS: tuple[RealtimeOrms] = tuple(
+        o for t in (t.get_args(ut) for ut in t.get_args(RealtimeOrms)) for o in t
+    )
 
     PARKING_FILE = "parking.json"
     STOPS_FILE = "stops.json"
@@ -222,8 +210,6 @@ class Feed:
                 for chunk in read:
                     if orm.__filename__ == "shapes.txt":
                         self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
-                    if hasattr(orm, "index"):  # what if this is chunked? it explodes.
-                        chunk["index"] = chunk.index
                     self.to_sql(chunk, orm)
         self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
@@ -451,7 +437,7 @@ class Feed:
                     name=orm.__tablename__,
                     con=conn,
                     if_exists="append",
-                    index=False,
+                    index=hasattr(orm, "index"),
                     **kwargs,
                 )
 
