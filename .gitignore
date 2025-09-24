@@ -73,5 +73,6 @@ venv/
 .directory
 */package-lock.json
 
-scratchfile.py
+# */*/scratchfile.*
+scratchfile.*
 .env*

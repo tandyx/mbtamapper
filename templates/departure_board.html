@@ -1,0 +1,155 @@
+{% extends "base.html" %} {% block title %}Departure Board | mbtamapper{%
+endblock %} {% block content %}
+<div id="map"></div>
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script src="{{ url_for('static', filename='js/realtime/stops.js') }}"></script>
+<script async defer>
+  /**
+   * @file index.js - for the homepage. additional code must be used to render the map
+   * @typedef {import("leaflet-easybutton")}
+   * @import {LeafletSidebar, RouteKey, RouteKeys, StopProperty} from "./static/js/types/index.d.ts"
+   * @import {  } from ""
+   * @import { FeatureCollection, Point } from "geojson"
+   */
+
+  window.addEventListener("load", () => {
+    /** @type {RouteKeys} */
+    const routeKeys = JSON.parse(`{{ key_dict | tojson }}`);
+    /**@type {([keyof RouteKeys, RouteKey])[]} */
+    const keys = Object.entries(routeKeys)
+      .sort((a, b) => a[1].sort_order - b[1].sort_order)
+      .filter(([key, obj]) => key === "all_routes");
+
+    const map = createHomepageMap("map", routeKeys, {
+      htmlContent: /* HTML */ `
+        <div class="titlepage" style="width:400px">
+          <h1 style="font-size: 21pt;margin-bottom:5px">Departure Board</h1>
+          <div class="my-5">
+            <input
+              class="input-stylized"
+              list="stoplist"
+              name="stoplist-input"
+              placeholder="Type a station name"
+            />
+            <datalist class="datalist-styled" id="stoplist"> </datalist>
+            <button
+              type="submit"
+              onclick="submitOnClick()"
+              class="button-stylized"
+            >
+              Submit
+            </button>
+          </div>
+          <div style="width: 100%; text-align: center;">
+            <hr />
+          </div>
+
+          <div>
+            <div id="sidebar" style="overflow-y:scroll;overflow-x:none;">
+              <div id="sidebar-header"></div>
+              <div id="sidebar-main"></div>
+              <div
+                id="sidebar-other"
+                class="hidden"
+                style="text-align:left;height:500px;overflow-y:scroll;padding:4px"
+              ></div>
+            </div>
+
+            <div class="footer" style="margin-top: 0px">
+              <div class="fa link-wrapper">
+                <a
+                  href="/"
+                  class="tooltip"
+                  data-tooltip="Home"
+                  style="margin-right: 5px"
+                  >&#xf015;</a
+                >
+                <a id="modeToggle" class="tooltip" style="margin-right: 5px">
+                  &#xf2bd;
+                </a>
+                <a
+                  href="https://github.com/tandyx/mbtamapper"
+                  target="_blank"
+                  rel="noopener"
+                  class="tooltip"
+                  data-tooltip="Github"
+                  style="margin-right: 5px"
+                  >&#xf09b;</a
+                >
+                <a
+                  href="mailto:johan@tandy.xyz"
+                  target="_blank"
+                  rel="noopener"
+                  class="tooltip"
+                  data-tooltip="Contact for issues"
+                  style="margin-right: 5px"
+                  >&#xf0e0;</a
+                >
+                <a
+                  href="https://tandy.xyz/"
+                  target="_blank"
+                  rel="noopener"
+                  class="tooltip"
+                  data-tooltip="About Me"
+                >
+                  <img
+                    src="/static/img/riolu_light_1mb.png"
+                    loading="lazy"
+                    class="inline-img"
+                  />
+                </a>
+              </div>
+              <div class="footer">
+                <code class="footer-text-sm">
+                  <a
+                    href="https://github.com/tandyx/mbtamapper/commit/{{ git_info.commit }}"
+                    rel="noopener"
+                    target="_blank"
+                    >{{ git_info.commit[:6] }}</a
+                  >
+                  {{ git_info.author_date[:10] }} - {{ git_info.message }}
+                </code>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+  });
+  /** @type {StopProperty[]} */
+  let stops = [];
+
+  window.addEventListener("load", async () => {
+    let stopListEl = document.getElementById("stoplist");
+    while (!stopListEl) {
+      stopListEl = document.getElementById("stoplist");
+      await sleep(50);
+    }
+
+    /** @type {FeatureCollection<Point, StopProperty>}*/
+    const _stops = await fetchCache(
+      "/all_routes/stops",
+      { cache: "force-cache" },
+      { storage: null }
+    );
+    /** @type {StopProperty[]} */
+    stops = _stops.features.map((f) => f.properties);
+    stopListEl.innerHTML = stops
+      .map((f) => /* HTML */ `<option value="${f.stop_name}"></option>`)
+      .join("");
+  });
+
+  const submitOnClick = () => {
+    const input = document.querySelector('input[list="stoplist"]');
+    if (!input?.value) return;
+    const stop = stops
+      .filter((s) => s.stop_name.toLowerCase() === input.value.toLowerCase())
+      ?.at(0);
+    console.log(stop);
+    window.location.hash = `#${stop.stop_id}`;
+    if (!stop) return;
+    new StopLayer({ interval: 100000 }).fillSidebar(stop);
+  };
+</script>
+
+{% endblock %}
