@@ -32,7 +32,7 @@ class Prediction(Base):
 
     """
 
-    __tablename__ = "predictions"
+    __tablename__ = "prediction"
     __realtime_name__ = "trip_updates"
 
     prediction_id: Mapped[str]

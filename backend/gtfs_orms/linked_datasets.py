@@ -75,7 +75,7 @@ class LinkedDataset(Base):
 
     """
 
-    __tablename__ = "linked_datasets"
+    __tablename__ = "linked_dataset"
     __filename__ = "linked_datasets.txt"
 
     url: Mapped[str] = mapped_column(primary_key=True)
@@ -172,7 +172,7 @@ class LinkedDataset(Base):
             pd.DataFrame: Realtime data from the linked dataset.
         """
         if not self.trip_updates:
-            dataframe.drop_duplicates("id", inplace=True)
+            dataframe.drop_duplicates(["id"], inplace=True)
         dataframe.reset_index(drop=True, inplace=True)
         dataframe.drop(
             columns=[col for col in dataframe.columns if col not in rename_dict],
@@ -180,8 +180,6 @@ class LinkedDataset(Base):
             inplace=True,
         )
         dataframe.rename(columns=rename_dict, inplace=True)
-        if self.trip_updates:
-            dataframe["index"] = dataframe.index
         return dataframe
 
     def _process_trip_updates(self) -> pd.DataFrame:

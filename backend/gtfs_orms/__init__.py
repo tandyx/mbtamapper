@@ -21,23 +21,27 @@ from .stop import Stop
 from .stop_time import StopTime
 from .transfer import Transfer
 from .trip import Trip
+from .trip_property import TripProperty
 from .vehicle import Vehicle
 
 RealtimeOrms = t.Type[Alert | Vehicle | Prediction]
+"""realtime orms for use in typehinting and production"""
+
 ScheduleOrms = t.Type[
     Agency
     | Calendar
-    | CalendarAttribute
     | CalendarDate
+    | CalendarAttribute
+    | Stop
+    | Route
+    | ShapePoint
+    | Trip
+    | TripProperty
+    | MultiRouteTrip
+    | StopTime
+    | LinkedDataset
     | Facility
     | FacilityProperty
-    | LinkedDataset
-    | MultiRouteTrip
-    | Route
-    | Shape
-    | ShapePoint
-    | Stop
-    | StopTime
     | Transfer
-    | Trip
 ]
+"""schedule orms for use in typehinting and production. the order of this matters"""

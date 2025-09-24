@@ -30,12 +30,12 @@ class Route(Base):
     https://github.com/mbta/gtfs-documentation/blob/master/reference/gtfs.md#routestxt
     """
 
-    __tablename__ = "routes"
+    __tablename__ = "route"
     __filename__ = "routes.txt"
 
     route_id: Mapped[str] = mapped_column(primary_key=True)
     agency_id: Mapped[str] = mapped_column(
-        ForeignKey("agencies.agency_id", ondelete="CASCADE", onupdate="CASCADE")
+        ForeignKey("agency.agency_id", ondelete="CASCADE", onupdate="CASCADE")
     )
     route_short_name: Mapped[t.Optional[str]]
     route_long_name: Mapped[t.Optional[str]]

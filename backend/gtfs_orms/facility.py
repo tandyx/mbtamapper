@@ -29,7 +29,7 @@ class Facility(Base):
     
     """
 
-    __tablename__ = "facilities"
+    __tablename__ = "facility"
     __filename__ = "facilities.txt"
 
     facility_id: Mapped[str] = mapped_column(primary_key=True)
@@ -37,7 +37,7 @@ class Facility(Base):
     facility_class: Mapped[int]
     facility_type: Mapped[str]
     stop_id: Mapped[t.Optional[str]] = mapped_column(
-        ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
+        ForeignKey("stop.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
     facility_short_name: Mapped[t.Optional[str]]
     facility_long_name: Mapped[str]

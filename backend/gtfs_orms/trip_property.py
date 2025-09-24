@@ -20,14 +20,15 @@ class TripProperty(Base):
 
     """
 
-    __tablename__ = "trip_properties"
+    __tablename__ = "trip_property"
     __filename__ = "trips_properties.txt"
 
     trip_id: Mapped[str] = mapped_column(
-        ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True,
+        ForeignKey("trip.trip_id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    trip_property_id: Mapped[str] = mapped_column(primary_key=True)
-    value: Mapped[str] = mapped_column(primary_key=True)
+    trip_property_id: Mapped[str]
+    value: Mapped[str]
+
+    index: Mapped[int] = mapped_column(primary_key=True)
 
     trip: Mapped["Trip"] = relationship(back_populates="trip_properties")
