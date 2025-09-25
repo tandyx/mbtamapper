@@ -259,6 +259,16 @@ class Vehicle(Base):
             and len(self.route.route_short_name) <= 4
         ):
             return self.route.route_short_name
+        if "NONREV" in self.trip_id:
+            return "NR"
+        if self.route_id == "Red":
+            for dest, code in zip(["Ashmont", "Braintree"], ["A", "B"]):
+                if dest == (
+                    self.trip.trip_headsign
+                    if self.trip
+                    else max(self.predictions).stop_name if self.predictions else None
+                ):
+                    return code
         return ""
 
     def _headsign(self) -> str:
