@@ -246,6 +246,7 @@ export interface VehicleProperty extends LayerProperty {
   trip_properties: any[];
   trip_short_name: string;
   vehicle_id: string;
+  trip_note?: string;
   trip?: TripProperty;
 }
 
