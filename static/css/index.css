@@ -153,6 +153,7 @@ h4 {
   font-family: var(--font-family);
   color: var(--light-text-color);
   font-size: 8pt;
+  font-weight: 600;
 }
 
 .vehicle_wrapper {
