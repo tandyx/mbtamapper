@@ -9,6 +9,7 @@ from .base import Base
 
 if t.TYPE_CHECKING:
     from .trip import Trip
+    from .vehicle import Vehicle
 
 
 class TripProperty(Base):
@@ -32,3 +33,7 @@ class TripProperty(Base):
     index: Mapped[int] = mapped_column(primary_key=True)
 
     trip: Mapped["Trip"] = relationship(back_populates="trip_properties")
+
+    vehicle: Mapped["Vehicle"] = relationship(
+        primaryjoin="Vehicle.trip_id==foreign(TripProperty.trip_id)", viewonly=True
+    )

@@ -18,6 +18,7 @@ if t.TYPE_CHECKING:
     from .stop import Stop
     from .stop_time import StopTime
     from .trip import Trip
+    from .trip_property import TripProperty
 
 
 class Vehicle(Base):
@@ -80,6 +81,10 @@ class Vehicle(Base):
         uselist=False,
     )
 
+    trip_properties: Mapped[list["TripProperty"]] = relationship(
+        primaryjoin="Vehicle.trip_id==foreign(TripProperty.trip_id)", viewonly=True
+    )
+
     next_stop: Mapped[list["Prediction"]] = relationship(
         primaryjoin="""and_(
             foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
@@ -105,6 +110,27 @@ class Vehicle(Base):
         """
         return Point(self.longitude, self.latitude)
 
+    def get_trip_note(self, trip_property_id: str = "note") -> str:
+        """returns a trip note
+
+        Args:
+            trip_property_id (str, optional): id to filter for. Defaults to "note".
+
+        Returns:
+            str: the note
+        """
+        trip_prop: "TripProperty" | None = next(
+            (
+                tp
+                for tp in self.trip_properties
+                if tp.trip_property_id == trip_property_id
+            ),
+            None,
+        )
+        if not trip_prop:
+            return None
+        return trip_prop.value
+
     @t.override
     def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """Returns vehicle as json.
@@ -122,7 +148,9 @@ class Vehicle(Base):
             "speed_mph": self._speed_mph(),
             "headsign": self._headsign(),
             "display_name": self._display_name(),
+            "trip_note": self.get_trip_note(),
         }
+
         # if "trip_properties" in include:
         #     _dict["trip_properties"] = (
         #         [tp.as_json() for tp in self.trip.trip_properties] if self.trip else []
