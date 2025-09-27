@@ -294,6 +294,15 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
         )
 
+    @_app.route("/apple-touch-icon.png")
+    def apple_touch_icon() -> flask.Response:
+        """returns apple touch icon
+
+        Returns:
+            flask.Response: returns what should be used as the apple touch icon
+        """
+        return _app.send_static_file("img/commuter_rail.png")
+
     @_app.teardown_appcontext
     def shutdown_session(exception: Exception | None = None) -> None:
         """Tears down database session.
