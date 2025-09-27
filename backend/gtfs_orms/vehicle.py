@@ -277,7 +277,8 @@ class Vehicle(Base):
         returns:
             str: display name
         """
-
+        if "NONREV" in self.trip_id:
+            return "NR"
         if self.trip and self.trip.trip_short_name:
             return self.trip.trip_short_name
         if (
@@ -287,8 +288,6 @@ class Vehicle(Base):
             and len(self.route.route_short_name) <= 4
         ):
             return self.route.route_short_name
-        if "NONREV" in self.trip_id:
-            return "NR"
         if self.route_id == "Red":
             for dest, code in zip(["Ashmont", "Braintree"], ["A", "B"]):
                 if self.trip and dest == self.trip.trip_headsign:
