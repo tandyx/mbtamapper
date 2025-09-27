@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, FacilityProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports FacilityLayer
@@ -38,6 +38,7 @@ class FacilityLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
+      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, FacilityProperty>, l: L.Layer) => void} */
       onEachFeature(f, l) {
         l.bindPopup(_this.#getPopupText(f.properties), options.textboxSize);
         l.feature.properties.searchName = f.properties.facility_long_name;
@@ -56,7 +57,7 @@ class FacilityLayer extends BaseRealtimeLayer {
 
   /**
    * text for popup
-   * @param {Facility} properties from geojson
+   * @param {FacilityProperty} properties from geojson
    * @returns {HTMLDivElement} - vehicle props
    */
   #getPopupText(properties) {

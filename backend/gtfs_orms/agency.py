@@ -19,7 +19,7 @@ class Agency(Base):
 
     """
 
-    __tablename__ = "agencies"
+    __tablename__ = "agency"
     __filename__ = "agency.txt"
 
     agency_id: Mapped[str] = mapped_column(primary_key=True)

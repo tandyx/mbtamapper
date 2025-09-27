@@ -21,15 +21,15 @@ class MultiRouteTrip(Base):  # pylint: disable=too-few-public-methods
 
     """
 
-    __tablename__ = "multi_route_trips"
+    __tablename__ = "multi_route_trip"
     __filename__ = "multi_route_trips.txt"
 
     added_route_id: Mapped[str] = mapped_column(
-        ForeignKey("routes.route_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("route.route_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
     trip_id: Mapped[str] = mapped_column(
-        ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("trip.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
 

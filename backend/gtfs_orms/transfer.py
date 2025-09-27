@@ -23,15 +23,15 @@ class Transfer(Base):
     
     """
 
-    __tablename__ = "transfers"
+    __tablename__ = "transfer"
     __filename__ = "transfers.txt"
 
     from_stop_id: Mapped[t.Optional[str]] = mapped_column(
-        ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("stop.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
     to_stop_id: Mapped[t.Optional[str]] = mapped_column(
-        ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("stop.stop_id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
 
@@ -42,10 +42,10 @@ class Transfer(Base):
     suggested_buffer_time: Mapped[t.Optional[int]]
     wheelchair_transfer: Mapped[t.Optional[str]]
     from_trip_id: Mapped[t.Optional[str]] = mapped_column(
-        ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("trip.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
     to_trip_id: Mapped[t.Optional[str]] = mapped_column(
-        ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("trip.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
     )
 
     index: Mapped[int] = mapped_column(primary_key=True)

@@ -10,11 +10,9 @@ content %}
     const keys = Object.entries(routeKeys)
       .sort((a, b) => a[1].sort_order - b[1].sort_order)
       .filter(([key, obj]) => key !== "all_routes");
-    const map = createHomepageMap(
-      "map",
-      routeKeys,
-      /* HTML */ `
-        <div class="titlepage leaflet-text-control">
+    const map = createHomepageMap("map", routeKeys, {
+      htmlContent: /* HTML */ `
+        <div class="titlepage">
           <h1 id="titleCard">mbtamapper</h1>
           <h4>Realtime Tracking of MBTA Vehicles</h4>
           <table>
@@ -90,8 +88,8 @@ content %}
             </code>
           </div>
         </div>
-      `
-    );
+      `,
+    });
   });
 </script>
 

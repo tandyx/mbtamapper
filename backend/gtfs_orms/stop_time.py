@@ -30,17 +30,17 @@ class StopTime(Base):
 
     """
 
-    __tablename__ = "stop_times"
+    __tablename__ = "stop_time"
     __filename__ = "stop_times.txt"
 
     trip_id: Mapped[str] = mapped_column(
-        ForeignKey("trips.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("trip.trip_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
     arrival_time: Mapped[str]
     departure_time: Mapped[str]
     stop_id: Mapped[str] = mapped_column(
-        ForeignKey("stops.stop_id", onupdate="CASCADE", ondelete="CASCADE")
+        ForeignKey("stop.stop_id", onupdate="CASCADE", ondelete="CASCADE")
     )
     stop_sequence: Mapped[int] = mapped_column(primary_key=True)
     stop_headsign: Mapped[t.Optional[str]]

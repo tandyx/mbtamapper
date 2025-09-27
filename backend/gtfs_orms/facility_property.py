@@ -20,11 +20,15 @@ class FacilityProperty(Base):  # pylint: disable=too-few-public-methods
 
     """
 
-    __tablename__ = "facilities_properties"
+    __tablename__ = "facility_property"
     __filename__ = "facilities_properties.txt"
 
     facility_id: Mapped[str] = mapped_column(
-        ForeignKey("facilities.facility_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey(
+            "facility.facility_id",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+        ),
         primary_key=True,
     )
     property_id: Mapped[str] = mapped_column(primary_key=True)

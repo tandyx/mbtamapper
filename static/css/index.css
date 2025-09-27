@@ -34,7 +34,7 @@
 [data-mode="dark"] {
   --text-color: var(--light-text-color);
   --background-color: rgb(13, 13, 13);
-  --background-color-blur: rgba(13, 13, 13, 0.8);
+  --background-color-blur: rgba(13, 13, 13, 0.65);
   --box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
 }
 [data-mode="light"] {
@@ -153,6 +153,7 @@ h4 {
   font-family: var(--font-family);
   color: var(--light-text-color);
   font-size: 8pt;
+  font-weight: 600;
 }
 
 .vehicle_wrapper {
@@ -809,3 +810,30 @@ table.sortable th:hover {
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none;
 }
+
+.bg-none {
+  background: none;
+}
+
+.input-stylized,
+.button-stylized {
+  background: none;
+  border: 1px solid var(--text-color) !important;
+  height: 25px;
+  border-radius: var(--border-radius);
+  color: var(--text-color) !important;
+}
+
+/* .button-stylized {
+  height: 28px;
+} */
+.button-stylized:active {
+  background-color: var(--lighter-text-color);
+}
+
+/* .option-stylized {
+  background-color: var(--background-color-blur);
+  color: var(--text-color) !important;
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--text-color) !important;
+} */

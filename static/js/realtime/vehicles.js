@@ -41,15 +41,6 @@ class VehicleLayer extends BaseRealtimeLayer {
       "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
   };
 
-  static #direction_map = {
-    0: "Outbound",
-    1: "Inbound",
-  };
-
-  static #worcester_map = {
-    515: "hub to heart",
-    520: "heart to hub",
-  };
   /**@type {((event: L.LeafletMouseEvent) => void)[]} */
   static onClickArry = [];
 
@@ -116,11 +107,12 @@ class VehicleLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
+      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, VehicleProperty>, l: L.Layer) => void} */
       onEachFeature(f, l) {
         l.id = f.id;
         l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
         l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
-        if (!options.isMobile) l.bindTooltip(f.id);
+        if (!options.isMobile) l.bindTooltip(f.properties.label || f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
         /** @type {(event: L.LeafletMouseEvent) => void} */
@@ -177,6 +169,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @returns
    */
   #getHeaderHTML(properties) {
+    console.log(properties.trip_note);
     return /* HTML */ `<div>
       <div>
         <a
@@ -188,21 +181,50 @@ class VehicleLayer extends BaseRealtimeLayer {
           ${properties.trip_short_name}
         </a>
       </div>
-      <div>
-        ${VehicleLayer.#worcester_map[properties.trip_short_name] ||
-        `${
-          VehicleLayer.#direction_map[parseInt(properties.direction_id)] ||
-          "null"
-        } to ${properties.headsign}`}
+      <div>${this.#customHeadsign(properties)}</div>
+      <div style="color: var(--lighter-dark-background)">
+        ${properties.trip_note || ""}
       </div>
       <hr />
     </div>`;
   }
 
   /**
+   * generates vehicle description
+   * @param {VehicleProperty} properties
+   */
+  #customHeadsign(properties) {
+    const direction_map = { 0: "Outbound", 1: "Inbound" };
+    const description = `${
+      direction_map[parseInt(properties.direction_id)] || "unknown"
+    } to ${properties.headsign || "unknown"}`;
+
+    const customDescription = {
+      515: "Hub to Heart",
+      520: "Heart to Hub",
+      621: `${description} 🦊`,
+      926: `${description} 🦊`,
+      666: `${description} 😈`,
+      888: `${description} 🚂`,
+    };
+    return customDescription[properties.trip_short_name] || description;
+  }
+
+  // static #direction_map = {
+  //   0: "Outbound",
+  //   1: "Inbound",
+  // };
+
+  // static #worcester_map = {
+  //   515: "Hub to Heart",
+  //   520: "Heart to Hub",
+  // };
+
+  /**
    * @param {VehicleProperty} properties
    */
   #getStatusHTML(properties) {
+    console.log(properties.trip_note);
     const dominant =
       properties.next_stop?.arrival_time ||
       properties.next_stop?.departure_time;
@@ -229,7 +251,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     if (!properties.next_stop) return "";
     // for added stops
     if (tmstmp) return `<div>${_status} ${stopHTML} - ${tmstmp}</div>`;
-    return `<div>${_status} ${stopHTML}</div>`;
+    return /* HTML */ `<div>${_status} ${stopHTML}</div>`;
   }
   /**
    *
@@ -297,7 +319,8 @@ class VehicleLayer extends BaseRealtimeLayer {
   #getFooterHTML(properties) {
     return /* HTML */ ` <div class="popup_footer">
       <div>
-        ${properties.vehicle_id} @ ${properties?.route?.route_name || "unknown"}
+        ${properties.label || properties.vehicle_id} @
+        ${properties?.route?.route_name || "unknown"}
         ${properties.next_stop?.platform_code
           ? `track ${properties.next_stop.platform_code}`
           : ""}

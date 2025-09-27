@@ -16,7 +16,7 @@
 
     <meta
       name="description"
-      content="A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines. Perfect for commuters and railfans seeking up-to-date Massachusetts transit information."
+      content="{% block description %}A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines.{% endblock %}"
     />
 
     <link
@@ -38,7 +38,7 @@
     />
     <meta
       property="og:description"
-      content="A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines."
+      content="{% block description_og %}A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines.{% endblock %}"
     />
     <meta property="og:title" content="mbtamapper" />
     <!-- <meta property="og:site_name" content="mbtamapper" /> -->

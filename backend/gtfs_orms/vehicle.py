@@ -18,6 +18,7 @@ if t.TYPE_CHECKING:
     from .stop import Stop
     from .stop_time import StopTime
     from .trip import Trip
+    from .trip_property import TripProperty
 
 
 class Vehicle(Base):
@@ -33,7 +34,7 @@ class Vehicle(Base):
 
     """
 
-    __tablename__ = "vehicles"
+    __tablename__ = "vehicle"
     __realtime_name__ = "vehicle_positions"
 
     vehicle_id: Mapped[str] = mapped_column(primary_key=True)
@@ -80,6 +81,10 @@ class Vehicle(Base):
         uselist=False,
     )
 
+    trip_properties: Mapped[list["TripProperty"]] = relationship(
+        primaryjoin="Vehicle.trip_id==foreign(TripProperty.trip_id)", viewonly=True
+    )
+
     next_stop: Mapped[list["Prediction"]] = relationship(
         primaryjoin="""and_(
             foreign(Vehicle.vehicle_id)==Prediction.vehicle_id,
@@ -101,9 +106,30 @@ class Vehicle(Base):
         """Returns vehicle as point.
 
         returns:
-            - `Point`: vehicle as a point
+            Point: vehicle as a point
         """
         return Point(self.longitude, self.latitude)
+
+    def get_trip_note(self, trip_property_id: str = "note") -> str:
+        """returns a trip note
+
+        Args:
+            trip_property_id (str, optional): id to filter for. Defaults to "note".
+
+        Returns:
+            str: the note
+        """
+        trip_prop: "TripProperty" | None = next(
+            (
+                tp
+                for tp in self.trip_properties
+                if tp.trip_property_id == trip_property_id
+            ),
+            None,
+        )
+        if not trip_prop:
+            return None
+        return trip_prop.value
 
     @t.override
     def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
@@ -122,7 +148,9 @@ class Vehicle(Base):
             "speed_mph": self._speed_mph(),
             "headsign": self._headsign(),
             "display_name": self._display_name(),
+            "trip_note": self.get_trip_note(),
         }
+
         # if "trip_properties" in include:
         #     _dict["trip_properties"] = (
         #         [tp.as_json() for tp in self.trip.trip_properties] if self.trip else []
@@ -249,7 +277,8 @@ class Vehicle(Base):
         returns:
             str: display name
         """
-
+        if "NONREV" in self.trip_id:
+            return "NR"
         if self.trip and self.trip.trip_short_name:
             return self.trip.trip_short_name
         if (
@@ -259,6 +288,12 @@ class Vehicle(Base):
             and len(self.route.route_short_name) <= 4
         ):
             return self.route.route_short_name
+        if self.route_id == "Red":
+            for dest, code in zip(["Ashmont", "Braintree"], ["A", "B"]):
+                if self.trip and dest == self.trip.trip_headsign:
+                    return code
+                if self.predictions and dest == max(self.predictions).stop_name:
+                    return code
         return ""
 
     def _headsign(self) -> str:

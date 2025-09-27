@@ -22,7 +22,7 @@ class Shape(Base):
 
     """
 
-    __tablename__ = "shapes"
+    __tablename__ = "shape"
 
     shape_id: Mapped[str] = mapped_column(primary_key=True)
 
