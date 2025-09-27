@@ -107,11 +107,12 @@ class VehicleLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
+      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, VehicleProperty>, l: L.Layer) => void} */
       onEachFeature(f, l) {
         l.id = f.id;
         l.feature.properties.searchName = `${f.properties.trip_short_name} @ ${f.properties.route?.route_name}`;
         l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
-        if (!options.isMobile) l.bindTooltip(f.id);
+        if (!options.isMobile) l.bindTooltip(f.properties.label || f.id);
         l.setIcon(_this.#getIcon(f.properties));
         l.setZIndexOffset(100);
         /** @type {(event: L.LeafletMouseEvent) => void} */
@@ -201,6 +202,8 @@ class VehicleLayer extends BaseRealtimeLayer {
     const customDescription = {
       515: "Hub to Heart",
       520: "Heart to Hub",
+      621: `${description} 🦊`,
+      926: `${description} 🦊`,
       666: `${description} 😈`,
       888: `${description} 🚂`,
     };
@@ -316,7 +319,8 @@ class VehicleLayer extends BaseRealtimeLayer {
   #getFooterHTML(properties) {
     return /* HTML */ ` <div class="popup_footer">
       <div>
-        ${properties.vehicle_id} @ ${properties?.route?.route_name || "unknown"}
+        ${properties.label || properties.vehicle_id} @
+        ${properties?.route?.route_name || "unknown"}
         ${properties.next_stop?.platform_code
           ? `track ${properties.next_stop.platform_code}`
           : ""}

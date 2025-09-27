@@ -98,9 +98,7 @@ class Prediction(Base):
     def __repr__(self) -> str:
         """override for `Base.__repr__`"""
 
-        return (
-            f"<{self.__class__}({self.trip_id}, {self.stop_id}, {self.stop_sequence})>"
-        )
+        return f"<{self.__class__.__name__}({self.trip_id}, {self.stop_id}, {self.stop_sequence})>"
 
     def __lt__(self, other: "Prediction") -> bool:
         """Implements less than operator.

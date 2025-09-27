@@ -186,7 +186,7 @@ export interface AgencyProperty extends LayerProperty {
   agency_phone: "617-222-3200" | string;
 }
 
-export interface Facility extends LayerProperty {
+export interface FacilityProperty extends LayerProperty {
   capacity?: string;
   enclosed: string;
   facility_class: number;
