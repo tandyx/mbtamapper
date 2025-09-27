@@ -291,11 +291,9 @@ class Vehicle(Base):
             return "NR"
         if self.route_id == "Red":
             for dest, code in zip(["Ashmont", "Braintree"], ["A", "B"]):
-                if dest == (
-                    self.trip.trip_headsign
-                    if self.trip
-                    else max(self.predictions).stop_name if self.predictions else None
-                ):
+                if self.trip and dest == self.trip.trip_headsign:
+                    return code
+                if self.predictions and dest == max(self.predictions).stop_name:
                     return code
         return ""
 

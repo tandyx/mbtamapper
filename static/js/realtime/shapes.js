@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, ShapeProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, FacilityProperty, ShapeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports ShapeLayer
@@ -44,6 +44,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
+      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, RouteProperty>, l: L.Layer) => void} */
       onEachFeature(f, l) {
         l.setStyle({
           color: `#${f.properties.route_color}`,
