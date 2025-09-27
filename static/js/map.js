@@ -200,7 +200,7 @@ function createMap(id, routeType) {
     propertyName: "searchName",
     zoom: 16,
     marker: false,
-    textPlaceholder: "search",
+    textPlaceholder: "Search",
     container: "findbox",
     collapsed: false,
     casesensitive: false,
