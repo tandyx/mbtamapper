@@ -3,7 +3,7 @@
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
- * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, Facility, StopProperty, AlertProperty, StopTimeProperty } from "../types/index.js"
+ * @import { LayerProperty, LayerApiRealtimeOptions, VehicleProperty, PredictionProperty, AlertProperty, FacilityProperty, StopProperty, AlertProperty, StopTimeProperty } from "../types/index.js"
  * @import { Realtime } from "leaflet";
  * @import {BaseRealtimeLayer} from "./base.js"
  * @exports StopLayer
@@ -43,19 +43,17 @@ class StopLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
-      onEachFeature(fea, l) {
-        // lay.setStyle({
-        //   renderer: L.canvas({ padding: 0.5, tolerance: 10 }),
-        // });
-        l.id = fea.id;
-        l.bindPopup(_this.#getPopupHTML(fea.properties), options.textboxSize);
-        l.feature.properties.searchName = fea.properties.stop_name;
-        if (!options.isMobile) l.bindTooltip(fea.properties.stop_name);
+      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, StopProperty>, l: L.Layer) => void} */
+      onEachFeature(f, l) {
+        l.id = f.id;
+        l.bindPopup(_this.#getPopupHTML(f.properties), options.textboxSize);
+        l.feature.properties.searchName = f.properties.stop_name;
+        if (!options.isMobile) l.bindTooltip(f.properties.stop_name);
         l.setIcon(_this.#getIcon());
         l.setZIndexOffset(-100);
         /** @type {(event: L.LeafletMouseEvent) => void } */
         const onClick = (_e) => {
-          _this.#_onclick(_e, { ...onClickOpts, properties: fea.properties });
+          _this.#_onclick(_e, { ...onClickOpts, properties: f.properties });
         };
         StopLayer.onClickArry.forEach((fn) => l.off("click", fn));
         StopLayer.onClickArry.push(onClick);
