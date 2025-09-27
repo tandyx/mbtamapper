@@ -49,10 +49,12 @@ class BaseRealtimeLayer {
   ];
 
   static trackExceptions = [
-    { stop_id: "WML-0025-07", direction_id: 0 },
+    { stop_id: "WML-0025-07", direction_id: 0 }, // landsdowne
     { stop_id: "WML-0025-05", direction_id: 1 },
-    { stop_id: "NEC-1969-03", direction_id: 0 },
+    { stop_id: "NEC-1969-03", direction_id: 0 }, // attleboro
     { stop_id: "NEC-1969-04", direction_id: 1 },
+    { stop_id: "NEC-2237-03", direction_id: 0 }, // forest hills
+    { stop_id: "NEC-2237-05", direction_id: 1 },
   ];
 
   /**@type {((...args) => void)[]} */
