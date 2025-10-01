@@ -14,7 +14,6 @@ import json
 import logging
 import os
 import sys
-import threading
 
 import flask
 import flask_caching
@@ -239,10 +238,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
     _cache.init_app(_app)
 
     with _app.app_context():  # background thread to run update
-        thread = threading.Thread(
-            target=FEED_LOADER.import_and_run, kwargs={"import_data": import_data}
-        )
-        thread.start()
+        FEED_LOADER.import_and_run(import_data)
 
     @_app.before_request
     def prerequest() -> None:
@@ -454,12 +450,12 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 
 # if __name__ == "__main__":
-#     test = FEED_LOADER._get_orms(
+#     test = FEED_LOADER._get_orms(<img
 #         "stoptime",
 #         **{"stop_id": "MM-0023-S", "active": "True"},
 #     )
 #     # test[0][0].trip.calendar
-#     print()
+#     print()<img
 
 
 if __name__ == "__main__":
