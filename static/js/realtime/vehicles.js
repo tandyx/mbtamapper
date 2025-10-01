@@ -169,7 +169,6 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @returns
    */
   #getHeaderHTML(properties) {
-    console.log(properties.trip_note);
     return /* HTML */ `<div>
       <div>
         <a
@@ -206,6 +205,8 @@ class VehicleLayer extends BaseRealtimeLayer {
       926: `${description} 🦊`,
       666: `${description} 😈`,
       888: `${description} 🚂`,
+      67: `${description} 💀`,
+      69: `${description} 💀`,
     };
     return customDescription[properties.trip_short_name] || description;
   }
@@ -224,7 +225,6 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {VehicleProperty} properties
    */
   #getStatusHTML(properties) {
-    console.log(properties.trip_note);
     const dominant =
       properties.next_stop?.arrival_time ||
       properties.next_stop?.departure_time;

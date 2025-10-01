@@ -46,21 +46,20 @@
 
     <link
       rel="stylesheet"
+      href="{{ url_for('static', filename='bundle/bundle.css') }}"
+    />
+
+    <link
+      rel="stylesheet"
       href="{{ url_for('static', filename='css/index.css') }}"
     />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
-    />
 
-    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor.js') }}"></script>
+
     <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
     <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>

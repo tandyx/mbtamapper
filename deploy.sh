@@ -21,7 +21,7 @@ netfilter-persistent save
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade -r requirements.txt
-cd static && npm install && cd ..
+cd static && npm install && npm run bundle && cd ..
 
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
