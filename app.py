@@ -95,16 +95,14 @@ def create_key_blueprint(
 
         params: dict[str, str] = flask.request.args.to_dict()
         cache_s: int = int(params.pop("cache", 0))
-        json_reply = flask.jsonify(
-            FEED_LOADER.get_vehicles_feature(
-                key,
-                Query(*KEY_DICT[key]["route_types"]),
-                *[s.strip() for s in params.get("include", "").split(",")],
-            )
+        json_data = FEED_LOADER.get_vehicles_feature(
+            key,
+            Query(*KEY_DICT[key]["route_types"]),
+            *[s.strip() for s in params.get("include", "").split(",")],
         )
-        if cache_s:
-            return flask_caching.CachedResponse(json_reply, cache_s)
-        return json_reply
+        if cache_s and json_data:
+            return flask_caching.CachedResponse(flask.jsonify(json_data), cache_s)
+        return flask.jsonify(json_data)
 
     @blueprint.route("/stops")
     def get_stops() -> flask.Response:
