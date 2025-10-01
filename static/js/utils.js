@@ -606,6 +606,7 @@ class Theme {
    * @param {T} theme "dark" or "light"; will throw error if not
    */
   constructor(theme) {
+    theme = theme.toLowerCase();
     if (!["light", "dark"].includes(theme)) {
       throw new Error("only 'light' or 'dark' allowed");
     }

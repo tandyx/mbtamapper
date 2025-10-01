@@ -191,8 +191,12 @@ function createMap(id, routeType) {
   });
 
   const layerControl = L.control.layers(
-    baseLayers,
-    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
+    Object.fromEntries(
+      Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v])
+    ),
+    Object.fromEntries(
+      realtimeLayers.map((l) => [titleCase(l.options?.name), l])
+    )
   );
 
   const controlSearch = L.control.search({

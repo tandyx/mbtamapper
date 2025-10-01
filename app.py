@@ -17,7 +17,7 @@ import sys
 import typing as t
 
 import flask
-import flask_caching as flaskc
+import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from backend import CacheConfigDict, FeedLoader, Query, RouteKeys, get_gitinfo
@@ -50,14 +50,14 @@ GIT_INFO = get_gitinfo()
 
 
 def create_key_blueprint(
-    key: t.KeysView[RouteKeys], _app: flask.Flask, _cache: flaskc.Cache
+    key: t.KeysView[RouteKeys], _app: flask.Flask, _cache: flask_caching.Cache
 ) -> flask.Blueprint:
     """Create app for a given key
 
     Args:
         key (t.KeysView[RouteKeys]): Key for the app. Defaults to None.
         _app (flask.Flask): Flask WSGI app.
-        _cache (flaskc.Cache): cache for this app
+        _cache (flask_caching.Cache): cache for this app
 
     Returns:
         flask.Blueprint: app for the key.
@@ -103,7 +103,7 @@ def create_key_blueprint(
             )
         )
         if cache_s:
-            return flaskc.CachedResponse(json_reply, cache_s)
+            return flask_caching.CachedResponse(json_reply, cache_s)
         return json_reply
 
     @blueprint.route("/stops")
@@ -157,7 +157,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
-    _cache = flaskc.Cache(_app, config=CACHE_CONFIG)
+    _cache = flask_caching.Cache(_app, config=CACHE_CONFIG)
     _cache.init_app(_app)
 
     with _app.app_context():  # background thread to run update
@@ -287,7 +287,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         if data is None:
             return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
         if cache_s:
-            return flaskc.CachedResponse(flask.jsonify(data), cache_s)
+            return flask_caching.CachedResponse(flask.jsonify(data), cache_s)
         return flask.jsonify(data)
 
     @_app.errorhandler(404)
