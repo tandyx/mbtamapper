@@ -145,7 +145,6 @@ class Feed:
             url (str): url of GTFS feed
             gtfs_name (str, optional): name of GTFS feed. Defaults to auto-parsed from url.
         """
-        super().__init__()
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
@@ -157,7 +156,7 @@ class Feed:
         )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self.url}@{self.gtfs_name}.db)>"
+        return f"<{self.__class__.__name__}({self.url} -> {self.gtfs_name}.db)>"
 
     def __str__(self) -> str:
         return self.__repr__()
