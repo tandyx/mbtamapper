@@ -102,8 +102,20 @@ class FeedLoader(Feed):
         LinkedDataset.cache.clear()
         logging.warning("caches cleared")
 
-    def run(self) -> t.Self:
-        """Schedules jobs defined by FeedLoader"""
+    def run(self, force: bool = False) -> t.Self:
+        """Schedules jobs defined by FeedLoader
+
+        Args:
+            force (bool, optional): forces this through if running. Defaults to False.
+
+        Returns:
+            t.Self: this class
+        """
+        if self.scheduler.running:
+            logging.warning("calling scheduler while already running!")
+            if not force:
+                logging.warning("not adding jobs!")
+                return self
 
         self.scheduler.add_job(
             self.import_realtime, "interval", args=[Alert], minutes=1
@@ -118,6 +130,7 @@ class FeedLoader(Feed):
         self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
         self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
         self.scheduler.start()
+        logging.info("FeedLoader scheduler started: %s", self.scheduler.get_jobs())
         return self
 
     def stop(self, full: bool = False) -> None:

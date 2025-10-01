@@ -64,7 +64,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const iconHtml = /* HTML */ `
       <div class="vehicle_wrapper">
         <img
-          src="static/img/icon.png"
+          src="/static/img/icon.png"
           loading="lazy"
           alt="vehicle"
           width="60"

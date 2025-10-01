@@ -52,7 +52,7 @@ class FacilityLayer extends BaseRealtimeLayer {
   }
 
   #getIcon() {
-    return L.icon({ iconUrl: "static/img/parking.png", iconSize: [15, 15] });
+    return L.icon({ iconUrl: "/static/img/parking.png", iconSize: [15, 15] });
   }
 
   /**

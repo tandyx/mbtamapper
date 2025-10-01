@@ -594,4 +594,5 @@ class Feed:
 
     def close(self) -> None:
         """Closes the connection to the database."""
+        self.scoped_session.remove()
         self.engine.dispose()
