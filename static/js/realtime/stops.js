@@ -96,7 +96,7 @@ class StopLayer extends BaseRealtimeLayer {
   }
 
   #getIcon() {
-    return L.icon({ iconUrl: "static/img/mbta.png", iconSize: [12, 12] });
+    return L.icon({ iconUrl: "/static/img/mbta.png", iconSize: [12, 12] });
   }
   /**
    *

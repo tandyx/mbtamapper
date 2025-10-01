@@ -14,10 +14,10 @@ import json
 import logging
 import os
 import sys
+import typing as t
 
 import flask
-import flask_caching
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
+import flask_caching as flaskc
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from backend import CacheConfigDict, FeedLoader, Query, RouteKeys, get_gitinfo
@@ -49,61 +49,23 @@ CACHE_CONFIG: CacheConfigDict = {
 GIT_INFO = get_gitinfo()
 
 
-def _error404(_app: flask.Flask, error: Exception | None = None) -> tuple[str, int]:
-    """Returns 404.html // should only be used in the\
-        context of a 404 error.
-
-    Args:
-        error (Exception): Error to log.
-        
-    Returns:
-        tuple[str, int]: 404.html and 404 status code.
-    """
-    if error:
-        logging.error(error)
-    _dict_field = "possible_url"
-    url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
-    logging.error("404: attempt to access %s", url_dict)
-    for rule in _app.url_map.iter_rules():
-        if not len(rule.defaults or ()) >= len(rule.arguments):
-            continue
-        url_for = flask.url_for(rule.endpoint)
-        if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
-            url_dict[_dict_field] = url_for
-            break
-    url_dict[_dict_field] = url_dict.get(_dict_field, "/")
-    return (
-        flask.render_template(
-            "404.html", key_dict=KEY_DICT, git_info=GIT_INFO, **url_dict
-        ),
-        404,
-    )
-
-
-def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
+def create_key_blueprint(
+    key: t.KeysView[RouteKeys], _app: flask.Flask, _cache: flaskc.Cache
+) -> flask.Blueprint:
     """Create app for a given key
 
     Args:
-        `key (str): Key for the app. Defaults to None.
-        `proxies (int, optional): Number of proxies to allow on connection, default 10. \n
+        key (t.KeysView[RouteKeys]): Key for the app. Defaults to None.
+        _app (flask.Flask): Flask WSGI app.
+        _cache (flaskc.Cache): cache for this app
+
     Returns:
-        `Flask: app for the key."""
-    _app = flask.Flask(__name__)
+        flask.Blueprint: app for the key.
+    """
 
-    _cache = flask_caching.Cache(_app, config=CACHE_CONFIG)
-    _cache.init_app(_app)
+    blueprint = flask.Blueprint(key, __name__, url_prefix=f"/{key}")
 
-    @_app.before_request
-    def prerequest():
-        """Before request function to log the request."""
-        logging.info(
-            "%s REQUEST | URL: %s | 'AGENT': %s",
-            flask.request.method,
-            flask.request.url,
-            flask.request.headers.get("User-Agent", ""),
-        )
-
-    @_app.route("/")
+    @blueprint.route("/")
     def render_map() -> str:
         """Returns map.html.
 
@@ -112,7 +74,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
         return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
 
-    @_app.route("/key")
+    @blueprint.route("/key")
     def get_key() -> flask.Response:
         """Returns key.json.
 
@@ -121,7 +83,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         """
         return flask.jsonify(key)
 
-    @_app.route("/vehicles")
+    @blueprint.route("/vehicles")
     @_cache.cached(query_string=True)
     def get_vehicles() -> flask.Response:
         """Returns vehicles as geojson in the context of the route type AND \
@@ -141,10 +103,10 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
             )
         )
         if cache_s:
-            return flask_caching.CachedResponse(json_reply, cache_s)
+            return flaskc.CachedResponse(json_reply, cache_s)
         return json_reply
 
-    @_app.route("/stops")
+    @blueprint.route("/stops")
     def get_stops() -> flask.Response:
         """Returns stops as geojson in the context of the route type AND \
             flask, exported to /stops as an api.
@@ -152,10 +114,11 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
         Returns:
             Response: geojson of stops.
         """
+
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.STOPS_FILE}")
 
-    @_app.route("/parking")
-    @_app.route("/facilities")
+    @blueprint.route("/parking")
+    @blueprint.route("/facilities")
     def get_parking() -> flask.Response:
         """Returns parking as geojson in the context of the route type AND \
             flask, exported to /parking as an api.
@@ -166,8 +129,8 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.PARKING_FILE}")
 
-    @_app.route("/routes")
-    @_app.route("/shapes")
+    @blueprint.route("/routes")
+    @blueprint.route("/shapes")
     def get_routes() -> flask.Response:
         """Returns routes as geojson in the context of the route type AND \
             flask, exported to /routes as an api.
@@ -178,47 +141,7 @@ def create_key_app(key: str, proxies: int = 5) -> flask.Flask:
 
         return _app.send_static_file(f"{LAYER_FOLDER}/{key}/{FEED_LOADER.SHAPES_FILE}")
 
-    @_app.route("/favicon.ico")
-    def favicon() -> flask.Response:
-        """Returns favicon.ico.
-
-        Returns:
-            Response: favicon.ico.
-        """
-        return _app.send_static_file("img/all_routes.ico")
-
-    @_app.teardown_appcontext
-    def shutdown_session(exception: Exception | None = None) -> None:
-        """Tears down database session.
-
-        Args:
-            exception (Exception, optional): Exception to log. Defaults to None.
-        """
-        FEED_LOADER.scoped_session.remove()
-        if exception:
-            logging.error(exception)
-
-    @_app.errorhandler(404)
-    def page_not_found(error: Exception | None = None) -> tuple[str, int]:
-        """Returns 404.html.
-
-        Args:
-            error (Exception): Error to log.
-
-        Returns:
-            str: 404.html.
-        """
-        return _error404(_app, error)
-
-    if proxies:
-        _app.wsgi_app = ProxyFix(
-            _app.wsgi_app,
-            x_for=proxies,
-            x_proto=proxies,
-            x_host=proxies,
-            x_prefix=proxies,
-        )
-    return _app
+    return blueprint
 
 
 def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
@@ -234,7 +157,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
 
     _app = flask.Flask(__name__)
 
-    _cache = flask_caching.Cache(_app, config=CACHE_CONFIG)
+    _cache = flaskc.Cache(_app, config=CACHE_CONFIG)
     _cache.init_app(_app)
 
     with _app.app_context():  # background thread to run update
@@ -364,25 +287,51 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         if data is None:
             return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
         if cache_s:
-            return flask_caching.CachedResponse(flask.jsonify(data), cache_s)
+            return flaskc.CachedResponse(flask.jsonify(data), cache_s)
         return flask.jsonify(data)
 
     @_app.errorhandler(404)
     def page_not_found(error: Exception | None = None) -> tuple[str, int]:
-        """Returns 404.html.
+        """Returns 404.html // should only be used in the\
+        context of a 404 error.
 
         Args:
             error (Exception): Error to log.
-
+            
         Returns:
-            str: 404.html.
+            tuple[str, int]: 404.html and 404 status code.
         """
-        return _error404(_app, error)
+        if error:
+            logging.error(error)
+        _dict_field = "possible_url"
+        url_dict = {"url": flask.request.url, "endpoint": flask.request.endpoint}
+        logging.error("404: attempt to access %s", url_dict)
+        for rule in _app.url_map.iter_rules():
+            if not len(rule.defaults or ()) >= len(rule.arguments):
+                continue
+            url_for = flask.url_for(rule.endpoint)
+            if difflib.SequenceMatcher(None, rule.endpoint, url_for).ratio() > 0.7:
+                url_dict[_dict_field] = url_for
+                break
+        url_dict[_dict_field] = url_dict.get(_dict_field, "/")
+        return (
+            flask.render_template(
+                "404.html", key_dict=KEY_DICT, git_info=GIT_INFO, **url_dict
+            ),
+            404,
+        )
 
-    _app.wsgi_app = DispatcherMiddleware(
-        _app.wsgi_app,
-        {f"/{key}": create_key_app(key, proxies).wsgi_app for key in KEY_DICT},
-    )
+    for key in KEY_DICT:
+        _app.register_blueprint(create_key_blueprint(key, _app, _cache))
+
+    if proxies:
+        _app.wsgi_app = ProxyFix(
+            _app.wsgi_app,
+            x_for=proxies,
+            x_proto=proxies,
+            x_host=proxies,
+            x_prefix=proxies,
+        )
 
     return _app
 
