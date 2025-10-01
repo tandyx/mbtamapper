@@ -5,25 +5,12 @@
             "name": "firefox",
             "type": "firefox",
             "request": "launch",
-            "reAttach": true,
-            "url": "http://localhost:5000/commuter_rail",
+            "url": "http://localhost:5000",
             "pathMappings": [
                 {
-                    "url": "http://localhost:5000/commuter_rail",
+                    "url": "http://localhost:5000/*",
                     "path": "${workspaceFolder}"
-                },
-                {
-                    "url": "http://localhost:5000/subway",
-                    "path": "${workspaceFolder}"
-                },
-                {
-                    "url": "http://localhost:5000/rapid_transit",
-                    "path": "${workspaceFolder}"
-                },
-                {
-                    "url": "http://localhost:5000/ferry",
-                    "path": "${workspaceFolder}"
-                },
+                }
             ]
         }
     ]
