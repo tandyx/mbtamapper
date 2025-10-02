@@ -16,7 +16,7 @@ function loadFile(filePath, plain = false) {
     console.warn(`file not found: ${filePath} — skipping`);
     return `// missing: ${filePath}\n`;
   }
-  const src = fs.readFileSync(abs, "utf8");
+  const src = fs.readFileSync(path.resolve(filePath), "utf8");
   if (plain) return src;
   return /* JS */ `// --- begin content: ${filePath}\n${src}\n// --- end content: ${filePath}\n`;
 }
@@ -31,14 +31,20 @@ const bannerCode = [
   "./js/realtime/stops.js",
   "./js/realtime/vehicles.js",
 ]
+
   .map(
     (f) =>
-      esbuild.transformSync(f, {
-        loader: "js",
-        keepNames: true,
-        minifySyntax: false,
-        minifyWhitespace: true,
-      }).code
+      esbuild.transformSync(
+        fs
+          .readFileSync(path.resolve(filePath), "utf8")
+          .replace(`"use strict";`, ""),
+        {
+          loader: "js",
+          keepNames: true,
+          minifySyntax: false,
+          minifyWhitespace: true,
+        }
+      ).code
   )
   .join("\n");
 

@@ -5,6 +5,7 @@ import os
 import typing as t
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.job import Job
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
 from ..helper_functions import TimeZones, get_date, timeit
@@ -42,7 +43,7 @@ class FeedLoader(Feed):
         geojson_path: str,
         keys_dict: dict[str, list[str]],
         timezone: TimeZones = "America/New_York",
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initializes FeedLoader.
 
@@ -130,7 +131,12 @@ class FeedLoader(Feed):
         self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
         self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
         self.scheduler.start()
-        logging.info("FeedLoader scheduler started: %s", self.scheduler.get_jobs())
+        jobs: list[Job] = self.scheduler.get_jobs()
+
+        logging.info(
+            "FeedLoader scheduler started\n%s",
+            "\n".join(f"{j.name}: next run @ {j.next_run_time}" for j in jobs),
+        )
         return self
 
     def stop(self, full: bool = False) -> None:

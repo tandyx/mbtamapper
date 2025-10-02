@@ -49,20 +49,11 @@
       href="{{ url_for('static', filename='bundle/bundle.css') }}"
     />
 
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/index.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
-    />
-
     <script src="{{ url_for('static', filename='bundle/bundle.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
+    <!-- <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
     <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script> -->
     {% block head_extra %}{% endblock %}
   </head>
   <body>
