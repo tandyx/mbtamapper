@@ -36,6 +36,12 @@
       property="og:image"
       content="{{ url_for('static', filename='img/mbta.png') }}"
     />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ url_for('static', filename='img/mbta.png') }}"
+    />
+
     <meta
       property="og:description"
       content="{% block description_og %}A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines.{% endblock %}"
