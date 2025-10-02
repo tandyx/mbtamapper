@@ -235,7 +235,7 @@ function createMap(id, routeType) {
     map.addLayer(facilityLayer.options.layer);
   });
 
-  map.on("click", () => {
+  map.on("popupclose", () => {
     BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
     window.location.hash = "";
   });
