@@ -8,6 +8,9 @@ sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
 - [x] use html templates for 404/index
 - [ ] add api ref
+- [ ] rate limit API
+- [ ] remove `explode_df`
+- [ ] use bundles for custom js
 - [ ] do the google transit things for predictions with svgs
 - [ ] compute bearings client side (maybe)
 - [ ] figure out way to compute vehicle positions either client or server-side

@@ -36,30 +36,16 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='bundle/bundle.css') }}"
     />
-
-    <!-- stylesheets -->
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/index.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/navbar.css') }}"
-    />
-
     <script src="{{ url_for('static', filename='bundle/bundle.js') }}"></script>
 
-    <!-- custom js -->
-    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <!-- <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utilities/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utilities/layerfinder.js') }}"></script>
     <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
     <script src="{{ url_for('static', filename='js/realtime/vehicles.js') }}"></script>
     <script src="{{ url_for('static', filename='js/realtime/facilities.js') }}"></script>
     <script src="{{ url_for('static', filename='js/realtime/stops.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script> -->
   </head>
 
   <body>
@@ -102,6 +88,10 @@
       <div id="sidebar-other" class="hidden"></div>
     </div>
     <noscript>This page requires Javascript to be enabled.</noscript>
-    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script
+      src="{{ url_for('static', filename='js/map.js') }}"
+      async
+      defer
+    ></script>
   </body>
 </html>

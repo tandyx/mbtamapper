@@ -20,7 +20,8 @@ import flask
 import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import CacheConfigDict, FeedLoader, Query, RouteKeys, get_gitinfo
+from backend import FeedLoader, Query, RouteKeys, get_gitinfo
+from backend.helper_functions.types import CacheConfigDict, GitInfo
 
 # pylint: disable=too-many-locals
 
@@ -41,12 +42,16 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+logging.getLogger("apscheduler").setLevel(logging.WARNING)
+
 CACHE_CONFIG: CacheConfigDict = {
     "CACHE_TYPE": "SimpleCache",
     "CACHE_DEFAULT_TIMEOUT": 300,
 }
 
-GIT_INFO = get_gitinfo()
+GIT_INFO: GitInfo = get_gitinfo()
+
+DEBUG: bool = False
 
 
 def create_key_blueprint(
@@ -72,7 +77,9 @@ def create_key_blueprint(
         Returns:
             str: map.html"""
 
-        return flask.render_template("map.html", navbar=KEY_DICT, **KEY_DICT[key])
+        return flask.render_template(
+            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=DEBUG
+        )
 
     @blueprint.route("/key")
     def get_key() -> flask.Response:
@@ -178,7 +185,9 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         Returns:
             str: index.html.
         """
-        return flask.render_template("index.html", key_dict=KEY_DICT, git_info=GIT_INFO)
+        return flask.render_template(
+            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=DEBUG
+        )
 
     @_app.route("/key_dict")
     def key_dict() -> flask.Response:
@@ -210,7 +219,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         #         "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
         #     )
         return flask.render_template(
-            "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
+            "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=DEBUG
         )
 
     @_app.route("/apple-touch-icon.png")
@@ -314,7 +323,11 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         url_dict[_dict_field] = url_dict.get(_dict_field, "/")
         return (
             flask.render_template(
-                "404.html", key_dict=KEY_DICT, git_info=GIT_INFO, **url_dict
+                "404.html",
+                key_dict=KEY_DICT,
+                git_info=GIT_INFO,
+                debug=DEBUG,
+                **url_dict,
             ),
             404,
         )
@@ -410,8 +423,8 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(getattr(logging, args.log_level.upper()))
-
-    CACHE_CONFIG["DEBUG"] = True
+    DEBUG = True
+    CACHE_CONFIG["DEBUG"] = DEBUG
 
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
