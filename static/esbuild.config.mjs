@@ -2,51 +2,28 @@ import esbuild from "esbuild";
 import fs from "fs";
 import path from "path";
 
-// import { transformSync } from "@swc/core";
-
-/**
- * loads file as javascript
- * @param {string} filePath
- * @param {boolean} [plain=false]
- * @returns
- */
-function loadFile(filePath, plain = false) {
-  const abs = path.resolve(filePath);
-  if (!fs.existsSync(abs)) {
-    console.warn(`file not found: ${filePath} — skipping`);
-    return `// missing: ${filePath}\n`;
+const bannerCode = esbuild.transformSync(
+  [
+    "./js/utils.js",
+    "./js/utilities/theme.js",
+    "./js/utilities/layerfinder.js",
+    "./js/realtime/base.js",
+    "./js/realtime/facilities.js",
+    "./js/realtime/shapes.js",
+    "./js/realtime/stops.js",
+    "./js/realtime/vehicles.js",
+  ]
+    .map((fpath) =>
+      fs.readFileSync(path.resolve(fpath), "utf8").replace(`"use strict";`, "")
+    )
+    .join("\n"),
+  {
+    loader: "js",
+    keepNames: true,
+    minifySyntax: false,
+    minifyWhitespace: true,
   }
-  const src = fs.readFileSync(path.resolve(filePath), "utf8");
-  if (plain) return src;
-  return /* JS */ `// --- begin content: ${filePath}\n${src}\n// --- end content: ${filePath}\n`;
-}
-
-const bannerCode = [
-  "./js/utils.js",
-  "./js/utilities/theme.js",
-  "./js/utilities/layerfinder.js",
-  "./js/realtime/base.js",
-  "./js/realtime/facilities.js",
-  "./js/realtime/shapes.js",
-  "./js/realtime/stops.js",
-  "./js/realtime/vehicles.js",
-]
-
-  .map(
-    (f) =>
-      esbuild.transformSync(
-        fs
-          .readFileSync(path.resolve(filePath), "utf8")
-          .replace(`"use strict";`, ""),
-        {
-          loader: "js",
-          keepNames: true,
-          minifySyntax: false,
-          minifyWhitespace: true,
-        }
-      ).code
-  )
-  .join("\n");
+).code;
 
 esbuild
   .build({
@@ -68,7 +45,6 @@ esbuild
     },
 
     legalComments: "linked",
-    // banner: { js: `"use strict";` },
     footer: { js: `;"use strict";${bannerCode}` },
   })
   .then(() => {
