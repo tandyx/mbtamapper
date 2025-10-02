@@ -15,7 +15,7 @@
 /** Check if user is on mobile
  * @returns {boolean} - whether or not user is on mobile
  */
-const mobileCheck = function () {
+function mobileCheck() {
   let check = false;
   (function (a) {
     if (
@@ -29,7 +29,7 @@ const mobileCheck = function () {
       check = true;
   })(navigator.userAgent || navigator.vendor || window.opera);
   return check;
-};
+}
 
 /*
  * Check if user is on mobile
@@ -537,117 +537,6 @@ function getContrastYIQ(hexcolor, tresh = 128) {
 }
 
 /**
- * class for theme management
- * @template {"dark" | "light"} T
- */
-class Theme {
-  /**
-   * where the theme key is stored
-   */
-  static THEME_STORAGE_KEY = "_theme";
-
-  /**
-   * gets the system theme through window.watchMedia
-   * @returns {"dark" | "light" | null}
-   */
-  static get systemTheme() {
-    for (const scheme of ["dark", "light"]) {
-      if (window.matchMedia(`(prefers-color-scheme: ${scheme})`).matches) {
-        return scheme;
-      }
-    }
-    // if (window.matchMedia(`(prefers-color-scheme: dark)`).matches) {
-    //   return "dark";
-    // }
-    // return "light";
-  }
-  /**
-   * gets the active theme from either the html element or system theme
-   * @returns {"dark" | "light"}
-   */
-  static get activeTheme() {
-    return document.documentElement.dataset.mode || this.systemTheme;
-  }
-
-  /**
-   * returns unicode icon from sys active theme
-   */
-  static get unicodeIcon() {
-    return this.activeTheme === "dark" ? "\uf186" : "\uf185";
-  }
-
-  /**
-   * returns unicode icon from sys active theme
-   */
-  get unicodeIcon() {
-    return this.theme === "dark" ? "\uf186" : "\uf185";
-  }
-
-  /**
-   * factory; creates new `Theme` from existing settings
-   * @param {Storage?} [storagePriorty=null] pointer to first storage to use default sessionStorage before local.
-   */
-  static fromExisting(storagePriorty = null) {
-    const pStore = storagePriorty || localStorage || sessionStorage;
-    const secStore =
-      JSON.stringify(pStore) === JSON.stringify(sessionStorage)
-        ? localStorage
-        : sessionStorage;
-    return new this(
-      document.documentElement.dataset.mode ||
-        pStore.getItem(this.THEME_STORAGE_KEY) ||
-        secStore?.getItem(this.THEME_STORAGE_KEY) ||
-        this.systemTheme ||
-        "light"
-    );
-  }
-  /**
-   * manually create a new theme object.
-   * @param {T} theme "dark" or "light"; will throw error if not
-   */
-  constructor(theme) {
-    theme = theme.toLowerCase();
-    if (!["light", "dark"].includes(theme)) {
-      throw new Error("only 'light' or 'dark' allowed");
-    }
-    this.theme = theme;
-  }
-
-  /**
-   * opposite theme object without setting
-   * @typedef {T extends "dark" ? Theme<"light"> : Theme<"dark">} OppTheme
-   * @returns {OppTheme}
-   */
-  get opposite() {
-    return new Theme(this.theme === "dark" ? "light" : "dark");
-  }
-
-  /**
-   * sets <html data-mode="this.theme"> and saves it to session storage
-   * @param {Storage?} storage storage to save to, default doesn't save
-   * @param {((theme: this) => null)?} onSave callback that executes after save.
-   * @returns {this}
-   */
-  set(storage = null, onSave = null) {
-    document.documentElement.setAttribute("data-mode", this.theme);
-    if (storage) storage.setItem(Theme.THEME_STORAGE_KEY, this.theme);
-    if (onSave) onSave(this);
-    return this;
-  }
-  /**
-   * reverses the theme (if dark -> light)
-   * this is the same as new `Theme().opposite.set()`
-   * @param {Storage?} storage storage to save to, default doesn't save
-   * @param {((theme: OppTheme) => null)?} onSave executed callback function when changing; `theme` is the NEW theme
-   * @returns {OppTheme}
-   * @example
-   * const theme = Theme.fromExisting().reverse()
-   */
-  reverse(storage = null, onSave = null) {
-    return this.opposite.set(storage, onSave);
-  }
-}
-/**
  * memory storage class
  *
  * basically just a wrapper for Map, but with the same methods as builtin `Storage`
@@ -712,144 +601,6 @@ class MemoryStorage {
 }
 
 const memStorage = new MemoryStorage();
-/**
- * class that interacts with a leaflet map and provides methods to action upon specific layers
- */
-class LayerFinder {
-  /**
-   * return a new instance from controlSearch rather than layers
-   * @param {L.Map} map
-   * @param {L.Control.Search} controlSearch
-   * @returns {LayerFinder}
-   */
-  static fromControlSearch(map, controlSearch) {
-    return new this(
-      map,
-      Object.values(controlSearch.options.layer.getLayers()).flatMap((l) =>
-        l.getLayers()
-      )
-    );
-  }
-
-  /**
-   * create a new layer finder lazily (through globals)
-   * @returns {LayerFinder}
-   */
-  static fromGlobals() {
-    return this.fromControlSearch(_map, _controlSearch);
-  }
-
-  /**
-   *
-   * @param {L.Map} map
-   * @param {Layer[]?} layers
-   */
-  constructor(map, layers) {
-    this.map = map;
-    this.layers = layers || map._layers;
-    /** @type {(L.MarkerClusterGroup)[]} */
-    this.markerClusters = Object.values(this.map._layers).filter((a) =>
-      Boolean(a._markerCluster)
-    );
-  }
-
-  /**
-   * finds layer based on predicate and options
-   * @typedef {{click?: boolean, autoZoom?: boolean, zoom?: number, latLng?: L.LatLng}} FindLayerOptions
-   * @param {(value: L.LayerGroup<L.GeoJSON<LayerProperty>>, index: number, array: any[]) => L.Layer?} fn
-   * @param {FindLayerOptions} options
-   * @returns {L.Layer?}
-   */
-  findLayer(fn, options = {}) {
-    options = { click: true, autoZoom: true, ...options };
-    const _zoom = this.map.getZoom();
-    const _coords = this.map.getCenter();
-    this.map.setZoom(this.map.options.minZoom, {
-      animate: false,
-    });
-    /**@type {L.Marker?} */
-    const layer = this.layers.find(fn);
-
-    if (!layer) {
-      console.error(`layer not found`);
-      this.map.setView(_coords, _zoom, { animate: false });
-      return;
-    }
-
-    this.markerClusters.forEach((mc) => mc.disableClustering());
-
-    if (this.map.options.maxZoom && options.autoZoom) {
-      this.markerClusters.forEach((mc) => mc.disableClustering());
-
-      this.map.setView(
-        options.latLng ?? layer.getLatLng(),
-        options.zoom ?? this.map.options.maxZoom
-      );
-    }
-
-    if (options.click) {
-      layer.fire("click");
-      this.markerClusters.forEach((mc) => mc.enableClustering());
-    }
-    this.markerClusters.forEach((mc) => mc.enableClustering());
-    console.log(options.zoom ?? this.map.options.maxZoom);
-    return layer;
-  }
-
-  /**
-   * fires click event and zooms in on stop
-   * @param {string} stopId
-   * @param {FindLayerOptions} options
-   * @returns {L.Layer?} stop
-   */
-  clickStop(stopId, options = {}) {
-    return this.findLayer(
-      (e) =>
-        e?.feature?.properties?.child_stops
-          ?.map((c) => c.stop_id)
-          ?.includes(stopId) || e?.feature?.id === stopId,
-      { zoom: 14, ...options }
-    );
-  }
-
-  /**
-   * fires click event and zooms in on route
-   * @param {string} routeId
-   * @param {FindLayerOptions} options
-   * @returns {L.Layer?} shape
-   */
-  clickRoute(routeId, options = {}) {
-    return this.findLayer((e) => e?.feature?.properties?.route_id === routeId, {
-      zoom: this.map.options.minZoom + 2,
-      latLng: this.map.getCenter(),
-      ...options,
-    });
-  }
-
-  /**
-   * alias for clickRoute
-   * @param {string} routeId
-   * @param {FindLayerOptions} options
-   * @returns {L.Layer?} shape
-   */
-  clickShape(shapeId, options = {}) {
-    return this.clickRoute(shapeId, options);
-  }
-
-  /**
-   * fires click event and zooms in on vehicle
-   * wrapper for `findLayer`
-   * @param {string} vehicleId
-   * @param {FindLayerOptions} options
-   * @returns {L.Layer?} vehicle
-   */
-  clickVehicle(vehicleId, options = {}) {
-    return this.findLayer(
-      (e) => e?.feature?.properties?.vehicle_id === vehicleId,
-      { zoom: 14, ...options }
-    );
-  }
-}
 
 /** Get base layer dictionary
  * @summary Get base layer dictionary

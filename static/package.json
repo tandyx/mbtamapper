@@ -24,6 +24,7 @@
   },
   "scripts": {
     "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true",
-    "bundle": "npx esbuild js/bundle.js --bundle --minify --legal-comments=linked --loader:.css=css --loader:.png=file --loader:.svg=file --loader:.gif=file --outdir=bundle --asset-names=images/[name]"
+    "bundle": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs"
   }
 }
