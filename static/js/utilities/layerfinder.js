@@ -91,7 +91,6 @@ class LayerFinder {
       this.markerClusters.forEach((mc) => mc.enableClustering());
     }
     this.markerClusters.forEach((mc) => mc.enableClustering());
-    console.log(options.zoom ?? this.map.options.maxZoom);
     return layer;
   }
 
