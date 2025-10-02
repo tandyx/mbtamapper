@@ -12,10 +12,11 @@ sqlalchemy + flask + leaflet api/web app with realtime mbta data
 - [ ] remove `explode_df`
 - [x] use bundles for custom js
 - [ ] add light on dark and dark on light
-- [ ] do the google transit things for predictions with svgs
+- [ ] do the google transit things for predictions with svgs (maybe)
 - [ ] compute bearings client side (maybe)
 - [ ] figure out way to compute vehicle positions either client or server-side
 - [ ] add option to view past stoptimes/trips for each paine (includes adding an options drawer)
+- [ ] WIP: departure board
 
 ## setup
 

@@ -27,14 +27,6 @@ const footerCode = esbuild.transformSync(
   }
 ).code;
 
-["./frontend/js/index.js", "./frontend/js/map.js"].forEach((fpath) => {
-  const src = esbuild.transformSync(
-    fs.readFileSync(path.resolve(fpath), "utf8"),
-    { loader: "js", minify: true }
-  );
-  fs.writeFileSync(`${DIST_DIR}/${fpath.split("/").at(-1)}`, src.code);
-});
-
 esbuild
   .build({
     entryPoints: ["frontend/bundle.js"],
@@ -56,6 +48,13 @@ esbuild
     footer: { js: `;"use strict";${footerCode}` },
   })
   .then(() => {
+    ["./frontend/js/index.js", "./frontend/js/map.js"].forEach((fpath) => {
+      const src = esbuild.transformSync(
+        fs.readFileSync(path.resolve(fpath), "utf8"),
+        { loader: "js", minify: true }
+      );
+      fs.writeFileSync(`${DIST_DIR}/${fpath.split("/").at(-1)}`, src.code);
+    });
     console.log(`esbuild success — see ${DIST_DIR}`);
   })
   .catch((err) => {
