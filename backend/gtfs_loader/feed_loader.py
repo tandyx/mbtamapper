@@ -4,8 +4,8 @@ import logging
 import os
 import typing as t
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.job import Job
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
 from ..helper_functions import TimeZones, get_date, timeit

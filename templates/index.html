@@ -1,7 +1,6 @@
 {% extends "base.html" %} {% block title %}mbtamapper{% endblock %} {% block
 content %}
 <div id="map"></div>
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 <script async defer>
   window.addEventListener("load", () => {
     /** @type {RouteKeys} */
