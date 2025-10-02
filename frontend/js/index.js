@@ -85,7 +85,13 @@ function createHomepageMap(id, routeKeys, content) {
     ...content,
   });
   textControl.addTo(map);
-  L.control.layers(baseLayers).addTo(map);
+  L.control
+    .layers(
+      Object.fromEntries(
+        Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v])
+      )
+    )
+    .addTo(map);
   return map;
 }
 

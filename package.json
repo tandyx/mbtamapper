@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "esbuild": "^0.25.10",
     "leaflet": "^1.9.4",
     "leaflet-easybutton": "^2.4.0",
     "leaflet-fullscreen": "^1.0.2",
@@ -13,9 +14,6 @@
     "sorttable": "^1.0.2",
     "strftime": "^0.10.3"
   },
-  "scripts": {
-    "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true"
-  },
   "devDependencies": {
     "@types/leaflet-providers": "^1.2.5",
     "@types/leaflet.locatecontrol": "^0.82.1",
@@ -23,5 +21,10 @@
     "@types/strftime": "^0.9.8",
     "leaflet-realtime-types": "^0.0.3",
     "leaflet-search-types": "^0.0.12"
+  },
+  "scripts": {
+    "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true",
+    "bundle": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs"
   }
 }

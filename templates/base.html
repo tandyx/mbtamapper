@@ -36,6 +36,12 @@
       property="og:image"
       content="{{ url_for('static', filename='img/mbta.png') }}"
     />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ url_for('static', filename='img/mbta.png') }}"
+    />
+
     <meta
       property="og:description"
       content="{% block description_og %}A real-time interactive map for tracking MBTA vehicles, including commuter rail (Keolis), subway, and buses. Tracks live locations, routes, and service alerts for all MBTA lines.{% endblock %}"
@@ -46,24 +52,17 @@
 
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/index.css') }}"
+      href="{{ url_for('static', filename='dist/bundle.css') }}"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
-    />
+    <style>
+      :root {
+        --navbar-height: 0px;
+      }
+    </style>
 
-    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='dist/bundle.js') }}"></script>
+    <script src="{{ url_for('static', filename='dist/index.js') }}"></script>
+
     {% block head_extra %}{% endblock %}
   </head>
   <body>

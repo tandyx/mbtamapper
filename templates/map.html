@@ -32,82 +32,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ icon }}" />
     <link rel="shortcut_icon" sizes="180x180" href="{{ icon }}" />
 
-    <!-- Leaflet -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}"
+      href="{{ url_for('static', filename='dist/bundle.css') }}"
     />
-    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css') }}"
-    />
-    <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster/dist/leaflet.markercluster.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet-realtime/dist/leaflet-realtime.min.js') }}"></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css') }}"
-    />
-    <script src="{{ url_for('static', filename='node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js') }}"></script>
-
-    <script src="{{ url_for('static', filename='node_modules/leaflet-fullscreen/dist/Leaflet.fullscreen.min.js') }}"></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet-fullscreen/dist/leaflet.fullscreen.css') }}"
-    />
-    <script src="{{ url_for('static', filename='node_modules/leaflet-search/dist/leaflet-search.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet-easybutton/src/easy-button.js') }}"></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet-easybutton/src/easy-button.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet-search/dist/leaflet-search.mobile.min.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet-search/dist/leaflet-search.min.css') }}"
-    />
-    <script src="{{ url_for('static', filename='node_modules/leaflet-providers/leaflet-providers.js') }}"></script>
-    <script src="{{ url_for('static', filename='node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js') }}"></script>
-    <!-- static/node_modules/leaflet-sidebar -->
-    <script src="{{ url_for('static', filename='node_modules/leaflet-sidebar/src/L.Control.Sidebar.js') }}"></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='node_modules/leaflet-sidebar/src/L.Control.Sidebar.css') }}"
-    />
-
-    <!-- other js -->
-    <script src="{{ url_for('static', filename='node_modules/strftime/strftime-min.js') }}"></script>
-    <!-- <script src="{{ url_for('static', filename='node_modules/sortable-tablesort/dist/sortable-min.js') }}"></script> -->
-    <script src="{{ url_for('static', filename='node_modules/sorttable/sorttable.js') }}"></script>
-    <!-- stylesheets -->
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/leaflet_custom.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/index.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/navbar.css') }}"
-    />
-
-    <!-- custom js -->
-    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/base.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/vehicles.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/facilities.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/stops.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/realtime/shapes.js') }}"></script>
+    <script src="{{ url_for('static', filename='dist/bundle.js') }}"></script>
   </head>
 
   <body>
@@ -150,6 +79,10 @@
       <div id="sidebar-other" class="hidden"></div>
     </div>
     <noscript>This page requires Javascript to be enabled.</noscript>
-    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script
+      src="{{ url_for('static', filename='dist/map.js') }}"
+      async
+      defer
+    ></script>
   </body>
 </html>

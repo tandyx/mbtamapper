@@ -50,12 +50,12 @@
 
 @font-face {
   font-family: "montserrat";
-  src: url("../fonts/montserrat.ttf");
+  src: url("../font/montserrat.ttf");
 }
 
 @font-face {
   font-family: "FontAwesome";
-  src: url("../fonts/fontawesome-webfont.woff2") format("woff2");
+  src: url("../font/fontawesome-webfont.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }

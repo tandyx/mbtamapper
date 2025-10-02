@@ -2,7 +2,6 @@
  * @file map.js - main map script
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet.markercluster")}
- * @typedef {import("leaflet.locatecontrol")}
  * @typedef {import("leaflet-search-types")}
  * @typedef {import("leaflet-fullscreen")}
  * @typedef {import("leaflet-providers")}
@@ -17,6 +16,7 @@
  * @typedef {import("./realtime/stops.js")}
  * @typedef {import("leaflet-easybutton")}
  * @import {LeafletSidebar} from "./types"
+ * @import { LocateControl } from "leaflet.locatecontrol"
  */
 "use strict";
 /**@type {L.Map?} for debug purposes*/
@@ -183,7 +183,7 @@ function createMap(id, routeType) {
       },
     ],
   }).setPosition("topright");
-  const locateControl = L.control.locate({
+  const locateControl = new LocateControl({
     enableHighAccuracy: true,
     initialZoomLevel: 15,
     metric: false,
@@ -191,8 +191,12 @@ function createMap(id, routeType) {
   });
 
   const layerControl = L.control.layers(
-    baseLayers,
-    Object.fromEntries(realtimeLayers.map((l) => [l.options?.name, l]))
+    Object.fromEntries(
+      Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v])
+    ),
+    Object.fromEntries(
+      realtimeLayers.map((l) => [titleCase(l.options?.name), l])
+    )
   );
 
   const controlSearch = L.control.search({
@@ -231,7 +235,7 @@ function createMap(id, routeType) {
     map.addLayer(facilityLayer.options.layer);
   });
 
-  map.on("click", () => {
+  map.on("popupclose", () => {
     BaseRealtimeLayer.toggleSidebarDisplay(BaseRealtimeLayer.sideBarMainId);
     window.location.hash = "";
   });
@@ -245,3 +249,28 @@ function createMap(id, routeType) {
 
   return map;
 }
+//navbar stuff
+
+document.addEventListener("click", (event) => {
+  if (!event.target?.closest(".nav")) {
+    const menuToggle = document.getElementById("menu-toggle");
+    if (menuToggle && menuToggle.checked) menuToggle.checked = false;
+  }
+});
+
+window.addEventListener("load", () => {
+  const menutoggle = document.getElementById("menu-toggle");
+  const _custNav = document.getElementById("navbar");
+  const _menu = _custNav.getElementsByClassName("menu")[0];
+  const toggle = [..._menu.children].filter((c) => c.id === "modeToggle")[0];
+  if (!toggle) return;
+  const anchor = toggle.getElementsByTagName("a")[0];
+  anchor.text = Theme.unicodeIcon;
+  toggle.addEventListener("click", () => {
+    const theme = Theme.fromExisting().reverse(sessionStorage, onThemeChange);
+    if (anchor.text !== theme.unicodeIcon) anchor.text = theme.unicodeIcon;
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768 && menutoggle.checked) menutoggle.click();
+  });
+});

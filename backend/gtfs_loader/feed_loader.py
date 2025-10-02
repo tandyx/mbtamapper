@@ -2,18 +2,17 @@
 
 import logging
 import os
-import time
 import typing as t
-from threading import Thread
 
-from schedule import Scheduler
+from apscheduler.job import Job
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
-from ..helper_functions import get_date, timeit
+from ..helper_functions import TimeZones, get_date, timeit
 from .feed import Feed
 
 
-class FeedLoader(Scheduler, Feed):
+class FeedLoader(Feed):
     """Loads GTFS data into map \
         and schedules jobs to import realtime data.
 
@@ -39,7 +38,12 @@ class FeedLoader(Scheduler, Feed):
         return os.path.exists(self.db_path)
 
     def __init__(
-        self, url: str, geojson_path: str, keys_dict: dict[str, list[str]], **kwargs
+        self,
+        url: str,
+        geojson_path: str,
+        keys_dict: dict[str, list[str]],
+        timezone: TimeZones = "America/New_York",
+        **kwargs,
     ) -> None:
         """Initializes FeedLoader.
 
@@ -47,13 +51,17 @@ class FeedLoader(Scheduler, Feed):
             url (str): URL of GTFS feed.
             geojson_path (str): Path to save geojsons.
             keys_dict (dict[str, list[str]]): Dictionary of keys to load.
-            kwargs: Keyword arguments to pass to `Feed`, such as `gtfs_name`.
+            timezone (str, optional): Timezone. Defaults to "America/New_York".
+            kwargs: passed to both BackgroundScheduler
         """
-        Scheduler.__init__(self)
-        Feed.__init__(self, url, **kwargs)
+
+        super().__init__(url)
+
         self.url = url
         self.keys_dict = keys_dict
         self.geojson_path = geojson_path
+
+        self.scheduler = BackgroundScheduler(timezone=timezone, **kwargs)
 
     @timeit
     def nightly_import(self, **kwargs) -> None:
@@ -73,9 +81,7 @@ class FeedLoader(Scheduler, Feed):
         for key, routes in self.keys_dict.items():
             self.export_geojsons(key, *routes, file_path=self.geojson_path)
 
-    def import_and_run(
-        self, import_data: bool = False, timezone: str = "America/New_York", **kwargs
-    ) -> t.NoReturn:
+    def import_and_run(self, import_data: bool = False, **kwargs) -> t.NoReturn:
         """this is the main entrypoint for the application.
 
         Args:
@@ -89,7 +95,7 @@ class FeedLoader(Scheduler, Feed):
             self.nightly_import(**kwargs)
         if import_data or not self.geojsons_exist:
             self.geojson_exports()
-        self.run(timezone=timezone)
+        self.run()
 
     def clear_caches(self) -> None:
         """clears orm-specific caches"""
@@ -97,38 +103,41 @@ class FeedLoader(Scheduler, Feed):
         LinkedDataset.cache.clear()
         logging.warning("caches cleared")
 
-    def run(self, timezone: str = "America/New_York") -> t.NoReturn:
-        """Schedules jobs.
+    def run(self, force: bool = False) -> t.Self:
+        """Schedules jobs defined by FeedLoader
 
         Args:
-            timezone (str, optional): Timezone. Defaults to "America/New_York".
+            force (bool, optional): forces this through if running. Defaults to False.
+
+        Returns:
+            t.Self: this class
         """
+        if self.scheduler.running:
+            logging.warning("calling scheduler while already running!")
+            if not force:
+                logging.warning("not adding jobs!")
+                return self
 
-        def threader(func: t.Callable, *args, join: bool = False, **kwargs) -> None:
-            """threads a function.
+        self.scheduler.add_job(
+            self.import_realtime, "interval", args=[Alert], minutes=1
+        )
+        self.scheduler.add_job(
+            self.import_realtime, "interval", args=[Vehicle], seconds=11
+        )
+        self.scheduler.add_job(
+            self.import_realtime, "interval", args=[Prediction], seconds=21
+        )
+        self.scheduler.add_job(self.geojson_exports, "cron", hour=4, minute=0)
+        self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
+        self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
+        self.scheduler.start()
+        jobs: list[Job] = self.scheduler.get_jobs()
 
-            Args:
-                func (Callable): Function to thread.
-                args: Arguments for func.
-                join (bool, optional): Whether to join thread. Defaults to True.
-                kwargs: Keyword arguments for func.
-            """
-
-            job_thread = Thread(target=func, args=args, kwargs=kwargs)
-            job_thread.start()
-            if join:
-                job_thread.join()
-
-        logging.info("Starting scheduler")
-        self.every().minute.do(threader, self.import_realtime, Alert, join=True)
-        self.every(12).seconds.do(threader, self.import_realtime, Vehicle, join=True)
-        self.every(20).seconds.do(threader, self.import_realtime, Prediction, join=True)
-        self.every().day.at("04:00", tz=timezone).do(threader, self.geojson_exports)
-        self.every().day.at("03:30", tz=timezone).do(threader, self.nightly_import)
-        self.every(4).days.at("03:40", tz=timezone).do(threader, self.clear_caches)
-        while True:
-            self.run_pending()
-            time.sleep(1)
+        logging.info(
+            "FeedLoader scheduler started\n%s",
+            "\n".join(f"{j.name}: next run @ {j.next_run_time}" for j in jobs),
+        )
+        return self
 
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.
@@ -136,6 +145,6 @@ class FeedLoader(Scheduler, Feed):
         Args:
             full (bool, optional): Whether to close db connection. Defaults to False.
         """
-        self.clear()
+        self.scheduler.shutdown(wait=False)
         if full:
             self.close()

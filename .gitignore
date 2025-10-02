@@ -66,13 +66,15 @@ geojsons/
 static/secrets.json
 static/secrets.html
 venv/
-/static/node_modules
+node_modules
 
 /static/.eslintrc.yml
 /static/.eslintrc.json
 .directory
-*/package-lock.json
+package-lock.json
 
 # */*/scratchfile.*
-scratchfile.*
+scratchfile*.*
 .env*
+
+bundle/
