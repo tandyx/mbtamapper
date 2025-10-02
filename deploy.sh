@@ -18,10 +18,14 @@ apt-get install git tmux python3-venv tzdata npm python3-pip python3-dev build-e
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 netfilter-persistent save
 
+# python
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade -r requirements.txt
-cd static && npm install && npm run bundle && cd ..
+
+# npm
+npm install
+npm run bundle
 
 TZ=America/New_York
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

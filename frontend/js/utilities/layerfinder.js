@@ -7,7 +7,7 @@
  * @import { FetchCacheOptions } from "./types";
  * @typedef {import("leaflet-search-types")}
  * @typedef {import("leaflet.markercluster")}
- * @typedef {import("../node_modules/leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src")}
+ * @typedef {import("leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable-src")}
  * @exports *
  */
 
