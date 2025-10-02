@@ -259,7 +259,9 @@ class BaseRealtimeLayer {
     };
 
     for (const el of document.querySelectorAll("[data-route-id]")) {
-      if (!el.onclick || el.dataset.onclick === "false") continue;
+      if (!el.onclick || el.dataset.onclick === "false") {
+        continue;
+      }
       /**@type {HTMLElement?} */
       const tbody =
         el.parentElement?.parentElement?.parentElement?.querySelector("tbody");
