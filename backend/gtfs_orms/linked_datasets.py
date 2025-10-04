@@ -98,6 +98,7 @@ class LinkedDataset(Base):
                 "trip_update_vehicle_id": "vehicle_id",
                 "timestamp": "timestamp",
             }
+        return {}
 
     def cache_key(self, key: str = None, force: bool = False) -> dict[str, t.Any]:
         """Caches the linked dataset as a dictionary.
