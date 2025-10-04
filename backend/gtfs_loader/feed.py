@@ -168,10 +168,8 @@ class Feed:
         args:
             **kwargs: keyword arguments to pass to `requests.get()`
         """
-        try:
-            source = req.get(self.url, timeout=10, **kwargs)
-        except req.exceptions.SSLError:
-            source = req.get(self.url, timeout=10, verify=False, **kwargs)
+
+        source = req.get(self.url, timeout=10, **kwargs)
         if not source.ok:
             raise req.exceptions.HTTPError(f"download {self.url}: {source.status_code}")
         with ZipFile(io.BytesIO(source.content)) as zipfile_bytes:

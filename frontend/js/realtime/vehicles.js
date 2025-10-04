@@ -206,7 +206,7 @@ class VehicleLayer extends BaseRealtimeLayer {
       666: `${description} 😈`,
       888: `${description} 🚂`,
       67: `${description} 💀`,
-      69: `${description} 💀`,
+      69: `${description} 😒`,
     };
     return customDescription[properties.trip_short_name] || description;
   }
