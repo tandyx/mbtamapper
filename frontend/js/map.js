@@ -123,13 +123,15 @@ function createMap(id, routeType) {
   };
 
   const stopLayer = new StopLayer({
-    url: "stops",
+    url: `/static/geojsons/${routeType}/stops.json`,
+    // url: "stops",
     layer: L.layerGroup(undefined, { name: "stops" }).addTo(map),
     ...baseOp,
   });
 
   const shapeLayer = new ShapeLayer({
-    url: "shapes",
+    url: `/static/geojsons/${routeType}/shapes.json`,
+    // url: "shapes",
     layer: L.layerGroup(undefined, { name: "shapes" }).addTo(map),
     ...baseOp,
   });
@@ -145,7 +147,8 @@ function createMap(id, routeType) {
   });
 
   const facilityLayer = new FacilityLayer({
-    url: "parking",
+    url: `/static/geojsons/${routeType}/parking.json`,
+    // url: "parking",
     layer: L.layerGroup(undefined, { name: "parking" }),
     ...baseOp,
   });

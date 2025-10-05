@@ -13,6 +13,7 @@ import difflib
 import json
 import logging
 import os
+import subprocess
 import sys
 import typing as t
 
@@ -45,7 +46,7 @@ logging.basicConfig(
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
 
 CACHE_CONFIG: CacheConfigDict = {
-    "CACHE_TYPE": "SimpleCache",
+    "CACHE_TYPE": "MemcachedCache",
     "CACHE_DEFAULT_TIMEOUT": 300,
 }
 
@@ -425,11 +426,11 @@ if __name__ == "__main__":
     logger.setLevel(getattr(logging, args.log_level.upper()))
     DEBUG = True
     CACHE_CONFIG["DEBUG"] = DEBUG
-
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):
         raise ValueError("cannot run in debug mode while importing data.")
+    subprocess.Popen(["npm", "run", "watch"])
     app = create_main_app(args.import_data, args.proxies)
     app.run(
         debug=args.debug, port=args.port, host=args.host, ssl_context=args.ssl_context

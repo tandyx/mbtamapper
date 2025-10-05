@@ -6,6 +6,7 @@ geographiclib
 geojson
 gtfs-realtime-bindings
 json_api_doc
+python3-memcached
 numpy
 pandas
 protobuf
