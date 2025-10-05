@@ -430,7 +430,8 @@ if __name__ == "__main__":
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):
         raise ValueError("cannot run in debug mode while importing data.")
-    subprocess.Popen(["npm", "run", "watch"])
+    with subprocess.Popen(["npm", "run", "watch"]) as process:
+        ...
     app = create_main_app(args.import_data, args.proxies)
     app.run(
         debug=args.debug, port=args.port, host=args.host, ssl_context=args.ssl_context
