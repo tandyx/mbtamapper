@@ -431,8 +431,10 @@ if __name__ == "__main__":
     ):
         raise ValueError("cannot run in debug mode while importing data.")
     with subprocess.Popen(["npm", "run", "watch"]) as process:
-        ...
-    app = create_main_app(args.import_data, args.proxies)
-    app.run(
-        debug=args.debug, port=args.port, host=args.host, ssl_context=args.ssl_context
-    )
+        app = create_main_app(args.import_data, args.proxies)
+        app.run(
+            debug=args.debug,
+            port=args.port,
+            host=args.host,
+            ssl_context=args.ssl_context,
+        )
