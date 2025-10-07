@@ -1,6 +1,5 @@
 {
-    "short_name": "mbtamapper",
-    "name": "mbtamapper | Realtime T Maps",
+    "name": "mbtamapper",
     "icons": [
         {
             "src": "/static/img/all_routes.ico",
@@ -8,6 +7,6 @@
             "type": "image/png"
         }
     ],
-    "start_url": ".",
+    "start_url": "/",
     "display": "standalone"
 }

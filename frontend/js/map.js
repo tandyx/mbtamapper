@@ -31,7 +31,8 @@ let _realtimeLayers;
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   _map = createMap("map", ROUTE_TYPE);
-  if (inIframe()) {
+  const search_params = new URLSearchParams(window.location.search);
+  if (inIframe() || search_params.get("navless")) {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
@@ -58,7 +59,7 @@ window.addEventListener("load", function () {
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {keyof RouteKeys} routeType - route type
- * @returns {L.map} map
+ * @returns {L.Map} map
  */
 function createMap(id, routeType) {
   const isMobile = mobileCheck();
