@@ -31,8 +31,8 @@ let _realtimeLayers;
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   _map = createMap("map", ROUTE_TYPE);
-  const search_params = new URLSearchParams(window.location.search);
-  if (inIframe() || search_params.get("navless")) {
+  const searchParams = new URLSearchParams(window.location.search);
+  if (inIframe() || searchParams.get("navless")) {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
@@ -65,6 +65,7 @@ function createMap(id, routeType) {
   const isMobile = mobileCheck();
   const isIframe = inIframe();
   const theme = Theme.fromExisting();
+  const searchParams = new URLSearchParams(window.location.search);
 
   const map = L.map(id, {
     minZoom: routeType === "commuter_rail" ? 9 : 11,
@@ -108,7 +109,9 @@ function createMap(id, routeType) {
     document.documentElement.style.setProperty("--more-info-display", "none");
   });
 
-  if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
+  if (!isMobile && !isIframe && !searchParams.get("sidebarless")) {
+    setTimeout(() => sidebar.show(), 500);
+  }
 
   const baseLayers = getBaseLayerDict();
   baseLayers[theme.theme].addTo(map);
@@ -264,8 +267,11 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("load", () => {
   const menutoggle = document.getElementById("menu-toggle");
+  if (!menutoggle) return;
   const _custNav = document.getElementById("navbar");
+  if (!_custNav) return;
   const _menu = _custNav.getElementsByClassName("menu")[0];
+  if (!_menu) return;
   const toggle = [..._menu.children].filter((c) => c.id === "modeToggle")[0];
   if (!toggle) return;
   const anchor = toggle.getElementsByTagName("a")[0];
