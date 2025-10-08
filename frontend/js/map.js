@@ -107,7 +107,7 @@ function createMap(id, routeType) {
   });
   sidebar.on("show", () => {
     document.documentElement.style.setProperty("--more-info-display", "none");
-    if (isLikeMobile() && detectEngine() === "webkit") {
+    if (isMobile) {
       const zoom = map.getZoom();
       const center = map.getCenter();
       map.setView([center.lat, center.lng + 0.08 / zoom], zoom, {
