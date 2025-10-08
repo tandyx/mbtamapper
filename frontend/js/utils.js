@@ -529,11 +529,57 @@ function getContrastYIQ(hexcolor, tresh = 128) {
   while (hexcolor.charAt(0) === "#") {
     hexcolor = hexcolor.substring(1);
   }
-  var r = parseInt(hexcolor.substring(1, 3), 16);
-  var g = parseInt(hexcolor.substring(3, 5), 16);
-  var b = parseInt(hexcolor.substring(5, 7), 16);
-  var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  const r = parseInt(hexcolor.substring(1, 3), 16);
+  const g = parseInt(hexcolor.substring(3, 5), 16);
+  const b = parseInt(hexcolor.substring(5, 7), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= tresh ? "dark" : "light";
+}
+
+/**
+ * Detect the browser rendering engine using feature detection (not just UA).
+ * @returns {"blink" | "webkit" | "gecko" | "trident" | "edgehtml" | "unknown"}
+ */
+function detectEngine() {
+  // Detect Firefox (Gecko)
+  if (typeof InstallTrigger !== "undefined") {
+    return "gecko";
+  }
+
+  // Detect old IE (Trident)
+  if (/*@cc_on!@*/ false || !!document.documentMode) {
+    return "trident";
+  }
+
+  // Detect old Edge (EdgeHTML)
+  if (!document.documentMode && !!window.StyleMedia) {
+    return "edgehtml";
+  }
+
+  // Detect Safari (webkit)
+  const isSafari =
+    /constructor/i.test(window.HTMLElement) ||
+    (function (p) {
+      return p.toString() === "[object SafariRemoteNotification]";
+    })(
+      !window["safari"] ||
+        (typeof safari !== "undefined" && window["safari"].pushNotification)
+    );
+  if (isSafari) {
+    return "webkit";
+  }
+
+  // Detect Blink (Chrome, Edge Chromium, Opera)
+  const isBlink =
+    (!!window.chrome &&
+      (!!window.chrome.webstore || !!window.chrome.runtime)) ||
+    (!!window.opr && !!window.opr.addons) ||
+    (!!window.CSS && !isSafari);
+  if (isBlink) {
+    return "blink";
+  }
+
+  return "unknown";
 }
 
 /**

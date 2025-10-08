@@ -107,6 +107,9 @@ function createMap(id, routeType) {
   });
   sidebar.on("show", () => {
     document.documentElement.style.setProperty("--more-info-display", "none");
+    if (isMobile && detectEngine() === "webKit") {
+      setTimeout(() => map.setView(map.getCenter()), 50);
+    }
   });
 
   if (!isMobile && !isIframe && !searchParams.get("sidebarless")) {
