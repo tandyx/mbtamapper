@@ -65,7 +65,6 @@ class VehicleLayer extends BaseRealtimeLayer {
       <div class="vehicle_wrapper">
         <img
           src="/static/img/icon.png"
-          loading="lazy"
           alt="vehicle"
           width="60"
           height="60"
