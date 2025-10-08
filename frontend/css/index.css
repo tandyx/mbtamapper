@@ -161,6 +161,19 @@ h4 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  content-visibility: visible !important;
+  contain-intrinsic-size: auto !important;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  visibility: visible !important;
+  will-change: transform;
+  img {
+    visibility: visible !important;
+    content-visibility: visible !important;
+    contain-intrinsic-size: auto !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
 }
 
 .big_img {
