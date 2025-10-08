@@ -21,7 +21,9 @@ class Base(orm.DeclarativeBase):
     """
 
     __filename__: str
+    """name of the file within the gtfs feed"""
     __realtime_name__: str
+    """only used for realtime orms"""
     # __table_args__ = {"sqlite_autoincrement": False, "sqlite_with_rowid": False}
 
     # pylint: disable=no-self-argument

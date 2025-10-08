@@ -157,6 +157,11 @@ h4 {
 }
 
 .vehicle_wrapper {
+  content-visibility: visible !important;
+  contain-intrinsic-size: auto !important;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+
   position: absolute;
   top: 50%;
   left: 50%;

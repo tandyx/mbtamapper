@@ -4,6 +4,10 @@ sqlalchemy + flask + leaflet api/web app with realtime mbta data
 
 ![example of the app](/static/img/example.png)
 
+## website operations
+
+this website operates on a nightly rebuild
+
 ## TODO
 
 - [x] use html templates for 404/index
