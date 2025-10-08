@@ -166,8 +166,7 @@ h4 {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     will-change: transform;
-    -webkit-transform-style: preserve-3d;
-    transform-style: preserve-3d;
+    visibility: visible !important;
   }
 }
 
