@@ -160,7 +160,7 @@ h4 {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) translateZ(0);
+  transform: translate(-50%, -50%);
   visibility: visible !important;
   img {
     -webkit-backface-visibility: hidden;
