@@ -160,15 +160,7 @@ h4 {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) translateZ(0);
-  /* visibility: visible !important; */
-  img {
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: transform;
-    -webkit-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-  }
+  transform: translate(-50%, -50%);
 }
 
 .big_img {
