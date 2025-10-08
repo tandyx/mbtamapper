@@ -542,20 +542,11 @@ function getContrastYIQ(hexcolor, tresh = 128) {
  */
 function detectEngine() {
   // Detect Firefox (Gecko)
-  if (typeof InstallTrigger !== "undefined") {
-    return "gecko";
-  }
-
+  if (typeof InstallTrigger !== "undefined") return "gecko";
   // Detect old IE (Trident)
-  if (/*@cc_on!@*/ false || !!document.documentMode) {
-    return "trident";
-  }
-
+  if (/*@cc_on!@*/ false || !!document.documentMode) return "trident";
   // Detect old Edge (EdgeHTML)
-  if (!document.documentMode && !!window.StyleMedia) {
-    return "edgehtml";
-  }
-
+  if (!document.documentMode && !!window.StyleMedia) return "edgehtml";
   // Detect Safari (webkit)
   const isSafari =
     /constructor/i.test(window.HTMLElement) ||
@@ -565,9 +556,7 @@ function detectEngine() {
       !window["safari"] ||
         (typeof safari !== "undefined" && window["safari"].pushNotification)
     );
-  if (isSafari) {
-    return "webkit";
-  }
+  if (isSafari) return "webkit";
 
   // Detect Blink (Chrome, Edge Chromium, Opera)
   const isBlink =
@@ -575,9 +564,7 @@ function detectEngine() {
       (!!window.chrome.webstore || !!window.chrome.runtime)) ||
     (!!window.opr && !!window.opr.addons) ||
     (!!window.CSS && !isSafari);
-  if (isBlink) {
-    return "blink";
-  }
+  if (isBlink) return "blink";
 
   return "unknown";
 }
