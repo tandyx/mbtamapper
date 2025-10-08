@@ -160,7 +160,11 @@ h4 {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(0);
+  visibility: visible !important;
+  img {
+    visibility: visible !important;
+  }
 }
 
 .big_img {
