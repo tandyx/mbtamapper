@@ -69,7 +69,7 @@ function createMap(id, routeType) {
   const theme = Theme.fromExisting();
   const searchParams = new URLSearchParams(window.location.search);
   /**@type {IResult}*/
-  const userAgent = UAParser().getResult();
+  const userAgent = new UAParser().getResult();
 
   const map = L.map(id, {
     minZoom: routeType === "commuter_rail" ? 9 : 11,
