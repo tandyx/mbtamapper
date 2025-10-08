@@ -69,8 +69,10 @@ class VehicleLayer extends BaseRealtimeLayer {
           width="60"
           height="60"
           style="
-            ${VehicleLayer.#hex_css_map[properties.route_color] || ""}; 
-            transform: rotate(${properties.bearing}deg);
+            ${VehicleLayer.#hex_css_map[properties.route_color] || ""};
+            transform: rotate(${properties.bearing}deg) translateZ(0);
+            -webkit-transform: rotate(${properties.bearing}deg) translateZ(0);
+            will-change: transform;
           "
         />
         <span class="vehicle_text" style="${delayStyle}"
