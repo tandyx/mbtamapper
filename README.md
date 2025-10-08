@@ -1,17 +1,14 @@
 # [mbtamapper.com](https://mbtamapper.com/)
 
-sqlalchemy + flask + leaflet api/web app with realtime mbta data
+sqlalchemy + flask + leaflet api/web app with realtime mbta data, including subway, commuter rail (keolis) and buses.tracks live locations, routes and alerts of all mbta lines.
 
 ![example of the app](/static/img/example.png)
-
-## website operations
-
-this website operates on a nightly rebuild
 
 ## TODO
 
 - [x] use html templates for 404/index
 - [ ] add api ref
+- [ ] add debugging raw js back
 - [ ] rate limit API
 - [ ] remove `explode_df`
 - [x] use bundles for custom js
@@ -20,11 +17,12 @@ this website operates on a nightly rebuild
 - [ ] compute bearings client side (maybe)
 - [ ] figure out way to compute vehicle positions either client or server-side
 - [ ] add option to view past stoptimes/trips for each paine (includes adding an options drawer)
+- [ ] include shuttles trips within routes
 - [ ] WIP: departure board
 
 ## setup
 
-requires python 3.10+ and node 20+
+requires python 3.12+ and node 18+
 
 ### building
 
@@ -46,7 +44,7 @@ requires python 3.10+ and node 20+
 3. install frontend dependencies
 
    ```sh
-   cd static && npm install && cd ..
+   npm install
    ```
 
 ### running
@@ -69,7 +67,7 @@ calling `app.py` with no arguments triggers a build process if there's no geojso
 
 every night at 3am est, the database rebuilds. at 3:30am est, map layers are updated (this is the process that takes a while).
 
-## linting + formatting
+### linting + formatting
 
 check out [`/.github/workflows`](.github/workflows)
 
@@ -80,11 +78,54 @@ check out [`/.github/workflows`](.github/workflows)
 ### dependencies
 
 - python: [`/requirements.txt`](requirements.txt)
-- javascript: [`/static/package.json`](static/package.json)
+- javascript: [`/package.json`](package.json)
+
+## website operations
+
+### frontend
+
+this frontend uses vanilla javascript/css using esbuild, built around leaflet. until september 2025, it was using completely vanilla javascript with individually-loaded node-modules, but it's faster and less server-load to bundle all the javascript. the disadvantage is that it's harder to debug.
+
+#### query parameters
+
+each vehicle-type-specific route has these query parameters:
+
+- `navless` | `navbarless`: if this parameter exists and is truthy, hide the navbar. iframes are already hidden. this is automatically done if this website is in an iframe.
+- `sideless` | `sidebarless`: if this parameter exists and is truthy, don't auto-show the sidebar. this is automatically done if this website is in an iframe.
+
+setting these to true: eg. <https://mbtamapper.com/commuter_rail?navless=true&sideless=true>, may be optimal for digital signage.
+
+#### window hashes
+
+when a marker is clicked, the id of that object is set as the window hash. this enables sharing of a specific location or returning to one after the page has been dormaint.
+
+#### realtime data
+
+leaflet-realtime is used to query the database at a certain interval and automatically refresh the layer. however, because the popup content, etc also has to be refreshed, the codebase became a messy disaster. thus, each realtime layer is wrapped within an encompassing class that limits how many functions I put into the global scope.
+
+### backend
+
+this website operates on a nightly rebuild and persistent scheduler that runs in the background to the flask app. (see [`feed_loader.py`](/backend/gtfs_loader/feed_loader.py)). _more documentation to come_
+
+```python
+self.scheduler.add_job(
+    self.import_realtime, "interval", args=[Alert], minutes=1
+)
+self.scheduler.add_job(
+    self.import_realtime, "interval", args=[Vehicle], seconds=11
+)
+self.scheduler.add_job(
+    self.import_realtime, "interval", args=[Prediction], seconds=21
+)
+self.scheduler.add_job(self.geojson_exports, "cron", hour=4, minute=0)
+self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
+self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
+self.scheduler.start()
+```
 
 ## api reference
 
-you could query the database (please don't abuse it)
+users could query the database directly (please don't abuse it)
 
 `/api/<orm>?{param}&{param}&...` - query the orm name with parameters
 
@@ -98,7 +139,7 @@ you could query the database (please don't abuse it)
 
 `/{route_type}/{vehicles|stops|shapes|parking}` - api used by each route (geojson format only)
 
-this data is already filtered out based on `route_type`; see [`/route_keys.json`](route_keys.json).
+this data is already filtered out based on `route_type`; see [`/route_keys.json`](/static/config/route_keys.json).
 
 - `/vehicles?include=...,...&cache=...`: realtime vehicle data
 

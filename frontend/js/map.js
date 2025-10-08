@@ -34,7 +34,11 @@ window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   _map = createMap("map", ROUTE_TYPE);
   const searchParams = new URLSearchParams(window.location.search);
-  if (inIframe() || searchParams.get("navless")) {
+  if (
+    inIframe() ||
+    searchParams.get("navless") ||
+    searchParams.get("navbarless")
+  ) {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
@@ -127,7 +131,12 @@ function createMap(id, routeType) {
     }
   });
 
-  if (!isMobile && !isIframe && !searchParams.get("sidebarless")) {
+  if (
+    !isMobile &&
+    !isIframe &&
+    !searchParams.get("sidebarless") &&
+    !searchParams.get("sideless")
+  ) {
     setTimeout(() => sidebar.show(), 500);
   }
 
