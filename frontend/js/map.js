@@ -17,6 +17,8 @@
  * @typedef {import("leaflet-easybutton")}
  * @import {LeafletSidebar} from "./types"
  * @import { LocateControl } from "leaflet.locatecontrol"
+ * @import { Theme } from "./utilities/theme.js"
+ * @typedef {import("ua-parser-js").UAParser} UAParser
  */
 "use strict";
 /**@type {L.Map?} for debug purposes*/
@@ -107,10 +109,11 @@ function createMap(id, routeType) {
   });
   sidebar.on("show", () => {
     document.documentElement.style.setProperty("--more-info-display", "none");
-    if (isMobile) {
+
+    if (isMobile && new UAParser().getResult().engine.name === "WebKit") {
       const zoom = map.getZoom();
       const center = map.getCenter();
-      map.setView([center.lat, center.lng + 0.08 / zoom], zoom, {
+      map.setView([center.lat, center.lng + 0.07 / zoom], zoom, {
         animate: true,
       });
     }

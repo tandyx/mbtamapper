@@ -537,39 +537,6 @@ function getContrastYIQ(hexcolor, tresh = 128) {
 }
 
 /**
- * Detect the browser rendering engine using feature detection (not just UA).
- * @returns {"blink" | "webkit" | "gecko" | "trident" | "edgehtml" | "unknown"}
- */
-function detectEngine() {
-  // Detect Firefox (Gecko)
-  if (typeof InstallTrigger !== "undefined") return "gecko";
-  // Detect old IE (Trident)
-  if (/*@cc_on!@*/ false || !!document.documentMode) return "trident";
-  // Detect old Edge (EdgeHTML)
-  if (!document.documentMode && !!window.StyleMedia) return "edgehtml";
-  // Detect Safari (webkit)
-  const isSafari =
-    /constructor/i.test(window.HTMLElement) ||
-    (function (p) {
-      return p.toString() === "[object SafariRemoteNotification]";
-    })(
-      !window["safari"] ||
-        (typeof safari !== "undefined" && window["safari"].pushNotification)
-    );
-  if (isSafari) return "webkit";
-
-  // Detect Blink (Chrome, Edge Chromium, Opera)
-  const isBlink =
-    (!!window.chrome &&
-      (!!window.chrome.webstore || !!window.chrome.runtime)) ||
-    (!!window.opr && !!window.opr.addons) ||
-    (!!window.CSS && !isSafari);
-  if (isBlink) return "blink";
-
-  return "unknown";
-}
-
-/**
  * memory storage class
  *
  * basically just a wrapper for Map, but with the same methods as builtin `Storage`
