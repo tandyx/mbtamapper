@@ -299,7 +299,9 @@ class Feed:
             logging.info("Exported %s", file.name)
 
     @removes_session
-    def get_stop_features(self, key: str, query_obj: Query, *include: str) -> None:
+    def get_stop_features(
+        self, key: str, query_obj: Query, *include: str
+    ) -> gj.FeatureCollection:
         """Generates geojsons for stops and shapes.
 
         Args:

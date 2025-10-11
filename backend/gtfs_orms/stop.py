@@ -226,8 +226,7 @@ class Stop(Base):
             id=self.stop_id,
             geometry=self.as_point(),
             properties=(
-                self.as_json(*include) | {"timestamp": time.time()}
-                if "timestamp" in include
-                else {}
+                self.as_json(*include)
+                | ({"timestamp": time.time()} if "timestamp" in include else {})
             ),
         )
