@@ -15,13 +15,12 @@ import logging
 import os
 import subprocess
 import sys
-import typing as t
 
 import flask
 import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import FeedLoader, Query, RouteKeys, get_gitinfo
+from backend import FeedLoader, RouteKeys, get_gitinfo
 from backend.helper_functions.types import CacheConfigDict, GitInfo
 
 # pylint: disable=too-many-locals
@@ -36,7 +35,7 @@ FEED_LOADER: FeedLoader = FeedLoader(
 )
 
 logging.basicConfig(
-    filename="mbtamapper.log",
+    filename=FEED_LOADER.log_file,
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -56,12 +55,12 @@ DEBUG: bool = False
 
 
 def create_key_blueprint(
-    key: t.KeysView[RouteKeys], _app: flask.Flask, _cache: flask_caching.Cache
+    key: str, _app: flask.Flask, _cache: flask_caching.Cache
 ) -> flask.Blueprint:
     """Create app for a given key
 
     Args:
-        key (t.KeysView[RouteKeys]): Key for the app. Defaults to None.
+        key (keyof RouteKey): Key for the app. Defaults to None.
         _app (flask.Flask): Flask WSGI app.
         _cache (flask_caching.Cache): cache for this app
 
@@ -103,11 +102,11 @@ def create_key_blueprint(
 
         params: dict[str, str] = flask.request.args.to_dict()
         cache_s: int = int(params.pop("cache", 0))
-        json_data = FEED_LOADER.get_vehicles_feature(
-            key,
-            Query(*KEY_DICT[key]["route_types"]),
-            *[s.strip() for s in params.get("include", "").split(",")],
+
+        json_data = FEED_LOADER.get_vehicles_feature_cache(
+            key, *[s.strip() for s in params.get("include", "").split(",")]
         )
+
         if cache_s and json_data:
             return flask_caching.CachedResponse(flask.jsonify(json_data), cache_s)
         return flask.jsonify(json_data)

@@ -6,10 +6,12 @@ import typing as t
 
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
+from geojson import FeatureCollection
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
-from ..helper_functions import get_date, timeit
+from ..helper_functions import PathLike, get_date, timeit
 from .feed import Feed
+from .query import Query
 
 # pylint: disable=line-too-long
 
@@ -44,7 +46,7 @@ class FeedLoader(Feed):
         url: str,
         geojson_path: str,
         keys_dict: dict[str, list[str]],
-        url_base: str = "http://localhost:5000",
+        log_file: PathLike = "mbtamapper.log",
         **kwargs,
     ) -> None:
         """Initializes FeedLoader.
@@ -52,7 +54,8 @@ class FeedLoader(Feed):
         Args:
             url (str): URL of GTFS feed.
             geojson_path (str): Path to save geojsons.
-            keys_dict (dict[str, list[str]]): Dictionary of keys to load.
+            keys_dict (dict[str, list[str]]): Dictionary of keys to load\
+               as {route_key: ["1", "2", ...]}
             url_base (str, optional): web app url base "http://localhost:5000".
             timezone (str, optional): Timezone. Defaults to "America/New_York".
             kwargs: passed to BackgroundScheduler
@@ -63,10 +66,14 @@ class FeedLoader(Feed):
         self.url: str = url
         self.keys_dict: dict[str, list[str]] = keys_dict
         self.geojson_path: str = geojson_path
-        self.url_base: str = url_base.rstrip("/")
+        self.log_file: PathLike = log_file
+        # self.url_base: str = url_base.rstrip("/")
         self.scheduler = BackgroundScheduler(
             timezone=kwargs.get("timezone", "America/New_York"), **kwargs
         )
+
+        self.vehicle_cache: dict[str, FeatureCollection] = {}
+        """in-memory cache of vehicles"""
 
     @timeit
     def nightly_import(self, **kwargs) -> None:
@@ -106,70 +113,66 @@ class FeedLoader(Feed):
         """clears orm-specific caches"""
         Shape.cache.clear()
         LinkedDataset.cache.clear()
+        self.vehicle_cache.clear()
         logging.warning("caches cleared")
 
-    # @timeit
-    # def prime_caches(self) -> None:  # pylint: disable=too-many-locals,too-many-branches
-    #     """primes caches for apis, etc."""
-    #     today = get_date()
-    #     stops_set: set[str] = set()
-    #     routes_set: set[str] = set()
+    def get_vehicles_feature_cache(
+        self, key: str, *include: str, **kwargs
+    ) -> FeatureCollection:
+        """the same as the super method, but:
 
-    #     for key, route_types in self.keys_dict.items():
-    #         query_obj = Query(*route_types)
-    #         vehicle_resp = req.get(f"{self.url_base}/{key}/vehicles", timeout=10)
-    #         if vehicle_resp.ok:
-    #             logging.info("primed %s vehicles cache", key)
-    #         else:
-    #             logging.error(
-    #                 "error priming %s vehicles cache: %s", key, vehicle_resp.text
-    #             )
-    #         time.sleep(1)
+        abstracts `Query` away \n
+        and loads the result into the self.vehicle_cache
 
-    #     for key, route_types in {"commuter_rail": ["2"], "ferry": ["4"]}.items():
-    #         query_obj = Query(*route_types)
-    #         for stop in self.get_stop_features(key, query_obj, "child_stops")[
-    #             "features"
-    #         ]:
-    #             if len(stop["properties"]["child_stops"]) < 4:
-    #                 continue
-    #             for child_stop in stop["properties"]["child_stops"]:
-    #                 stop_id: str = child_stop["stop_id"]
-    #                 if stop_id in stops_set or child_stop["location_type"] != "0":
-    #                     logging.info("skipping stop %s", stop_id)
-    #                     continue
-    #                 cs_resp = req.get(
-    #                     f"{self.url_base}/api/stoptime?stop_id={stop_id}&operates_today=True&_={today.strftime("%Y%m%d")}&include=trip&cache=86400",
-    #                     timeout=10,
-    #                 )
-    #                 if cs_resp.ok:
-    #                     logging.info("primed %s stoptimes cache", stop_id)
-    #                     stops_set.add(stop_id)
-    #                 else:
-    #                     logging.error(
-    #                         "error priming stop %s stoptimes cache: %s",
-    #                         stop_id,
-    #                         cs_resp.text,
-    #                     )
-    #                 time.sleep(1)
+        Args:
+            key (str): route key to use
+            *include (str): attrs to include
+            **kwargs: dumped to super class
 
-    #         for route in self.get_shape_features(key, query_obj)["features"]:
-    #             route_id: str = route["properties"]["route_id"]
-    #             if route_id in routes_set:
-    #                 logging.info("skipping route %s", route_id)
-    #                 continue
-    #             route_resp = req.get(
-    #                 f"{self.url_base}/api/route?route_id={route_id}&_={today.strftime('%Y%m%d')}&include=stop_times,trips&cache=86400",
-    #                 timeout=10,
-    #             )
-    #             if route_resp.ok:
-    #                 logging.info("primed shape %s cache", route_id)
-    #                 routes_set.add(route_id)
-    #             else:
-    #                 logging.error(
-    #                     "error priming shape %s cache: %s", route_id, route_resp.text
-    #                 )
-    #             time.sleep(1)
+        Returns:
+            FeatureCollection: vehicles as featurecollection
+        """
+
+        if (cache_key := f"{key}-{','.join(include)}") not in self.vehicle_cache:
+            res = self.get_vehicles_feature(
+                key, Query(*self.keys_dict[key]), *include, **kwargs
+            )
+            if res:
+                self.vehicle_cache[cache_key] = res
+        return self.vehicle_cache[cache_key]
+
+    @timeit
+    def _update_vehicle_cache(self, **kwargs) -> dict[str, FeatureCollection]:
+        """updates cache and then returns the cache
+
+        Returns:
+            dict[str, FeatureCollection]: the cache
+        """
+
+        for cache_key in self.vehicle_cache:
+            key, include = cache_key.split("-")
+            self.vehicle_cache[cache_key] = self.get_vehicles_feature(
+                key, Query(*self.keys_dict[key]), *include.split(","), **kwargs
+            )
+
+        while len(self.vehicle_cache) > 10:
+            self.vehicle_cache.popitem()
+
+        return self.vehicle_cache
+
+    def clear_log(self, maxsize: int = 10**9) -> None:
+        """_summary_
+
+        Args:
+            maxsize (int, optional): _description_. Defaults to 10**9 bytes (1 gb).
+        """
+        abs_path: PathLike = os.path.abspath(self.log_file)
+        if not os.path.exists(self.log_file):
+            logging.warning("file %s doesn't exist", abs_path)
+        size: int = os.path.getsize(self.log_file)
+        if os.path.exists(self.log_file) and size >= maxsize:
+            os.remove(self.log_file)
+            logging.info("removed file %s w/ size %s", abs_path, size)
 
     def run(self, force: bool = False) -> t.Self:
         """Schedules jobs defined by FeedLoader
@@ -195,9 +198,14 @@ class FeedLoader(Feed):
         self.scheduler.add_job(
             self.import_realtime, "interval", args=[Prediction], seconds=21
         )
+        self.scheduler.add_job(self._update_vehicle_cache, "interval", seconds=10)
+
         self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)
         self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
+
         self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
+        self.scheduler.add_job(self.clear_log, "cron", hour=3, minute=45)
+
         self.scheduler.start()
         job: Job
         logging.info("FeedLoader scheduler started")

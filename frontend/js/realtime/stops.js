@@ -119,6 +119,10 @@ class StopLayer extends BaseRealtimeLayer {
       ),
     ];
 
+    if (properties.stop_id === "place-north") {
+      routeColors.splice(routeColors.indexOf("#ED8B00"), 1);
+    }
+
     const routeCSS =
       routeColors.length > 1
         ? `
