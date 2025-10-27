@@ -51,7 +51,7 @@ CACHE_CONFIG: CacheConfigDict = {
 
 GIT_INFO: GitInfo = get_gitinfo()
 
-DEBUG: bool = False
+use_debug: bool = False
 
 
 def create_key_blueprint(
@@ -78,7 +78,7 @@ def create_key_blueprint(
             str: map.html"""
 
         return flask.render_template(
-            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=DEBUG
+            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=use_debug
         )
 
     @blueprint.route("/key")
@@ -186,7 +186,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             str: index.html.
         """
         return flask.render_template(
-            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=DEBUG
+            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=use_debug
         )
 
     @_app.route("/key_dict")
@@ -219,7 +219,10 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         #         "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
         #     )
         return flask.render_template(
-            "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=DEBUG
+            "departure_board.html",
+            key_dict=KEY_DICT,
+            git_info=GIT_INFO,
+            debug=use_debug,
         )
 
     @_app.route("/apple-touch-icon.png")
@@ -326,7 +329,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
                 "404.html",
                 key_dict=KEY_DICT,
                 git_info=GIT_INFO,
-                debug=DEBUG,
+                debug=use_debug,
                 **url_dict,
             ),
             404,
@@ -423,8 +426,8 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(getattr(logging, args.log_level.upper()))
-    DEBUG = True
-    CACHE_CONFIG["DEBUG"] = DEBUG
+    use_debug = True
+    CACHE_CONFIG["DEBUG"] = use_debug
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):
