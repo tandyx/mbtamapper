@@ -23,7 +23,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from backend import FeedLoader, RouteKeys, get_gitinfo
 from backend.helper_functions.types import CacheConfigDict, GitInfo
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals,invalid-name
 
 LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
