@@ -198,17 +198,24 @@ class VehicleLayer extends BaseRealtimeLayer {
       direction_map[parseInt(properties.direction_id)] || "unknown"
     } to ${properties.headsign || "unknown"}`;
 
-    const customDescription = {
+    const customDescriptions = {
       515: "Hub to Heart",
       520: "Heart to Hub",
-      621: `${description} 🦊`,
-      926: `${description} 🦊`,
-      666: `${description} 😈`,
-      888: `${description} 🚂`,
-      67: `${description} 💀`,
-      69: `${description} 😒`,
     };
-    return customDescription[properties.trip_short_name] || description;
+
+    const appendDescriptions = {
+      621: "🦊",
+      926: "🦊",
+      666: "😈",
+      888: "♠️",
+      67: "🫴🫴",
+      69: "💀",
+    };
+
+    return (
+      customDescriptions[properties.trip_short_name] ||
+      `${description} ${appendDescriptions[properties.trip_short_name] || ""}`
+    );
   }
 
   // static #direction_map = {
@@ -376,7 +383,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const predictions = await fetchCache(
       `/api/prediction?trip_id=${
         properties.trip_id
-      }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=1`,
+      }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=4`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );

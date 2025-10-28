@@ -78,3 +78,5 @@ scratchfile*.*
 .env*
 
 bundle/
+
+data.sqld

@@ -51,7 +51,7 @@ CACHE_CONFIG: CacheConfigDict = {
 
 GIT_INFO: GitInfo = get_gitinfo()
 
-use_debug: bool = False
+USE_DEBUG: bool = False
 
 
 def create_key_blueprint(
@@ -78,7 +78,7 @@ def create_key_blueprint(
             str: map.html"""
 
         return flask.render_template(
-            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=use_debug
+            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=USE_DEBUG
         )
 
     @blueprint.route("/key")
@@ -186,7 +186,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             str: index.html.
         """
         return flask.render_template(
-            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=use_debug
+            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=USE_DEBUG
         )
 
     @_app.route("/key_dict")
@@ -222,7 +222,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             "departure_board.html",
             key_dict=KEY_DICT,
             git_info=GIT_INFO,
-            debug=use_debug,
+            debug=USE_DEBUG,
         )
 
     @_app.route("/apple-touch-icon.png")
@@ -329,7 +329,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
                 "404.html",
                 key_dict=KEY_DICT,
                 git_info=GIT_INFO,
-                debug=use_debug,
+                debug=USE_DEBUG,
                 **url_dict,
             ),
             404,
@@ -426,17 +426,17 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(getattr(logging, args.log_level.upper()))
-    use_debug = True
-    CACHE_CONFIG["DEBUG"] = use_debug
+    USE_DEBUG = True
+    CACHE_CONFIG["DEBUG"] = USE_DEBUG
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):
         raise ValueError("cannot run in debug mode while importing data.")
-    with subprocess.Popen(["npm", "run", "watch"]) as process:
-        app = create_main_app(args.import_data, args.proxies)
-        app.run(
-            debug=args.debug,
-            port=args.port,
-            host=args.host,
-            ssl_context=args.ssl_context,
-        )
+    subprocess.call("npm run watch &", shell=True)
+    app = create_main_app(args.import_data, args.proxies)
+    app.run(
+        debug=args.debug,
+        port=args.port,
+        host=args.host,
+        ssl_context=args.ssl_context,
+    )

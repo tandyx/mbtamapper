@@ -4,6 +4,7 @@ import logging
 import os
 import typing as t
 
+import requests as req
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
 from geojson import FeatureCollection
@@ -115,6 +116,7 @@ class FeedLoader(Feed):
         LinkedDataset.cache.clear()
         self.vehicle_cache.clear()
         logging.warning("caches cleared")
+        # self.proc_vehicle_cache()
 
     def get_vehicles_feature_cache(
         self, key: str, *include: str, **kwargs
@@ -137,6 +139,8 @@ class FeedLoader(Feed):
             res = self.get_vehicles_feature(
                 key, Query(*self.keys_dict[key]), *include, **kwargs
             )
+            if not res or any(key in _cache_key for _cache_key in self.vehicle_cache):
+                return res
             if res:
                 self.vehicle_cache[cache_key] = res
         return self.vehicle_cache[cache_key]
@@ -212,6 +216,28 @@ class FeedLoader(Feed):
         for job in self.scheduler.get_jobs():
             logging.info("%s: next run @ %s", job.name, job.next_run_time or "never")
         return self
+
+    def proc_vehicle_cache(
+        self, url_base: str = "http://localhost:5000", **kwargs
+    ) -> None:
+        """_summary_
+
+        Args:
+            url_base (_type_, optional): _description_. Defaults to "http://localhost:5000".
+        """
+
+        for key in self.keys_dict:
+            if key in ["bus", "all_routes", "ferry"]:
+                continue
+            resp = req.get(
+                f"{url_base.rstrip('/')}/{key}/vehicles?include=route,next_stop,stop_time&cache=5",
+                timeout=10,
+                **kwargs,
+            )
+            if resp.ok:
+                logging.info("procced vehicle cache %s", resp.url)
+            else:
+                logging.error("failed to proc vehicle cache %s", resp.url)
 
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.
