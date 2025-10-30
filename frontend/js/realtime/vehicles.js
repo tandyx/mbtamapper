@@ -212,11 +212,11 @@ class VehicleLayer extends BaseRealtimeLayer {
         520: "Heart to Hub",
       },
       /**
-       * @template {keyof typeof this} T
+       * @template {keyof typeof this | keyof typeof this["standalones"]} T
        * @param {T} trip_name key of this obj
        * @param {string} [prepend=""] prepend this to item
        * @param {...*} args passed to sub functions
-       * @returns {(keyof typeof this)[T] | ""}
+       * @returns {(keyof typeof this | keyof typeof this["standalones"])[T] | ""}
        */
       formulate(trip_name, prepend = "", ...args) {
         const item = this[trip_name];
