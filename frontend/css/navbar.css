@@ -3,6 +3,7 @@
   --grey-accent: #525252;
   --accent-color-bar-height: 2px;
   --menubar-padding: 0.5em;
+  --_toggle_mr: 0.75em;
 }
 
 * {
@@ -54,9 +55,22 @@ nav a:visited:hover {
   color: var(--accent-color);
   cursor: pointer;
 }
+nav {
+  #modeToggle:hover {
+    color: var(--accent-color);
+  }
 
-#modeToggle:hover {
-  color: var(--accent-color);
+  #modeToggle {
+    /* Remove: position: absolute; right: 1rem; top: 0; */
+    height: var(--navbar-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem;
+    cursor: pointer;
+    font-size: 16pt;
+    margin-left: auto; /* Push to the right on desktop */
+  }
 }
 
 .titleLogo {
@@ -113,7 +127,7 @@ nav a:visited:hover {
   display: block;
   background-color: var(--text-color);
   position: absolute;
-  height: 6px;
+  height: 2px;
   width: 32px;
   border-radius: 3px;
 }
@@ -167,8 +181,18 @@ nav a:visited:hover {
 @media (max-width: 768px) {
   .menu-button-container {
     display: flex;
+    order: 3; /* Place hamburger at the end */
   }
+  nav {
+    #modeToggle {
+      order: 2; /* Place modeToggle before hamburger */
+      margin-left: auto;
+      margin-right: var(--_toggle_mr);
+    }
+  }
+
   .menu {
+    order: 4; /* Menu dropdown comes after everything */
     position: absolute;
     top: 0;
     margin-top: var(--navbar-height);
@@ -177,6 +201,7 @@ nav a:visited:hover {
     width: 100%;
     justify-content: center;
     align-items: center;
+    margin-right: var(--_toggle_mr);
   }
 
   #menu-toggle ~ .menu li {
