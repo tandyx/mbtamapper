@@ -68,12 +68,12 @@ window.addEventListener("load", function () {
  * @returns {L.Map} map
  */
 function createMap(id, routeType) {
-  const isMobile = mobileCheck();
-  const isIframe = inIframe();
   const theme = Theme.fromExisting();
   const searchParams = new URLSearchParams(window.location.search);
   /**@type {IResult}*/
   const userAgent = new UAParser().getResult();
+  const isIframe = inIframe();
+  const isMobile = userAgent.device.type === "mobile";
 
   const map = L.map(id, {
     minZoom: routeType === "commuter_rail" ? 9 : 11,
@@ -112,23 +112,11 @@ function createMap(id, routeType) {
 
   sidebar.on("hide", () => {
     document.documentElement.style.setProperty("--more-info-display", "unset");
-    if (isMobile && userAgent.engine.name === "WebKit") {
-      const zoom = map.getZoom();
-      const center = map.getCenter();
-      map.setView([center.lat, center.lng - 0.07 / zoom], zoom, {
-        animate: true,
-      });
-    }
+    if (isMobile) __offsetLng(map, "minus");
   });
   sidebar.on("show", () => {
     document.documentElement.style.setProperty("--more-info-display", "none");
-    if (isMobile && userAgent.engine.name === "WebKit") {
-      const zoom = map.getZoom();
-      const center = map.getCenter();
-      map.setView([center.lat, center.lng + 0.07 / zoom], zoom, {
-        animate: true,
-      });
-    }
+    if (isMobile) __offsetLng(map, "plus");
   });
 
   if (
@@ -283,7 +271,22 @@ function createMap(id, routeType) {
 
   return map;
 }
-//navbar stuff
+
+/**
+ * offset map lt lng helper
+ * @param {L.Map} __map
+ * @param {"plus" | "minus"} [plusMinus = "plus"]
+ */
+function __offsetLng(__map, plusMinus = "plus") {
+  const zoom = __map.getZoom();
+  const center = __map.getCenter();
+  const offset =
+    ((plusMinus === "plus" ? 1 : -1) * 0.05 * Math.pow(Math.E, -1 * zoom)) /
+    zoom;
+  __map.setView([center.lat, center.lng + offset], zoom, {
+    animate: true,
+  });
+}
 
 document.addEventListener("click", (event) => {
   if (!event.target?.closest(".nav")) {
