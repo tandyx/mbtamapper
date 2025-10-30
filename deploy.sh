@@ -36,4 +36,9 @@ sudo pkill .venv -f
 echo "starting mbtamapper!"
 
 sudo .venv/bin/python3 -m waitress --host=127.0.0.1 --port=5000 --threads=50 --call app:create_main_app &
+
+for item in "subway" "rapid_transit" "commuter_rail" "bus" "ferry"; do
+    curl "http://127.0.0.1:5000/$item/vehicles?include=route,next_stop,stop_time&cache=5" > /dev/null
+done
+
 wait

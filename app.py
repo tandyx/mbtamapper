@@ -412,15 +412,6 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
     return _argparse
 
 
-# if __name__ == "__main__":
-#     test = FEED_LOADER._get_orms(<img
-#         "stoptime",
-#         **{"stop_id": "MM-0023-S", "active": "True"},
-#     )
-#     # test[0][0].trip.calendar
-#     print()<img
-
-
 if __name__ == "__main__":
     args = get_args().parse_args()
     logger = logging.getLogger()

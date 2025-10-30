@@ -210,11 +210,26 @@ class VehicleLayer extends BaseRealtimeLayer {
       888: "♠️",
       67: "🫴🫴",
       69: "💀",
+      1738: "🔊",
+      420: "🎄",
+      /**
+       * @template {keyof typeof this} T
+       * @param {T} trip_name key of this obj
+       * @param {string} [prepend=""] prepend this to item
+       * @param {...*} args passed to sub functions
+       * @returns {(keyof typeof this)[T] | ""}
+       */
+      get(trip_name, prepend = "", ...args) {
+        const item = this[trip_name];
+        if ([null, undefined].includes(item)) return "";
+        if (typeof item === "function") return item(...args);
+        return prepend + item;
+      },
     };
 
     return (
       customDescriptions[properties.trip_short_name] ||
-      `${description} ${appendDescriptions[properties.trip_short_name] || ""}`
+      `${description}${appendDescriptions.get(properties.trip_short_name, " ")}`
     );
   }
 
