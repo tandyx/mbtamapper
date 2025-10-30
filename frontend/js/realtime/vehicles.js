@@ -199,11 +199,6 @@ class VehicleLayer extends BaseRealtimeLayer {
     } to ${properties.headsign || "unknown"}`;
 
     const customDescriptions = {
-      515: "Hub to Heart",
-      520: "Heart to Hub",
-    };
-
-    const appendDescriptions = {
       621: "🦊",
       926: "🦊",
       666: "😈",
@@ -212,6 +207,10 @@ class VehicleLayer extends BaseRealtimeLayer {
       69: "💀",
       1738: "🔊",
       420: "🎄",
+      standalones: {
+        515: "Hub to Heart",
+        520: "Heart to Hub",
+      },
       /**
        * @template {keyof typeof this} T
        * @param {T} trip_name key of this obj
@@ -219,17 +218,23 @@ class VehicleLayer extends BaseRealtimeLayer {
        * @param {...*} args passed to sub functions
        * @returns {(keyof typeof this)[T] | ""}
        */
-      get(trip_name, prepend = "", ...args) {
+      formulate(trip_name, prepend = "", ...args) {
         const item = this[trip_name];
-        if ([null, undefined].includes(item)) return "";
-        if (typeof item === "function") return item(...args);
+        if ([null, undefined].includes(item)) {
+          return this.standalones[trip_name] || "";
+        }
+        if (typeof item === "function") {
+          return item(...args);
+        }
         return prepend + item;
       },
     };
 
     return (
-      customDescriptions[properties.trip_short_name] ||
-      `${description}${appendDescriptions.get(properties.trip_short_name, " ")}`
+      customDescriptions.formulate(
+        properties.trip_short_name,
+        description + " "
+      ) || description
     );
   }
 
