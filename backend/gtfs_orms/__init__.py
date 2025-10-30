@@ -11,6 +11,7 @@ from .calendar_attribute import CalendarAttribute
 from .calendar_date import CalendarDate
 from .facility import Facility
 from .facility_property import FacilityProperty
+from .feed_info import FeedInfo
 from .linked_datasets import LinkedDataset
 from .multi_route_trip import MultiRouteTrip
 from .prediction import Prediction
@@ -43,5 +44,6 @@ ScheduleOrms = t.Type[
     | Facility
     | FacilityProperty
     | Transfer
+    | FeedInfo
 ]
 """schedule orms for use in typehinting and production. the order of this matters"""

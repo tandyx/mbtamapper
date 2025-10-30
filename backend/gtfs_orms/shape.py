@@ -71,9 +71,8 @@ class Shape(Base):
             id=self.shape_id,
             geometry=self.as_linestring(),
             properties=(
-                self.as_json(*include) | {"timestamp": time.time()}
-                if "timestamp" in include
-                else {}
+                self.as_json(*include)
+                | ({"timestamp": time.time()} if "timestamp" in include else {})
             ),
         )
 

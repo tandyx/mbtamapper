@@ -31,6 +31,11 @@
     <link rel="shortcut icon" href="{{ icon }}" />
     <link rel="apple-touch-icon" sizes="180x180" href="{{ icon }}" />
     <link rel="shortcut_icon" sizes="180x180" href="{{ icon }}" />
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='config/manifest.webmanifest') }}"
+    />
+    <!--  -->
 
     <link
       rel="stylesheet"
@@ -47,8 +52,9 @@
         <div class="menu-button"></div>
       </label>
 
+      <div id="modeToggle" class="fa"><a>&#xF186;</a></div>
+
       <ul class="menu" id="navmenu">
-        <li id="modeToggle" class="fa"><a>&#xF186;</a></li>
         {% for key, value in navbar.items() if not key == "all_routes" %} {% if
         key == _key %}
         <li>

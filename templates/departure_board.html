@@ -126,7 +126,7 @@ endblock %} {% block content %}
 
     /** @type {FeatureCollection<Point, StopProperty>}*/
     const _stops = await fetchCache(
-      "/all_routes/stops",
+      "/static/geojsons/all_routes/stops.json",
       { cache: "force-cache" },
       { storage: null }
     );

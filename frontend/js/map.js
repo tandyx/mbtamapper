@@ -17,6 +17,8 @@
  * @typedef {import("leaflet-easybutton")}
  * @import {LeafletSidebar} from "./types"
  * @import { LocateControl } from "leaflet.locatecontrol"
+ * @import { Theme } from "./utilities/theme.js"
+ * @import { UAParser, IResult } from "ua-parser-js"
  */
 "use strict";
 /**@type {L.Map?} for debug purposes*/
@@ -31,7 +33,12 @@ let _realtimeLayers;
 window.addEventListener("load", function () {
   const ROUTE_TYPE = window.location.href.split("/").slice(-2)[0];
   _map = createMap("map", ROUTE_TYPE);
-  if (inIframe()) {
+  const searchParams = new URLSearchParams(window.location.search);
+  if (
+    inIframe() ||
+    searchParams.get("navless") ||
+    searchParams.get("navbarless")
+  ) {
     setCssVar("--navbar-height", "0px");
     this.document.getElementsByTagName("nav")[0].remove();
   }
@@ -58,12 +65,15 @@ window.addEventListener("load", function () {
 /** map factory function for map.html
  * @param {string} id - id of the map div
  * @param {keyof RouteKeys} routeType - route type
- * @returns {L.map} map
+ * @returns {L.Map} map
  */
 function createMap(id, routeType) {
-  const isMobile = mobileCheck();
-  const isIframe = inIframe();
   const theme = Theme.fromExisting();
+  const searchParams = new URLSearchParams(window.location.search);
+  /**@type {IResult}*/
+  const userAgent = new UAParser().getResult();
+  const isIframe = inIframe();
+  const isMobile = userAgent.device.type === "mobile";
 
   const map = L.map(id, {
     minZoom: routeType === "commuter_rail" ? 9 : 11,
@@ -102,12 +112,21 @@ function createMap(id, routeType) {
 
   sidebar.on("hide", () => {
     document.documentElement.style.setProperty("--more-info-display", "unset");
+    if (isMobile) __offsetLng(map, "minus");
   });
   sidebar.on("show", () => {
     document.documentElement.style.setProperty("--more-info-display", "none");
+    if (isMobile) __offsetLng(map, "plus");
   });
 
-  if (!isMobile && !isIframe) setTimeout(() => sidebar.show(), 500);
+  if (
+    !isMobile &&
+    !isIframe &&
+    !searchParams.get("sidebarless") &&
+    !searchParams.get("sideless")
+  ) {
+    setTimeout(() => sidebar.show(), 500);
+  }
 
   const baseLayers = getBaseLayerDict();
   baseLayers[theme.theme].addTo(map);
@@ -123,19 +142,21 @@ function createMap(id, routeType) {
   };
 
   const stopLayer = new StopLayer({
-    url: "stops",
+    url: `/static/geojsons/${routeType}/stops.json`,
+    // url: "stops",
     layer: L.layerGroup(undefined, { name: "stops" }).addTo(map),
     ...baseOp,
   });
 
   const shapeLayer = new ShapeLayer({
-    url: "shapes",
+    url: `/static/geojsons/${routeType}/shapes.json`,
+    // url: "shapes",
     layer: L.layerGroup(undefined, { name: "shapes" }).addTo(map),
     ...baseOp,
   });
 
   const vehicleLayer = new VehicleLayer({
-    url: `vehicles?include=route,next_stop,stop_time&cache=12`,
+    url: `vehicles?include=route,next_stop,stop_time&cache=5`,
     layer: L.markerClusterGroup({
       disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",
@@ -145,7 +166,8 @@ function createMap(id, routeType) {
   });
 
   const facilityLayer = new FacilityLayer({
-    url: "parking",
+    url: `/static/geojsons/${routeType}/parking.json`,
+    // url: "parking",
     layer: L.layerGroup(undefined, { name: "parking" }),
     ...baseOp,
   });
@@ -249,7 +271,22 @@ function createMap(id, routeType) {
 
   return map;
 }
-//navbar stuff
+
+/**
+ * offset map lt lng helper
+ * @param {L.Map} __map
+ * @param {"plus" | "minus"} [plusMinus = "plus"]
+ */
+function __offsetLng(__map, plusMinus = "plus") {
+  const zoom = __map.getZoom();
+  const center = __map.getCenter();
+  const offset =
+    ((plusMinus === "plus" ? 1 : -1) * 0.05 * Math.pow(Math.E, -1 * zoom)) /
+    zoom;
+  __map.setView([center.lat, center.lng + offset], zoom, {
+    animate: true,
+  });
+}
 
 document.addEventListener("click", (event) => {
   if (!event.target?.closest(".nav")) {
@@ -260,9 +297,9 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("load", () => {
   const menutoggle = document.getElementById("menu-toggle");
-  const _custNav = document.getElementById("navbar");
-  const _menu = _custNav.getElementsByClassName("menu")[0];
-  const toggle = [..._menu.children].filter((c) => c.id === "modeToggle")[0];
+  if (!menutoggle) return;
+
+  const toggle = document.getElementById("modeToggle");
   if (!toggle) return;
   const anchor = toggle.getElementsByTagName("a")[0];
   anchor.text = Theme.unicodeIcon;

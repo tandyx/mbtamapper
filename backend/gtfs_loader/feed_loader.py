@@ -4,12 +4,17 @@ import logging
 import os
 import typing as t
 
+import requests as req
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
+from geojson import FeatureCollection
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
-from ..helper_functions import TimeZones, get_date, timeit
+from ..helper_functions import PathLike, get_date, timeit
 from .feed import Feed
+from .query import Query
+
+# pylint: disable=line-too-long
 
 
 class FeedLoader(Feed):
@@ -42,7 +47,7 @@ class FeedLoader(Feed):
         url: str,
         geojson_path: str,
         keys_dict: dict[str, list[str]],
-        timezone: TimeZones = "America/New_York",
+        log_file: PathLike = "mbtamapper.log",
         **kwargs,
     ) -> None:
         """Initializes FeedLoader.
@@ -50,18 +55,26 @@ class FeedLoader(Feed):
         Args:
             url (str): URL of GTFS feed.
             geojson_path (str): Path to save geojsons.
-            keys_dict (dict[str, list[str]]): Dictionary of keys to load.
+            keys_dict (dict[str, list[str]]): Dictionary of keys to load\
+               as {route_key: ["1", "2", ...]}
+            url_base (str, optional): web app url base "http://localhost:5000".
             timezone (str, optional): Timezone. Defaults to "America/New_York".
-            kwargs: passed to both BackgroundScheduler
+            kwargs: passed to BackgroundScheduler
         """
 
         super().__init__(url)
 
-        self.url = url
-        self.keys_dict = keys_dict
-        self.geojson_path = geojson_path
+        self.url: str = url
+        self.keys_dict: dict[str, list[str]] = keys_dict
+        self.geojson_path: str = geojson_path
+        self.log_file: PathLike = log_file
+        # self.url_base: str = url_base.rstrip("/")
+        self.scheduler = BackgroundScheduler(
+            timezone=kwargs.get("timezone", "America/New_York"), **kwargs
+        )
 
-        self.scheduler = BackgroundScheduler(timezone=timezone, **kwargs)
+        self.vehicle_cache: dict[str, FeatureCollection] = {}
+        """in-memory cache of vehicles"""
 
     @timeit
     def nightly_import(self, **kwargs) -> None:
@@ -101,7 +114,69 @@ class FeedLoader(Feed):
         """clears orm-specific caches"""
         Shape.cache.clear()
         LinkedDataset.cache.clear()
+        self.vehicle_cache.clear()
         logging.warning("caches cleared")
+        # self.proc_vehicle_cache()
+
+    def get_vehicles_feature_cache(
+        self, key: str, *include: str, **kwargs
+    ) -> FeatureCollection:
+        """the same as the super method, but:
+
+        abstracts `Query` away \n
+        and loads the result into the self.vehicle_cache
+
+        Args:
+            key (str): route key to use
+            *include (str): attrs to include
+            **kwargs: dumped to super class
+
+        Returns:
+            FeatureCollection: vehicles as featurecollection
+        """
+
+        if (cache_key := f"{key}-{','.join(include)}") not in self.vehicle_cache:
+            res = self.get_vehicles_feature(
+                key, Query(*self.keys_dict[key]), *include, **kwargs
+            )
+            if not res or any(key in _cache_key for _cache_key in self.vehicle_cache):
+                return res
+            if res:
+                self.vehicle_cache[cache_key] = res
+        return self.vehicle_cache[cache_key]
+
+    @timeit
+    def _update_vehicle_cache(self, **kwargs) -> dict[str, FeatureCollection]:
+        """updates cache and then returns the cache
+
+        Returns:
+            dict[str, FeatureCollection]: the cache
+        """
+
+        for cache_key in self.vehicle_cache:
+            key, include = cache_key.split("-")
+            self.vehicle_cache[cache_key] = self.get_vehicles_feature(
+                key, Query(*self.keys_dict[key]), *include.split(","), **kwargs
+            )
+
+        while len(self.vehicle_cache) > 10:
+            self.vehicle_cache.popitem()
+
+        return self.vehicle_cache
+
+    def clear_log(self, maxsize: int = 10**9) -> None:
+        """_summary_
+
+        Args:
+            maxsize (int, optional): _description_. Defaults to 10**9 bytes (1 gb).
+        """
+        abs_path: PathLike = os.path.abspath(self.log_file)
+        if not os.path.exists(self.log_file):
+            logging.warning("file %s doesn't exist", abs_path)
+        size: int = os.path.getsize(self.log_file)
+        if os.path.exists(self.log_file) and size >= maxsize:
+            os.remove(self.log_file)
+            logging.info("removed file %s w/ size %s", abs_path, size)
 
     def run(self, force: bool = False) -> t.Self:
         """Schedules jobs defined by FeedLoader
@@ -127,17 +202,42 @@ class FeedLoader(Feed):
         self.scheduler.add_job(
             self.import_realtime, "interval", args=[Prediction], seconds=21
         )
-        self.scheduler.add_job(self.geojson_exports, "cron", hour=4, minute=0)
-        self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
-        self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
-        self.scheduler.start()
-        jobs: list[Job] = self.scheduler.get_jobs()
+        self.scheduler.add_job(self._update_vehicle_cache, "interval", seconds=10)
 
-        logging.info(
-            "FeedLoader scheduler started\n%s",
-            "\n".join(f"{j.name}: next run @ {j.next_run_time}" for j in jobs),
-        )
+        self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)
+        self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
+
+        self.scheduler.add_job(self.clear_caches, "cron", day="*/4", hour=3, minute=40)
+        self.scheduler.add_job(self.clear_log, "cron", hour=3, minute=45)
+
+        self.scheduler.start()
+        job: Job
+        logging.info("FeedLoader scheduler started")
+        for job in self.scheduler.get_jobs():
+            logging.info("%s: next run @ %s", job.name, job.next_run_time or "never")
         return self
+
+    def proc_vehicle_cache(
+        self, url_base: str = "http://localhost:5000", **kwargs
+    ) -> None:
+        """_summary_
+
+        Args:
+            url_base (_type_, optional): _description_. Defaults to "http://localhost:5000".
+        """
+
+        for key in self.keys_dict:
+            if key in ["bus", "all_routes", "ferry"]:
+                continue
+            resp = req.get(
+                f"{url_base.rstrip('/')}/{key}/vehicles?include=route,next_stop,stop_time&cache=5",
+                timeout=10,
+                **kwargs,
+            )
+            if resp.ok:
+                logging.info("procced vehicle cache %s", resp.url)
+            else:
+                logging.error("failed to proc vehicle cache %s", resp.url)
 
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.

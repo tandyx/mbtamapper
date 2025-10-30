@@ -13,17 +13,17 @@ import difflib
 import json
 import logging
 import os
+import subprocess
 import sys
-import typing as t
 
 import flask
 import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import FeedLoader, Query, RouteKeys, get_gitinfo
+from backend import FeedLoader, RouteKeys, get_gitinfo
 from backend.helper_functions.types import CacheConfigDict, GitInfo
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals,invalid-name
 
 LAYER_FOLDER: str = "geojsons"
 with open(os.path.join("static", "config", "route_keys.json"), "r", -1, "utf-8") as f:
@@ -35,7 +35,7 @@ FEED_LOADER: FeedLoader = FeedLoader(
 )
 
 logging.basicConfig(
-    filename="mbtamapper.log",
+    filename=FEED_LOADER.log_file,
     filemode="a",
     format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -45,22 +45,22 @@ logging.basicConfig(
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
 
 CACHE_CONFIG: CacheConfigDict = {
-    "CACHE_TYPE": "SimpleCache",
+    "CACHE_TYPE": "MemcachedCache",
     "CACHE_DEFAULT_TIMEOUT": 300,
 }
 
 GIT_INFO: GitInfo = get_gitinfo()
 
-DEBUG: bool = False
+USE_DEBUG: bool = False
 
 
 def create_key_blueprint(
-    key: t.KeysView[RouteKeys], _app: flask.Flask, _cache: flask_caching.Cache
+    key: str, _app: flask.Flask, _cache: flask_caching.Cache
 ) -> flask.Blueprint:
     """Create app for a given key
 
     Args:
-        key (t.KeysView[RouteKeys]): Key for the app. Defaults to None.
+        key (keyof RouteKey): Key for the app. Defaults to None.
         _app (flask.Flask): Flask WSGI app.
         _cache (flask_caching.Cache): cache for this app
 
@@ -78,7 +78,7 @@ def create_key_blueprint(
             str: map.html"""
 
         return flask.render_template(
-            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=DEBUG
+            "map.html", navbar=KEY_DICT, **KEY_DICT[key], debug=USE_DEBUG
         )
 
     @blueprint.route("/key")
@@ -102,11 +102,11 @@ def create_key_blueprint(
 
         params: dict[str, str] = flask.request.args.to_dict()
         cache_s: int = int(params.pop("cache", 0))
-        json_data = FEED_LOADER.get_vehicles_feature(
-            key,
-            Query(*KEY_DICT[key]["route_types"]),
-            *[s.strip() for s in params.get("include", "").split(",")],
+
+        json_data = FEED_LOADER.get_vehicles_feature_cache(
+            key, *[s.strip() for s in params.get("include", "").split(",")]
         )
+
         if cache_s and json_data:
             return flask_caching.CachedResponse(flask.jsonify(json_data), cache_s)
         return flask.jsonify(json_data)
@@ -186,7 +186,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             str: index.html.
         """
         return flask.render_template(
-            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=DEBUG
+            "index.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=USE_DEBUG
         )
 
     @_app.route("/key_dict")
@@ -219,7 +219,10 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         #         "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO
         #     )
         return flask.render_template(
-            "departure_board.html", key_dict=KEY_DICT, git_info=GIT_INFO, debug=DEBUG
+            "departure_board.html",
+            key_dict=KEY_DICT,
+            git_info=GIT_INFO,
+            debug=USE_DEBUG,
         )
 
     @_app.route("/apple-touch-icon.png")
@@ -326,7 +329,7 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
                 "404.html",
                 key_dict=KEY_DICT,
                 git_info=GIT_INFO,
-                debug=DEBUG,
+                debug=USE_DEBUG,
                 **url_dict,
             ),
             404,
@@ -409,28 +412,22 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
     return _argparse
 
 
-# if __name__ == "__main__":
-#     test = FEED_LOADER._get_orms(<img
-#         "stoptime",
-#         **{"stop_id": "MM-0023-S", "active": "True"},
-#     )
-#     # test[0][0].trip.calendar
-#     print()<img
-
-
 if __name__ == "__main__":
     args = get_args().parse_args()
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(getattr(logging, args.log_level.upper()))
-    DEBUG = True
-    CACHE_CONFIG["DEBUG"] = DEBUG
-
+    USE_DEBUG = True
+    CACHE_CONFIG["DEBUG"] = USE_DEBUG
     if args.debug and (
         args.import_data or not FEED_LOADER.db_exists or not FEED_LOADER.geojsons_exist
     ):
         raise ValueError("cannot run in debug mode while importing data.")
+    subprocess.call("npm run watch &", shell=True)
     app = create_main_app(args.import_data, args.proxies)
     app.run(
-        debug=args.debug, port=args.port, host=args.host, ssl_context=args.ssl_context
+        debug=args.debug,
+        port=args.port,
+        host=args.host,
+        ssl_context=args.ssl_context,
     )

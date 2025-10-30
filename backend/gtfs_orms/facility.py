@@ -98,8 +98,7 @@ class Facility(Base):
             id=self.facility_id,
             geometry=point,
             properties=(
-                self.as_json(*include) | {"timestamp": time.time()}
-                if "timestamp" in include
-                else {}
+                self.as_json(*include)
+                | ({"timestamp": time.time()} if "timestamp" in include else {})
             ),
         )

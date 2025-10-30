@@ -1,0 +1,12 @@
+{
+    "name": "mbtamapper",
+    "icons": [
+        {
+            "src": "/static/img/all_routes.ico",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone"
+}

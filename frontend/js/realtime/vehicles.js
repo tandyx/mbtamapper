@@ -65,12 +65,12 @@ class VehicleLayer extends BaseRealtimeLayer {
       <div class="vehicle_wrapper">
         <img
           src="/static/img/icon.png"
-          loading="lazy"
           alt="vehicle"
+          loading="lazy"
           width="60"
           height="60"
           style="
-            ${VehicleLayer.#hex_css_map[properties.route_color] || ""}; 
+            ${VehicleLayer.#hex_css_map[properties.route_color] || ""};
             transform: rotate(${properties.bearing}deg);
           "
         />
@@ -198,17 +198,44 @@ class VehicleLayer extends BaseRealtimeLayer {
       direction_map[parseInt(properties.direction_id)] || "unknown"
     } to ${properties.headsign || "unknown"}`;
 
-    const customDescription = {
-      515: "Hub to Heart",
-      520: "Heart to Hub",
-      621: `${description} 🦊`,
-      926: `${description} 🦊`,
-      666: `${description} 😈`,
-      888: `${description} 🚂`,
-      67: `${description} 💀`,
-      69: `${description} 💀`,
+    const customDescriptions = {
+      621: "🦊",
+      926: "🦊",
+      666: "😈",
+      888: "♠️",
+      67: "🫴🫴",
+      69: "💀",
+      1738: "🔊",
+      420: "🎄",
+      standalones: {
+        515: "Hub to Heart",
+        520: "Heart to Hub",
+      },
+      /**
+       * @template {keyof typeof this | keyof typeof this["standalones"]} T
+       * @param {T} trip_name key of this obj
+       * @param {string} [prepend=""] prepend this to item
+       * @param {...*} args passed to sub functions
+       * @returns {(keyof typeof this | keyof typeof this["standalones"])[T] | ""}
+       */
+      formulate(trip_name, prepend = "", ...args) {
+        const item = this[trip_name];
+        if ([null, undefined].includes(item)) {
+          return this.standalones[trip_name] || "";
+        }
+        if (typeof item === "function") {
+          return item(...args);
+        }
+        return prepend + item;
+      },
     };
-    return customDescription[properties.trip_short_name] || description;
+
+    return (
+      customDescriptions.formulate(
+        properties.trip_short_name,
+        description + " "
+      ) || description
+    );
   }
 
   // static #direction_map = {
@@ -376,7 +403,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     const predictions = await fetchCache(
       `/api/prediction?trip_id=${
         properties.trip_id
-      }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=1`,
+      }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=4`,
       { cache: "force-cache" },
       super.defaultFetchCacheOpt
     );

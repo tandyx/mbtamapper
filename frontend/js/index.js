@@ -44,6 +44,9 @@ function createHomepageMap(id, routeKeys, content) {
   const routeType = keys[Math.floor(Math.random() * keys.length)];
   const zoom = routeType === "commuter_rail" ? 11 : 13;
 
+  /**@type {IResult}*/
+  const userAgent = new UAParser().getResult();
+
   const map = L.map("map", {
     zoomControl: false,
     maxZoom: zoom,
@@ -61,7 +64,7 @@ function createHomepageMap(id, routeKeys, content) {
   const shapeLayer = new ShapeLayer({
     url: `/${routeType}/shapes`,
     layer: L.layerGroup(undefined, { name: "shapes" }).addTo(map),
-    isMobile: mobileCheck(),
+    isMobile: userAgent.device.type === "mobile",
     routeType: routeType,
     map,
     textboxSize: { maxWidth: 375, minWidth: 250 },

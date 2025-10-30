@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "esbuild": "^0.25.10",
+    "esbuild": "^0.25.11",
     "leaflet": "^1.9.4",
     "leaflet-easybutton": "^2.4.0",
     "leaflet-fullscreen": "^1.0.2",
@@ -12,19 +12,22 @@
     "leaflet.markercluster": "^1.5.3",
     "leaflet.markercluster.freezable": "^1.0.0",
     "sorttable": "^1.0.2",
-    "strftime": "^0.10.3"
+    "strftime": "^0.10.3",
+    "ua-parser-js": "^2.0.6"
   },
   "devDependencies": {
     "@types/leaflet-providers": "^1.2.5",
     "@types/leaflet.locatecontrol": "^0.82.1",
     "@types/leaflet.markercluster": "^1.5.6",
     "@types/strftime": "^0.9.8",
+    "chokidar-cli": "^3.0.0",
     "leaflet-realtime-types": "^0.0.3",
     "leaflet-search-types": "^0.0.12"
   },
   "scripts": {
     "install-cert-force": "npm config set strict-ssl=false && npm install && npm config set strict-ssl=true",
     "bundle": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs"
+    "build": "node esbuild.config.mjs",
+    "watch": "chokidar 'esbuild.config.mjs' 'frontend/**/*' -c 'npm run bundle'"
   }
 }

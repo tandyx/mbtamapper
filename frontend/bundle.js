@@ -15,6 +15,7 @@ import "leaflet.markercluster.freezable";
 
 import "sorttable";
 import strftime from "strftime";
+import { UAParser } from "ua-parser-js";
 
 // external css imports
 import "leaflet/dist/leaflet.css";
@@ -36,5 +37,6 @@ globalThis.L = L;
 globalThis.sorttable = sorttable;
 globalThis.strftime = strftime;
 globalThis.LocateControl = LocateControl;
+globalThis.UAParser = UAParser;
 // globalThis.BaseRealtimeLayer = BaseRealtimeLayer;
 // Object.assign(globalThis, _utils);

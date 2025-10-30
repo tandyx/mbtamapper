@@ -119,6 +119,10 @@ class StopLayer extends BaseRealtimeLayer {
       ),
     ];
 
+    if (properties.stop_id === "place-north") {
+      routeColors.splice(routeColors.indexOf("#ED8B00"), 1);
+    }
+
     const routeCSS =
       routeColors.length > 1
         ? `
@@ -154,6 +158,11 @@ class StopLayer extends BaseRealtimeLayer {
     //  -webkit-text-fill-color: transparent;
     // }
 
+    const subheader = (properties.zone_id || "zone-1A")
+      .replaceAll("zone", "Zone")
+      .replaceAll("-", " ")
+      .replaceAll("CR", "Commuter Rail");
+
     return /* HTML */ `<div>
       <div>
         <a
@@ -166,7 +175,7 @@ class StopLayer extends BaseRealtimeLayer {
           ${properties.stop_name.replace("/", " / ")}
         </a>
       </div>
-      <div class="popup_subheader">${properties.zone_id || "zone-1A"}</div>
+      <div class="popup_subheader">${subheader}</div>
       <hr />
     </div>`;
   }

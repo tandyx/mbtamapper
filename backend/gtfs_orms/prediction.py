@@ -44,6 +44,7 @@ class Prediction(Base):
     stop_id: Mapped[t.Optional[str]]
     trip_id: Mapped[t.Optional[str]]
     vehicle_id: Mapped[t.Optional[str]]
+    timestamp: Mapped[t.Optional[int]]
     index: Mapped[int] = mapped_column(primary_key=True)
 
     route: Mapped["Route"] = relationship(

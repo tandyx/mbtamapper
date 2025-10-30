@@ -1,5 +1,7 @@
 """for typing constants"""
 
+import os
+import pathlib
 import typing as t
 
 # import pytz
@@ -10,6 +12,8 @@ SQLA_GTFS_DATE = DATETIME(storage_format="%(year)04d%(month)02d%(day)02d")
 
 
 TimeZones = t.Literal["America/New_York"]
+
+PathLike = os.PathLike[str] | str | pathlib.Path
 
 
 class RouteKey(t.TypedDict):
