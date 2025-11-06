@@ -193,6 +193,13 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {VehicleProperty} properties
    */
   #customHeadsign(properties) {
+    if (
+      properties.route.route_fare_class === "Special" &&
+      properties.headsign
+    ) {
+      return properties.headsign;
+    }
+
     const direction_map = { 0: "Outbound", 1: "Inbound" };
     const description = `${
       direction_map[parseInt(properties.direction_id)] || "unknown"

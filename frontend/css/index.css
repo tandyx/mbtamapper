@@ -17,7 +17,7 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --blur-radius: 25px;
+  --blur-radius: 20px;
   --on-time: #4caf50;
   --slight-delay: #d79e00;
   --moderate-delay: #af6c29;
@@ -305,10 +305,13 @@ h1 {
   position: absolute;
   z-index: 1;
   background-color: var(--background-color);
-  /* background: var(--background-color-blur);
+  background: var(--background-color-blur);
+  -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
-  -webkit-backdrop-filter: blur(var(--blur-radius)); */
-  transform: translate(5%, -20%);
+
+  will-change: transform !important;
+  transform: translate(5%, -20%) translate3d(0px, 0px, 0px) !important;
+
   color: var(--text-color);
   padding: 5px;
   font-size: 10pt;

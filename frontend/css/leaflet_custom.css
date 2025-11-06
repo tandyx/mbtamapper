@@ -23,6 +23,9 @@
     background-color: var(--background-color-blur);
     -webkit-backdrop-filter: blur(var(--blur-radius));
     backdrop-filter: blur(var(--blur-radius));
+    will-change: transform !important;
+    transform: translate3d(0px, 0px, 0px) !important;
+
     align-items: center;
     justify-content: center;
     padding-bottom: 20px;
@@ -44,6 +47,8 @@
 .leaflet-popup-content-wrapper {
   -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
+  will-change: transform !important;
+  transform: translate3d(0px, 0px, 0px) !important;
   border-radius: var(--border-radius) !important;
   p {
     margin: 0 !important;
@@ -65,12 +70,28 @@
   background-color: var(--background-color-blur) !important;
   -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
+  will-change: transform !important;
+
   border-radius: var(--border-radius) !important;
   /* background: var(--background-color) !important; */
   color: var(--text-color) !important;
   font-family: var(--font-family) !important;
   text-align: left !important;
   box-shadow: var(--box-shadow) !important;
+}
+
+.leaflet-control-layers-expanded,
+.leaflet-control-layers,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-content-wrapper::after,
+.easy-button-button,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-fullscreen-button,
+.leaflet-bar-part,
+.leaflet-popup-content::after {
+  will-change: transform !important;
+  transform: translate3d(0px, 0px, 0px) !important;
 }
 
 .easy-button-button:hover {
@@ -176,6 +197,9 @@
   font-size: 8pt !important;
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px) !important;
+  will-change: transform !important;
+  transform: translate3d(0px, 0px, 0px) !important;
+
   background-color: var(--background-color-blur) !important;
   color: var(--text-color) !important;
   border-top-left-radius: 2px !important;
@@ -228,6 +252,9 @@
   background-color: var(--background-color-blur);
   -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
+  will-change: transform !important;
+  transform: translate3d(0px, 0px, 0px) !important;
+
   border-radius: var(--border-radius);
 }
 
@@ -279,9 +306,6 @@
     padding-left: 5px;
     width: 100% !important;
     margin-left: 0px !important;
-    /* background-color: var(--background-color-blur) !important;
-    -webkit-backdrop-filter: blur(var(--blur-radius)) !important;
-    backdrop-filter: blur(var(--blur-radius)) !important; */
     background: none !important;
     color: var(--text-color) !important;
   }
@@ -303,6 +327,9 @@
     background-color: var(--background-color-blur) !important;
     -webkit-backdrop-filter: blur(var(--blur-radius)) !important;
     backdrop-filter: blur(var(--blur-radius)) !important;
+    will-change: transform !important;
+    transform: translate3d(0px, 0px, 0px) !important;
+
     .search-tip {
       background: none;
       color: var(--text-color) !important;
