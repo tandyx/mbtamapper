@@ -41,7 +41,7 @@ sleep 5s
 
 for item in "subway" "rapid_transit" "commuter_rail" "bus" "ferry"; do
     echo "starting cache for $item"
-    curl "http://127.0.0.1:5000/$item/vehicles?include=route,next_stop,stop_time&cache=5" 2> /dev/null
+    curl "http://127.0.0.1:5000/$item/vehicles?include=route,next_stop,stop_time&cache=5" > /dev/null 2>&1
 done
 
 echo "done with cache proccing"
