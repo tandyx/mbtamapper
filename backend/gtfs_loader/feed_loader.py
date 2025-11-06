@@ -3,6 +3,7 @@
 import logging
 import os
 import typing as t
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests as req
 from apscheduler.job import Job
@@ -74,7 +75,7 @@ class FeedLoader(Feed):
         )
 
         self.vehicle_cache: dict[str, FeatureCollection] = {}
-        """in-memory cache of vehicles"""
+        """in-memory cache of vehicles as `{f"{key}-{','.join(include)}": FeatureCollection}`"""
 
     @timeit
     def nightly_import(self, **kwargs) -> None:
@@ -114,7 +115,7 @@ class FeedLoader(Feed):
         """clears orm-specific caches"""
         Shape.cache.clear()
         LinkedDataset.cache.clear()
-        self.vehicle_cache.clear()
+        # self.vehicle_cache.clear()
         logging.warning("caches cleared")
         # self.proc_vehicle_cache()
 
@@ -146,22 +147,34 @@ class FeedLoader(Feed):
         return self.vehicle_cache[cache_key]
 
     @timeit
-    def _update_vehicle_cache(self, **kwargs) -> dict[str, FeatureCollection]:
+    def _update_vehicle_cache(
+        self, max_items: int = 6, **kwargs
+    ) -> dict[str, FeatureCollection]:
         """updates cache and then returns the cache
+
+        Args:
+            max_items (int): max items allowed in the cache
 
         Returns:
             dict[str, FeatureCollection]: the cache
         """
 
-        for cache_key in self.vehicle_cache:
-            key, include = cache_key.split("-")
-            self.vehicle_cache[cache_key] = self.get_vehicles_feature(
-                key, Query(*self.keys_dict[key]), *include.split(","), **kwargs
-            )
-
-        while len(self.vehicle_cache) > 10:
+        while len(self.vehicle_cache) > max_items:
             self.vehicle_cache.popitem()
 
+        def _get_key(_cache_key: str) -> dict[str, FeatureCollection]:
+            key, include = _cache_key.split("-")
+            return {
+                _cache_key: self.get_vehicles_feature(
+                    key, Query(*self.keys_dict[key]), *include.split(","), **kwargs
+                )
+            }
+
+        with ThreadPoolExecutor(max_workers=max_items) as executor:
+            for future in as_completed(
+                {executor.submit(_get_key, key): key for key in self.vehicle_cache}
+            ):
+                self.vehicle_cache.update(future.result())
         return self.vehicle_cache
 
     def clear_log(self, maxsize: int = 10**9) -> None:
@@ -202,7 +215,9 @@ class FeedLoader(Feed):
         self.scheduler.add_job(
             self.import_realtime, "interval", args=[Prediction], seconds=21
         )
-        self.scheduler.add_job(self._update_vehicle_cache, "interval", seconds=10)
+        self.scheduler.add_job(
+            self._update_vehicle_cache, "interval", seconds=1, coalesce=True
+        )
 
         self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)
         self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
