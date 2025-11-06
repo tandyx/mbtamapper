@@ -213,7 +213,8 @@ class VehicleLayer extends BaseRealtimeLayer {
       67: "🫴🫴",
       69: "💀",
       1738: "🔊",
-      420: "🎄",
+      420: "🌲",
+      21: "🤓",
       standalones: {
         515: "Hub to Heart",
         520: "Heart to Hub",
