@@ -3,17 +3,14 @@
 import logging
 import os
 import typing as t
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests as req
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
-from geojson import FeatureCollection
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
 from ..helper_functions import PathLike, get_date, timeit
 from .feed import Feed
-from .query import Query
 
 # pylint: disable=line-too-long
 
@@ -38,11 +35,6 @@ class FeedLoader(Feed):
             for fname in [self.SHAPES_FILE, self.PARKING_FILE, self.STOPS_FILE]
         )
 
-    @property
-    def db_exists(self) -> bool:
-        """if the database exists"""
-        return os.path.exists(self.db_path)
-
     def __init__(
         self,
         url: str,
@@ -60,22 +52,28 @@ class FeedLoader(Feed):
                as {route_key: ["1", "2", ...]}
             url_base (str, optional): web app url base "http://localhost:5000".
             timezone (str, optional): Timezone. Defaults to "America/New_York".
-            kwargs: passed to BackgroundScheduler
+            log_file (PathLike, optional): Path to log file. Defaults to "mbtamapper.log".
+            gtfs_name (str, optional): Name of GTFS feed. Defaults to None.
+            engine_uri (str, optional): SQLAlchemy engine URI. Defaults to None.
         """
 
-        super().__init__(url)
+        super().__init__(
+            url,
+            gtfs_name=kwargs.get("gtfs_name", None),
+            engine_uri=kwargs.get("engine_uri", None),
+        )
 
         self.url: str = url
         self.keys_dict: dict[str, list[str]] = keys_dict
         self.geojson_path: str = geojson_path
         self.log_file: PathLike = log_file
+
+        self.app_url: str = kwargs.get("app_url", "http://localhost:5000").rstrip("/")
+
         # self.url_base: str = url_base.rstrip("/")
         self.scheduler = BackgroundScheduler(
             timezone=kwargs.get("timezone", "America/New_York"), **kwargs
         )
-
-        self.vehicle_cache: dict[str, FeatureCollection] = {}
-        """in-memory cache of vehicles as `{f"{key}-{','.join(include)}": FeatureCollection}`"""
 
     @timeit
     def nightly_import(self, **kwargs) -> None:
@@ -119,64 +117,6 @@ class FeedLoader(Feed):
         logging.warning("caches cleared")
         # self.proc_vehicle_cache()
 
-    def get_vehicles_feature_cache(
-        self, key: str, *include: str, **kwargs
-    ) -> FeatureCollection:
-        """the same as the super method, but:
-
-        abstracts `Query` away \n
-        and loads the result into the self.vehicle_cache
-
-        Args:
-            key (str): route key to use
-            *include (str): attrs to include
-            **kwargs: dumped to super class
-
-        Returns:
-            FeatureCollection: vehicles as featurecollection
-        """
-
-        if (cache_key := f"{key}-{','.join(include)}") not in self.vehicle_cache:
-            res = self.get_vehicles_feature(
-                key, Query(*self.keys_dict[key]), *include, **kwargs
-            )
-            if not res or any(key in _cache_key for _cache_key in self.vehicle_cache):
-                return res
-            if res:
-                self.vehicle_cache[cache_key] = res
-        return self.vehicle_cache[cache_key]
-
-    @timeit
-    def _update_vehicle_cache(
-        self, max_items: int = 6, **kwargs
-    ) -> dict[str, FeatureCollection]:
-        """updates cache and then returns the cache
-
-        Args:
-            max_items (int): max items allowed in the cache
-
-        Returns:
-            dict[str, FeatureCollection]: the cache
-        """
-
-        while len(self.vehicle_cache) > max_items:
-            self.vehicle_cache.popitem()
-
-        def _get_key(_cache_key: str) -> dict[str, FeatureCollection]:
-            key, include = _cache_key.split("-")
-            return {
-                _cache_key: self.get_vehicles_feature(
-                    key, Query(*self.keys_dict[key]), *include.split(","), **kwargs
-                )
-            }
-
-        with ThreadPoolExecutor(max_workers=max_items) as executor:
-            for future in as_completed(
-                {executor.submit(_get_key, key): key for key in self.vehicle_cache}
-            ):
-                self.vehicle_cache.update(future.result())
-        return self.vehicle_cache
-
     def clear_log(self, maxsize: int = 10**9) -> None:
         """_summary_
 
@@ -214,9 +154,6 @@ class FeedLoader(Feed):
         )
         self.scheduler.add_job(
             self.import_realtime, "interval", args=[Prediction], seconds=21
-        )
-        self.scheduler.add_job(
-            self._update_vehicle_cache, "interval", seconds=1, coalesce=True
         )
 
         self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)

@@ -26,6 +26,7 @@ from sqlalchemy import orm as saorm
 
 from ..gtfs_orms import *
 from ..helper_functions import removes_session, timeit
+from ..helper_functions.types import PathLike
 from .query import Query
 
 
@@ -135,22 +136,31 @@ class Feed:
         session.flush = lambda *a, **kw: logging.warning("flush on readonly session")
         return session
 
-    def __init__(self, url: str, gtfs_name: str | None = None) -> None:
-        """
-        Initializes Feed object with url.
-
-        Parses url to get GTFS name and create db path in temp dir.
+    def __init__(
+        self,
+        url: str,
+        gtfs_name: str = "",
+        engine_uri: str = "sqlite:///:memory:",
+        **kwargs,
+    ) -> None:
+        """Initializes Feed object with url.
 
         Args:
             url (str): url of GTFS feed
             gtfs_name (str, optional): name of GTFS feed. Defaults to auto-parsed from url.
+            engine_uri (str, optional): _description_. Defaults to "sqlite:///:memory:".
+            kwargs: keyword arguments to pass to `sa.create_engine`
         """
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
-        self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
-        self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
+        self.engine = sa.create_engine(
+            engine_uri or "sqlite:///:memory:",
+            connect_args={"check_same_thread": False},
+            poolclass=sa.pool.StaticPool,
+            **kwargs,
+        )
         self.scoped_session = saorm.scoped_session(
             saorm.sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         )
@@ -183,6 +193,15 @@ class Feed:
             return
         shutil.rmtree(self.zip_path)
         logging.info("Removed %s", self.zip_path)
+
+    @property
+    def db_exists(self) -> bool:
+        """if the database exists"""
+
+        return all(
+            sa.inspect(self.engine).has_table(table)
+            for table in Base.metadata.tables.keys()
+        )
 
     @timeit
     def import_gtfs(self, *args, purge: bool = True, **kwargs) -> None:
@@ -596,3 +615,24 @@ class Feed:
         """Closes the connection to the database."""
         self.scoped_session.remove()
         self.engine.dispose()
+
+    def backup_to_file(self, filename: PathLike = None) -> sa.engine.Engine:
+        """Backs up the in-memory database to a file-based database.
+
+        Args:
+            filename (PathLike, optional): pathlike
+
+        Returns:
+            sa.engine.Engine: engine connected to the file-based database.
+        """
+        filename = filename or f"{self.gtfs_name}_backup.db"
+        backup_engine = sa.create_engine(f"sqlite:///{filename}")
+        src_raw: sa.pool.base._ConnectionFairy = self.engine.raw_connection()
+        dst_raw: sa.pool.base._ConnectionFairy = backup_engine.raw_connection()
+        try:
+            src_raw.connection.backup(dst_raw.connection)
+        finally:
+            src_raw.close()
+            dst_raw.close()
+        logging.info("Backed up in-memory database to %s_backup.db", self.gtfs_name)
+        return backup_engine

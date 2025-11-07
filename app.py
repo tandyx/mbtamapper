@@ -15,12 +15,13 @@ import logging
 import os
 import subprocess
 import sys
+import time
 
 import flask
 import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import FeedLoader, RouteKeys, get_gitinfo
+from backend import FeedLoader, Query, RouteKeys, get_gitinfo
 from backend.helper_functions.types import CacheConfigDict, GitInfo
 
 # pylint: disable=too-many-locals,invalid-name
@@ -103,8 +104,10 @@ def create_key_blueprint(
         params: dict[str, str] = flask.request.args.to_dict()
         cache_s: int = int(params.pop("cache", 0))
 
-        json_data = FEED_LOADER.get_vehicles_feature_cache(
-            key, *[s.strip() for s in params.get("include", "").split(",")]
+        json_data = FEED_LOADER.get_vehicles_feature(
+            key,
+            Query(*KEY_DICT[key]["route_types"]),
+            *[s.strip() for s in params.get("include", "").split(",")],
         )
 
         if cache_s and json_data:
@@ -208,8 +211,16 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
         Returns:
             Response: the database
         """
-
-        return flask.send_file(FEED_LOADER.db_path, mimetype="application/x-sqlite3")
+        curr_time = time.time()
+        database_name = f"{FEED_LOADER.gtfs_name}_backup.db"
+        if (
+            os.path.exists(database_name)
+            and curr_time - os.path.getmtime(FEED_LOADER.log_file) < 60 * 60 * 4
+        ):
+            logging.warning("return cached database b/c less than 4 hours old")
+            return flask.send_file(database_name, mimetype="application/x-sqlite3")
+        backup = FEED_LOADER.backup_to_file(database_name)
+        return flask.send_file(backup.url.database, mimetype="application/x-sqlite3")
 
     @_app.route("/departure_board")
     def departure_board() -> flask.Response:
