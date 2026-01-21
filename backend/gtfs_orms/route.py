@@ -99,17 +99,22 @@ class Route(Base):
 
     @property
     def calendars(self) -> set["Calendar"]:
-        """returns unique set of calendars for the route"""
+        """returns unique set of calendars for the route
+
+        Returns:
+            set[Calendar]: unique calendars of this route
+        """
         return {trip.calendar for trip in self.trips}
 
     @t.override
     def as_json(self, *include: str, **kwargs) -> dict[str, t.Any]:
         """returns `Stop(...)` as a json serializable object:
 
-        args:
+        Args:
             include: other orms/attars to include
-            kwargs: unused \n
-        returns:
+            kwargs: unused
+
+        Returns:
             dict[str, Any]: json object of stop
         """
         json_dict = super().as_json(*include, **kwargs)

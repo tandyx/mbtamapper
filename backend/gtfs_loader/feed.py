@@ -135,7 +135,8 @@ class Feed:
 
         Args:
             readonly (bool): whether the session is readonly
-            kwargs: keyword arguments to pass to `scoped_session` \n
+            kwargs: keyword arguments to pass to `scoped_session`
+
         Returns:
             Session: session object
         """
@@ -355,7 +356,8 @@ class Feed:
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
-            *include (str): other orms to include\n
+            *include (str): other orms to include
+
         Returns:
             FeatureCollection: stops as FeatureCollection
         """
@@ -378,7 +380,8 @@ class Feed:
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
-            *include (str): other orms to include\n
+            *include (str): other orms to include
+
         Returns:
             FeatureCollection: shapes as FeatureCollection
         """
@@ -403,7 +406,7 @@ class Feed:
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
-            *include (str): other orms to include \n
+            *include (str): other orms to include
         Returns:
             FeatureCollection: facilities as FeatureCollection
         """
@@ -430,15 +433,16 @@ class Feed:
         timeout: int = 0.5,
     ) -> gj.FeatureCollection:
         """Returns vehicles as FeatureCollection.
-        notes:
-            - early return if ferry data is requested.
-            - tries 10 times to get data \n
+
+        - early return if ferry data is requested.
+        - tries 10 times to get data
+
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
             *include (str): other orms to include
             attemps (int): num attempts default: 10
-            timeout (float): timeout to take between attempts default 0.5 seconds \n
+            timeout (float): timeout to take between attempts default 0.5 seconds
         Returns:
             FeatureCollection: vehicles as FeatureCollection
         """
@@ -530,7 +534,7 @@ class Feed:
 
         Args:
             _orm (str): ORM to return.
-            params: keyword arguments to pass to the query\n
+            params: keyword arguments to pass to the query
         Returns:
             list[tuple[Base]]: list of tuples of the ORM objects
         """
@@ -590,9 +594,13 @@ class Feed:
             for d in session.execute(stmt).all():
                 for c in non_cols:
                     if hasattr(d[0], c["key"]):
-                        if _eval.eval(textwrap.dedent(f"""
+                        if _eval.eval(
+                            textwrap.dedent(
+                                f"""
                                 "{getattr(d[0], c['key'])}" {c['action'].lower() if c['action'] != '=' else '=='} "{c['value'].replace('NULL', 'None')}"
-                            """).replace("\n", "")):
+                            """
+                            ).replace("\n", "")
+                        ):
                             data.append(d)
         else:
             data = session.execute(stmt).all()
@@ -610,7 +618,7 @@ class Feed:
 
         Args:
             _orm (str): ORM to return.
-            **params: keyword arguments to pass to the query\n
+            **params: keyword arguments to pass to the query
         Returns:
             list[tuple[Base]]: list of tuples of the ORM objects
         """
@@ -626,8 +634,8 @@ class Feed:
         Args:
             _orm (str): ORM to return.
             *include (str): other orms to include
-            geojson (bool): use `geojson` rather than `json`\n
-            **params: keyword arguments to pass to the query\n
+            geojson (bool): use `geojson` rather than `json`
+            **params: keyword arguments to pass to the query
         Returns:
             list[dict[str]]: dictionary of the ORM names and their corresponding JSON names.
         """
@@ -655,8 +663,8 @@ class Feed:
             _orm (str): ORM to return.
             *include (str): other orms to include
             timeout (int): timeout for the function in seconds
-            geojson (bool): use `geojson` rather than `json`\n
-            **params: keyword arguments to pass to the query\n
+            geojson (bool): use `geojson` rather than `json`
+            **params: keyword arguments to pass to the query
         Returns:
             list[dict[str]]: dictionary of the ORM names and their corresponding JSON names.
         """

@@ -23,7 +23,7 @@ def get_date(offset: int = 0, zone: str = "America/New_York") -> dt.datetime:
 
     Args:
         offset (int, optional): The number of days to offset. Defaults to 0.
-        zone (str, optional): The timezone. Defaults to "America/New_York".\n
+        zone (str, optional): The timezone. Defaults to "America/New_York".
     Returns:
         datetime: The current date in the given timezone
     """
@@ -38,7 +38,7 @@ def get_current_time(offset: int = 0, zone: str = "America/New_York") -> dt.date
 
     Args:
         offset (int, optional): The number of hours to offset the time. Defaults to 0.
-        zone (str, optional): The timezone. Defaults to "America/New_York".\n
+        zone (str, optional): The timezone. Defaults to "America/New_York".
     Returns:
         datetime: The current time in the given timezone
     """

@@ -35,8 +35,8 @@ def df_unpack(
         dataframe (pd.DataFrame): dataframe to unpack
         *columns (str): columns to unpack.
         prefix (bool, optional): whether to add prefix to unpacked columns. \
-            Defaults to True. \n
-        sep (str, optional): separator for prefix. Defaults to "_". \n
+            Defaults to True.
+        sep (str, optional): separator for prefix. Defaults to "_".
     Returns:
         pd.DataFrame: dataframe with unpacked columns
     """

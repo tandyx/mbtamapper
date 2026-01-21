@@ -2,7 +2,7 @@
 
 import functools
 import logging
-import threading
+
 import time
 import typing as t
 
@@ -15,15 +15,12 @@ P = t.ParamSpec("P")
 R = t.TypeVar("R")
 
 
-# ...existing code...
-
-
 def removes_session(_func: t.Callable[P, R]) -> t.Callable[t.Concatenate[int, P], R]:
     """Decorator to remove a scroped session from a Feed object after function call. \
     This decorator also removes the session from the object if an exception is raised.
 
     Args:
-        _func (function): Function to wrap. \n
+        _func (function): Function to wrap.
     Returns:
         function: Wrapped function.
     """
@@ -76,7 +73,7 @@ def timeit(
     Args:
         _func (function): Function to wrap.
         round_to (int, optional): Number of decimal places to round to. Defaults to 3.
-        show_args (bool, True): show args into the function\n
+        show_args (bool, True): show args into the function
     Returns:
         function: Wrapped function.
     """
@@ -109,7 +106,7 @@ class classproperty(property):  # pylint: disable=invalid-name
     """Decorator to create a class property.
 
     Args:
-        property (property): property to wrap. \n
+        property (property): property to wrap.
     Returns:
         property: Wrapped property."""
 
@@ -118,7 +115,8 @@ class classproperty(property):  # pylint: disable=invalid-name
 
         Args:
             owner_self (object): Owner object.
-            owner_cls (object): Owner class. \n
+            owner_cls (object): Owner class.
+
         Returns:
             object: Value of property.
         """

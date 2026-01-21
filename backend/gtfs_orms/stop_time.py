@@ -130,7 +130,7 @@ class StopTime(Base):
 
         Args:
             date (datetime = None): the date to check <- defaults to the current date
-            kwargs: additional arguments passed to `get_date` \n
+            kwargs: additional arguments passed to `get_date`
         Returns:
             bool: whether the stop is active on the given date and time
         """
@@ -144,7 +144,7 @@ class StopTime(Base):
 
         Args:
             date (datetime = None): the date to check <- defaults to the current date
-            kwargs: additional arguments passed to `get_date` \n
+            kwargs: additional arguments passed to `get_date`
         Returns:
             bool: whether the stop is active on the given date and time
         """

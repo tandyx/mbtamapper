@@ -110,7 +110,7 @@ class Base(orm.DeclarativeBase):
         Args:
             include: other orm attars to include within the dict
             kwargs: unused, but can be used in overriden methods to \
-                pass in additional arguments \n
+                pass in additional arguments
         Returns:
             dict[str, Any]: json searizable representation of the object
         """
@@ -124,11 +124,11 @@ class Base(orm.DeclarativeBase):
     def _as_json_dict(self) -> dict[str, t.Any]:
         """Returns a dict representation of the object
         
-        args:
+        Args:
             include: other orm attars to include within the dict
             kwargs: unused, but can be used in overriden methods to \
-                pass in additional arguments \n
-        returns:
+                pass in additional arguments
+        Returns:
             dict[str, Any]: dict representation of the object
         """
 
@@ -145,7 +145,7 @@ class Base(orm.DeclarativeBase):
         Args:
             include: other orm attars to include within the dict
             kwargs: unused, but can be used in overriden methods to \
-                pass in additional arguments \n
+                pass in additional arguments
         Returns:
             dict[str, Any]: dict representation of the object
         """
@@ -170,7 +170,7 @@ def _is_json_searializable(obj: t.Any) -> bool:
     """Checks if an object is JSON serializable.
 
     Args:
-        obj (Any): Object to check. \n
+        obj (Any): Object to check.
     Returns:
         bool: Whether the object is JSON serializable.
     """

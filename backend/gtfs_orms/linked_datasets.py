@@ -178,7 +178,7 @@ class LinkedDataset(Base):
 
         Args:
             dataframe: The dataframe to post process.
-            rename_dict: The dictionary to rename the columns.\n
+            rename_dict: The dictionary to rename the columns.
         Returns:
             pd.DataFrame: Realtime data from the linked dataset.
         """

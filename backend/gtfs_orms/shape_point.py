@@ -50,7 +50,7 @@ class ShapePoint(Base):
         """Returns shape point object as a feature.
 
         Args:
-            include: A list of properties to include in the feature object.\n
+            include: A list of properties to include in the feature object.
         Returns:
             Feature: A GeoJSON feature object.
         """

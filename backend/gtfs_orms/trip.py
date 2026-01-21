@@ -117,10 +117,10 @@ class Trip(Base):
     def is_active(self, _date: dt.datetime | None = None, **kwargs) -> bool:
         """Returns true if this `Trip` is active on the given date and time
 
-        args:
+        Args:
             date (datetime = None): the date to check <- defaults to the current date
-            kwargs: additional arguments passed to `get_date` \n
-        returns:
+            kwargs: additional arguments passed to `get_date`
+        Returns:
             bool: whether the stop is active on the given date and time
         """
         return self.calendar.operates_on(_date or get_date(**kwargs))

@@ -79,8 +79,8 @@ class FeedLoader(Feed):
     def nightly_import(self, **kwargs) -> None:
         """Runs the nightly import.
 
-        args:
-            kwargs: keyword arguments to pass to `import_gtfs`.\n
+        Args:
+            kwargs: keyword arguments to pass to `import_gtfs`.
         """
         self.import_gtfs(chunksize=100000, dtype=object, **kwargs)
         for orm in self.__class__.REALTIME_ORMS:

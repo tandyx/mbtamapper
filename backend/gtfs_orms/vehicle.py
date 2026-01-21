@@ -136,7 +136,7 @@ class Vehicle(Base):
         """Returns vehicle as json.
 
         Args:
-            include: list of strings to include in the json\n
+            include: list of strings to include in the json
 
         Returns:
             dict: vehicle as a json
