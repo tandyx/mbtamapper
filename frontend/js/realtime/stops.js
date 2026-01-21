@@ -81,7 +81,7 @@ class StopLayer extends BaseRealtimeLayer {
             _this.options.map.setView(
               layer.getLatLng(),
               _this.options.map.getZoom(),
-              { animate: true }
+              { animate: true },
             );
             layer.openPopup();
             setTimeout(onClick, 200);
@@ -89,7 +89,7 @@ class StopLayer extends BaseRealtimeLayer {
           StopLayer.onClickArry.forEach((fn) => layer.off("click", fn));
           StopLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
-        }.bind(this)
+        }.bind(this),
       );
     });
     return realtime;
@@ -112,10 +112,10 @@ class StopLayer extends BaseRealtimeLayer {
               (a.route_name > b.route_name
                 ? 1
                 : b.route_name > a.route_name
-                ? -1
-                : 0)
+                  ? -1
+                  : 0),
           )
-          ?.map((r) => `#${r.route_color}`) || []
+          ?.map((r) => `#${r.route_color}`) || [],
       ),
     ];
 
@@ -141,8 +141,8 @@ class StopLayer extends BaseRealtimeLayer {
             .replace(/\s+/g, " ")
             .trim()
         : routeColors.length === 1
-        ? `color: ${routeColors.at(0)}`
-        : "color: var(--text-color);";
+          ? `color: ${routeColors.at(0)}`
+          : "color: var(--text-color);";
     // const routeColor = properties?.routes?.length
     //   ? `linear-gradient(to left, ${properties.routes
     //       .slice(0, 2)
@@ -222,7 +222,7 @@ class StopLayer extends BaseRealtimeLayer {
         ${properties.routes
           .map(
             (r) =>
-              `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name}</a>`
+              `<a href="${r.route_url}" rel="noopener" target="_blank" style="color:#${r.route_color}">${r.route_name}</a>`,
           )
           .join(", ")}
       </div>
@@ -261,7 +261,7 @@ class StopLayer extends BaseRealtimeLayer {
    */
   async #fillSidebar(properties) {
     const container = BaseRealtimeLayer.toggleSidebarDisplay(
-      BaseRealtimeLayer.sideBarOtherId
+      BaseRealtimeLayer.sideBarOtherId,
     );
     const sidebar = document.getElementById("sidebar");
     const timestamp = Math.round(new Date().valueOf() / 1000);
@@ -276,10 +276,10 @@ class StopLayer extends BaseRealtimeLayer {
     /** @type {StopProperty[]} */
     const stop = await fetchCache(
       `/api/stop?stop_id=${properties.stop_id}&_=${Math.round(
-        timestamp / 10
-      )}&include=alerts,predictions&cache=5`,
+        timestamp / 10,
+      )}&include=alerts,predictions&cache=10`,
       { cache: "force-cache" },
-      super.defaultFetchCacheOpt
+      super.defaultFetchCacheOpt,
     );
     const childStops = Boolean(properties.child_stops.length)
       ? properties.child_stops
@@ -292,7 +292,7 @@ class StopLayer extends BaseRealtimeLayer {
           .filter(
             (cs) =>
               (cs.location_type == 0 && ["2", "4"].includes(cs.vehicle_type)) ||
-              cs.stop_name.toLowerCase().includes("shuttle")
+              cs.stop_name.toLowerCase().includes("shuttle"),
           )
           .map(
             async (cs) =>
@@ -301,12 +301,12 @@ class StopLayer extends BaseRealtimeLayer {
                   cs.stop_id
                 }&operates_today=True&_=${formatTimestamp(
                   timestamp,
-                  "%Y%m%d"
+                  "%Y%m%d",
                 )}&include=trip&cache=86400`,
                 { cache: "force-cache" },
-                super.defaultFetchCacheOpt
-              )
-          )
+                super.defaultFetchCacheOpt,
+              ),
+          ),
       )
     ).flat();
 
@@ -328,24 +328,24 @@ class StopLayer extends BaseRealtimeLayer {
               .filter(
                 (p) =>
                   p.route_id === route.route_id &&
-                  (p.arrival_time || p.departure_time)
+                  (p.arrival_time || p.departure_time),
               )
               .sort(
                 (a, b) =>
                   a.arrival_time - b.arrival_time ||
-                  a.departure_time - b.departure_time
+                  a.departure_time - b.departure_time,
               );
             const _stoptimes = stopTimes
               .filter(
                 (st) =>
                   st.trip?.route_id === route.route_id &&
                   !_predictions.map((p) => p.trip_id).includes(st.trip_id) &&
-                  (st.arrival_timestamp || st.departure_timestamp) > timestamp
+                  (st.arrival_timestamp || st.departure_timestamp) > timestamp,
               )
               .sort(
                 (a, b) =>
                   a.arrival_timestamp - b.arrival_timestamp ||
-                  a.departure_timestamp - b.departure_timestamp
+                  a.departure_timestamp - b.departure_timestamp,
               );
 
             return /* HTML */ `<div class="my-5">
@@ -401,7 +401,7 @@ class StopLayer extends BaseRealtimeLayer {
                             >
                             ${formatTimestamp(
                               pred.arrival_time || pred.departure_time,
-                              "%I:%M %P"
+                              "%I:%M %P",
                             )}
                           </span>
 
@@ -444,7 +444,7 @@ class StopLayer extends BaseRealtimeLayer {
                             class="tooltip"
                             data-tooltip="Scheduled in ${minuteify(
                               dom - timestamp,
-                              ["seconds"]
+                              ["seconds"],
                             )}"
                             >${formatTimestamp(dom, "%I:%M %P")}</span
                           >

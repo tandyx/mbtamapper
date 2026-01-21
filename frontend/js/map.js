@@ -156,7 +156,7 @@ function createMap(id, routeType) {
   });
 
   const vehicleLayer = new VehicleLayer({
-    url: `vehicles?include=route,next_stop,stop_time&cache=10`,
+    url: `vehicles?include=route,next_stop,stop_time&cache=5`,
     layer: L.markerClusterGroup({
       disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",

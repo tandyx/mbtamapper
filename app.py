@@ -128,10 +128,8 @@ def create_key_blueprint(
         params: dict[str, str] = flask.request.args.to_dict()
         cache_s: int = int(params.pop("cache", 0))
 
-        json_data = FEED_LOADER.get_vehicles_feature(
-            key,
-            Query(*KEY_DICT[key]["route_types"]),
-            *[s.strip() for s in params.get("include", "").split(",")],
+        json_data = FEED_LOADER.get_vehicles_feature_cache(
+            key, *[s.strip() for s in params.get("include", "").split(",")]
         )
 
         if cache_s and json_data:

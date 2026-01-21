@@ -2,16 +2,16 @@
 
 import logging
 import os
-import threading
 import typing as t
 
-import requests as req
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
+from geojson import FeatureCollection
 
 from ..gtfs_orms import Alert, LinkedDataset, Prediction, Shape, Vehicle
 from ..helper_functions import PathLike, get_date, timeit
 from .feed import Feed
+from .query import Query
 
 # pylint: disable=line-too-long
 
@@ -76,6 +76,9 @@ class FeedLoader(Feed):
             timezone=kwargs.get("timezone", "America/New_York"), **kwargs
         )
 
+        self.vehicle_cache: dict[str, FeatureCollection] = {}
+        """in-memory cache of vehicles"""
+
     @timeit
     def nightly_import(self, **kwargs) -> None:
         """Runs the nightly import.
@@ -119,7 +122,7 @@ class FeedLoader(Feed):
         # self.proc_vehicle_cache()
 
     def clear_log(self, maxsize: int = 10**9) -> None:
-        """_summary_
+        """clears the logfile
 
         Args:
             maxsize (int, optional): _description_. Defaults to 10**9 bytes (1 gb).
@@ -131,6 +134,52 @@ class FeedLoader(Feed):
         if os.path.exists(self.log_file) and size >= maxsize:
             os.remove(self.log_file)
             logging.info("removed file %s w/ size %s", abs_path, size)
+
+    def get_vehicles_feature_cache(
+        self, key: str, *include: str, **kwargs
+    ) -> FeatureCollection:
+        """the same as the super method, `get_vehicles_feature`, but:
+
+        - abstracts `Query` away
+        - and loads the result into the self.vehicle_cache
+
+        Args:
+            key (str): route key to use
+            *include (str): attrs to include
+            **kwargs: dumped to super class
+
+        Returns:
+            FeatureCollection: vehicles as featurecollection
+        """
+
+        if (cache_key := f"{key}-{','.join(include)}") not in self.vehicle_cache:
+            res = self.get_vehicles_feature(
+                key, Query(*self.keys_dict[key]), *include, **kwargs
+            )
+            if not res or any(key in _cache_key for _cache_key in self.vehicle_cache):
+                return res
+            if res:
+                self.vehicle_cache[cache_key] = res
+        return self.vehicle_cache[cache_key]
+
+    @timeit
+    def _update_vehicle_cache(self, **kwargs) -> dict[str, FeatureCollection]:
+        """updates cache and then returns the cache
+
+        Returns:
+            dict[str, FeatureCollection]: the cache
+        """
+
+        for cache_key in self.vehicle_cache:
+            key, include = cache_key.split("-")
+            self.vehicle_cache[cache_key] = self.get_vehicles_feature(
+                key, Query(*self.keys_dict[key]), *include.split(","), **kwargs
+            )
+
+        while len(self.vehicle_cache) > 10:
+            self.vehicle_cache.popitem()
+
+        return self.vehicle_cache
 
     def run(self, force: bool = False) -> t.Self:
         """Schedules jobs defined by FeedLoader
@@ -157,7 +206,7 @@ class FeedLoader(Feed):
             self.import_realtime, "interval", args=[Prediction], seconds=21
         )
 
-        self.scheduler.add_job(self.proc_vehicle_cache, "interval", seconds=10)
+        self.scheduler.add_job(self._update_vehicle_cache, "interval", seconds=10)
 
         self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)
         self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
@@ -171,34 +220,6 @@ class FeedLoader(Feed):
         for job in self.scheduler.get_jobs():
             logging.info("%s: next run @ %s", job.name, job.next_run_time or "never")
         return self
-
-    def proc_vehicle_cache(
-        self, url_base: str = "http://localhost:5000", **kwargs
-    ) -> None:
-        """starts the vehicle chache - threaded requests into the void.
-
-        Args:
-            url_base (_type_, optional): _description_. Defaults to "http://localhost:5000".
-        """
-
-        def _make_req(_key: str) -> req.Response:
-            resp = req.get(
-                f"{url_base.rstrip('/')}/{_key}/vehicles?include=route,next_stop,stop_time&cache=10",
-                timeout=10,
-                **kwargs,
-            )
-            if resp.ok:
-                logging.info("procced vehicle cache %s", resp.url)
-            else:
-                logging.error("failed to proc vehicle cache %s", resp.url)
-            return resp
-
-        for thread in [
-            threading.Thread(None, _make_req, kwargs={"_key": k})
-            for k in self.keys_dict
-            if k not in {"all_routes", "ferry"}
-        ]:
-            thread.start()
 
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.
