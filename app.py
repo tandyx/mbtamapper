@@ -23,7 +23,7 @@ import flask
 import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from backend import FeedLoader, Query, RouteKeys, get_gitinfo
+from backend import FeedLoader, RouteKeys, get_gitinfo
 from backend.helper_functions.types import CacheConfigDict, GitInfo
 
 # pylint: disable=too-many-locals,invalid-name

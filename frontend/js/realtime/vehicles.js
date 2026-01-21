@@ -1,6 +1,6 @@
 /**
  * @file shapes.js - Plot stops on map in realtime, updating every 15 seconds
- * @module shapes
+ * @module vehicles
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
