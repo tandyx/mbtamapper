@@ -2,6 +2,7 @@
 
 import logging
 import os
+import threading
 import typing as t
 
 import requests as req
@@ -156,6 +157,8 @@ class FeedLoader(Feed):
             self.import_realtime, "interval", args=[Prediction], seconds=21
         )
 
+        self.scheduler.add_job(self.proc_vehicle_cache, "interval", seconds=10)
+
         self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)
         self.scheduler.add_job(self.nightly_import, "cron", hour=3, minute=30)
 
@@ -172,17 +175,15 @@ class FeedLoader(Feed):
     def proc_vehicle_cache(
         self, url_base: str = "http://localhost:5000", **kwargs
     ) -> None:
-        """_summary_
+        """starts the vehicle chache - threaded requests into the void.
 
         Args:
             url_base (_type_, optional): _description_. Defaults to "http://localhost:5000".
         """
 
-        for key in self.keys_dict:
-            if key in ["bus", "all_routes", "ferry"]:
-                continue
+        def _make_req(_key: str) -> req.Response:
             resp = req.get(
-                f"{url_base.rstrip('/')}/{key}/vehicles?include=route,next_stop,stop_time&cache=5",
+                f"{url_base.rstrip('/')}/{_key}/vehicles?include=route,next_stop,stop_time&cache=10",
                 timeout=10,
                 **kwargs,
             )
@@ -190,6 +191,14 @@ class FeedLoader(Feed):
                 logging.info("procced vehicle cache %s", resp.url)
             else:
                 logging.error("failed to proc vehicle cache %s", resp.url)
+            return resp
+
+        for thread in [
+            threading.Thread(None, _make_req, kwargs={"_key": k})
+            for k in self.keys_dict
+            if k not in {"all_routes", "ferry"}
+        ]:
+            thread.start()
 
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.

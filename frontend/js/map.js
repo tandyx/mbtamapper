@@ -91,7 +91,7 @@ function createMap(id, routeType) {
     ],
     storageGet("zoom", routeType === "commuter_rail" ? 10 : 13, {
       parseFloat: true,
-    })
+    }),
   );
 
   map.on("move", () => {
@@ -156,7 +156,7 @@ function createMap(id, routeType) {
   });
 
   const vehicleLayer = new VehicleLayer({
-    url: `vehicles?include=route,next_stop,stop_time&cache=5`,
+    url: `vehicles?include=route,next_stop,stop_time&cache=10`,
     layer: L.markerClusterGroup({
       disableClusteringAtZoom: routeType == "commuter_rail" ? 10 : 12,
       name: "vehicles",
@@ -214,11 +214,11 @@ function createMap(id, routeType) {
 
   const layerControl = L.control.layers(
     Object.fromEntries(
-      Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v])
+      Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v]),
     ),
     Object.fromEntries(
-      realtimeLayers.map((l) => [titleCase(l.options?.name), l])
-    )
+      realtimeLayers.map((l) => [titleCase(l.options?.name), l]),
+    ),
   );
 
   const controlSearch = L.control.search({
@@ -234,7 +234,7 @@ function createMap(id, routeType) {
   });
 
   controlSearch.on("search:locationfound", (event) =>
-    event.layer.fire("click")
+    event.layer.fire("click"),
   );
   _controlSearch = controlSearch;
 
@@ -249,7 +249,7 @@ function createMap(id, routeType) {
   });
 
   [locateControl, layerControl, controlSearch, easyButton].forEach((c) =>
-    c.addTo(map)
+    c.addTo(map),
   );
 
   map.on("zoomend", () => {
