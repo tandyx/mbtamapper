@@ -590,13 +590,9 @@ class Feed:
             for d in session.execute(stmt).all():
                 for c in non_cols:
                     if hasattr(d[0], c["key"]):
-                        if _eval.eval(
-                            textwrap.dedent(
-                                f"""
+                        if _eval.eval(textwrap.dedent(f"""
                                 "{getattr(d[0], c['key'])}" {c['action'].lower() if c['action'] != '=' else '=='} "{c['value'].replace('NULL', 'None')}"
-                            """
-                            ).replace("\n", "")
-                        ):
+                            """).replace("\n", "")):
                             data.append(d)
         else:
             data = session.execute(stmt).all()
