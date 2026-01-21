@@ -1,14 +1,24 @@
 """Module to hold decorators."""
 
+import functools
 import logging
+import threading
 import time
-import traceback
 import typing as t
 
-from sqlalchemy.orm import scoped_session
+if t.TYPE_CHECKING:
+    from ..gtfs_loader.feed import Feed
+
+# T = t.TypeVar("T", t.Callable[..., t.Any], t.Any)
+
+P = t.ParamSpec("P")
+R = t.TypeVar("R")
 
 
-def removes_session(_func: t.Callable[..., t.Any]):
+# ...existing code...
+
+
+def removes_session(_func: t.Callable[P, R]) -> t.Callable[t.Concatenate[int, P], R]:
     """Decorator to remove a scroped session from a Feed object after function call. \
     This decorator also removes the session from the object if an exception is raised.
 
@@ -18,30 +28,49 @@ def removes_session(_func: t.Callable[..., t.Any]):
         function: Wrapped function.
     """
 
+    @functools.wraps(_func)
     def _removes_session(*args, **kwargs):
-        res = None
-        exception: bool = False
+        self: "Feed" | None = args[0] if args else None
         try:
-            res = _func(*args, **kwargs)
-        except Exception as err:  # pylint: disable=broad-except
-            logging.error(
-                "Error in %s: %s %s", _func.__name__, err, traceback.format_exc()
-            )
-            exception = True
-        for arg in args:
-            for attr_name in dir(arg):
-                attr = getattr(arg, attr_name)
-                if isinstance(attr, scoped_session):
-                    attr.remove()
-                    if exception:  # this may be a problem in the future;
-                        attr.rollback()
-                    return res
-        return res
+            return _func(*args, **kwargs)
+        finally:
+            if self is not None and hasattr(self, "scoped_session"):
+                try:
+                    self.scoped_session.remove()
+                except Exception:  # pylint: disable=broad-exception-caught
+                    # don't let cleanup errors mask the real error
+                    logging.exception("failed to remove scoped_session")
 
     return _removes_session
 
 
-def timeit(_func: t.Callable[..., t.Any], round_to: int = 3, show_args: bool = True):
+# def removes_session(_func: T) -> t.Callable[t.Concatenate[int, P], R]:
+#     """Decorator to remove a scroped session from a Feed object after function call. \
+#     This decorator also removes the session from the object if an exception is raised.
+
+#     Args:
+#         _func (function): Function to wrap.
+
+#     Returns:
+#         function: Wrapped function.
+#     """
+
+#     def _removes_session(*args, **kwargs):
+#         res = None
+#         try:
+#             res = _func(*args, **kwargs)
+#         except Exception as err:  # pylint: disable=broad-except
+#             logging.error(
+#                 "Error in %s: %s %s", _func.__name__, err, traceback.format_exc()
+#             )
+#         return res
+
+#     return _removes_session
+
+
+def timeit(
+    _func: t.Callable[P, R], round_to: int = 3, show_args: bool = True
+) -> t.Callable[t.Concatenate[int, P], R]:
     """Decorator to time a function and log it.
 
     Args:
@@ -52,7 +81,8 @@ def timeit(_func: t.Callable[..., t.Any], round_to: int = 3, show_args: bool = T
         function: Wrapped function.
     """
 
-    def _timeit(*args, **kwargs) -> t.Any:
+    @functools.wraps(_func)
+    def _timeit(*args, **kwargs):
         start = time.perf_counter()
         res = _func(*args, **kwargs)
         if show_args:

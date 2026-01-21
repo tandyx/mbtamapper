@@ -127,7 +127,7 @@ class VehicleLayer extends BaseRealtimeLayer {
 
     realtime.on("update", function (_e) {
       _this.#fillDefaultSidebar(
-        Object.values(_e.features).map((e) => e.properties)
+        Object.values(_e.features).map((e) => e.properties),
       );
       Object.keys(_e.update).forEach(
         function (id) {
@@ -150,7 +150,7 @@ class VehicleLayer extends BaseRealtimeLayer {
             _this.options.map.setView(
               layer.getLatLng(),
               _this.options.map.getZoom(),
-              { animate: true }
+              { animate: true },
             );
             layer.openPopup();
             setTimeout(onClick, 200);
@@ -158,7 +158,7 @@ class VehicleLayer extends BaseRealtimeLayer {
           VehicleLayer.onClickArry.forEach((fn) => layer.off("click", fn));
           VehicleLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
-        }.bind(this)
+        }.bind(this),
       );
     });
     return realtime;
@@ -209,8 +209,10 @@ class VehicleLayer extends BaseRealtimeLayer {
       621: "🦊",
       926: "🦊",
       666: "😈",
+      6666: "😈",
       888: "♠️",
-      67: "🫴🫴",
+      61: "😳",
+      67: "🫩",
       69: "💀",
       1738: "🔊",
       420: "🌲",
@@ -241,7 +243,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     return (
       customDescriptions.formulate(
         properties.trip_short_name,
-        description + " "
+        description + " ",
       ) || description
     );
   }
@@ -318,10 +320,10 @@ class VehicleLayer extends BaseRealtimeLayer {
         class="${properties.occupancy_percentage >= 80
           ? "severe-delay"
           : properties.occupancy_percentage >= 60
-          ? "moderate-delay"
-          : properties.occupancy_percentage >= 40
-          ? "slight-delay"
-          : ""}"
+            ? "moderate-delay"
+            : properties.occupancy_percentage >= 40
+              ? "slight-delay"
+              : ""}"
       >
         ${properties.occupancy_percentage}% occupancy
       </span>
@@ -397,7 +399,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   async #fillSidebar(properties) {
     const container = BaseRealtimeLayer.toggleSidebarDisplay(
-      BaseRealtimeLayer.sideBarOtherId
+      BaseRealtimeLayer.sideBarOtherId,
     );
     const sidebar = document.getElementById("sidebar");
     const timestamp = Math.round(new Date().valueOf() / 1000);
@@ -413,15 +415,15 @@ class VehicleLayer extends BaseRealtimeLayer {
         properties.trip_id
       }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=4`,
       { cache: "force-cache" },
-      super.defaultFetchCacheOpt
+      super.defaultFetchCacheOpt,
     );
     /** @type {AlertProperty[]} */
     const alerts = await fetchCache(
       `/api/alert?trip_id=${properties.trip_id}&_=${Math.floor(
-        timestamp / 60
+        timestamp / 60,
       )}&cache=40`,
       { cache: "force-cache" },
-      super.defaultFetchCacheOpt
+      super.defaultFetchCacheOpt,
     );
     if (
       !properties.next_stop ||
@@ -457,12 +459,12 @@ class VehicleLayer extends BaseRealtimeLayer {
             ?.sort(
               (a, b) =>
                 (a.departure_time || a.arrival_time) -
-                (b.departure_time || b.arrival_time)
+                (b.departure_time || b.arrival_time),
             )
             ?.filter(
               (p) =>
                 p.stop_sequence > properties?.next_stop?.stop_sequence ||
-                Infinity
+                Infinity,
             )
             ?.map((p) => {
               const realDeparture = p.departure_time || p.arrival_time;
@@ -479,7 +481,7 @@ class VehicleLayer extends BaseRealtimeLayer {
                     direction_id: p.direction_id,
                     route_type: properties?.route?.route_type,
                   },
-                  { starOnly: true }
+                  { starOnly: true },
                 ),
                 tooltip: "",
               };
@@ -564,7 +566,7 @@ class VehicleLayer extends BaseRealtimeLayer {
               const value = delays[key] || 0;
               return `<div
                 style="width: ${Math.round(
-                  (value / properties.length) * 100
+                  (value / properties.length) * 100,
                 )}%;"
                 class="item tooltip ${key}-bg"
                 data-tooltip="(${value}) ${desc}"
@@ -589,13 +591,13 @@ class VehicleLayer extends BaseRealtimeLayer {
                     (a.route_id > b.route_id
                       ? 1
                       : b.route_id > a.route_id
-                      ? -1
-                      : 0) ||
+                        ? -1
+                        : 0) ||
                     (a.trip_short_name > b.trip_short_name
                       ? 1
                       : b.trip_short_name > a.trip_short_name
-                      ? -1
-                      : 0)
+                        ? -1
+                        : 0),
                 )
                 .map((prop) => {
                   const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;

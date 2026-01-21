@@ -80,3 +80,5 @@ scratchfile*.*
 bundle/
 
 data.sqld
+*-wal
+*-shm

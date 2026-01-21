@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        ".sqliterc": "query-editor",
+        "*.html": "html",
+        "*.mod": "ampl",
+        ".env*": "dotenv",
+        "stdio.h": "c",
+        "libc-header-start.h": "c"
+    }
+}

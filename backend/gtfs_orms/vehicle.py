@@ -123,7 +123,7 @@ class Vehicle(Base):
             (
                 tp
                 for tp in self.trip_properties
-                if tp.trip_property_id == trip_property_id
+                if tp and tp.trip_property_id == trip_property_id
             ),
             None,
         )
@@ -309,7 +309,9 @@ class Vehicle(Base):
         if self.trip:
             return self.trip.trip_headsign
         if self.predictions:
-            return max(self.predictions).stop.stop_name
+            dest = max(self.predictions).stop
+            if dest:
+                return dest.stop_name
         return "unknown"
 
     def _trip_short_name(self) -> str | None:

@@ -17,6 +17,7 @@ import subprocess
 import sys
 import time
 
+import colorlog
 import flask
 import flask_caching
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -35,15 +36,6 @@ FEED_LOADER: FeedLoader = FeedLoader(
     keys_dict={k: v["route_types"] for k, v in KEY_DICT.items()},
 )
 
-logging.basicConfig(
-    filename=FEED_LOADER.log_file,
-    filemode="a",
-    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.INFO,
-)
-
-logging.getLogger("apscheduler").setLevel(logging.WARNING)
 
 CACHE_CONFIG: CacheConfigDict = {
     "CACHE_TYPE": "MemcachedCache",
@@ -53,6 +45,37 @@ CACHE_CONFIG: CacheConfigDict = {
 GIT_INFO: GitInfo = get_gitinfo()
 
 USE_DEBUG: bool = False
+
+
+def _set_logging() -> logging.Logger:
+    """Sets up logging for the application."""
+
+    _format = "%(asctime)s %(name)-10s %(levelname)-10s %(message)s"
+    datefmt = "%Y-%m-%d %H:%M:%S"
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(
+        colorlog.ColoredFormatter(
+            fmt="%(log_color)s" + _format, datefmt=datefmt, force_color=True
+        )
+    )
+
+    file_handler = logging.FileHandler(FEED_LOADER.log_file)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter(fmt=_format, datefmt=datefmt))
+    # logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    for module in ["apscheduler", "flask", "werkzeug"]:
+        logging.getLogger(module).setLevel(logging.WARNING)
+    return logger
+
+
+_set_logging()
 
 
 def create_key_blueprint(
@@ -305,7 +328,15 @@ def create_main_app(import_data: bool = False, proxies: int = 5) -> flask.Flask:
             return flask.jsonify({"error": f"response > {timeout}s"}), 408
         except Exception:  # pylint: disable=broad-except
             return flask.jsonify({"error": "?", f"{orm_name} args": orm.cols}), 400
+
         if data is None:
+            # for _ in range(10):
+            #     time.sleep(0.5)
+            #     data = FEED_LOADER.timeout_get_orm_json(
+            #         orm, *include, timeout=timeout, geojson=geojson, **params
+            #     )
+            #     if data is not None:
+            #         break
             return flask.jsonify({"error": "null", f"{orm_name} args": orm.cols}), 400
         if cache_s:
             return flask_caching.CachedResponse(flask.jsonify(data), cache_s)
@@ -425,9 +456,7 @@ def get_args(**kwargs) -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = get_args().parse_args()
-    logger = logging.getLogger()
-    logger.addHandler(logging.StreamHandler(sys.stdout))
-    logger.setLevel(getattr(logging, args.log_level.upper()))
+
     USE_DEBUG = True
     CACHE_CONFIG["DEBUG"] = USE_DEBUG
     if args.debug and (
