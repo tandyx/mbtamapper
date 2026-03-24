@@ -9,7 +9,7 @@ gtfs-realtime-bindings
 json_api_doc
 python3-memcached
 numpy
-pandas
+pandas<3.0.0
 protobuf
 python-git-info
 requests
