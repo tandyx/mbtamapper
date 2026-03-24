@@ -89,7 +89,13 @@ class Feed:
             logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
             return
         cursor = dbapi_connection.cursor()
-        for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
+        for pragma in [
+            "foreign_keys=ON",
+            "auto_vacuum='1'",
+            "shrink_memory",
+            "journal_mode=OFF",
+            "synchronous = NORMAL",
+        ]:
             try:
                 cursor.execute(f"PRAGMA {pragma}")
             except sqlite3.OperationalError:
