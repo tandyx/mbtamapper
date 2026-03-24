@@ -94,7 +94,6 @@ class Feed:
             "auto_vacuum='1'",
             "shrink_memory",
             "journal_mode=OFF",
-            "synchronous = NORMAL",
         ]:
             try:
                 cursor.execute(f"PRAGMA {pragma}")
