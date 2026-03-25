@@ -91,9 +91,9 @@ class Feed:
         cursor = dbapi_connection.cursor()
         for pragma in [
             "journal_mode=WAL",
-            "synchronous=NORMAL",
+            "synchronous=OFF",
             "foreign_keys=ON",
-            "auto_vacuum='1'",
+            "temp_store=MEMORY",
             "shrink_memory",
         ]:
             try:
@@ -137,18 +137,11 @@ class Feed:
             Session: session object
         """
 
-        with self.scoped_session(**kwargs) as session:
-            if readonly:
-                session.flush = lambda *a, **kw: logging.warning(
-                    "flush on readonly session"
-                )
+        session = self.scoped_session(**kwargs)
+        if not readonly:
             return session
-        # with self.sessionmkr() as session:
-        #     if readonly:
-        #         session.flush = lambda *a, **kw: logging.warning(
-        #             "flush on readonly session"
-        #         )
-        #     return session
+        session.flush = lambda *_, **__: logging.warning("flush on readonly session")
+        return session
 
     def __init__(
         self, url: str, gtfs_name: str = "", engine_uri: str = "", **kwargs
@@ -165,32 +158,7 @@ class Feed:
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
-        # self.engine = sa.create_engine(
-        #     engine_uri
-        #     or f"sqlite:///file:{self.gtfs_name}.db?mode=memory&cache=shared&uri=true",
-        #     connect_args={
-        #         "check_same_thread": False,
-        #         "uri": True,
-        #         "timeout": 30,
-        #     },
-        #     poolclass=sa.pool.StaticPool,
-        #     **kwargs,
-        # )
-
-        self.engine = sa.create_engine(
-            engine_uri or f"sqlite:///{self.gtfs_name}.db",
-            connect_args={
-                "check_same_thread": False,
-                "timeout": 30,  # 30 second timeout for lock contention
-            },
-            poolclass=sa.pool.NullPool,
-            **kwargs,
-        )
-
-        # self.sessionmkr = saorm.sessionmaker(
-        #     self.engine, expire_on_commit=False, autoflush=False
-        # )
-
+        self.engine = sa.create_engine(engine_uri or f"sqlite:///{self.gtfs_name}.db")
         self.scoped_session = saorm.scoped_session(
             saorm.sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         )
@@ -264,7 +232,9 @@ class Feed:
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: RealtimeOrms | str, use_cache: bool = True) -> None:
+    def import_realtime(
+        self, orm: RealtimeOrms | str, use_cache: bool = True, chunksize: int = 1000
+    ) -> None:
         """Imports realtime data into the database.
 
         Args:
@@ -288,10 +258,15 @@ class Feed:
 
         if use_cache:
             dataset.cache_key(key=orm.__realtime_name__)
-
         if not dataset:
             return
-        self.to_sql(dataset.as_dataframe(), orm, purge=True)
+
+        dataframe = dataset.as_dataframe()
+        for i, chunk in enumerate(
+            dataframe[i : i + chunksize]
+            for i in range(0, dataframe.shape[0], chunksize)
+        ):
+            self.to_sql(chunk, orm, purge=i == 0)
 
     @timeit
     @removes_session
@@ -459,7 +434,8 @@ class Feed:
         for _ in range(attempts):
             try:
                 data = session.execute(query_obj.get_vehicles_query(*_routes)).all()
-                if any(v[0].predictions for v in data):
+                # if any(v[0].predictions for v in data):
+                if data:
                     break
             except Exception as error:
                 logging.error("Failed to get vehicle data: %s", error)
@@ -500,6 +476,7 @@ class Feed:
         """
         try:
             with self.engine.begin() as conn:
+                # with session.begin() as connL
                 if purge:
                     conn.execute(Query.delete(orm))
                 res = data.to_sql(

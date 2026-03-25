@@ -200,10 +200,10 @@ class FeedLoader(Feed):
             self.import_realtime, "interval", args=[Alert], minutes=1
         )
         self.scheduler.add_job(
-            self.import_realtime, "interval", args=[Vehicle], seconds=11
+            self.import_realtime, "interval", args=[Vehicle], seconds=17
         )
         self.scheduler.add_job(
-            self.import_realtime, "interval", args=[Prediction], seconds=21
+            self.import_realtime, "interval", args=[Prediction], seconds=37
         )
 
         self.scheduler.add_job(self._update_vehicle_cache, "interval", seconds=10)
