@@ -90,10 +90,11 @@ class Feed:
             return
         cursor = dbapi_connection.cursor()
         for pragma in [
+            "journal_mode=WAL",
+            "synchronous=NORMAL",
             "foreign_keys=ON",
             "auto_vacuum='1'",
             "shrink_memory",
-            "journal_mode=OFF",
         ]:
             try:
                 cursor.execute(f"PRAGMA {pragma}")
@@ -177,7 +178,13 @@ class Feed:
         # )
 
         self.engine = sa.create_engine(
-            engine_uri or f"sqlite:///{self.gtfs_name}.db", **kwargs
+            engine_uri or f"sqlite:///{self.gtfs_name}.db",
+            connect_args={
+                "check_same_thread": False,
+                "timeout": 30,  # 30 second timeout for lock contention
+            },
+            poolclass=sa.pool.NullPool,
+            **kwargs,
         )
 
         # self.sessionmkr = saorm.sessionmaker(
