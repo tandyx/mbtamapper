@@ -95,6 +95,7 @@ class Feed:
             "foreign_keys=ON",
             "temp_store=MEMORY",
             "shrink_memory",
+            "read_uncommitted=1",
         ]:
             try:
                 cursor.execute(f"PRAGMA {pragma}")
