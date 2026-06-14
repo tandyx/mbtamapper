@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "esbuild": "^0.25.11",
+    "esbuild": "^0.28.1",
     "leaflet": "^1.9.4",
     "leaflet-easybutton": "^2.4.0",
     "leaflet-fullscreen": "^1.0.2",

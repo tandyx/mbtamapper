@@ -91,8 +91,8 @@ function createHomepageMap(id, routeKeys, content) {
   L.control
     .layers(
       Object.fromEntries(
-        Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v])
-      )
+        Object.entries(baseLayers).map(([k, v]) => [titleCase(k), v]),
+      ),
     )
     .addTo(map);
   return map;
@@ -108,7 +108,7 @@ L.Map.include({
     const container = (this._controlContainer = L.DomUtil.create(
       "div",
       l + "control-container",
-      this._container
+      this._container,
     ));
 
     function createCorner(vSide, hSide) {
