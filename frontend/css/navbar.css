@@ -34,6 +34,8 @@ nav::before {
   z-index: -1;
   -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
+  will-change: transform !important;
+  transform: translate3d(0px, 0px, 0px) !important;
   top: 0;
   left: 0;
   right: 0;

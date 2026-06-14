@@ -4,7 +4,6 @@ import logging
 import os
 import typing as t
 
-import requests as req
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
 from geojson import FeatureCollection
@@ -37,11 +36,6 @@ class FeedLoader(Feed):
             for fname in [self.SHAPES_FILE, self.PARKING_FILE, self.STOPS_FILE]
         )
 
-    @property
-    def db_exists(self) -> bool:
-        """if the database exists"""
-        return os.path.exists(self.db_path)
-
     def __init__(
         self,
         url: str,
@@ -59,15 +53,24 @@ class FeedLoader(Feed):
                as {route_key: ["1", "2", ...]}
             url_base (str, optional): web app url base "http://localhost:5000".
             timezone (str, optional): Timezone. Defaults to "America/New_York".
-            kwargs: passed to BackgroundScheduler
+            log_file (PathLike, optional): Path to log file. Defaults to "mbtamapper.log".
+            gtfs_name (str, optional): Name of GTFS feed. Defaults to None.
+            engine_uri (str, optional): SQLAlchemy engine URI. Defaults to None.
         """
 
-        super().__init__(url)
+        super().__init__(
+            url,
+            gtfs_name=kwargs.get("gtfs_name", None),
+            engine_uri=kwargs.get("engine_uri", None),
+        )
 
         self.url: str = url
         self.keys_dict: dict[str, list[str]] = keys_dict
         self.geojson_path: str = geojson_path
         self.log_file: PathLike = log_file
+
+        self.app_url: str = kwargs.get("app_url", "http://localhost:5000").rstrip("/")
+
         # self.url_base: str = url_base.rstrip("/")
         self.scheduler = BackgroundScheduler(
             timezone=kwargs.get("timezone", "America/New_York"), **kwargs
@@ -80,8 +83,8 @@ class FeedLoader(Feed):
     def nightly_import(self, **kwargs) -> None:
         """Runs the nightly import.
 
-        args:
-            kwargs: keyword arguments to pass to `import_gtfs`.\n
+        Args:
+            kwargs: keyword arguments to pass to `import_gtfs`.
         """
         self.import_gtfs(chunksize=100000, dtype=object, **kwargs)
         for orm in self.__class__.REALTIME_ORMS:
@@ -114,17 +117,31 @@ class FeedLoader(Feed):
         """clears orm-specific caches"""
         Shape.cache.clear()
         LinkedDataset.cache.clear()
-        self.vehicle_cache.clear()
+        # self.vehicle_cache.clear()
         logging.warning("caches cleared")
         # self.proc_vehicle_cache()
+
+    def clear_log(self, maxsize: int = 10**9) -> None:
+        """clears the logfile
+
+        Args:
+            maxsize (int, optional): _description_. Defaults to 10**9 bytes (1 gb).
+        """
+        abs_path: PathLike = os.path.abspath(self.log_file)
+        if not os.path.exists(self.log_file):
+            logging.warning("file %s doesn't exist", abs_path)
+        size: int = os.path.getsize(self.log_file)
+        if os.path.exists(self.log_file) and size >= maxsize:
+            os.remove(self.log_file)
+            logging.info("removed file %s w/ size %s", abs_path, size)
 
     def get_vehicles_feature_cache(
         self, key: str, *include: str, **kwargs
     ) -> FeatureCollection:
-        """the same as the super method, but:
+        """the same as the super method, `get_vehicles_feature`, but:
 
-        abstracts `Query` away \n
-        and loads the result into the self.vehicle_cache
+        - abstracts `Query` away
+        - and loads the result into the self.vehicle_cache
 
         Args:
             key (str): route key to use
@@ -164,20 +181,6 @@ class FeedLoader(Feed):
 
         return self.vehicle_cache
 
-    def clear_log(self, maxsize: int = 10**9) -> None:
-        """_summary_
-
-        Args:
-            maxsize (int, optional): _description_. Defaults to 10**9 bytes (1 gb).
-        """
-        abs_path: PathLike = os.path.abspath(self.log_file)
-        if not os.path.exists(self.log_file):
-            logging.warning("file %s doesn't exist", abs_path)
-        size: int = os.path.getsize(self.log_file)
-        if os.path.exists(self.log_file) and size >= maxsize:
-            os.remove(self.log_file)
-            logging.info("removed file %s w/ size %s", abs_path, size)
-
     def run(self, force: bool = False) -> t.Self:
         """Schedules jobs defined by FeedLoader
 
@@ -197,11 +200,12 @@ class FeedLoader(Feed):
             self.import_realtime, "interval", args=[Alert], minutes=1
         )
         self.scheduler.add_job(
-            self.import_realtime, "interval", args=[Vehicle], seconds=11
+            self.import_realtime, "interval", args=[Vehicle], seconds=13
         )
         self.scheduler.add_job(
-            self.import_realtime, "interval", args=[Prediction], seconds=21
+            self.import_realtime, "interval", args=[Prediction], seconds=37
         )
+
         self.scheduler.add_job(self._update_vehicle_cache, "interval", seconds=10)
 
         self.scheduler.add_job(self.geojson_exports, "cron", hour=3, minute=45)
@@ -216,28 +220,6 @@ class FeedLoader(Feed):
         for job in self.scheduler.get_jobs():
             logging.info("%s: next run @ %s", job.name, job.next_run_time or "never")
         return self
-
-    def proc_vehicle_cache(
-        self, url_base: str = "http://localhost:5000", **kwargs
-    ) -> None:
-        """_summary_
-
-        Args:
-            url_base (_type_, optional): _description_. Defaults to "http://localhost:5000".
-        """
-
-        for key in self.keys_dict:
-            if key in ["bus", "all_routes", "ferry"]:
-                continue
-            resp = req.get(
-                f"{url_base.rstrip('/')}/{key}/vehicles?include=route,next_stop,stop_time&cache=5",
-                timeout=10,
-                **kwargs,
-            )
-            if resp.ok:
-                logging.info("procced vehicle cache %s", resp.url)
-            else:
-                logging.error("failed to proc vehicle cache %s", resp.url)
 
     def stop(self, full: bool = False) -> None:
         """Stops the scheduler.

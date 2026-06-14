@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from ..helper_functions.misc import df_unpack
 from .base import Base
+import numpy as np
 
 if t.TYPE_CHECKING:
     # pylint: disable=shadowed-import
@@ -60,9 +61,9 @@ class LinkedDataset(Base):
                 "alert_informed_entity_direction_id": "direction_id",
                 "alert_informed_entity_trip": "trip_id",
                 "alert_active_period_end": "active_period_end",
-                "alert_header_text_translation_text": "header",
-                "alert_description_text_translation_text": "description",
-                "alert_url_translation_text": "url",
+                "header": "header",
+                "description": "description",
+                "url": "url",
                 "alert_active_period_start": "active_period_start",
                 "timestamp": "timestamp",
             }
@@ -178,7 +179,7 @@ class LinkedDataset(Base):
 
         Args:
             dataframe: The dataframe to post process.
-            rename_dict: The dictionary to rename the columns.\n
+            rename_dict: The dictionary to rename the columns.
         Returns:
             pd.DataFrame: Realtime data from the linked dataset.
         """
@@ -231,13 +232,22 @@ class LinkedDataset(Base):
         Returns:
             pd.DataFrame: Realtime data from the linked dataset.
         """
-        dataframe = df_unpack(
-            self._load_dataframe(),
-            "alert_informed_entity",
-            "alert_active_period",
+        pre_explode = self._load_dataframe()
+        for col in [
             "alert_header_text_translation",
             "alert_description_text_translation",
             "alert_url_translation",
+        ]:
+            pre_explode[col.split("_")[1]] = pre_explode[col].apply(
+                lambda cell: (
+                    next((d["text"] for d in cell if d["language"] == "en"), np.nan)
+                    if isinstance(cell, list)
+                    else np.nan
+                )
+            )
+
+        dataframe = df_unpack(
+            pre_explode, "alert_informed_entity", "alert_active_period"
         )
         dataframe["alert_informed_entity_trip"] = (
             dataframe["alert_informed_entity_trip"].apply(

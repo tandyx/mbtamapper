@@ -69,9 +69,9 @@ class Facility(Base):
         
         args:
             include: A list of properties to include in the dictionary.
-            kwargs: unused\n
+            kwargs: unused
         Returns:
-            dict[str, Any]: facility as a dictionary.\n
+            dict[str, Any]: facility as a dictionary.
         """
 
         return super().as_json(*include, **kwargs) | {
@@ -82,9 +82,9 @@ class Facility(Base):
         """Returns facility object as a feature.
 
         args:
-            include: A list of properties to include in the feature object.\n
+            include: A list of properties to include in the feature object.
         Returns:
-            Feature: facility as a feature.\n
+            Feature: facility as a feature.
         """
 
         if (

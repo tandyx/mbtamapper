@@ -2,7 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "firefox",
+            "name": "Python: Flask",
+            "type": "debugpy",
+            "request": "launch",
+            // "module": "python",
+            "program": "${workspaceFolder}/app.py",
+            "args": [
+                "--log_level",
+                "DEBUG"
+            ],
+            "env": {
+                "FLASK_ENV": "development"
+            },
+            "jinja": true,
+            // "justMyCode": true
+        },
+        {
+            "name": "Firefox: mbtamapper",
             "type": "firefox",
             "request": "launch",
             "url": "http://localhost:5000",
@@ -12,6 +28,21 @@
                     "path": "${workspaceFolder}"
                 }
             ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack (Python + Firefox)",
+            "configurations": [
+                "Python: Flask",
+                "Firefox: mbtamapper"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "",
+                "order": 1
+            },
+            "stopAll": true
         }
     ]
 }

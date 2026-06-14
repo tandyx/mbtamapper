@@ -1,5 +1,7 @@
 """for typing constants"""
 
+from __future__ import annotations
+
 import os
 import pathlib
 import typing as t

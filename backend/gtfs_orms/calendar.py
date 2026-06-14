@@ -52,10 +52,10 @@ class Calendar(Base):
 
         wrapper for `operates_on`
 
-        args:
-            _date (datetime|date|str): The date to check, defaults to today \n
-            kwargs: additional arguments passed to `get_date` \n
-        returns:
+        Args:
+            _date (datetime|date|str): The date to check, defaults to today
+            kwargs: additional arguments passed to `get_date`
+        Returns:
             bool: True if the calendar is active on the date
         """
 
@@ -65,7 +65,7 @@ class Calendar(Base):
         """Returns true if the calendar operates on the date
 
         Args:
-            date (datetime|date|str): The date to check\n
+            date (datetime|date|str): The date to check
         Returns:
             bool: True if the calendar operates on the date
         """

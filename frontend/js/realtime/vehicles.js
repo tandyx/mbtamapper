@@ -1,6 +1,6 @@
 /**
  * @file shapes.js - Plot stops on map in realtime, updating every 15 seconds
- * @module shapes
+ * @module vehicles
  * @typedef {import("leaflet")}
  * @typedef {import("leaflet-realtime-types")}
  * @typedef {import("../utils.js")}
@@ -20,25 +20,25 @@
 class VehicleLayer extends BaseRealtimeLayer {
   static #hex_css_map = {
     FFC72C:
-      "filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%);",
+      "-webkit-filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%); filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%);",
     "7C878E":
-      "filter: invert(57%) sepia(2%) saturate(1547%) hue-rotate(160deg) brightness(91%) contrast(103%);",
+      "-webkit-filter: invert(57%) sepia(2%) saturate(1547%) hue-rotate(160deg) brightness(91%) contrast(103%); filter: invert(57%) sepia(2%) saturate(1547%) hue-rotate(160deg) brightness(91%) contrast(103%);",
     "003DA5":
-      "filter: invert(13%) sepia(61%) saturate(5083%) hue-rotate(215deg) brightness(96%) contrast(101%);",
+      "-webkit-filter: invert(13%) sepia(61%) saturate(5083%) hue-rotate(215deg) brightness(96%) contrast(101%); filter: invert(13%) sepia(61%) saturate(5083%) hue-rotate(215deg) brightness(96%) contrast(101%);",
     "008EAA":
-      "filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%);",
+      "-webkit-filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%); filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%);",
     "80276C":
-      "filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%);",
+      "-webkit-filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%); filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%);",
     "006595":
-      "filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%);",
+      "-webkit-filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%); filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%);",
     "00843D":
-      "filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%);",
+      "-webkit-filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%); filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%);",
     DA291C:
-      "filter: invert(23%) sepia(54%) saturate(7251%) hue-rotate(355deg) brightness(90%) contrast(88%);",
+      "-webkit-filter: invert(23%) sepia(54%) saturate(7251%) hue-rotate(355deg) brightness(90%) contrast(88%); filter: invert(23%) sepia(54%) saturate(7251%) hue-rotate(355deg) brightness(90%) contrast(88%);",
     ED8B00:
-      "filter: invert(46%) sepia(89%) saturate(615%) hue-rotate(1deg) brightness(103%) contrast(104%);",
+      "-webkit-filter: invert(46%) sepia(89%) saturate(615%) hue-rotate(1deg) brightness(103%) contrast(104%); filter: invert(46%) sepia(89%) saturate(615%) hue-rotate(1deg) brightness(103%) contrast(104%);",
     ffffff:
-      "filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
+      "-webkit-filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%); filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
   };
 
   /**@type {((event: L.LeafletMouseEvent) => void)[]} */
@@ -70,7 +70,7 @@ class VehicleLayer extends BaseRealtimeLayer {
           width="60"
           height="60"
           style="
-            ${VehicleLayer.#hex_css_map[properties.route_color] || ""};
+            ${VehicleLayer.#hex_css_map[properties.route_color] || ""}
             transform: rotate(${properties.bearing}deg);
           "
         />
@@ -127,7 +127,7 @@ class VehicleLayer extends BaseRealtimeLayer {
 
     realtime.on("update", function (_e) {
       _this.#fillDefaultSidebar(
-        Object.values(_e.features).map((e) => e.properties)
+        Object.values(_e.features).map((e) => e.properties),
       );
       Object.keys(_e.update).forEach(
         function (id) {
@@ -150,7 +150,7 @@ class VehicleLayer extends BaseRealtimeLayer {
             _this.options.map.setView(
               layer.getLatLng(),
               _this.options.map.getZoom(),
-              { animate: true }
+              { animate: true },
             );
             layer.openPopup();
             setTimeout(onClick, 200);
@@ -158,7 +158,7 @@ class VehicleLayer extends BaseRealtimeLayer {
           VehicleLayer.onClickArry.forEach((fn) => layer.off("click", fn));
           VehicleLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
-        }.bind(this)
+        }.bind(this),
       );
     });
     return realtime;
@@ -193,6 +193,13 @@ class VehicleLayer extends BaseRealtimeLayer {
    * @param {VehicleProperty} properties
    */
   #customHeadsign(properties) {
+    if (
+      properties.route.route_fare_class === "Special" &&
+      properties.headsign
+    ) {
+      return properties.headsign;
+    }
+
     const direction_map = { 0: "Outbound", 1: "Inbound" };
     const description = `${
       direction_map[parseInt(properties.direction_id)] || "unknown"
@@ -202,11 +209,15 @@ class VehicleLayer extends BaseRealtimeLayer {
       621: "🦊",
       926: "🦊",
       666: "😈",
+      6666: "😈",
       888: "♠️",
-      67: "🫴🫴",
+      61: "😳",
+      67: "🫩",
       69: "💀",
-      1738: "🔊",
-      420: "🎄",
+      1738: "(feat. Remy Boyz)",
+      679: "(feat. Remy Boyz)",
+      420: "🌲",
+      21: "🤓",
       standalones: {
         515: "Hub to Heart",
         520: "Heart to Hub",
@@ -233,7 +244,7 @@ class VehicleLayer extends BaseRealtimeLayer {
     return (
       customDescriptions.formulate(
         properties.trip_short_name,
-        description + " "
+        description + " ",
       ) || description
     );
   }
@@ -310,10 +321,10 @@ class VehicleLayer extends BaseRealtimeLayer {
         class="${properties.occupancy_percentage >= 80
           ? "severe-delay"
           : properties.occupancy_percentage >= 60
-          ? "moderate-delay"
-          : properties.occupancy_percentage >= 40
-          ? "slight-delay"
-          : ""}"
+            ? "moderate-delay"
+            : properties.occupancy_percentage >= 40
+              ? "slight-delay"
+              : ""}"
       >
         ${properties.occupancy_percentage}% occupancy
       </span>
@@ -389,7 +400,7 @@ class VehicleLayer extends BaseRealtimeLayer {
    */
   async #fillSidebar(properties) {
     const container = BaseRealtimeLayer.toggleSidebarDisplay(
-      BaseRealtimeLayer.sideBarOtherId
+      BaseRealtimeLayer.sideBarOtherId,
     );
     const sidebar = document.getElementById("sidebar");
     const timestamp = Math.round(new Date().valueOf() / 1000);
@@ -405,15 +416,15 @@ class VehicleLayer extends BaseRealtimeLayer {
         properties.trip_id
       }&include=stop_time&_=${Math.floor(timestamp / 5)}&cache=4`,
       { cache: "force-cache" },
-      super.defaultFetchCacheOpt
+      super.defaultFetchCacheOpt,
     );
     /** @type {AlertProperty[]} */
     const alerts = await fetchCache(
       `/api/alert?trip_id=${properties.trip_id}&_=${Math.floor(
-        timestamp / 60
+        timestamp / 60,
       )}&cache=40`,
       { cache: "force-cache" },
-      super.defaultFetchCacheOpt
+      super.defaultFetchCacheOpt,
     );
     if (
       !properties.next_stop ||
@@ -449,12 +460,12 @@ class VehicleLayer extends BaseRealtimeLayer {
             ?.sort(
               (a, b) =>
                 (a.departure_time || a.arrival_time) -
-                (b.departure_time || b.arrival_time)
+                (b.departure_time || b.arrival_time),
             )
             ?.filter(
               (p) =>
                 p.stop_sequence > properties?.next_stop?.stop_sequence ||
-                Infinity
+                Infinity,
             )
             ?.map((p) => {
               const realDeparture = p.departure_time || p.arrival_time;
@@ -471,7 +482,7 @@ class VehicleLayer extends BaseRealtimeLayer {
                     direction_id: p.direction_id,
                     route_type: properties?.route?.route_type,
                   },
-                  { starOnly: true }
+                  { starOnly: true },
                 ),
                 tooltip: "",
               };
@@ -556,7 +567,7 @@ class VehicleLayer extends BaseRealtimeLayer {
               const value = delays[key] || 0;
               return `<div
                 style="width: ${Math.round(
-                  (value / properties.length) * 100
+                  (value / properties.length) * 100,
                 )}%;"
                 class="item tooltip ${key}-bg"
                 data-tooltip="(${value}) ${desc}"
@@ -581,13 +592,13 @@ class VehicleLayer extends BaseRealtimeLayer {
                     (a.route_id > b.route_id
                       ? 1
                       : b.route_id > a.route_id
-                      ? -1
-                      : 0) ||
+                        ? -1
+                        : 0) ||
                     (a.trip_short_name > b.trip_short_name
                       ? 1
                       : b.trip_short_name > a.trip_short_name
-                      ? -1
-                      : 0)
+                        ? -1
+                        : 0),
                 )
                 .map((prop) => {
                   const lStyle = `style="color:#${prop.route.route_color};font-weight:600;"`;

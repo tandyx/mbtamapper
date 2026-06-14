@@ -199,7 +199,7 @@ class Stop(Base):
 
         Args:
             include: other orms/attars to include
-            kwargs: unused \n
+            kwargs: unused
         Returns:
             dict[str, Any]: json object of stop
         """
@@ -218,7 +218,7 @@ class Stop(Base):
         """Returns stop object as a feature.
 
         Args:
-            *include: A list of properties to include in the feature object.\n
+            *include: A list of properties to include in the feature object.
         Returns:
             Feature: A GeoJSON feature object.
         """

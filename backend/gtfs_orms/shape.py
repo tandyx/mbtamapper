@@ -62,7 +62,7 @@ class Shape(Base):
         """Returns shape object as a feature.
 
         Args:
-            include: A list of properties to include in the feature object.\n
+            include: A list of properties to include in the feature object.
         Returns:
             Feature: A GeoJSON feature object.
         """
@@ -82,9 +82,9 @@ class Shape(Base):
 
         Args:
             include: A list of properties to include in the dictionary.
-            kwargs: unused\n
+            kwargs: unused
         Returns:
-            dict[str, Any]: shape as a dictionary.\n
+            dict[str, Any]: shape as a dictionary.
         """
 
         return super().as_json(*include, **kwargs) | self.trips[0].route.as_json(

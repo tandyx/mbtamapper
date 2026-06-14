@@ -85,10 +85,12 @@ class StopTime(Base):
         executes after the object is loaded from the database and in init"""
         # pylint: disable=attribute-defined-outside-init
         _unix_time = get_date().timestamp()
-        self.destination_label = self.stop_headsign or self.trip.trip_headsign
+        self.destination_label = (
+            self.stop_headsign or self.trip.trip_headsign if self.trip else ""
+        )
         self.departure_timestamp = to_seconds(self.departure_time) + _unix_time
         self.arrival_timestamp = to_seconds(self.arrival_time) + _unix_time
-        self.stop_name = self.stop.stop_name
+        self.stop_name = self.stop.stop_name if self.stop else ""
 
     def __lt__(self, other: "StopTime") -> bool:
         """Implements less than operator.
@@ -128,7 +130,7 @@ class StopTime(Base):
 
         Args:
             date (datetime = None): the date to check <- defaults to the current date
-            kwargs: additional arguments passed to `get_date` \n
+            kwargs: additional arguments passed to `get_date`
         Returns:
             bool: whether the stop is active on the given date and time
         """
@@ -142,7 +144,7 @@ class StopTime(Base):
 
         Args:
             date (datetime = None): the date to check <- defaults to the current date
-            kwargs: additional arguments passed to `get_date` \n
+            kwargs: additional arguments passed to `get_date`
         Returns:
             bool: whether the stop is active on the given date and time
         """

@@ -1,6 +1,6 @@
 """Feed Object for GTFS Loader"""
 
-# pylint: disable=unused-wildcard-import, wildcard-import, unused-argument, too-many-instance-attributes, line-too-long, too-many-locals, too-many-branches
+# pylint: disable=unused-wildcard-import, wildcard-import, unused-argument, too-many-instance-attributes, line-too-long, too-many-locals, too-many-branches, broad-exception-caught
 
 import io
 import logging
@@ -26,6 +26,7 @@ from sqlalchemy import orm as saorm
 
 from ..gtfs_orms import *
 from ..helper_functions import removes_session, timeit
+from ..helper_functions.types import PathLike
 from .query import Query
 
 
@@ -88,7 +89,14 @@ class Feed:
             logging.warning("db %s is unsupported", dbapi_connection.__class__.__name__)
             return
         cursor = dbapi_connection.cursor()
-        for pragma in ["foreign_keys=ON", "auto_vacuum='1'", "shrink_memory"]:
+        for pragma in [
+            "journal_mode=WAL",
+            "synchronous=OFF",
+            "foreign_keys=ON",
+            "temp_store=MEMORY",
+            "shrink_memory",
+            "read_uncommitted=1",
+        ]:
             try:
                 cursor.execute(f"PRAGMA {pragma}")
             except sqlite3.OperationalError:
@@ -124,7 +132,8 @@ class Feed:
 
         Args:
             readonly (bool): whether the session is readonly
-            kwargs: keyword arguments to pass to `scoped_session` \n
+            kwargs: keyword arguments to pass to `scoped_session`
+
         Returns:
             Session: session object
         """
@@ -132,25 +141,25 @@ class Feed:
         session = self.scoped_session(**kwargs)
         if not readonly:
             return session
-        session.flush = lambda *a, **kw: logging.warning("flush on readonly session")
+        session.flush = lambda *_, **__: logging.warning("flush on readonly session")
         return session
 
-    def __init__(self, url: str, gtfs_name: str | None = None) -> None:
-        """
-        Initializes Feed object with url.
-
-        Parses url to get GTFS name and create db path in temp dir.
+    def __init__(
+        self, url: str, gtfs_name: str = "", engine_uri: str = "", **kwargs
+    ) -> None:
+        """Initializes Feed object with url.
 
         Args:
             url (str): url of GTFS feed
             gtfs_name (str, optional): name of GTFS feed. Defaults to auto-parsed from url.
+            engine_uri (str, optional): _description_. Defaults to "".
+            kwargs: keyword arguments to pass to `sa.create_engine`
         """
         self.url = url
         # ------------------------------- Connection/Session Setup ------------------------------- #
         self.gtfs_name = gtfs_name or url.rsplit("/", maxsplit=1)[-1].split(".")[0]
         self.zip_path = os.path.join(tempfile.gettempdir(), self.gtfs_name)
-        self.db_path = os.path.join(os.getcwd(), f"{self.gtfs_name}.db")
-        self.engine = sa.create_engine(f"sqlite:///{self.db_path}")
+        self.engine = sa.create_engine(engine_uri or f"sqlite:///{self.gtfs_name}.db")
         self.scoped_session = saorm.scoped_session(
             saorm.sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         )
@@ -184,6 +193,15 @@ class Feed:
         shutil.rmtree(self.zip_path)
         logging.info("Removed %s", self.zip_path)
 
+    @property
+    def db_exists(self) -> bool:
+        """if the database exists"""
+
+        return all(
+            sa.inspect(self.engine).has_table(table)
+            for table in Base.metadata.tables.keys()
+        )
+
     @timeit
     def import_gtfs(self, *args, purge: bool = True, **kwargs) -> None:
         """Dumps GTFS data into a SQLite database.
@@ -206,14 +224,18 @@ class Feed:
                 chunk: pd.DataFrame
                 for chunk in read:
                     if orm.__filename__ == "shapes.txt":
-                        self.to_sql(chunk["shape_id"].drop_duplicates(), Shape)
-                    self.to_sql(chunk, orm)
+                        self.to_sql(
+                            chunk["shape_id"].drop_duplicates(), Shape, pk_offset=True
+                        )
+                    self.to_sql(chunk, orm, pk_offset=True)
         self.remove_zip()
         logging.info("Loaded %s", self.gtfs_name)
 
     @timeit
     @removes_session
-    def import_realtime(self, orm: RealtimeOrms | str, use_cache: bool = True) -> None:
+    def import_realtime(
+        self, orm: RealtimeOrms | str, use_cache: bool = True, chunksize: int = 1000
+    ) -> None:
         """Imports realtime data into the database.
 
         Args:
@@ -237,10 +259,15 @@ class Feed:
 
         if use_cache:
             dataset.cache_key(key=orm.__realtime_name__)
-
         if not dataset:
             return
-        self.to_sql(dataset.as_dataframe(), orm, purge=True)
+
+        dataframe = dataset.as_dataframe()
+        for i, chunk in enumerate(
+            dataframe[i : i + chunksize]
+            for i in range(0, dataframe.shape[0], chunksize)
+        ):
+            self.to_sql(chunk, orm, purge=i == 0)
 
     @timeit
     @removes_session
@@ -307,7 +334,8 @@ class Feed:
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
-            *include (str): other orms to include\n
+            *include (str): other orms to include
+
         Returns:
             FeatureCollection: stops as FeatureCollection
         """
@@ -330,7 +358,8 @@ class Feed:
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
-            *include (str): other orms to include\n
+            *include (str): other orms to include
+
         Returns:
             FeatureCollection: shapes as FeatureCollection
         """
@@ -355,7 +384,7 @@ class Feed:
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
-            *include (str): other orms to include \n
+            *include (str): other orms to include
         Returns:
             FeatureCollection: facilities as FeatureCollection
         """
@@ -382,15 +411,16 @@ class Feed:
         timeout: int = 0.5,
     ) -> gj.FeatureCollection:
         """Returns vehicles as FeatureCollection.
-        notes:
-            - early return if ferry data is requested.
-            - tries 10 times to get data \n
+
+        - early return if ferry data is requested.
+        - tries 10 times to get data
+
         Args:
             key (str): the type of data to export (RAPID_TRANSIT, BUS, etc.)
             query_obj (Query): Query object
             *include (str): other orms to include
             attemps (int): num attempts default: 10
-            timeout (float): timeout to take between attempts default 0.5 seconds \n
+            timeout (float): timeout to take between attempts default 0.5 seconds
         Returns:
             FeatureCollection: vehicles as FeatureCollection
         """
@@ -405,18 +435,33 @@ class Feed:
         for _ in range(attempts):
             try:
                 data = session.execute(query_obj.get_vehicles_query(*_routes)).all()
-            except (exc.OperationalError, exc.DatabaseError) as error:
+                # if any(v[0].predictions for v in data):
+                if data:
+                    break
+            except Exception as error:
                 logging.error("Failed to get vehicle data: %s", error)
-            if any(v[0].predictions for v in data):
-                break
+                continue
+
             time.sleep(timeout)
         if not data:
             logging.error("No pred data returned in %s attemps", attempts)
-        return gj.FeatureCollection([v[0].as_feature(*include) for v in data])
+        try:
+            return gj.FeatureCollection([v[0].as_feature(*include) for v in data])
+        except Exception as error:
+            logging.error("Failed to parse vehicle data, retrying: %s", error)
+            time.sleep(timeout)
+            return self.get_vehicles_feature(
+                key, query_obj, *include, attempts=attempts - 1, timeout=timeout
+            )
 
     @removes_session
     def to_sql(
-        self, data: pdcg.NDFrame, orm: t.Type[Base], purge: bool = False, **kwargs
+        self,
+        data: pdcg.NDFrame,
+        orm: t.Type[Base],
+        purge: bool = False,
+        pk_offset: bool = False,
+        **kwargs,
     ) -> int | None:
         """Helper function to dump dataframe to sql.
 
@@ -424,12 +469,15 @@ class Feed:
             data (pd.DataFrame): dataframe to dump
             orm (any): table to dump to
             purge (bool, optional): whether to purge table before dumping. Defaults to False.
-            kwargs: keyword args to pass to pd.to_sql \n
+            kwargs: keyword args to pass to pd.to_sql
+            pk_offset (bool, optional): whether to offset primary key by 1. Defaults to False.
+
         Returns:
             int: number of rows added
         """
         try:
             with self.engine.begin() as conn:
+                # with session.begin() as connL
                 if purge:
                     conn.execute(Query.delete(orm))
                 res = data.to_sql(
@@ -440,8 +488,23 @@ class Feed:
                     **kwargs,
                 )
 
-        except exc.IntegrityError:
-            res = self.to_sql(data.iloc[1:], orm, **kwargs)
+        except exc.IntegrityError as error:
+            if not pk_offset:
+                logging.error(
+                    "failed import realtime data for %s: %s", orm.__name__, error
+                )
+                raise error
+            return self.to_sql(
+                data.iloc[1:], orm, purge=purge, pk_offset=pk_offset, **kwargs
+            )
+
+        except (exc.OperationalError, exc.DatabaseError) as error:
+            logging.error(
+                "retrying failed import realtime data for %s: %s", orm.__name__, error
+            )
+            time.sleep(1)
+            return self.to_sql(data, orm, purge=purge, **kwargs)
+
         logging.info("Added %s rows to %s", res, orm.__tablename__)
         return res
 
@@ -451,7 +514,7 @@ class Feed:
 
         Args:
             _orm (str): ORM to return.
-            params: keyword arguments to pass to the query\n
+            params: keyword arguments to pass to the query
         Returns:
             list[tuple[Base]]: list of tuples of the ORM objects
         """
@@ -535,7 +598,7 @@ class Feed:
 
         Args:
             _orm (str): ORM to return.
-            **params: keyword arguments to pass to the query\n
+            **params: keyword arguments to pass to the query
         Returns:
             list[tuple[Base]]: list of tuples of the ORM objects
         """
@@ -551,8 +614,8 @@ class Feed:
         Args:
             _orm (str): ORM to return.
             *include (str): other orms to include
-            geojson (bool): use `geojson` rather than `json`\n
-            **params: keyword arguments to pass to the query\n
+            geojson (bool): use `geojson` rather than `json`
+            **params: keyword arguments to pass to the query
         Returns:
             list[dict[str]]: dictionary of the ORM names and their corresponding JSON names.
         """
@@ -580,8 +643,8 @@ class Feed:
             _orm (str): ORM to return.
             *include (str): other orms to include
             timeout (int): timeout for the function in seconds
-            geojson (bool): use `geojson` rather than `json`\n
-            **params: keyword arguments to pass to the query\n
+            geojson (bool): use `geojson` rather than `json`
+            **params: keyword arguments to pass to the query
         Returns:
             list[dict[str]]: dictionary of the ORM names and their corresponding JSON names.
         """
@@ -596,3 +659,24 @@ class Feed:
         """Closes the connection to the database."""
         self.scoped_session.remove()
         self.engine.dispose()
+
+    def backup_to_file(self, filename: PathLike = None) -> sa.engine.Engine:
+        """Backs up the in-memory database to a file-based database.
+
+        Args:
+            filename (PathLike, optional): pathlike
+
+        Returns:
+            sa.engine.Engine: engine connected to the file-based database.
+        """
+        filename = filename or f"{self.gtfs_name}_backup.db"
+        backup_engine = sa.create_engine(f"sqlite:///{filename}")
+        src_raw: sa.pool.base._ConnectionFairy = self.engine.raw_connection()
+        dst_raw: sa.pool.base._ConnectionFairy = backup_engine.raw_connection()
+        try:
+            src_raw.connection.backup(dst_raw.connection)
+        finally:
+            src_raw.close()
+            dst_raw.close()
+        logging.info("Backed up in-memory database to %s_backup.db", self.gtfs_name)
+        return backup_engine

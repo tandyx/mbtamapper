@@ -1,0 +1,17 @@
+[Unit]
+Description=Run MBTAMapper deploy script at startup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=tandy
+Group=tandy
+WorkingDirectory=/home/tandy/coding/mbtamapper
+ExecStart=/usr/bin/bash /home/tandy/coding/mbtamapper/deploy.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
