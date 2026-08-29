@@ -211,7 +211,6 @@ class VehicleLayer extends BaseRealtimeLayer {
       666: "😈",
       6666: "😈",
       888: "♠️",
-      61: "😳",
       67: "🫩",
       69: "💀",
       1738: "(feat. Remy Boyz)",

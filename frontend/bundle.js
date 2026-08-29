@@ -5,7 +5,6 @@ import L from "leaflet";
 //node js
 import "leaflet-easybutton";
 import "leaflet-fullscreen";
-import "leaflet-providers";
 import "leaflet-realtime";
 import "leaflet-search";
 import "leaflet-sidebar";

@@ -75,7 +75,7 @@ class Query:
 
     @staticmethod
     def get_active_calendars_query(
-        date: dt.datetime, specific: bool = False, days_ahead: int = 7
+        date: dt.datetime, specific: bool = False
     ) -> Select[tuple[Base]]:
         """
         Returns a query for active calendars on a date.
@@ -84,7 +84,6 @@ class Query:
             date (datetime): date to query
             specific (bool, optional): whether to query for specific date. \
                 Defaults to False (query for week)
-            days_ahead (int, optional): number of days ahead to query. Defaults to 7.
         Returns:
             Select[tuple[Base]]: A query for active calendars on a date.
         """
@@ -140,8 +139,8 @@ class Query:
                 or_(
                     and_(
                         CalendarAttribute.service_schedule_typicality != "6",
-                        Calendar.start_date
-                        <= (date + dt.timedelta(days=days_ahead)).strftime("%Y%m%d"),
+                        # Calendar.start_date
+                        # <= (date + dt.timedelta(days=days_ahead)).strftime("%Y%m%d"),
                         Calendar.end_date >= date.strftime("%Y%m%d"),
                     ),
                     and_(

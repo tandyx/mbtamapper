@@ -587,25 +587,35 @@ const memStorage = new MemoryStorage();
  * @summary Get base layer dictionary
  * @param {string} lightId - id of light layer
  * @param {string} darkId - id of dark layer
- * @param {object} additionalLayers - additional layers to add to dictionary
- * @returns {{ light: TileLayer.Provider; dark: TileLayer.Provider}} - base layer dictionary
+ * @param {{[key:string]: L.TileLayer}} additionalLayers - additional layers to add to dictionary
+ * @returns {{ light: L.TileLayer; dark: L.TileLayer}} - base layer dictionary
  */
-function getBaseLayerDict(
-  lightId = "CartoDB.Positron",
-  darkId = "CartoDB.DarkMatter",
-  additionalLayers = {}
-) {
+function getBaseLayerDict(additionalLayers = {}) {
   // const options = {
   //   attribution:
   //     "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
   // };
   const baseLayers = {
-    light: L.tileLayer.provider(lightId, { id: "lightLayer" }),
-    dark: L.tileLayer.provider(darkId, { id: "darkLayer" }),
+    light: L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.pngkey=cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+      },
+    ),
+    dark: L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+      },
+    ),
   };
 
   for (const [key, value] of Object.entries(additionalLayers)) {
-    baseLayers[key] = L.tileLayer.provider(value);
+    baseLayers[key] = value;
   }
 
   return baseLayers;
