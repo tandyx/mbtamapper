@@ -4,6 +4,7 @@
 import logging
 import typing as t
 
+import numpy as np
 import pandas as pd
 import requests as req
 from google.protobuf.json_format import MessageToDict
@@ -12,7 +13,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from ..helper_functions.misc import df_unpack
 from .base import Base
-import numpy as np
 
 if t.TYPE_CHECKING:
     # pylint: disable=shadowed-import
