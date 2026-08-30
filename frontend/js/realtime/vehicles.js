@@ -18,29 +18,6 @@
  * after object creation, you can call `.plot` to plot it
  */
 class VehicleLayer extends BaseRealtimeLayer {
-  static #hex_css_map = {
-    FFC72C:
-      "-webkit-filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%); filter: invert(66%) sepia(78%) saturate(450%) hue-rotate(351deg) brightness(108%) contrast(105%);",
-    "7C878E":
-      "-webkit-filter: invert(57%) sepia(2%) saturate(1547%) hue-rotate(160deg) brightness(91%) contrast(103%); filter: invert(57%) sepia(2%) saturate(1547%) hue-rotate(160deg) brightness(91%) contrast(103%);",
-    "003DA5":
-      "-webkit-filter: invert(13%) sepia(61%) saturate(5083%) hue-rotate(215deg) brightness(96%) contrast(101%); filter: invert(13%) sepia(61%) saturate(5083%) hue-rotate(215deg) brightness(96%) contrast(101%);",
-    "008EAA":
-      "-webkit-filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%); filter: invert(40%) sepia(82%) saturate(2802%) hue-rotate(163deg) brightness(88%) contrast(101%);",
-    "80276C":
-      "-webkit-filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%); filter: invert(20%) sepia(29%) saturate(3661%) hue-rotate(283deg) brightness(92%) contrast(93%);",
-    "006595":
-      "-webkit-filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%); filter: invert(21%) sepia(75%) saturate(2498%) hue-rotate(180deg) brightness(96%) contrast(101%);",
-    "00843D":
-      "-webkit-filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%); filter: invert(31%) sepia(99%) saturate(684%) hue-rotate(108deg) brightness(96%) contrast(101%);",
-    DA291C:
-      "-webkit-filter: invert(23%) sepia(54%) saturate(7251%) hue-rotate(355deg) brightness(90%) contrast(88%); filter: invert(23%) sepia(54%) saturate(7251%) hue-rotate(355deg) brightness(90%) contrast(88%);",
-    ED8B00:
-      "-webkit-filter: invert(46%) sepia(89%) saturate(615%) hue-rotate(1deg) brightness(103%) contrast(104%); filter: invert(46%) sepia(89%) saturate(615%) hue-rotate(1deg) brightness(103%) contrast(104%);",
-    ffffff:
-      "-webkit-filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%); filter: invert(100%) sepia(93%) saturate(19%) hue-rotate(314deg) brightness(105%) contrast(104%);",
-  };
-
   /**@type {((event: L.LeafletMouseEvent) => void)[]} */
   static onClickArry = [];
 
@@ -61,24 +38,72 @@ class VehicleLayer extends BaseRealtimeLayer {
         text-decoration-thickness: 2px;
       `;
 
+    const fillColor = mixHexColors(properties.route_color, "#e6e6e6");
+    const textColor =
+      getContrastYIQ(fillColor) === "dark" ? "#121212" : "#f2f2f2";
+
     const iconHtml = /* HTML */ `
-      <div class="vehicle_wrapper">
-        <img
-          src="/static/img/icon.png"
-          alt="vehicle"
-          loading="lazy"
-          width="60"
-          height="60"
-          style="
-            ${VehicleLayer.#hex_css_map[properties.route_color] || ""}
-            transform: rotate(${properties.bearing}deg);
-          "
-        />
-        <span class="vehicle_text" style="${delayStyle}"
-          >${properties.display_name}</span
-        >
-      </div>
+      <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+      <svg
+        width="30"
+        height="40"
+        viewBox="0 0 60 80"
+        version="1.1"
+        id="svg1"
+        xmlns="http://www.w3.org/2000/svg"
+        class="vehicle_wrapper"
+        style="transform: translate(-50%, -50%) rotate(${properties.bearing}deg);"
+      >
+        <g id="layer1">
+          <g id="g1" transform="matrix(1,0,0,0.98572755,-74.932602,-77.714414)">
+            <circle
+              style="fill:#${properties.route_color};fill-opacity:1;stroke-width:0.219878"
+              id="path1"
+              cx="105"
+              cy="130"
+              r="30"
+            />
+            <path
+              style="fill:#${properties.route_color};fill-opacity:1;stroke-width:0.264583"
+              id="path3"
+              d="m 76.977614,114.21636 c -1.586634,2.808 -28.955165,2.12783 -32.18028,2.15777 -3.225115,0.0299 -30.576306,1.21799 -32.214788,-1.56008 C 10.944065,112.03599 25.217367,88.674224 26.804,85.866225 28.390634,83.058227 41.037345,58.777374 44.262461,58.74744 c 3.225115,-0.02993 16.320344,24.011989 17.958825,26.790053 1.638482,2.778064 16.342961,25.870867 14.756328,28.678867 z"
+              transform="matrix(0.80648273,0,0,0.73594934,68.78865,35.606553)"
+            />
+            <circle
+              style="fill:${fillColor};stroke-width:0.19056"
+              id="path1-3"
+              cx="104.9079"
+              cy="130.83835"
+              r="26"
+            />
+            <text
+              x="104.9079"
+              y="130.83835"
+              dominant-baseline="middle"
+              text-anchor="middle"
+              class="vehicle_text"
+              style="fill:${textColor};border-bottom:2px var(--vehicle-${delayClassName});"
+              transform="rotate(${-properties.bearing}, 104.9079, 130.83835)"
+            >
+              ${properties.display_name}
+            </text>
+            ${(properties?.next_stop?.delay || 0) >= 5 * 60
+              ? /*XML*/ `<line
+         x1="90" x2="120"
+         y1="142" y2="142"
+         stroke="var(--vehicle-${delayClassName})"
+         stroke-width="4"
+         transform="rotate(${-properties.bearing}, 104.9079, 130.83835)"
+       />`
+              : ""}
+          </g>
+        </g>
+      </svg>
     `;
+
+    // <span class="vehicle_text" style="${delayStyle}"
+    //   >${properties.display_name}</span
+    // >
 
     return L.divIcon({ html: iconHtml, iconSize: [10, 10] });
   }

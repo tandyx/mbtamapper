@@ -149,21 +149,26 @@ h4 {
 }
 
 .vehicle_text {
-  position: absolute;
-  top: 46%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-family);
+  /* position: absolute; */
+  /* top: 70%;
+  left: 50%; */
+  /* transform: translate(-50%, -50%); */
+  /* font-family: var(--font-family); */
   color: var(--light-text-color);
-  font-size: 8pt;
-  font-weight: 600;
+  z-index: 201;
+  font-size: 15pt;
+  font-family: var(--font-family);
+  font-weight: bolder;
 }
 
 .vehicle_wrapper {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+}
+
+.inline-block {
+  display: inline-block;
 }
 
 .big_img {
