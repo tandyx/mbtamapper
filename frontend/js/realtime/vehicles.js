@@ -38,9 +38,9 @@ class VehicleLayer extends BaseRealtimeLayer {
         text-decoration-thickness: 2px;
       `;
 
-    const fillColor = mixHexColors(properties.route_color, "#e6e6e6");
+    const fillColor = mixHexColors(properties.route_color, "#dfdfdf");
     const textColor =
-      getContrastYIQ(fillColor, 85) === "dark" ? "#121212" : "#f2f2f2";
+      getContrastYIQ(fillColor, 108) === "dark" ? "#121212" : "#f2f2f2";
 
     const iconHtml = /* HTML */ `
       <?xml version="1.0" encoding="UTF-8" standalone="no"?>
