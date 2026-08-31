@@ -154,7 +154,7 @@ h4 {
   left: 50%; */
   /* transform: translate(-50%, -50%); */
   /* font-family: var(--font-family); */
-  color: var(--light-text-color);
+  /* color: var(--light-text-color); */
   z-index: 201;
   font-size: 15pt;
   font-family: var(--font-family);

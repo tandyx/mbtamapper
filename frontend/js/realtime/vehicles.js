@@ -40,7 +40,7 @@ class VehicleLayer extends BaseRealtimeLayer {
 
     const fillColor = mixHexColors(properties.route_color, "#e6e6e6");
     const textColor =
-      getContrastYIQ(fillColor) === "dark" ? "#121212" : "#f2f2f2";
+      getContrastYIQ(fillColor, 85) === "dark" ? "#121212" : "#f2f2f2";
 
     const iconHtml = /* HTML */ `
       <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -82,7 +82,7 @@ class VehicleLayer extends BaseRealtimeLayer {
               dominant-baseline="middle"
               text-anchor="middle"
               class="vehicle_text"
-              style="fill:${textColor};border-bottom:2px var(--vehicle-${delayClassName});"
+              style="color:${textColor};fill:${textColor};border-bottom:2px var(--vehicle-${delayClassName});"
               transform="rotate(${-properties.bearing}, 104.9079, 130.83835)"
             >
               ${properties.display_name}
