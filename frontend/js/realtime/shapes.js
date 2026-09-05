@@ -44,12 +44,13 @@ class ShapeLayer extends BaseRealtimeLayer {
       removeMissing: true,
       interactive: options.interactive,
       getFeatureId: (f) => f.id,
-      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, RouteProperty>, l: L.Layer) => void} */
+      /**@type {(f: GeoJSON.Feature<GeoJSON.Geometry, RouteProperty>, l: L.Polyline) => void} */
       onEachFeature(f, l) {
         l.setStyle({
           color: `#${f.properties.route_color}`,
           weight: 1.3,
           renderer: polyLineRender,
+          dashArray: (!f.properties.is_active && "5, 5") || null,
         });
         l.id = f.properties.route_id;
         l.feature.properties.searchName = f.properties.route_name;
@@ -87,7 +88,7 @@ class ShapeLayer extends BaseRealtimeLayer {
           ShapeLayer.onClickArry.forEach((fn) => layer.off("click", fn));
           ShapeLayer.onClickArry.push(onClick);
           layer.on("click", onClick);
-        }.bind(this)
+        }.bind(this),
       );
     });
     return realtime;
@@ -188,7 +189,7 @@ class ShapeLayer extends BaseRealtimeLayer {
    */
   async #fillSidebar(properties) {
     const container = BaseRealtimeLayer.toggleSidebarDisplay(
-      BaseRealtimeLayer.sideBarOtherId
+      BaseRealtimeLayer.sideBarOtherId,
     );
     const sidebar = document.getElementById("sidebar");
     const timestamp = Math.round(new Date().valueOf() / 1000);
@@ -204,10 +205,10 @@ class ShapeLayer extends BaseRealtimeLayer {
     const route = (
       await fetchCache(
         `/api/route?route_id=${properties.route_id}&_=${Math.round(
-          timestamp / 15
+          timestamp / 15,
         )}&include=alerts,predictions&cache=10`,
         { cache: "force-cache" },
-        super.defaultFetchCacheOpt
+        super.defaultFetchCacheOpt,
       )
     ).at(0);
 
@@ -217,10 +218,10 @@ class ShapeLayer extends BaseRealtimeLayer {
         await fetchCache(
           `/api/route?route_id=${properties.route_id}&_=${formatTimestamp(
             timestamp,
-            "%Y%m%d"
+            "%Y%m%d",
           )}&include=stop_times,trips&cache=86400`,
           { cache: "force-cache" },
-          super.defaultFetchCacheOpt
+          super.defaultFetchCacheOpt,
         )
       ).at(0);
       route.stop_times = scheduledRoute.stop_times;
@@ -238,7 +239,8 @@ class ShapeLayer extends BaseRealtimeLayer {
     const predictions = route.predictions
       .sort(
         (a, b) =>
-          a.arrival_time - b.arrival_time || a.departure_time - b.departure_time
+          a.arrival_time - b.arrival_time ||
+          a.departure_time - b.departure_time,
       )
       // .filter((p) => (p.arrival_time || p.departure_time))
       .filter((p) => {
@@ -252,7 +254,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       .sort(
         (a, b) =>
           a.arrival_timestamp - b.arrival_timestamp ||
-          a.departure_timestamp - b.departure_timestamp
+          a.departure_timestamp - b.departure_timestamp,
       )
       .filter((st) => {
         if (predictions.map((p) => p.trip_id).includes(st.trip_id)) {
@@ -265,7 +267,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       })
       .filter(
         (st) =>
-          (st.arrival_timestamp || st.departure_timestamp) > timestamp - 300
+          (st.arrival_timestamp || st.departure_timestamp) > timestamp - 300,
       );
 
     container.innerHTML = /* HTML */ ` <div>
@@ -287,7 +289,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                   ?.filter((t) => t.trip_id === pred.trip_id)
                   ?.at(0);
                 const _ps = route.predictions.filter(
-                  (p) => p.trip_id === pred.trip_id
+                  (p) => p.trip_id === pred.trip_id,
                 );
                 const headsign =
                   pred.headsign ||
@@ -296,7 +298,7 @@ class ShapeLayer extends BaseRealtimeLayer {
                     ?.filter(
                       (p) =>
                         p.stop_sequence ===
-                        Math.max(..._ps.map((_p) => _p.stop_sequence))
+                        Math.max(..._ps.map((_p) => _p.stop_sequence)),
                     )
                     ?.at(0)?.stop_name;
                 const dom = pred.arrival_time || pred.departure_time;

@@ -125,6 +125,8 @@ class Route(Base):
             json_dict["start_date"] = min(c.start_date.timestamp() for c in calendars)
         if "end_date" in include:
             json_dict["end_date"] = max(c.end_date.timestamp() for c in calendars)
+        if "is_active" in include:
+            json_dict["is_active"] = any(c.active for c in calendars)
         if "calendars" in include:
             json_dict["calendars"] = [c.as_json() for c in self.calendars]
         return json_dict

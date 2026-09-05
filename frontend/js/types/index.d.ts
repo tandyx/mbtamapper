@@ -275,6 +275,7 @@ export interface RouteProperty {
   agency_id: string;
   line_id: LineID;
   listed_route: null;
+  is_active: boolean;
   network_id: NetworkID;
   route_color: RouteColor;
   route_desc: RouteDescEnum;
