@@ -72,7 +72,9 @@ class Calendar(Base):
 
         if isinstance(_date, dt.datetime):
             _date: dt.date = _date.date()
-        exception = next((s for s in self.calendar_dates if s.date == _date), None)
+        exception = next(
+            (s for s in self.calendar_dates if s.date.date() == _date), None
+        )
         return bool(
             self.start_date.date() <= _date <= self.end_date.date()
             and getattr(self, _date.strftime("%A").lower())

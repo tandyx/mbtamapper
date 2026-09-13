@@ -50,7 +50,7 @@ class ShapeLayer extends BaseRealtimeLayer {
           color: `#${f.properties.route_color}`,
           weight: 1.3,
           renderer: polyLineRender,
-          dashArray: (!f.properties.is_active && "5, 5") || null,
+          dashArray: (!f.properties.is_active && "5, 10") || null,
         });
         l.id = f.properties.route_id;
         l.feature.properties.searchName = f.properties.route_name;

@@ -46,16 +46,14 @@ class Shape(Base):
         Returns:
             LineString: A shapely LineString object.
         """
-
-        def _gen_ls():
-            return LineString([sp.as_point() for sp in sorted(self.shape_points)])
-
         if not use_cache:
-            return _gen_ls()
+            return LineString([sp.as_point() for sp in sorted(self.shape_points)])
 
         if self.shape_id in self.__class__.cache:
             return self.__class__.cache[self.shape_id]
-        self.__class__.cache[self.shape_id] = (linestr := _gen_ls())
+        self.__class__.cache[self.shape_id] = (
+            linestr := LineString([sp.as_point() for sp in sorted(self.shape_points)])
+        )
         return linestr
 
     def as_feature(self, *include: str) -> Feature:
@@ -87,6 +85,10 @@ class Shape(Base):
             dict[str, Any]: shape as a dictionary.
         """
 
-        return super().as_json(*include, **kwargs) | self.trips[0].route.as_json(
-            *include
-        )
+        _dict = super().as_json(*include, **kwargs)
+
+        if "is_active" in include:
+            include = tuple(x for x in include if x != "is_active")
+            _dict["is_active"] = any(t.is_active() for t in self.trips)
+
+        return _dict | self.trips[0].route.as_json(*include)
