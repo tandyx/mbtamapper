@@ -29,5 +29,8 @@
     "bundle": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs",
     "watch": "chokidar 'esbuild.config.mjs' 'frontend/**/*' -c 'npm run bundle'"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
   }
 }
