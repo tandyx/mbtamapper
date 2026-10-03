@@ -597,7 +597,7 @@ function getBaseLayerDict(additionalLayers = {}) {
   // };
   const baseLayers = {
     light: L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.pngkey=cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
       {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
