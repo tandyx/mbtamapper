@@ -196,7 +196,10 @@ class VehicleLayer extends BaseRealtimeLayer {
           ${properties.trip_short_name}
         </a>
       </div>
-      <div>${this.#customHeadsign(properties)}</div>
+      <div>
+        ${this.#customHeadsign(properties)}&nbsp;
+        ${this.#getBikeHTML(properties)}
+      </div>
       <div style="color: var(--lighter-dark-background)">
         ${properties.trip_note || ""}
       </div>
@@ -395,7 +398,6 @@ class VehicleLayer extends BaseRealtimeLayer {
     vehicleText.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)}
       <div style="margin-bottom: 3px;">
-        ${this.#getBikeHTML(properties)}
         ${super.moreInfoButton(properties.vehicle_id)}
       </div>
       ${this.#getStatusHTML(properties)}
@@ -459,7 +461,6 @@ class VehicleLayer extends BaseRealtimeLayer {
     container.innerHTML = /*HTML*/ `<div>
         ${this.#getHeaderHTML(properties)}
         ${super.getAlertsHTML(alerts)}
-        ${this.#getBikeHTML(properties)}
         ${this.#getStatusHTML(properties)}
         <div>${this.#getDelayHTML(properties)}</div>
         <div>${this.#getSpeedText(properties)}</div>

@@ -111,7 +111,10 @@ function createMap(id, routeType) {
   _sidebar = sidebar;
 
   sidebar.on("hide", () => {
-    document.documentElement.style.setProperty("--more-info-display", "unset");
+    document.documentElement.style.setProperty(
+      "--more-info-display",
+      "inline-block",
+    );
     if (isMobile) __offsetLng(map, "minus");
   });
   sidebar.on("show", () => {
@@ -263,7 +266,7 @@ function createMap(id, routeType) {
   });
 
   // easyButton.state;
-  if (map.hasLayer(facilityLayer.options.layer)) {
+  if (map.hasLayer(facilityLayer.options.layer) && map.getZoom() < 16) {
     map.removeLayer(facilityLayer.options.layer);
   }
 

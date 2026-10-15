@@ -15,34 +15,39 @@ block description %}Page not found.{% endblock %} {% block content %}
     const map = createHomepageMap("map", routeKeys, {
       htmlContent: /* HTML */ `
         <div class="titlepage">
-          <h1 style="font-size: 21pt;margin-bottom:5px">
+          <h1 style="margin-bottom:5px">
             <span class="severe-delay">404</span> - Page Not Found
           </h1>
-          <div class="my-5">{{ url }} doesn't exist.</div>
+          <h4 class="my-5"><code>{{ url }}</code> doesn't exist.</h4>
           <div style="width: 100%; text-align: center;">
             <hr />
           </div>
-          <div class="my-5">
+          <div class="my-5" style="font-size:12pt">
+            <img
+              src="/static/img/404_riolu.png"
+              loading="lazy"
+              style="width:100%;"
+            />
             <div>
               The page you are looking for might have been removed, had its name
               changed, or is temporarily unavailable.
             </div>
             <div class="my-5">
               <a href="{{ possible_url }}" class="anchor-accent"
-                >Possible Link</a
+                ><span class="fa">&#xf0c1;</span> Possible Link: {{ possible_url
+                }}</a
               >
             </div>
-            <div><a href="/" class="anchor-accent">Home</a></div>
+            <div>
+              <a href="/" class="anchor-accent">
+                <span class="fa">&#xf015;</span>
+                Home</a
+              >
+            </div>
           </div>
+
           <div class="footer" style="margin-top: 0px">
             <div class="fa link-wrapper">
-              <a
-                href="/"
-                class="tooltip"
-                data-tooltip="Home"
-                style="margin-right: 5px"
-                >&#xf015;</a
-              >
               <a id="modeToggle" class="tooltip" style="margin-right: 5px">
                 &#xf2bd;
               </a>

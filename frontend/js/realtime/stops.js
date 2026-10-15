@@ -175,7 +175,9 @@ class StopLayer extends BaseRealtimeLayer {
           ${properties.stop_name.replace("/", " / ")}
         </a>
       </div>
-      <div class="popup_subheader">${subheader}</div>
+      <div class="popup_subheader">
+        ${subheader}&nbsp;&nbsp;${this.#getWheelchairHTML(properties)}
+      </div>
       <hr />
     </div>`;
   }
@@ -216,7 +218,7 @@ class StopLayer extends BaseRealtimeLayer {
     const stopHtml = document.createElement("div");
 
     stopHtml.innerHTML = /* HTML */ `<div>
-      ${this.#getHeaderHTML(properties)} ${this.#getWheelchairHTML(properties)}
+      ${this.#getHeaderHTML(properties)}
       ${super.moreInfoButton(properties.stop_id)}
       <div>
         ${properties.routes
@@ -319,7 +321,6 @@ class StopLayer extends BaseRealtimeLayer {
 
     container.innerHTML = /* HTML */ `<div>
       ${this.#getHeaderHTML(properties)} ${super.getAlertsHTML(alerts)}
-      ${this.#getWheelchairHTML(properties)}
       <div>
         ${properties.routes
           .map((route) => {

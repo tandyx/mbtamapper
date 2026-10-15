@@ -27,7 +27,7 @@
   --vehicle-moderate-delay: #ffbc5d;
   --vehicle-severe-delay: #ff1100;
   /* "severe-delay" | "moderate-delay" | "slight-delay" | "on-time" */
-  --more-info-display: initial;
+  --more-info-display: inline-block;
 }
 
 [data-mode="dark"] {
@@ -309,7 +309,7 @@ h1 {
   position: absolute;
   z-index: 1;
   background-color: var(--background-color);
-  background: var(--background-color-blur);
+  /* background: var(--background-color-blur); */
   -webkit-backdrop-filter: blur(var(--blur-radius));
   backdrop-filter: blur(var(--blur-radius));
 
@@ -635,11 +635,13 @@ table.sortable th:hover {
 }
 
 .more-info-button {
-  /* border: 1px solid;
+  border: 1px solid;
   border-radius: var(--border-radius);
-  padding: 2px; */
+  padding: 2px;
   display: var(--more-info-display);
   cursor: pointer !important;
+  width: 100%;
+  margin-bottom: 2px;
 }
 
 .sidebar-title {
@@ -769,10 +771,10 @@ table.sortable th:hover {
     margin: 20px 0px 0px 0px;
     text-align: center;
     .footer-text {
-      font-size: 8pt;
+      font-size: 10pt;
     }
     .footer-text-sm {
-      font-size: 5pt;
+      font-size: 8pt;
     }
     .text-left {
       text-align: left !important;

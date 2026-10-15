@@ -20,6 +20,7 @@ const _icons = {
   space: "&nbsp;",
   clock: "&#xf017;",
   track: "&#xf074;",
+  chevronRight: "&#xf054;",
 };
 
 /** @typedef {typeof _icons} Icons */
@@ -142,7 +143,7 @@ class BaseRealtimeLayer {
       function (id) {
         const feature = fn.update[id];
         updateLayer.call(this, id, feature);
-      }.bind(this)
+      }.bind(this),
     );
   }
 
@@ -268,7 +269,7 @@ class BaseRealtimeLayer {
       if (!tbody) continue;
       tbody.classList.toggle(
         "hidden",
-        localStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true"
+        localStorage.getItem(`route-${el.dataset.routeId}-hidden`) === "true",
       );
 
       const carrot = el.querySelector(`.fa`);
@@ -297,26 +298,27 @@ class BaseRealtimeLayer {
     const _id = `infobutton-${idfield}`;
     let _icon = loading
       ? "<div style='display: inline-block;' class='loader'></div>"
-      : /* HTML */ `<span
-          class="fa tooltip"
-          data-tooltip="View Info"
-          style="cursor: pointer;"
-          >${BaseRealtimeLayer.iconSpacing("prediction", 3)}</span
+      : /* HTML */ `<span class="fa tooltip" data-tooltip="View Info"
+          >${BaseRealtimeLayer.iconSpacing("prediction", 1)}</span
         >`;
     if (alert && !loading)
       _icon += /* HTML */ `<span
         class="fa slight-delay tooltip"
-        data-tooltip="open alerts"
-        style="cursor: pointer;"
-        >${BaseRealtimeLayer.iconSpacing("alert")}</span
+        data-tooltip="Open Alerts"
+        >${BaseRealtimeLayer.icons.alert}</span
       >`;
 
-    const _html = `<span
+    const _html = /*HTML*/ `<span
       name="${_id}"
-      class="more-info-button"
+      class="more-info-button centered-parent"
       onclick="_sidebar.show()"
+      style="text-align:center;"
     >
-      ${_icon}
+      View Additional Information ${_icon}
+      <span
+        class="fa"
+        >${BaseRealtimeLayer.icons.chevronRight}</span
+      >
     </span>`;
 
     if (options.parent) {
@@ -347,7 +349,7 @@ class BaseRealtimeLayer {
       const nowHidden = !!tbody.classList.toggle(`hidden`);
       localStorage.setItem(
         `route-${this.dataset.routeId}-hidden`,
-        nowHidden.toString()
+        nowHidden.toString(),
       );
       const carrot = this.querySelector(`.fa`);
       if (!carrot) return;
@@ -435,7 +437,7 @@ class BaseRealtimeLayer {
         Number(direction_id) + 1 === pc_num) ||
       Number.isNaN(pc_num) ||
       this.trackExceptions.filter(
-        (a) => a.stop_id === stop_id && a.direction_id === direction_id
+        (a) => a.stop_id === stop_id && a.direction_id === direction_id,
       ).length
     ) {
       return "";

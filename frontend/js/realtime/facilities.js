@@ -76,29 +76,32 @@ class FacilityLayer extends BaseRealtimeLayer {
       </p>
       <p class="popup_subheader">
         <a href="${properties["contact-url"]}" rel="noopener" target="_blank">
-          ${properties.operator}
+          ${properties.operator || "unknown operator"} @
+          ${properties.contact || "unknown contact"}
         </a>
       </p>
       <hr />
-      <p>
-        <span class="fa tooltip" data-tooltip="${properties.capacity} spots"
-          >${BaseRealtimeLayer.icons.parking}</span
-        >${BaseRealtimeLayer.icons.space}
-        ${capac_acc !== "0" && capac_acc
-          ? `
-        <span class='fa tooltip' data-tooltip='${capac_acc} spots'>${BaseRealtimeLayer.icons.wheelchair}</span>
-      `
-          : ""}
-      </p>
+      <span class="fa">${BaseRealtimeLayer.icons.parking}</span
+      >&nbsp;${properties.capacity} Spots
+      ${capac_acc !== "0" && capac_acc
+        ? `| <span class="fa">${BaseRealtimeLayer.icons.wheelchair}</span
+      >&nbsp;${capac_acc} Accessible spots`
+        : ""}
       <p>${properties["fee-daily"]}</p>
-      <p>
+      <p
+        class="${properties["payment-app"] || properties["payment-app-id"]
+          ? ""
+          : "hidden"}"
+      >
         <a href="${properties["payment-app-url"]}">
           ${properties["payment-app"]} ${properties["payment-app-id"]}
         </a>
       </p>
       <div class="popup_footer">
-        <p>${properties.facility_id} @ ${properties.contact}</p>
-        <p>${properties["contact-phone"]}</p>
+        <p>
+          ${properties.facility_id} @ ${properties.owner || "unknown owner"}
+          ${properties["contact-phone"] || ", unknown phone number"}
+        </p>
         <p>${formatTimestamp(properties.timestamp, "%Y/%m/%d %I:%M %P")}</p>
       </div>
     `;

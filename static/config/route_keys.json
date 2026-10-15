@@ -17,7 +17,7 @@
     "rapid_transit": {
         "_key": "rapid_transit",
         "title": "Rapid Transit | mbtamapper",
-        "description": "A real-time interactive map for tracking MBTA subway and silver line vehicles. View live locations, routes, and service alerts.",
+        "description": "A real-time interactive map for tracking MBTA subway, commuter rail and silver line vehicles. View live locations, routes, and service alerts.",
         "icon": "/static/img/rapid_transit.ico",
         "image": "/static/img/rapid_transit.png",
         "fa_unicode": "&#xf239;",
@@ -26,6 +26,7 @@
         "sort_order": 1,
         "route_types": [
             "0",
+            "2",
             "1",
             "4"
         ]
@@ -85,6 +86,7 @@
         "route_types": [
             "0",
             "1",
+            "3",
             "2",
             "4"
         ]

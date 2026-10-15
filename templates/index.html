@@ -12,7 +12,15 @@ content %}
     const map = createHomepageMap("map", routeKeys, {
       htmlContent: /* HTML */ `
         <div class="titlepage">
-          <h1 id="titleCard">mbtamapper</h1>
+          <h1 id="titleCard centered-parent" style="text-wrap: nowrap;">
+            <img
+              src="/static/img/mbta.png"
+              alt="icon"
+              class="inline-img"
+              loading="lazy"
+              style="margin-bottom: -3px;width:35px;height:35px;"
+            />&nbsp;mbtamapper
+          </h1>
           <h4>Realtime Tracking of MBTA Vehicles</h4>
           <table>
             ${keys
