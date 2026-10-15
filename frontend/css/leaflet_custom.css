@@ -80,6 +80,14 @@
   box-shadow: var(--box-shadow) !important;
 }
 
+@media screen {
+}
+.leaflet-popup-content-wrapper {
+  @media (max-width: 786px) {
+    width: 355px;
+  }
+}
+
 .leaflet-control-layers-expanded,
 .leaflet-control-layers,
 .leaflet-popup-content-wrapper,
