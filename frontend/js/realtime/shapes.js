@@ -48,7 +48,7 @@ class ShapeLayer extends BaseRealtimeLayer {
       onEachFeature(f, l) {
         l.setStyle({
           color: `#${f.properties.route_color}`,
-          weight: 1.3,
+          weight: 2,
           renderer: polyLineRender,
           dashArray: (!f.properties.is_active && "5, 10") || null,
         });

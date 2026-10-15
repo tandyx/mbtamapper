@@ -7,7 +7,6 @@
   --tooltip-background: #333;
 
   --accent-color: #00acff;
-  --backdrop-blur: 15px;
   --border-radius: 5px;
   --subway-color: #ed8b00;
   --rapid-transit-color: #da291c;
@@ -17,7 +16,7 @@
   --all-routes-color: #7c878e;
   --nav-border-height: 2px;
   --mobile-threshold: 768px;
-  --blur-radius: 25px;
+  --blur-radius: 50px;
   --on-time: #4caf50;
   --slight-delay: #d79e00;
   --moderate-delay: #af6c29;
@@ -35,14 +34,14 @@
   --text-color: var(--light-text-color);
   --map-background-color: #262626;
   --background-color: rgb(13, 13, 13);
-  --background-color-blur: rgba(13, 13, 13, 0.65);
+  --background-color-blur: rgba(13, 13, 13, 0.05);
   --box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
 }
 [data-mode="light"] {
   --text-color: var(--dark-text-color);
   --map-background-color: #d4dadc;
   --background-color: rgba(255, 255, 255, 1);
-  --background-color-blur: rgba(255, 255, 255, 0.5);
+  --background-color-blur: rgba(255, 255, 255, 0.05);
   --box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
 }
 

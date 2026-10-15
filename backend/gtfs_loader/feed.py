@@ -431,8 +431,6 @@ class Feed:
             FeatureCollection: vehicles as FeatureCollection
         """
         session = self._get_session(readonly=True)
-        if key == "ferry":  # no ferry data :(
-            return gj.FeatureCollection([])
         _routes: list[str] = []
         if key == "rapid_transit":
             _routes.extend(self.SL_ROUTES)

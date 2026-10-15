@@ -595,22 +595,23 @@ function getBaseLayerDict(additionalLayers = {}) {
   //   attribution:
   //     "<a href='https://www.openstreetmap.org/copyright' target='_blank' rel='noopener'>open street map</a> @ <a href='https://carto.com/attribution' target='_blank' rel='noopener'>carto</a>",
   // };
+  /**@type {L.TileLayerOptions}*/
+  const options = {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 20,
+    apikey: "cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
+  };
+
   const baseLayers = {
     light: L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
-      {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: "abcd",
-      },
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key={apikey}",
+      options,
     ),
     dark: L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=cb1_25q2_1_f26a465a97e08f8b8fe23d0d",
-      {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: "abcd",
-      },
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key={apikey}",
+      options,
     ),
   };
 
